@@ -172,6 +172,10 @@ module
             [in] Int32 flags,
             [out] IObjectContainer** infos);
 
+        PerformDexOpt(
+            [in] String capsuleName,
+            [out] Boolean* result);
+
         /**
          * This implements getInstalledPackages via a "last returned row"
          * mechanism that is not exposed in the API. This is to get around the IPC

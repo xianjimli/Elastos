@@ -42,5 +42,8 @@ module
 
         SetExported(
             [in] Boolean exported);
+
+        GetIconResource(
+            [out] Int32* icon);
     }
 }

@@ -290,3 +290,10 @@ ECode CServiceInfo::WriteToParcel(
     dest->WriteString(mPermission);
     return NOERROR;
 }
+
+ECode CServiceInfo::GetIconResource(
+    /* [out] */ Int32* icon)
+{
+    VALIDATE_NOT_NULL(icon);
+    return ComponentInfo::GetIconResource(icon);
+}

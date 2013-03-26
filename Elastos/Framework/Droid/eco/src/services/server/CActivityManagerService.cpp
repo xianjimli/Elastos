@@ -226,7 +226,8 @@ CActivityManagerService::CActivityManagerService() :
     mOrigWaitForDebugger(FALSE),
     mProcessLimit(0),
     mBooted(FALSE),
-    mBooting(FALSE)
+    mBooting(FALSE),
+    mLaunchWarningShown(FALSE)
 {
     CRemoteCallbackList::New((IRemoteCallbackList**)&mWatchers);
     AutoPtr<IApartmentHelper> helper;
@@ -648,6 +649,20 @@ ProcessRecord* CActivityManagerService::GetProcessRecordLocked(
     return proc;
 }
 
+void CActivityManagerService::EnsurePackageDexOpt(
+    /* [in] */ const String& packageName)
+{
+    AutoPtr<ICapsuleManager> pm = mMainStack->GetCapsuleManager();  // = AppGlobals.getPackageManager();
+//    try {
+        Boolean result;
+        pm->PerformDexOpt(packageName, &result);
+        if (result) {
+            mDidDexOpt = TRUE;
+        }
+//    } catch (RemoteException e) {
+//    }
+}
+
 Boolean CActivityManagerService::IsNextTransitionForward()
 {
     Int32 transit;
@@ -1059,7 +1074,6 @@ void CActivityManagerService::StartSetupActivityLocked()
 //            }
 //        }
 //    }
-
 }
 
 void CActivityManagerService::ReportResumedActivityLocked(
@@ -4613,7 +4627,7 @@ ECode CActivityManagerService::FinishOtherInstances(
 ECode CActivityManagerService::ReportThumbnail(
     /* [in] */ IBinder* token,
     /* [in] */ IBitmap* thumbnail,
-    /* [in] */ const ArrayOf<Char8>& description)
+    /* [in] */ ICharSequence* description)
 {
 //    //System.out.println("Report thumbnail for " + token + ": " + thumbnail);
 //    final long origId = Binder.clearCallingIdentity();
@@ -4626,7 +4640,7 @@ void CActivityManagerService::SendPendingThumbnail(
     /* [in] */ CActivityRecord* r,
     /* [in] */ IBinder* token,
     /* [in] */ IBitmap* thumbnail,
-    /* [in] */ ArrayOf<Char8>* description,
+    /* [in] */ ICharSequence* description,
     /* [in] */ Boolean always)
 {
     TaskRecord* task = NULL;
@@ -4676,7 +4690,7 @@ void CActivityManagerService::SendPendingThumbnail(
         for (; it != receivers->End(); ++it) {
             PendingThumbnailsRecord* pr = *it;
             if (FAILED(pr->mReceiver->NewThumbnail(
-                    task != NULL ? task->mTaskId : -1, thumbnail, *description))) {
+                    task != NULL ? task->mTaskId : -1, thumbnail, description))) {
                 goto SendPendingThumbnailException;
             }
             if (pr->mFinished) {

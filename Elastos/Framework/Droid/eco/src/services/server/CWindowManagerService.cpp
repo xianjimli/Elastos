@@ -234,21 +234,18 @@ ECode CWindowManagerService::FadeInOutAnimation::GetInterfaceID(
 CWindowManagerService::StartingData::StartingData(
     /* [in] */ const String& cap,
     /* [in] */ Int32 theme,
-    /* [in] */ const ArrayOf<Char8>& nonLocalizedLabel,
+    /* [in] */ ICharSequence* nonLocalizedLabel,
     /* [in] */ Int32 labelRes,
     /* [in] */ Int32 icon)
     : mCap(cap)
     , mTheme(theme)
     , mLabelRes(labelRes)
     , mIcon(icon)
-{
-    mNonLocalizedLabel = nonLocalizedLabel.Clone();
-}
+    , mNonLocalizedLabel(nonLocalizedLabel)
+{}
 
 CWindowManagerService::StartingData::~StartingData()
-{
-    ArrayOf<Char8>::Free(mNonLocalizedLabel);
-}
+{}
 
 CWindowManagerService::AppWindowToken::AppWindowToken(
     /* [in] */ CWindowManagerService* wmService,
@@ -1912,7 +1909,7 @@ ECode CWindowManagerService::SetAppStartingWindow(
     /* [in] */ IBinder* token,
     /* [in] */ const String& cap,
     /* [in] */ Int32 theme,
-    /* [in] */ const ArrayOf<Char8> & nonLocalizedLabel,
+    /* [in] */ ICharSequence* nonLocalizedLabel,
     /* [in] */ Int32 labelRes,
     /* [in] */ Int32 icon,
     /* [in] */ IBinder* transferFrom,
@@ -10504,7 +10501,7 @@ ECode CWindowManagerService::HandleAddStarting(
     AutoPtr<IView> view;
     ECode ec = mPolicy->AddStartingWindow(
         wtoken->mToken, sd->mCap,
-        sd->mTheme, *sd->mNonLocalizedLabel, sd->mLabelRes,
+        sd->mTheme, sd->mNonLocalizedLabel, sd->mLabelRes,
         sd->mIcon, (IView**)&view);
 
     if (FAILED(ec)) {

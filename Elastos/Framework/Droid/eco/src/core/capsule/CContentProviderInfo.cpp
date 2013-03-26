@@ -442,3 +442,10 @@ ECode CContentProviderInfo::WriteToParcel(
     dest->WriteBoolean(mIsSyncable);
     return NOERROR;
 }
+
+ECode CContentProviderInfo::GetIconResource(
+    /* [out] */ Int32* icon)
+{
+    VALIDATE_NOT_NULL(icon);
+    return ComponentInfo::GetIconResource(icon);
+}

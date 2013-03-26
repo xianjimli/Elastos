@@ -302,5 +302,8 @@ module
 
         SetSoftInputMode(
             [in] Int32 mode);
+
+        GetThemeResource(
+            [out] Int32* theme);
     }
 }

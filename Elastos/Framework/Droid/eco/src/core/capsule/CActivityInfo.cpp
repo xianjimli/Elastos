@@ -430,3 +430,18 @@ ECode CActivityInfo::WriteToParcel(
     return NOERROR;
 }
 
+ECode CActivityInfo::GetIconResource(
+    /* [out] */ Int32* icon)
+{
+    VALIDATE_NOT_NULL(icon);
+    return ComponentInfo::GetIconResource(icon);
+}
+
+ECode CActivityInfo::GetThemeResource(
+    /* [out] */ Int32* theme)
+{
+    VALIDATE_NOT_NULL(theme);
+    if (mTheme !=0) *theme = mTheme;
+    else *theme = ComponentInfo::mApplicationInfo->mTheme;
+    return NOERROR;
+}

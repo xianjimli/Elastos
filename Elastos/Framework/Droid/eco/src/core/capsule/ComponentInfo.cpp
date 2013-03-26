@@ -75,6 +75,17 @@ ECode ComponentInfo::WriteToParcel(
     return NOERROR;
 }
 
+ECode ComponentInfo::GetIconResource(
+    /* [out] */ Int32* icon)
+{
+    VALIDATE_NOT_NULL(icon);
+    if(ComponentInfo::mIcon !=0 )
+        *icon = ComponentInfo::mIcon;
+    else
+        *icon = mApplicationInfo->mIcon;
+    return NOERROR;
+}
+
 AutoPtr<IApplicationInfo> ComponentInfo::GetApplicationInfo()
 {
     return (IApplicationInfo*)mApplicationInfo.Get();

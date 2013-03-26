@@ -1625,6 +1625,10 @@ public:
         /* [in] */ Int32 flags,
         /* [out, callee] */ IObjectContainer** infos);
 
+    CARAPI PerformDexOpt(
+        /* [in] */ const String& capsuleName,
+        /* [out] */ Boolean* result);
+
     CARAPI NextCapsuleToClean(
         /* [in] */ const String& lastCapsule,
         /* [out] */ String* nextCapsule);
@@ -2155,6 +2159,10 @@ private:
     CARAPI_(Boolean) ClearCapsulePreferredActivitiesLP(
         /* [in] */ const String& capsuleName);
 
+    CARAPI_(Int32) PerformDexOptLI(
+        /* [in] */ CapsuleParser::Capsule* cap,
+        /* [in] */ Boolean forceDex);
+
     CARAPI SetEnabledSetting(
         /* [in] */ const String& capsuleName,
         /* [in] */ const String& className,
@@ -2426,6 +2434,10 @@ public:/*package*/
     HashMap<Int32, PostInstallData*> mRunningInstalls;
     Int32 mNextInstallToken; // nonzero; will be wrapped back to 1 when ++ overflows
 
+    static const Int32 DEX_OPT_SKIPPED = 0;
+    static const Int32 DEX_OPT_PERFORMED = 1;
+    static const Int32 DEX_OPT_FAILED = -1;
+
     // ------- apps on sdcard specific code -------
     static const Boolean DEBUG_SD_INSTALL = FALSE;
 
@@ -2507,6 +2519,5 @@ private:
     Boolean mBound;
     List< AutoPtr<HandlerParams> > mPendingInstalls;
 };
-
 
 #endif // __CCAPSULEMANAGER_H__

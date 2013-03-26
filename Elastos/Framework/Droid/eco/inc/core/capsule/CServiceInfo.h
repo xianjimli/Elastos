@@ -128,6 +128,9 @@ public:
     CARAPI WriteToParcel(
         /* [in] */ IParcel* dest);
 
+    CARAPI GetIconResource(
+        /* [out] */ Int32* icon);
+
 public:
     /**
      * Optional name of a permission required to be able to access this

@@ -2,6 +2,7 @@
 module
 {
     interface IBitmap;
+    interface ICharSequence;
 
     /**
      * System private API for receiving updated thumbnails from a checkpoint.
@@ -12,7 +13,7 @@ module
         NewThumbnail(
             [in] Int32 id,
             [in] IBitmap* thumbnail,
-            [in] ArrayOf<Char8> description);
+            [in] ICharSequence* description);
 
         Finished();
     }

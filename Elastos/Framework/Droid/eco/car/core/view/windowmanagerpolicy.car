@@ -92,6 +92,7 @@ module
     interface IView;
     interface IRect;
     interface IApplicationToken;
+    interface ICharSequence;
 
     /**
      * Interface to the Window Manager state associated with a particular
@@ -438,7 +439,7 @@ module
             [in] IBinder* appToken,
             [in] String capsuleName,
             [in] Int32 theme,
-            [in] ArrayOf<Char8> nonLocalizedLabel,
+            [in] ICharSequence* nonLocalizedLabel,
             [in] Int32 labelRes,
             [in] Int32 icon,
             [out] IView** window);

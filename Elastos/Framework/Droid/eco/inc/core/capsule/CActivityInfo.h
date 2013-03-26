@@ -174,6 +174,19 @@ public:
     CARAPI WriteToParcel(
         /* [in] */ IParcel* dest);
 
+    CARAPI GetIconResource(
+        /* [out] */ Int32* icon);
+
+    /**
+    * Return the theme resource identifier to use for this activity.  If
+    * the activity defines a theme, that is used; else, the application
+    * theme is used.
+    *
+    * @return The theme associated with this activity.
+    */
+    CARAPI GetThemeResource(
+        /* [out] */ Int32* theme);
+
 public:
     /**
      * A style resource identifier (in the package's resources) of this

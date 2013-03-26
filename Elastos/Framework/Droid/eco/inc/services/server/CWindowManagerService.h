@@ -851,7 +851,7 @@ private:
 
         // Used to improve performance of toString()
         String mStringNameCache;
-        ArrayOf<Char8>* mLastTitle;
+        AutoPtr<ICharSequence> mLastTitle;
         Boolean mWasPaused;
     };
 
@@ -886,7 +886,7 @@ private:
         StartingData(
             /* [in] */ const String& cap,
             /* [in] */ Int32 theme,
-            /* [in] */ const ArrayOf<Char8> & nonLocalizedLabel,
+            /* [in] */ ICharSequence* nonLocalizedLabel,
             /* [in] */ Int32 labelRes,
             /* [in] */ Int32 icon);
 
@@ -895,7 +895,7 @@ private:
     public:
         String mCap;
         Int32 mTheme;
-        ArrayOf<Char8>* mNonLocalizedLabel;
+        AutoPtr<ICharSequence> mNonLocalizedLabel;
         Int32 mLabelRes;
         Int32 mIcon;
     };
@@ -1242,7 +1242,7 @@ public:
         /* [in] */ IBinder* token,
         /* [in] */ const String& cap,
         /* [in] */ Int32 theme,
-        /* [in] */ const ArrayOf<Char8> & nonLocalizedLabel,
+        /* [in] */ ICharSequence* nonLocalizedLabel,
         /* [in] */ Int32 labelRes,
         /* [in] */ Int32 icon,
         /* [in] */ IBinder* transferFrom,

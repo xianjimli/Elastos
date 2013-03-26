@@ -26,6 +26,16 @@ public:
     CARAPI WriteToParcel(
         /* [in] */ IParcel* dest);
 
+    /**
+     * Return the icon resource identifier to use for this component.  If
+     * the component defines an icon, that is used; else, the application
+     * icon is used.
+     * 
+     * @return The icon associated with this component.
+     */
+    CARAPI GetIconResource(
+        /* [out] */ Int32* icon);
+
 protected:
     /**
      * @hide

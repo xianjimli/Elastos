@@ -194,14 +194,13 @@ Int32 Installer::DexOpt(
     /* [in] */ Int32 uid,
     /* [in] */ Boolean isPublic)
 {
-//    StringBuilder builder = new StringBuilder("dexopt");
-//    builder.append(' ');
-//    builder.append(apkPath);
-//    builder.append(' ');
-//    builder.append(uid);
-//    builder.append(isPublic ? " 1" : " 0");
-//    return execute(builder.toString());
-    return -1;
+    StringBuffer builder("dexopt");
+    builder += ' ';
+    builder += apkPath;
+    builder += ' ';
+    builder += uid;
+    builder += isPublic ? " 1" : " 0";
+    return Execute(builder);
 }
 
 Int32 Installer::MoveDex(

@@ -1,6 +1,9 @@
 
 #include "server/CActivityRecord.h"
+#include "server/AttributeCache.h"
 #include "server/CActivityManagerService.h"
+#include "os/Process.h"
+
 
 CActivityRecord::CActivityRecord() :
     mRealActivity(NULL),
@@ -55,9 +58,11 @@ ECode CActivityRecord::Init(
     mInfo = aInfo;
     mLaunchedFromUid = launchedFromUid;
     mIntent = intent;
-//    shortComponentName = _intent.getComponent().flattenToShortString();
-//    resolvedType = _resolvedType;
-//    componentSpecified = _componentSpecified;
+    AutoPtr<IComponentName> component;
+    intent->GetComponent((IComponentName**)&component);
+    component->FlattenToShortString(&mShortComponentName);
+    mResolvedType = resolvedType;
+    mComponentSpecified = componentSpecified;
     mConfiguration = configuration;
     mResultTo = resultTo;
     mResultWho = resultWho;
@@ -78,32 +83,30 @@ ECode CActivityRecord::Init(
             mInfo->GetCapsuleName(&cname);
             CComponentName::New(cname, target, (IComponentName**)&mRealActivity);
         }
-//        taskAffinity = aInfo.taskAffinity;
-//        stateNotNeeded = (aInfo.flags&
-//                ActivityInfo.FLAG_STATE_NOT_NEEDED) != 0;
-//        baseDir = aInfo.applicationInfo.sourceDir;
-//        resDir = aInfo.applicationInfo.publicSourceDir;
-//        dataDir = aInfo.applicationInfo.dataDir;
-//        nonLocalizedLabel = aInfo.nonLocalizedLabel;
-//        labelRes = aInfo.labelRes;
-//        if (nonLocalizedLabel == null && labelRes == 0) {
-//            ApplicationInfo app = aInfo.applicationInfo;
-//            nonLocalizedLabel = app.nonLocalizedLabel;
-//            labelRes = app.labelRes;
-//        }
-//        icon = aInfo.getIconResource();
-//        theme = aInfo.getThemeResource();
+        mInfo->GetTaskAffinity(&mTaskAffinity);
         Int32 flags;
         mInfo->GetFlags(&flags);
+        mStateNotNeeded = (flags & ActivityInfo_FLAG_STATE_NOT_NEEDED) != 0;
         AutoPtr<IApplicationInfo> appInfo;
         mInfo->GetApplicationInfo((IApplicationInfo**)&appInfo);
+        appInfo->GetSourceDir(&mBaseDir);
+        appInfo->GetPublicSourceDir(&mResDir);
+        appInfo->GetDataDir(&mDataDir);
+        mInfo->GetNonLocalizedLabel((ICharSequence**)&mNonLocalizedLabel);
+        mInfo->GetLabelRes(&mLabelRes);
+        if (mNonLocalizedLabel == NULL && mLabelRes == 0) {
+            AutoPtr<IApplicationInfo> app = appInfo;
+            app->GetNonLocalizedLabel((ICharSequence**)&mNonLocalizedLabel);
+            app->GetLabelRes(&mLabelRes);
+        }
+        mInfo->GetIconResource(&mIcon);
+        mInfo->GetThemeResource(&mTheme);
         if ((flags & ActivityInfo_FLAG_MULTIPROCESS) != 0
                 && caller != NULL) {
             Int32 appUid, aUid;
             appInfo->GetUid(&appUid);
             caller->mInfo->GetUid(&aUid);
-            if  (/*mInfo->mApplicationInfo->mUid == Process.SYSTEM_UID
-                        ||*/ appUid == aUid) {
+            if  (appUid == Process::SYSTEM_UID || appUid == aUid) {
                 mProcessName = caller->mProcessName;
             }
             else {
@@ -120,7 +123,6 @@ ECode CActivityRecord::Init(
 
         appInfo->GetCapsuleName(&mCapsuleName);
         mLaunchMode = mode;
-
 //        AttributeCache.Entry ent = AttributeCache.instance().get(packageName,
 //                theme != 0 ? theme : android.R.style.Theme,
 //                com.android.internal.R.styleable.Window);
@@ -128,32 +130,45 @@ ECode CActivityRecord::Init(
 //                com.android.internal.R.styleable.Window_windowIsFloating, false)
 //                && !ent.array.getBoolean(
 //                com.android.internal.R.styleable.Window_windowIsTranslucent, false);
-
-//        if (!_componentSpecified || _launchedFromUid == Process.myUid()
-//                || _launchedFromUid == 0) {
-//            // If we know the system has determined the component, then
-//            // we can consider this to be a home activity...
-//            if (Intent.ACTION_MAIN.equals(_intent.getAction()) &&
-//                    _intent.hasCategory(Intent.CATEGORY_HOME) &&
-//                    _intent.getCategories().size() == 1 &&
-//                    _intent.getData() == null &&
-//                    _intent.getType() == null &&
-//                    (intent.getFlags()&Intent.FLAG_ACTIVITY_NEW_TASK) != 0 &&
-//                    !"android".equals(realActivity.getClassName())) {
-//                // This sure looks like a home activity!
-//                // Note the last check is so we don't count the resolver
-//                // activity as being home...  really, we don't care about
-//                // doing anything special with something that comes from
-//                // the core framework package.
-//                isHomeActivity = true;
-//            } else {
-//                isHomeActivity = false;
-//            }
-//        } else {
-//            isHomeActivity = false;
-//        }
+        if (!mComponentSpecified || mLaunchedFromUid == Process::MyUid()
+                || mLaunchedFromUid == 0) {
+            // If we know the system has determined the component, then
+            // we can consider this to be a home activity...
+            String action;
+            mIntent->GetAction(&action);
+            Boolean category;
+            mIntent->HasCategory(String(Intent_CATEGORY_HOME), &category);
+            ArrayOf<String>* categories;
+            mIntent->GetCategories((ArrayOf<String>**)&categories);
+            AutoPtr<IUri> data;
+            mIntent->GetData((IUri**)&data);
+            String type;
+            mIntent->GetType(&type);
+            Int32 flags;
+            mIntent->GetFlags(&flags);
+            String name;
+            mRealActivity->GetClassName(&name);
+            if (String(Intent_ACTION_MAIN).Equals(action) && category &&
+                categories->GetLength() == 1 &&
+                data == NULL &&
+                type == NULL &&
+                (flags & Intent_FLAG_ACTIVITY_NEW_TASK) != 0 &&
+                String("android").Equals(name)) {
+                // This sure looks like a home activity!
+                // Note the last check is so we don't count the resolver
+                // activity as being home...  really, we don't care about
+                // doing anything special with something that comes from
+                // the core framework package.
+                mIsHomeActivity = TRUE;
+            }
+            else {
+                mIsHomeActivity = FALSE;
+            }
+        }
+        else {
+            mIsHomeActivity = FALSE;
+        }
     }
-
     return NOERROR;
 }
 

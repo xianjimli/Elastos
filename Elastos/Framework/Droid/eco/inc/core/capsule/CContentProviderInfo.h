@@ -180,6 +180,9 @@ public:
     CARAPI WriteToParcel(
         /* [in] */ IParcel* dest);
 
+    CARAPI GetIconResource(
+        /* [out] */ Int32* icon);
+
 public:
     /** The name provider is published under content:// */
     String mAuthority;

@@ -511,7 +511,7 @@ public:
         String mScanPath;
 
         // For use by package manager to keep track of where it has done dexopt.
-//	        public boolean mDidDexOpt;
+	    Boolean mDidDexOpt;
 
         // User set enabled state.
         Int32 mSetEnabled;

@@ -614,7 +614,7 @@ public:
     CARAPI ReportThumbnail(
         /* [in] */ IBinder* token,
         /* [in] */ IBitmap* thumbnail,
-        /* [in] */ const ArrayOf<Char8>& description);
+        /* [in] */ ICharSequence* description);
 
     CARAPI GetContentProvider(
         /* [in] */ IApplicationApartment* caller,
@@ -916,6 +916,9 @@ private:
         /* [in] */ const String& processName,
         /* [in] */ Int32 uid);
 
+    CARAPI_(void) EnsurePackageDexOpt(
+        /* [in] */ const String& packageName);
+
     CARAPI_(Boolean) IsNextTransitionForward();
 
     CARAPI_(ProcessRecord*) StartProcessLocked(
@@ -1125,7 +1128,7 @@ private:
         /* [in] */ CActivityRecord* r,
         /* [in] */ IBinder* token,
         /* [in] */ IBitmap* thumbnail,
-        /* [in] */ ArrayOf<Char8>* description,
+        /* [in] */ ICharSequence* description,
         /* [in] */ Boolean always);
 
     CARAPI GenerateApplicationProvidersLocked(
@@ -1800,6 +1803,7 @@ private:
     Boolean mSystemReady;
     Boolean mWaitingUpdate;
     Boolean mDidUpdate;
+    Boolean mLaunchWarningShown;
 
     Boolean mCheckedForSetup;
 
@@ -1851,6 +1855,12 @@ private:
      * N procs were started.
      */
     Int32* mProcDeaths;
+
+    /**
+     * This is set if we had to do a delayed dexopt of an app before launching
+     * it, to increasing the ANR timeouts in that case.
+     */
+    Boolean mDidDexOpt;
 
     String mDebugApp;
     Boolean mWaitForDebugger;

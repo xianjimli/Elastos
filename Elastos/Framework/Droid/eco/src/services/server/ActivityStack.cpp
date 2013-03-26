@@ -3,6 +3,7 @@
 #include "utils/EventLogTags.h"
 #include "os/SystemClock.h"
 #include "os/Process.h"
+#include "os/Binder.h"
 #include "view/WindowManagerPolicy.h"
 #include <StringBuffer.h>
 #include <Slogger.h>
@@ -253,6 +254,7 @@ ECode ActivityStack::RealStartActivityLocked(
     /* [in] */ Boolean checkConfig,
     /* [out] */ Boolean* succeeded)
 {
+    VALIDATE_NOT_NULL(succeeded)
     r->StartFreezingScreenLocked(app, 0);
     mService->mWindowManager->SetAppVisibility(r, TRUE);
 
@@ -326,7 +328,11 @@ ECode ActivityStack::RealStartActivityLocked(
     if (r->mIsHomeActivity) {
         mService->mHomeProcess = app;
     }
-//    mService.ensurePackageDexOpt(r.intent.getComponent().getPackageName());
+    AutoPtr<IComponentName> component;
+    r->mIntent->GetComponent((IComponentName**)&component);
+    String cname;
+    component->GetCapsuleName(&cname);
+    mService->EnsurePackageDexOpt(cname);
     ECode ec = app->mAppApartment->ScheduleLaunchActivity(
             r->mIntent, (IBinder*)(CActivityRecord*)r,
             0 /* System.identityHashCode(r) */,
@@ -1071,34 +1077,43 @@ Boolean ActivityStack::ResumeTopActivityLocked(
         return FALSE;
     }
 
-//    // Okay we are now going to start a switch, to 'next'.  We may first
-//    // have to pause the current activity, but this is an important point
-//    // where we have decided to go to 'next' so keep track of that.
-//    // XXX "App Redirected" dialog is getting too many false positives
-//    // at this point, so turn off for now.
-//    if (false) {
-//        if (mLastStartedActivity != null && !mLastStartedActivity.finishing) {
-//            long now = SystemClock.uptimeMillis();
-//            final boolean inTime = mLastStartedActivity.startTime != 0
-//                    && (mLastStartedActivity.startTime + START_WARN_TIME) >= now;
-//            final int lastUid = mLastStartedActivity.info.applicationInfo.uid;
-//            final int nextUid = next.info.applicationInfo.uid;
-//            if (inTime && lastUid != nextUid
-//                    && lastUid != next.launchedFromUid
-//                    && mService.checkPermission(
-//                            android.Manifest.permission.STOP_APP_SWITCHES,
-//                            -1, next.launchedFromUid)
-//                    != PackageManager.PERMISSION_GRANTED) {
-//                mService.showLaunchWarningLocked(mLastStartedActivity, next);
-//            } else {
-//                next.startTime = now;
-//                mLastStartedActivity = next;
-//            }
-//        } else {
-//            next.startTime = SystemClock.uptimeMillis();
-//            mLastStartedActivity = next;
-//        }
-//    }
+    // Okay we are now going to start a switch, to 'next'.  We may first
+    // have to pause the current activity, but this is an important point
+    // where we have decided to go to 'next' so keep track of that.
+    // XXX "App Redirected" dialog is getting too many false positives
+    // at this point, so turn off for now.
+    if (0) {
+        if (mLastStartedActivity != NULL && !mLastStartedActivity->mFinishing) {
+            Int32 now = SystemClock::GetUptimeMillis();
+            const Boolean inTime = mLastStartedActivity->mStartTime != 0
+                    && (mLastStartedActivity->mStartTime + START_WARN_TIME) >= now;
+            AutoPtr<IApplicationInfo> appInfo;
+            mLastStartedActivity->mInfo->GetApplicationInfo((IApplicationInfo**)&appInfo);
+            Int32 uid;
+            appInfo->GetUid(&uid);
+            const Int32 lastUid = uid;
+            appInfo->Release();
+            next->mInfo->GetApplicationInfo((IApplicationInfo**)&appInfo);
+            appInfo->GetUid(&uid);
+            const Int32 nextUid = uid;
+            if (inTime && lastUid != nextUid
+                    && lastUid != next->mLaunchedFromUid
+                    && mService->CheckPermission(
+                            String("elastos.permission.STOP_APP_SWITCHES")/*android.Manifest.permission.STOP_APP_SWITCHES*/,
+                            -1, next->mLaunchedFromUid)
+                    != CapsuleManager_PERMISSION_GRANTED) {
+                mService->ShowLaunchWarningLocked(mLastStartedActivity, next);
+            }
+            else {
+                next->mStartTime = now;
+                mLastStartedActivity = next;
+            }
+        }
+        else {
+            next->mStartTime = SystemClock::GetUptimeMillis();
+            mLastStartedActivity = next;
+        }
+    }
 
     // We need to start pausing the current activity so the top one
     // can be resumed...
@@ -1362,7 +1377,7 @@ Boolean ActivityStack::ResumeTopActivityLocked(
             if (SHOW_APP_STARTING_PREVIEW) {
                 mService->mWindowManager->SetAppStartingWindow(
                         (CActivityRecord*)next, next->mCapsuleName, next->mTheme,
-                        *(next->mNonLocalizedLabel),
+                        next->mNonLocalizedLabel,
                         next->mLabelRes, next->mIcon, NULL, TRUE);
             }
             if (DEBUG_SWITCH) {
@@ -1509,7 +1524,7 @@ void ActivityStack::StartActivityLocked(
                 else if (prev->mNowVisible) prev = NULL;
             }
             mService->mWindowManager->SetAppStartingWindow(
-                    (IBinder*)r, r->mCapsuleName, r->mTheme, *(r->mNonLocalizedLabel),
+                    (IBinder*)r, r->mCapsuleName, r->mTheme, r->mNonLocalizedLabel,
                     r->mLabelRes, r->mIcon, (IBinder*)prev.Get(), showStartingIcon);
         }
     }
@@ -2589,6 +2604,7 @@ ECode ActivityStack::StartActivityMayWait(
     /* [in] */ IConfiguration* config,
     /* [out] */ Int32* status)
 {
+    VALIDATE_NOT_NULL(status);
     // Refuse possible leaked file descriptors
     Boolean hasFD = FALSE;
     if (intent != NULL && (intent->HasFileDescriptors(&hasFD), hasFD)) {
@@ -2608,7 +2624,7 @@ ECode ActivityStack::StartActivityMayWait(
     AutoPtr<IActivityInfo> aInfo;
     AutoPtr<IResolveInfo> rInfo;
     ECode ec = GetCapsuleManager()->ResolveIntent(newIntent, resolvedType,
-            /* CapsuleManager_MATCH_DEFAULT_ONLY | */ CActivityManagerService::STOCK_PM_FLAGS,
+             CapsuleManager_MATCH_DEFAULT_ONLY | CActivityManagerService::STOCK_PM_FLAGS,
             (IResolveInfo**)&rInfo);
     if (SUCCEEDED(ec) && rInfo.Get()) {
         rInfo->GetActivityInfo((IActivityInfo**)&aInfo);
@@ -2629,19 +2645,21 @@ ECode ActivityStack::StartActivityMayWait(
         newIntent->SetComponent((IComponentName*)newComponent);
 
         // Don't debug things in the system process
-//        if (debug) {
-//            if (!aInfo.processName.equals("system")) {
-//                mService.setDebugApp(aInfo.processName, true, false);
-//            }
-//        }
+        if (debug) {
+            String pName;
+            aInfo->GetProcessName(&pName);
+            if (pName.Equals("system")) {
+                mService->SetDebugApp(pName, TRUE, FALSE);
+            }
+        }
     }
 
     Mutex::Autolock lock(mService->_m_syncLock);
     Int32 callingPid;
     Int32 callingUid;
     if (caller == NULL) {
-        callingPid = Process::GetCallingPid();
-        callingUid = Process::GetCallingUid();
+        callingPid = Binder::GetCallingPid();
+        callingUid = Binder::GetCallingUid();
     } else {
         callingPid = callingUid = -1;
     }
@@ -2654,7 +2672,7 @@ ECode ActivityStack::StartActivityMayWait(
                 + mConfigWillChange);
     }
 
-//    final long origId = Binder.clearCallingIdentity();
+    const Int64 origId = Binder::ClearCallingIdentity();
     if (mMainStack && aInfo != NULL) {
         AutoPtr<IApplicationInfo> appInfo;
         aInfo->GetApplicationInfo((IApplicationInfo**)&appInfo);
@@ -2733,12 +2751,12 @@ ECode ActivityStack::StartActivityMayWait(
                         intent = newIntent.Get();
                         resolvedType = NULL;
                         caller = NULL;
-                        callingUid = Process::GetCallingUid();
-                        callingPid = Process::GetCallingPid();
+                        callingUid = Binder::GetCallingUid();
+                        callingPid = Binder::GetCallingPid();
                         componentSpecified = TRUE;
                         if (rInfo != NULL) rInfo->Release();
                         ECode ec = GetCapsuleManager()->ResolveIntent(newIntent, resolvedType,
-                                /* CapsuleManager_MATCH_DEFAULT_ONLY | */ CActivityManagerService::STOCK_PM_FLAGS,
+                                 CapsuleManager_MATCH_DEFAULT_ONLY | CActivityManagerService::STOCK_PM_FLAGS,
                                 (IResolveInfo**)&rInfo);
                         if (SUCCEEDED(ec) && rInfo.Get()) {
                             if (aInfo != NULL) aInfo->Release();
@@ -2793,7 +2811,7 @@ ECode ActivityStack::StartActivityMayWait(
         mService->UpdateConfigurationLocked(config, NULL);
     }
 
-//    Binder.restoreCallingIdentity(origId);
+    Binder::RestoreCallingIdentity(origId);
 
     if (outResult != NULL) {
         outResult->SetResult(*status);

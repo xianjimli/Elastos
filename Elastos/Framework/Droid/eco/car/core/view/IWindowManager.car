@@ -15,6 +15,7 @@ module
     interface IInputChannel;
     interface IInputDevice;
     interface IRotationWatcher;
+    interface ICharSequence;
 
     interface IWindowManager {
         // This is used for debugging
@@ -117,7 +118,7 @@ module
             [in] IBinder* token,
             [in] String cap,
             [in] Int32 theme,
-            [in] ArrayOf<Char8> nonLocalizedLabel,
+            [in] ICharSequence* nonLocalizedLabel,
             [in] Int32 labelRes,
             [in] Int32 icon,
             [in] IBinder* transferFrom,

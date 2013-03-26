@@ -293,6 +293,10 @@ private:
     AutoPtr<CActivityManagerService> mService;
     Boolean mMainStack;
 
+    // How long between activity launches that we consider safe to not warn
+    // the user about an unexpected activity being launched on top.
+    static const Int64 START_WARN_TIME = 5*1000;
+
     AutoPtr<IContext> mContext;
      /**
      * The back history of all previous (and possibly still
@@ -361,6 +365,13 @@ private:
      * Current activity that is resumed, or null if there is none.
      */
     AutoPtr<CActivityRecord> mResumedActivity;
+
+    /**
+     * This is the last activity that has been started.  It is only used to
+     * identify when multiple activities are started at once so that the user
+     * can be warned they may not be in the activity they think they are.
+     */
+    AutoPtr<CActivityRecord> mLastStartedActivity;
 
     /**
      * Set when we know we are going to be calling updateConfiguration()

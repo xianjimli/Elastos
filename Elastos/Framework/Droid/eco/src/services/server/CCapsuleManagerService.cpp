@@ -4933,6 +4933,9 @@ const Int32 CCapsuleManagerService::WRITE_SETTINGS;
 const Int32 CCapsuleManagerService::DELETE_CAPSULE;
 const Int32 CCapsuleManagerService::WRITE_SETTINGS_DELAY;
 const Int32 CCapsuleManagerService::BROADCAST_DELAY;
+const Int32 CCapsuleManagerService::DEX_OPT_SKIPPED;
+const Int32 CCapsuleManagerService::DEX_OPT_PERFORMED;
+const Int32 CCapsuleManagerService::DEX_OPT_FAILED;
 const Int32 CCapsuleManagerService::MAX_CONTAINERS;
 //	    private static final Comparator<ResolveInfo> mResolvePrioritySorter =
 //	            new Comparator<ResolveInfo>() {
@@ -8288,44 +8291,72 @@ Boolean CCapsuleManagerService::VerifySignaturesLP(
     return TRUE;
 }
 
-//Int32 CCapsuleManagerService::PerformDexOptLI(
-//    /* [in] */ CapsuleParser::Capsule* cap,
-//    /* [in] */ Boolean forceDex)
-//{
-//	    boolean performed = false;
-//	    if ((pkg.applicationInfo.flags&ApplicationInfo.FLAG_HAS_CODE) != 0 && mInstaller != null) {
-//	        String path = pkg.mScanPath;
-//	        int ret = 0;
-//	        try {
-//	            if (forceDex || dalvik.system.DexFile.isDexOptNeeded(path)) {
-//	                ret = mInstaller.dexopt(path, pkg.applicationInfo.uid,
-//	                        !isForwardLocked(pkg));
-//	                pkg.mDidDexOpt = true;
-//	                performed = true;
-//	            }
-//	        } catch (FileNotFoundException e) {
-//	            Slog.w(TAG, "Apk not found for dexopt: " + path);
-//	            ret = -1;
-//	        } catch (IOException e) {
-//	            Slog.w(TAG, "IOException reading apk: " + path, e);
-//	            ret = -1;
-//	        } catch (dalvik.system.StaleDexCacheError e) {
-//	            Slog.w(TAG, "StaleDexCacheError when reading apk: " + path, e);
-//	            ret = -1;
-//	        } catch (Exception e) {
-//	            Slog.w(TAG, "Exception when doing dexopt : ", e);
-//	            ret = -1;
-//	        }
-//	        if (ret < 0) {
-//	            //error from installer
-//	            return DEX_OPT_FAILED;
-//	        }
-//	    }
-//
-//	    return performed ? DEX_OPT_PERFORMED : DEX_OPT_SKIPPED;
-//
-//    return -1;
-//}
+ECode CCapsuleManagerService::PerformDexOpt(
+    /* [in] */ const String& capsuleName,
+    /* [out] */ Boolean* result)
+{
+    VALIDATE_NOT_NULL(result);
+    if (!mNoDexOpt) {
+        *result = FALSE;
+        return NOERROR;
+    }
+
+    CapsuleParser::Capsule* p;
+    {
+        Mutex::Autolock lock(mCapsulesLock);
+        p = mCapsules[capsuleName];
+        if (p == NULL || p->mDidDexOpt) {
+            *result = FALSE;
+            return NOERROR;
+        }
+    }
+    {
+        Mutex::Autolock lock(mInstallLock);
+        *result = PerformDexOptLI(p, FALSE) == DEX_OPT_PERFORMED;
+        return NOERROR;
+    }
+}
+
+Int32 CCapsuleManagerService::PerformDexOptLI(
+    /* [in] */ CapsuleParser::Capsule* cap,
+    /* [in] */ Boolean forceDex)
+{
+        Boolean performed = FALSE;
+        Int32 flags;
+        cap->mApplicationInfo->GetFlags(&flags);
+        if ((flags&ApplicationInfo_FLAG_HAS_CODE) != 0 && mInstaller != NULL) {
+            String path = cap->mScanPath;
+            Int32 ret = 0;
+//            try {
+                if (forceDex /*|| dalvik.system.DexFile.isDexOptNeeded(path)*/) {
+                    Int32 uid;
+                    cap->mApplicationInfo->GetUid(&uid);
+                    ret = mInstaller->DexOpt(path, uid,!IsForwardLocked(cap));
+                    cap->mDidDexOpt = TRUE;
+                    performed = TRUE;
+                    if(!SUCCEEDED(ret)) ret = -1;
+                }
+//            } catch (FileNotFoundException e) {
+//                Slog.w(TAG, "Apk not found for dexopt: " + path);
+//                ret = -1;
+//            } catch (IOException e) {
+//                Slog.w(TAG, "IOException reading apk: " + path, e);
+//                ret = -1;
+//            } catch (dalvik.system.StaleDexCacheError e) {
+//                Slog.w(TAG, "StaleDexCacheError when reading apk: " + path, e);
+//                ret = -1;
+//            } catch (Exception e) {
+//                Slog.w(TAG, "Exception when doing dexopt : ", e);
+//                ret = -1;
+//            }
+            if (ret < 0) {
+                //error from installer
+                return DEX_OPT_FAILED;
+            }
+        }
+
+        return performed ? DEX_OPT_PERFORMED : DEX_OPT_SKIPPED;
+}
 
 Boolean CCapsuleManagerService::UseEncryptedFilesystemForCapsule(
     /* [in] */ CapsuleParser::Capsule* cap)

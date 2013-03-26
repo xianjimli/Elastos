@@ -14,6 +14,7 @@
 #include <elastos/AutoPtr.h>
 #include <elastos/Set.h>
 
+
 class ActivityStack;
 class ProcessRecord;
 class ActivityResult;
@@ -102,6 +103,7 @@ public:
     Int32 mLaunchedFromUid; // always the uid who started the activity.
     AutoPtr<IIntent> mIntent;
     AutoPtr<IComponentName> mRealActivity;  // the intent component, or target of an alias.
+    String mShortComponentName; // the short component name of the intent
 
     AutoPtr<IBinder> mCaller;
     Boolean mSendResult;
@@ -112,8 +114,12 @@ public:
     String mTaskAffinity; // as per ActivityInfo.taskAffinity
     Boolean mStateNotNeeded; // As per ActivityInfo.flags
     Boolean mFullscreen;     // covers the full screen?
+    Boolean mComponentSpecified;  // did caller specifiy an explicit component?
     Boolean mIsHomeActivity; // do we consider this to be a home activity?
-    ArrayOf<Char8>* mNonLocalizedLabel;  // the label information from the package mgr.
+    String mBaseDir;   // where activity source (resources etc) located
+    String mResDir;   // where public activity source (public resources etc) located
+    String mDataDir;   // where activity data should go
+    AutoPtr<ICharSequence> mNonLocalizedLabel;  // the label information from the package mgr.
     Int32 mLabelRes;           // the label information from the package mgr.
     Int32 mIcon;               // resource identifier of activity's icon.
     Int32 mTheme;              // resource identifier of activity's theme.
@@ -132,7 +138,7 @@ public:
     UriPermissionOwner* mUriPermissions; // current special URI access perms.
     ProcessRecord* mApp;
     AutoPtr<IBitmap> mThumbnail;       // icon representation of paused screen
-    ArrayOf<Char8>* mDescription; // textual description of paused screen
+    AutoPtr<ICharSequence> mDescription; // textual description of paused screen
     ActivityState mState;    // current state we are in
     AutoPtr<IBundle> mIcicle;         // last saved activity state
     Boolean mFrontOfTask;    // is this the root activity of its task?

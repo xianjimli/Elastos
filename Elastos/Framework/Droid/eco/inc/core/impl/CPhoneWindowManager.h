@@ -115,7 +115,7 @@ public:
         /* [in] */ IBinder* appToken,
         /* [in] */ const String& capsuleName,
         /* [in] */ Int32 theme,
-        /* [in] */ const ArrayOf<Char8>& nonLocalizedLabel,
+        /* [in] */ ICharSequence* nonLocalizedLabel,
         /* [in] */ Int32 labelRes,
         /* [in] */ Int32 icon,
         /* [out] */ IView** window);
