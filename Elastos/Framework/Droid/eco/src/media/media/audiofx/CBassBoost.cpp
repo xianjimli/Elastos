@@ -143,7 +143,7 @@ ECode CBassBoost::Settings::constructor(
     /* [in] */ String* settings)
 {
     StringTokenizer st(*settings, String("=;"));
-    Int32 tokesn = st.GetCount();
+    //Int32 tokesn = st.GetCount();
     if (st.GetCount() != 3) {
 //        throw new IllegalArgumentException("settings: " + settings);
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
@@ -186,12 +186,14 @@ ECode CBassBoost::Settings::GetStrength(
     VALIDATE_NOT_NULL(result);
 
     *result = strength;
+    return NOERROR;
 }
 
 ECode CBassBoost::Settings::SetStrength(
     /* [in] */ Int16 result)
 {
     strength = result;
+    return NOERROR;
 }
 
 ECode CBassBoost::GetProperties(

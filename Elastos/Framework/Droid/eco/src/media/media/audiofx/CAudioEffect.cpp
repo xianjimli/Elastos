@@ -2,8 +2,11 @@
 #include <elastos/System.h>
 #include <Logger.h>
 #include <StringBuffer.h>
+#include <media/AudioEffect.h>
+#include <media/EffectApi.h>
 using namespace Elastos::Core;
 using namespace Elastos::Utility::Logging;
+using namespace android;
 const CString CAudioEffect::TAG = "AudioEffect-JAVA";
 
 ECode CAudioEffect::Descriptor::constructor(
@@ -94,7 +97,7 @@ ECode CAudioEffect::constructor(
         type.toString(), uuid.toString(), priority, audioSession, id,
         desc);
 */
-    Int32 initResult;
+    Int32 initResult = 0;
     if (initResult != AudioEffect_SUCCESS && initResult != AudioEffect_ALREADY_EXISTS) {
         /*
             Log.e(TAG, "Error code " + initResult
@@ -189,9 +192,9 @@ ECode CAudioEffect::SetParameterEx(
 {
     VALIDATE_NOT_NULL(result);
 
-    ArrayOf<Byte>* p;
+    ArrayOf<Byte>* p = NULL;
     Int32ToByteArray(param, p);
-    ArrayOf<Byte>* v;
+    ArrayOf<Byte>* v = NULL;
     Int32ToByteArray(value, v);
     SetParameter(*p, *v, result);
     return NOERROR;
@@ -204,9 +207,9 @@ ECode CAudioEffect::SetParameterEx2(
 {
     VALIDATE_NOT_NULL(result);
 
-    ArrayOf<Byte>* p;
+    ArrayOf<Byte>* p = NULL;
     Int32ToByteArray(param, p);
-    ArrayOf<Byte>* v;
+    ArrayOf<Byte>* v = NULL;
     Int16ToByteArray(value, v);
     SetParameter(*p, *v, result);
     return NOERROR;
@@ -219,7 +222,7 @@ ECode CAudioEffect::SetParameterEx3(
 {
     VALIDATE_NOT_NULL(result);
 
-    ArrayOf<Byte>* p;
+    ArrayOf<Byte>* p = NULL;
     Int32ToByteArray(param, p);
     SetParameter(*p, value, result);
     return NOERROR;
@@ -235,19 +238,19 @@ ECode CAudioEffect::SetParameterEx4(
     if (param.GetLength() > 2 || value.GetLength() > 2) {
         return AudioEffect_ERROR_BAD_VALUE;
     }
-    ArrayOf<Byte>* p;
+    ArrayOf<Byte>* p = NULL;
     Int32ToByteArray(param[0],p);
     if (param.GetLength() > 1) {
-        ArrayOf<Byte>* p2;
+        ArrayOf<Byte>* p2 = NULL;
         Int32ToByteArray(param[1],p2);
         ArrayOf<Byte>* tempArrayByte;
         ConcatArrays(*p, *p2, &tempArrayByte);
         p = tempArrayByte;
     }
-    ArrayOf<Byte>* v;
+    ArrayOf<Byte>* v = NULL;
     Int32ToByteArray(value[0],v);
     if (value.GetLength() > 1) {
-        ArrayOf<Byte>* v2;
+        ArrayOf<Byte>* v2 = NULL;
         Int32ToByteArray(value[1],v2);
         ArrayOf<Byte>* tempArrayByte;
         ConcatArrays(*v, *v2, &tempArrayByte);
@@ -267,19 +270,19 @@ ECode CAudioEffect::SetParameterEx5(
     if (param.GetLength() > 2 || value.GetLength() > 2) {
         return AudioEffect_ERROR_BAD_VALUE;
     }
-    ArrayOf<Byte>* p;
+    ArrayOf<Byte>* p = NULL;
     Int32ToByteArray(param[0],p);
     if (param.GetLength() > 1) {
-        ArrayOf<Byte>* p2;
+        ArrayOf<Byte>* p2 = NULL;
         Int32ToByteArray(param[1],p2);
-        ArrayOf<Byte>* tempArrayByte;
+        ArrayOf<Byte>* tempArrayByte = NULL;
         ConcatArrays(*p, *p2, &tempArrayByte);
         p = tempArrayByte;
     }
-    ArrayOf<Byte>* v;
+    ArrayOf<Byte>* v = NULL;
     Int16ToByteArray(value[0],v);
     if (value.GetLength() > 1) {
-        ArrayOf<Byte>* v2;
+        ArrayOf<Byte>* v2 = NULL;
         Int16ToByteArray(value[1],v2);
         ArrayOf<Byte>* tempArrayByte;
         ConcatArrays(*v, *v2, &tempArrayByte);
@@ -298,12 +301,12 @@ ECode CAudioEffect::SetParameterEx6(
     if (param.GetLength()> 2) {
         return AudioEffect_ERROR_BAD_VALUE;
     }
-    ArrayOf<Byte>* p;
+    ArrayOf<Byte>* p = NULL;
     Int32ToByteArray(param[0],p);
     if (param.GetLength() > 1) {
-        ArrayOf<Byte>* p2;
+        ArrayOf<Byte>* p2 = NULL;
         Int32ToByteArray(param[1],p2);
-        ArrayOf<Byte>* tempArrayByte;
+        ArrayOf<Byte>* tempArrayByte = NULL;
         ConcatArrays(*p, *p2, &tempArrayByte);
         p = tempArrayByte;
     }
@@ -341,7 +344,7 @@ ECode CAudioEffect::GetParameterEx(
 {
     VALIDATE_NOT_NULL(status);
 
-    ArrayOf<Byte>* p;
+    ArrayOf<Byte>* p = NULL;
     Int32ToByteArray(param,p);
     ArrayOf<Byte>* tempResult1 = value.Clone();
     GetParameter(*p, tempResult1, status);
@@ -360,7 +363,7 @@ ECode CAudioEffect::GetParameterEx2(
         return AudioEffect_ERROR_BAD_VALUE;
     }
 
-    ArrayOf<Byte>* p;
+    ArrayOf<Byte>* p = NULL;
     Int32ToByteArray(param,p);
 
     ArrayOf<Byte>* v = ArrayOf<Byte>::Alloc((*value).GetLength() * 4);
@@ -390,7 +393,7 @@ ECode CAudioEffect::GetParameterEx3(
         return AudioEffect_ERROR_BAD_VALUE;
     }
 
-    ArrayOf<Byte>* p;
+    ArrayOf<Byte>* p = NULL;
     Int32ToByteArray(param,p);
 
     ArrayOf<Byte>* v = ArrayOf<Byte>::Alloc((*value).GetLength() * 2);
@@ -418,12 +421,12 @@ ECode CAudioEffect::GetParameterEx4(
     if (param.GetLength() > 2 || (*value).GetLength() > 2) {
         return AudioEffect_ERROR_BAD_VALUE;
     }
-    ArrayOf<Byte>* p;
+    ArrayOf<Byte>* p = NULL;
     Int32ToByteArray(param[0],p);
     if (param.GetLength() > 1) {
-        ArrayOf<Byte>* p2;
+        ArrayOf<Byte>* p2 = NULL;
         Int32ToByteArray(param[1],p2);
-        ArrayOf<Byte>* tempArrayByte;
+        ArrayOf<Byte>* tempArrayByte = NULL;
         ConcatArrays(*p, *p2, &tempArrayByte);
         p = tempArrayByte;
     }
@@ -453,12 +456,12 @@ ECode CAudioEffect::GetParameterEx5(
     if (param.GetLength() > 2 || (*value).GetLength() > 2) {
         return AudioEffect_ERROR_BAD_VALUE;
     }
-    ArrayOf<Byte>* p;
+    ArrayOf<Byte>* p = NULL;
     Int32ToByteArray(param[0],p);
     if (param.GetLength() > 1) {
-        ArrayOf<Byte>* p2;
+        ArrayOf<Byte>* p2 = NULL;
         Int32ToByteArray(param[1],p2);
-        ArrayOf<Byte>* tempArrayByte;
+        ArrayOf<Byte>* tempArrayByte = NULL;
         ConcatArrays(*p, *p2, &tempArrayByte);
         p = tempArrayByte;
     }
@@ -487,12 +490,12 @@ ECode CAudioEffect::GetParameterEx6(
     if (param.GetLength() > 2) {
         return AudioEffect_ERROR_BAD_VALUE;
     }
-    ArrayOf<Byte>* p;
+    ArrayOf<Byte>* p = NULL;
     Int32ToByteArray(param[0],p);
     if (param.GetLength() > 1) {
-        ArrayOf<Byte>* p2;
+        ArrayOf<Byte>* p2 = NULL;
         Int32ToByteArray(param[1],p2);
-        ArrayOf<Byte>* tempArrayByte;
+        ArrayOf<Byte>* tempArrayByte = NULL;
         ConcatArrays(*p, *p2, &tempArrayByte);
         p = tempArrayByte;
     }
@@ -593,7 +596,7 @@ ECode CAudioEffect::SetParameterListener(
 
 void CAudioEffect::CreateNativeEventHandler()
 {
-    IApartment* apartment;
+    //IApartment* apartment;
 /*
         Looper looper;
         if ((looper = Looper.myLooper()) != null) {
@@ -740,9 +743,55 @@ void CAudioEffect::PostEventFromNative(
     //E_NOT_IMPLEMENTED;
 }
 
+struct effect_callback_cookie {
+    //jclass      audioEffect_class;  // AudioEffect class
+    //jobject     audioEffect_ref;    // AudioEffect object instance
+};
+
+class AudioEffectJniStorage {
+    public:
+        effect_callback_cookie mCallbackData;
+    AudioEffectJniStorage() {
+    }
+
+    ~AudioEffectJniStorage() {
+    }
+
+};
+
+#define AUDIOEFFECT_SUCCESS                      0
+#define AUDIOEFFECT_ERROR                       -1
+#define AUDIOEFFECT_ERROR_ALREADY_EXISTS        -2
+#define AUDIOEFFECT_ERROR_NO_INIT               -3
+#define AUDIOEFFECT_ERROR_BAD_VALUE             -4
+#define AUDIOEFFECT_ERROR_INVALID_OPERATION     -5
+#define AUDIOEFFECT_ERROR_NO_MEMORY             -6
+#define AUDIOEFFECT_ERROR_DEAD_OBJECT           -7
+
+static Int32 translateError(Int32 code) {
+    switch(code) {
+    case NO_ERROR:
+        return AUDIOEFFECT_SUCCESS;
+    case ALREADY_EXISTS:
+        return AUDIOEFFECT_ERROR_ALREADY_EXISTS;
+    case NO_INIT:
+        return AUDIOEFFECT_ERROR_NO_INIT;
+    case BAD_VALUE:
+        return AUDIOEFFECT_ERROR_BAD_VALUE;
+    case INVALID_OPERATION:
+        return AUDIOEFFECT_ERROR_INVALID_OPERATION;
+    case NO_MEMORY:
+        return AUDIOEFFECT_ERROR_NO_MEMORY;
+    case DEAD_OBJECT:
+        return AUDIOEFFECT_ERROR_DEAD_OBJECT;
+    default:
+        return AUDIOEFFECT_ERROR;
+    }
+}
+
 void CAudioEffect::Native_Init()
 {
-    //E_NOT_IMPLEMENTED;
+
 }
 
 Int32 CAudioEffect::Native_Setup(
@@ -752,35 +801,146 @@ Int32 CAudioEffect::Native_Setup(
     /* [in] */ Int32 priority,
     /* [in] */ Int32 audioSession,
     /* [in] */ ArrayOf<Int32>* id,
-    /* [in] */ ArrayOf<IObject>* desc)
+    /* [in] */ ArrayOf<IObject>* _desc)
 {
-    //E_NOT_IMPLEMENTED;
+    AudioEffectJniStorage* lpJniStorage;
+    Int32 lStatus = AUDIOEFFECT_ERROR_NO_MEMORY;
+    AudioEffect* lpAudioEffect = NULL;
+    Int32* nId = NULL;
+    const char *typeStr = NULL;
+    const char *uuidStr = NULL;
+    //effect_descriptor_t desc;
+    IObject* jdesc = NULL;
+    //char str[EFFECT_STRING_LEN_MAX];
+    String jdescType;
+    String jdescUuid;
+    String jdescConnect;
+    String jdescName;
+    String jdescImplementor;
+
+    if (type != NULL) {
+        if (typeStr == NULL) {  // Out of memory
+            goto setup_failure;
+        }
+    }
+
+    if (uuid != NULL) {
+        if (uuidStr == NULL) {  // Out of memory
+            goto setup_failure;
+        }
+    }
+
+    if (typeStr == NULL && uuidStr == NULL) {
+        lStatus = AUDIOEFFECT_ERROR_BAD_VALUE;
+        goto setup_failure;
+    }
+
+    lpJniStorage = new AudioEffectJniStorage();
+    if (lpJniStorage == NULL) {
+        goto setup_failure;
+    }
+
+    if (id == NULL) {
+        lStatus = AUDIOEFFECT_ERROR_BAD_VALUE;
+        goto setup_failure;
+    }
+
+    if (lpAudioEffect == NULL) {
+        goto setup_failure;
+    }
+
+    if (lStatus != AUDIOEFFECT_SUCCESS && lStatus != AUDIOEFFECT_ERROR_ALREADY_EXISTS) {
+        goto setup_failure;
+    }
+
+    if (nId == NULL) {
+        lStatus = AUDIOEFFECT_ERROR_BAD_VALUE;
+        goto setup_failure;
+    }
+    nId[0] = lpAudioEffect->id();
+    nId = NULL;
+
+    if (typeStr) {
+        typeStr = NULL;
+    }
+
+    if (uuidStr) {
+        uuidStr = NULL;
+    }
+
+    if (jdesc == NULL) {
+        goto setup_failure;
+    }
+
+    return AUDIOEFFECT_SUCCESS;
+
+    // failures:
+    setup_failure:
+
+    if (lpAudioEffect) {
+        delete lpAudioEffect;
+    }
+
+    if (lpJniStorage) {
+        delete lpJniStorage;
+    }
+
+    return lStatus;
 }
 
 void CAudioEffect::Native_Finalize()
 {
-    //E_NOT_IMPLEMENTED;
+    // delete the AudioEffect object
+    AudioEffect* lpAudioEffect = NULL;
+    if (lpAudioEffect) {
+        delete lpAudioEffect;
+    }
+
+    // delete the JNI data
+    AudioEffectJniStorage* lpJniStorage = NULL;
+    if (lpJniStorage) {
+        delete lpJniStorage;
+    }
 }
 
 void CAudioEffect::Native_Release()
 {
-    //E_NOT_IMPLEMENTED;
+    // do everything a call to finalize would
+    Native_Finalize();
 }
 
 Int32 CAudioEffect::Native_SetEnabled(
     /* [in] */ Boolean enabled)
 {
-    //E_NOT_IMPLEMENTED;
+    // retrieve the AudioEffect object
+    AudioEffect* lpAudioEffect = NULL;
+
+    if (lpAudioEffect == NULL) {
+        return AUDIOEFFECT_ERROR_NO_INIT;
+    }
+
+    return translateError(lpAudioEffect->setEnabled(enabled));
 }
 
 Boolean CAudioEffect::Native_GetEnabled()
 {
-    //E_NOT_IMPLEMENTED;
+    // retrieve the AudioEffect object
+    AudioEffect* lpAudioEffect = NULL;
+    if (lpAudioEffect == NULL) {
+        return FALSE;
+    }
+    return TRUE;
 }
 
 Boolean CAudioEffect::Native_HasControl()
 {
-    //E_NOT_IMPLEMENTED;
+    // retrieve the AudioEffect object
+    AudioEffect* lpAudioEffect = NULL;
+
+    if (lpAudioEffect == NULL) {
+        return FALSE;
+    }
+    return TRUE;
 }
 
 Int32 CAudioEffect::Native_SetParameter(
@@ -789,7 +949,47 @@ Int32 CAudioEffect::Native_SetParameter(
     /* [in] */ Int32 vsize,
     /* [in] */ ArrayOf<Byte>* value)
 {
-    //E_NOT_IMPLEMENTED;
+    // retrieve the AudioEffect object
+    Byte* lpValue = NULL;
+    Byte* lpParam = NULL;
+    Int32 lStatus = AUDIOEFFECT_ERROR_BAD_VALUE;
+    effect_param_t *p;
+    Int32 voffset;
+
+    AudioEffect* lpAudioEffect = NULL;
+
+    if (lpAudioEffect == NULL) {
+        return AUDIOEFFECT_ERROR_NO_INIT;
+    }
+
+    if (psize == 0 || vsize == 0 || param == NULL || value == NULL) {
+        return AUDIOEFFECT_ERROR_BAD_VALUE;
+    }
+
+    if (lpParam == NULL) {
+        goto setParameter_Exit;
+    }
+
+    if (lpValue == NULL) {
+        goto setParameter_Exit;
+    }
+
+    voffset = ((psize - 1) / sizeof(int) + 1) * sizeof(int);
+    p = (effect_param_t *) malloc(sizeof(effect_param_t) + voffset + vsize);
+    memcpy(p->data, lpParam, psize);
+    p->psize = psize;
+    memcpy(p->data + voffset, lpValue, vsize);
+    p->vsize = vsize;
+
+    lStatus = lpAudioEffect->setParameter(p);
+    if (lStatus == NO_ERROR) {
+        lStatus = p->status;
+    }
+
+    free(p);
+
+    setParameter_Exit:
+    return translateError(lStatus);
 }
 
 Int32 CAudioEffect::Native_GetParameter(
@@ -798,7 +998,55 @@ Int32 CAudioEffect::Native_GetParameter(
     /* [in] */ ArrayOf<Int32>* vsize,
     /* [in] */ ArrayOf<Byte>* value)
 {
-    //E_NOT_IMPLEMENTED;
+    // retrieve the AudioEffect object
+    Byte* lpParam = NULL;
+    Byte* lpValue = NULL;
+    Byte* lpValueSize = NULL;
+    Int32 lStatus = AUDIOEFFECT_ERROR_BAD_VALUE;
+    effect_param_t *p;
+    int voffset;
+
+    AudioEffect* lpAudioEffect = NULL;
+
+    if (lpAudioEffect == NULL) {
+        return AUDIOEFFECT_ERROR_NO_INIT;
+    }
+
+    if (psize == 0 || vsize == NULL || param == NULL || value == NULL) {
+        return AUDIOEFFECT_ERROR_BAD_VALUE;
+    }
+
+    if (lpParam == NULL) {
+        goto getParameter_Exit;
+    }
+
+    if (lpValue == NULL) {
+        goto getParameter_Exit;
+    }
+
+    if (lpValueSize == NULL) {
+        goto getParameter_Exit;
+    }
+
+    voffset = ((psize - 1) / sizeof(int) + 1) * sizeof(int);
+    p = (effect_param_t *) malloc(sizeof(effect_param_t) + voffset
+            + lpValueSize[0]);
+    memcpy(p->data, lpParam, psize);
+    p->psize = psize;
+    p->vsize = lpValueSize[0];
+
+    if (lStatus == NO_ERROR) {
+        lStatus = p->status;
+        if (lStatus == NO_ERROR) {
+            memcpy(lpValue, p->data + voffset, p->vsize);
+            lpValueSize[0] = p->vsize;
+        }
+    }
+
+    free(p);
+
+    getParameter_Exit:
+    return translateError(lStatus);
 }
 
 Int32 CAudioEffect::Native_Command(
@@ -808,12 +1056,67 @@ Int32 CAudioEffect::Native_Command(
     /* [in] */ ArrayOf<Int32>* repSize,
     /* [in] */ ArrayOf<Byte>* repData)
 {
-    return E_NOT_IMPLEMENTED;
+    //Byte* pCmdData = NULL;
+    //Byte* pReplyData = NULL;
+    //Int32* pReplySize = NULL;
+    Int32 lStatus = AUDIOEFFECT_ERROR_BAD_VALUE;
+
+    // retrieve the AudioEffect object
+    AudioEffect* lpAudioEffect = NULL;
+
+    if (lpAudioEffect == NULL) {
+        return AUDIOEFFECT_ERROR_NO_INIT;
+    }
+
+    if ((cmdSize != 0 && cmdData == NULL) || (repSize != NULL && repData == NULL)) {
+        return AUDIOEFFECT_ERROR_BAD_VALUE;
+    }
+
+    // get the pointer for the command from the java array
+    if (cmdSize != 0) {
+        if (cmdData == NULL) {
+            goto command_Exit;
+        }
+    }
+
+    // get the pointer for the reply size from the java array
+    if (repSize != NULL) {
+        if (repSize == NULL) {
+            goto command_Exit;
+        }
+    }
+
+    // get the pointer for the reply from the java array
+    if (repSize != NULL && repSize[0] != 0 && repData != NULL) {
+        if (repData == NULL) {
+            goto command_Exit;
+        }
+    }
+    command_Exit:
+    return lStatus;
 }
 
 ArrayOf<IAudioEffectDescriptor>* CAudioEffect::Native_Query_Effects()
 {
-    //return E_NOT_IMPLEMENTED;
+    //effect_descriptor_t desc;
+    //char str[EFFECT_STRING_LEN_MAX];
+    uint32_t numEffects = 0;
+    uint32_t i = 0;
+    String jdescType;
+    String jdescUuid;
+    String jdescConnect;
+    String jdescName;
+    String jdescImplementor;
+    IObject* jdesc = NULL;
+
+    for (i = 0; i < numEffects; i++) {
+        if (jdesc == NULL) {
+            goto queryEffects_failure;
+        }
+    }
+
+    queryEffects_failure:
+    return NULL;
 }
 
 ECode CAudioEffect::CheckState(
@@ -943,9 +1246,7 @@ ECode CAudioEffect::ConcatArrays(
 
     ArrayOf<Byte>* b = ArrayOf<Byte>::Alloc(len);
 
-    Int32 offs = 0;
     ArrayOf<Byte>* tempResult1 = array1.Clone();
-    ArrayOf<Byte>* tempResult2 = array2.Clone();
     tempResult1->Replace(
         0, b->GetPayload(),array1.GetLength());
     ArrayOf<Byte>::Free(b);

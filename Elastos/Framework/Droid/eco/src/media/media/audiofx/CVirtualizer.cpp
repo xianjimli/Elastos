@@ -145,7 +145,7 @@ ECode CVirtualizer::Settings::constructor(
     /* [in] */ String* settings)
 {
     StringTokenizer st(*settings, String("=;"));
-    Int32 tokens = st.GetCount();
+    //Int32 tokens = st.GetCount();
     if (st.GetCount() != 3) {
 //        throw new IllegalArgumentException("settings: " + settings);
         return E_ILLEGAL_ARGUMENT_EXCEPTION;

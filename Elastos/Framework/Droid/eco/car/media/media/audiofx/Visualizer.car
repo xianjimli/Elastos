@@ -58,7 +58,6 @@ module
      * {@link #setDataCaptureListener(OnDataCaptureListener, int, boolean, boolean)} method.
      */
     interface IVisualizerOnDataCaptureListener  {
-        
         /**
          * Method called when a new waveform capture is available.
          * @param visualizer Visualizer object on which the listener is registered.

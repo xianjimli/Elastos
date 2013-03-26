@@ -316,7 +316,7 @@ ECode CEqualizer::Settings::constructor(
     /* [in] */ String* settings)
 {
     StringTokenizer st(*settings, String("=;"));
-    Int32 tokens = st.GetCount();
+    //Int32 tokens = st.GetCount();
     if (st.GetCount() < 5) {
 //        throw new IllegalArgumentException("settings: " + settings);
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
@@ -421,6 +421,7 @@ ECode CEqualizer::Settings::GetParameterInt16Array(
     if (param.Equals("bandLevels")) {
         bandLevels = result;
     }
+    return NOERROR;
 }
 
 ECode CEqualizer::Settings::SetParameterInt16Array(
@@ -430,6 +431,7 @@ ECode CEqualizer::Settings::SetParameterInt16Array(
     if (param.Equals("bandLevels")) {
         bandLevels = &result;
     }
+    return NOERROR;
 }
 
 ECode CEqualizer::GetProperties(
@@ -461,11 +463,11 @@ ECode CEqualizer::GetProperties(
 ECode CEqualizer::SetProperties(
     /* [in] */ IEqualizerSettings* settings)
 {
-    Int16 tempInt16Parameter1,tempInt16Parameter2;
-    ArrayOf<Byte>* tempByteArray1;
-    ArrayOf<Byte>* tempByteArray2;
-    ArrayOf<Byte>* tempResult1;
-    ArrayOf<Int16>* tempInt16Array1;
+    Int16 tempInt16Parameter1;
+    ArrayOf<Byte>* tempByteArray1 = NULL;
+    ArrayOf<Byte>* tempByteArray2 = NULL;
+    ArrayOf<Byte>* tempResult1 = NULL;;
+    ArrayOf<Int16>* tempInt16Array1 = NULL;;
     settings->GetParameterInt16(String("numBands"), &tempInt16Parameter1);
     settings->GetParameterInt16Array(String("bandLevels"), &tempInt16Array1);
     if (tempInt16Parameter1 != (*tempInt16Array1).GetLength() ||

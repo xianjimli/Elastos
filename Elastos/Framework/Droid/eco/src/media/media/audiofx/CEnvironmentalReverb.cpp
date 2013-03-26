@@ -64,9 +64,9 @@ ECode CEnvironmentalReverb::constructor(
 ECode CEnvironmentalReverb::SetRoomLevel(
     /* [in] */ Int16 room)
 {
-    ArrayOf<Byte>* param;
+    ArrayOf<Byte>* param = NULL;
     obj->Int16ToByteArray(room, param);
-    Int32 status;
+    Int32 status = 0;
     obj->CheckStatus(obj->SetParameterEx3(EnvironmentalReverb_PARAM_ROOM_LEVEL, *param, &status));
     return NOERROR;
 }
@@ -77,7 +77,7 @@ ECode CEnvironmentalReverb::GetRoomLevel(
     VALIDATE_NOT_NULL(room);
 
     ArrayOf_<Byte,2> param;
-    Int32 status;
+    Int32 status = 0;;
     obj->CheckStatus(obj->GetParameterEx(EnvironmentalReverb_PARAM_ROOM_LEVEL, param, &status));
     obj->ByteArrayToInt16(param, room);
     return NOERROR;
@@ -86,8 +86,8 @@ ECode CEnvironmentalReverb::GetRoomLevel(
 ECode CEnvironmentalReverb::SetRoomHFLevel(
     /* [in] */ Int16 roomHF)
 {
-    ArrayOf<Byte>* param;
-    Int32 status;
+    ArrayOf<Byte>* param = NULL;
+    Int32 status = 0;
     obj->Int16ToByteArray(roomHF, param);
     obj->CheckStatus(obj->SetParameterEx3(EnvironmentalReverb_PARAM_ROOM_HF_LEVEL, *param, &status));
     return NOERROR;
@@ -99,7 +99,7 @@ ECode CEnvironmentalReverb::GetRoomHFLevel(
     VALIDATE_NOT_NULL(roomHF);
 
     ArrayOf_<Byte,2> param;
-    Int32 status;
+    Int32 status = 0;
     obj->CheckStatus(obj->GetParameterEx(EnvironmentalReverb_PARAM_ROOM_HF_LEVEL, param, &status));
     obj->ByteArrayToInt16(param, roomHF);
     return NOERROR;
@@ -108,8 +108,8 @@ ECode CEnvironmentalReverb::GetRoomHFLevel(
 ECode CEnvironmentalReverb::SetDecayTime(
     /* [in] */ Int32 decayTime)
 {
-    ArrayOf<Byte>* param;
-    Int32 status;
+    ArrayOf<Byte>* param = NULL;
+    Int32 status = 0;
     obj->Int32ToByteArray(decayTime, param);
     obj->CheckStatus(obj->SetParameterEx3(EnvironmentalReverb_PARAM_DECAY_TIME, *param, &status));
     return NOERROR;
@@ -121,7 +121,7 @@ ECode CEnvironmentalReverb::GetDecayTime(
     VALIDATE_NOT_NULL(decayTime);
 
     ArrayOf_<Byte,4> param;
-    Int32 status;
+    Int32 status = 0;
     obj->CheckStatus(obj->GetParameterEx(EnvironmentalReverb_PARAM_DECAY_TIME, param, &status));
     obj->ByteArrayToInt32(param, decayTime);
     return NOERROR;
@@ -130,9 +130,9 @@ ECode CEnvironmentalReverb::GetDecayTime(
 ECode CEnvironmentalReverb::SetDecayHFRatio(
     /* [in] */ Int16 decayHFRatio)
 {
-    ArrayOf<Byte>* param;
+    ArrayOf<Byte>* param = NULL;
     obj->Int16ToByteArray(decayHFRatio, param);
-    Int32 status;
+    Int32 status = 0;
     obj->CheckStatus(obj->SetParameterEx3(EnvironmentalReverb_PARAM_DECAY_HF_RATIO, *param, &status));
     return NOERROR;
 }
@@ -143,7 +143,7 @@ ECode CEnvironmentalReverb::GetDecayHFRatio(
     VALIDATE_NOT_NULL(decayHFRatio);
 
     ArrayOf_<Byte,2> param;
-    Int32 status;
+    Int32 status = 0;
     obj->CheckStatus(obj->GetParameterEx(EnvironmentalReverb_PARAM_DECAY_HF_RATIO, param, &status));
     obj->ByteArrayToInt16(param, decayHFRatio);
     return NOERROR;
@@ -152,9 +152,9 @@ ECode CEnvironmentalReverb::GetDecayHFRatio(
 ECode CEnvironmentalReverb::SetReflectionsLevel(
     /* [in] */ Int16 reflectionsLevel)
 {
-    ArrayOf<Byte>* param;
+    ArrayOf<Byte>* param = NULL;
     obj->Int16ToByteArray(reflectionsLevel, param);
-    Int32 status;
+    Int32 status = 0;
     obj->CheckStatus(obj->SetParameterEx3(EnvironmentalReverb_PARAM_REFLECTIONS_LEVEL, *param, &status));
     return NOERROR;
 }
@@ -165,7 +165,7 @@ ECode CEnvironmentalReverb::GetReflectionsLevel(
     VALIDATE_NOT_NULL(reflectionsLevel);
 
     ArrayOf_<Byte,2> param;
-    Int32 status;
+    Int32 status = 0;
     obj->CheckStatus(obj->GetParameterEx(EnvironmentalReverb_PARAM_REFLECTIONS_LEVEL, param, &status));
     obj->ByteArrayToInt16(param, reflectionsLevel);
     return NOERROR;
@@ -174,7 +174,7 @@ ECode CEnvironmentalReverb::GetReflectionsLevel(
 ECode CEnvironmentalReverb::SetReflectionsDelay(
     /* [in] */ Int32 reflectionsDelay)
 {
-    ArrayOf<Byte>* param;
+    ArrayOf<Byte>* param = NULL;
     obj->Int32ToByteArray(reflectionsDelay, param);
     Int32 status;
     obj->CheckStatus(obj->SetParameterEx3(EnvironmentalReverb_PARAM_REFLECTIONS_DELAY, *param, &status));
@@ -196,7 +196,7 @@ ECode CEnvironmentalReverb::GetReflectionsDelay(
 ECode CEnvironmentalReverb::SetReverbLevel(
     /* [in] */ Int16 reverbLevel)
 {
-    ArrayOf<Byte>* param;
+    ArrayOf<Byte>* param = NULL;
     obj->Int16ToByteArray(reverbLevel, param);
     Int32 status;
     obj->CheckStatus(obj->SetParameterEx3(EnvironmentalReverb_PARAM_REVERB_LEVEL, *param, &status));
@@ -218,7 +218,7 @@ ECode CEnvironmentalReverb::GetReverbLevel(
 ECode CEnvironmentalReverb::SetReverbDelay(
     /* [in] */ Int32 reverbDelay)
 {
-    ArrayOf<Byte>* param;
+    ArrayOf<Byte>* param = NULL;
     obj->Int32ToByteArray(reverbDelay, param);
     Int32 status;
     obj->CheckStatus(obj->SetParameterEx3(EnvironmentalReverb_PARAM_REVERB_DELAY, *param, &status));
@@ -240,9 +240,9 @@ ECode CEnvironmentalReverb::GetReverbDelay(
 ECode CEnvironmentalReverb::SetDiffusion(
     /* [in] */ Int16 diffusion)
 {
-    ArrayOf<Byte>* param;
+    ArrayOf<Byte>* param = NULL;
     obj->Int16ToByteArray(diffusion, param);
-    Int32 status;
+    Int32 status = 0;
     obj->CheckStatus(obj->SetParameterEx3(EnvironmentalReverb_PARAM_DIFFUSION, *param, &status));
     return NOERROR;
 }
@@ -253,7 +253,7 @@ ECode CEnvironmentalReverb::GetDiffusion(
     VALIDATE_NOT_NULL(diffusion);
 
     ArrayOf_<Byte,2> param;
-    Int32 status;
+    Int32 status = 0;
     obj->CheckStatus(obj->GetParameterEx(EnvironmentalReverb_PARAM_DIFFUSION, param, &status));
     obj->ByteArrayToInt16(param, diffusion);
     return NOERROR;
@@ -262,7 +262,7 @@ ECode CEnvironmentalReverb::GetDiffusion(
 ECode CEnvironmentalReverb::SetDensity(
     /* [in] */ Int16 density)
 {
-    ArrayOf<Byte>* param;
+    ArrayOf<Byte>* param = NULL;
     obj->Int16ToByteArray(density, param);
     Int32 status;
     obj->CheckStatus(obj->SetParameterEx3(EnvironmentalReverb_PARAM_DENSITY, *param, &status));
@@ -275,7 +275,7 @@ ECode CEnvironmentalReverb::GetDensity(
     VALIDATE_NOT_NULL(density);
 
     ArrayOf_<Byte,2> param;
-    Int32 status;
+    Int32 status = 0;
     obj->CheckStatus(obj->GetParameterEx(EnvironmentalReverb_PARAM_DENSITY, param, &status));
     obj->ByteArrayToInt16(param, density);
     return NOERROR;
@@ -335,7 +335,7 @@ ECode CEnvironmentalReverb::Settings::constructor(
     /* [in] */ String* settings)
 {
     StringTokenizer st(*settings, String("=;"));
-    Int32 tokens = st.GetCount();
+    //Int32 tokens = st.GetCount();
     if (st.GetCount() != 21) {
 //        throw new IllegalArgumentException("settings: " + settings);
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
@@ -584,12 +584,12 @@ ECode CEnvironmentalReverb::GetProperties(
 ECode CEnvironmentalReverb::SetProperties(
     /* [in] */ IEnvironmentalReverbSettings* settings)
 {
-    ArrayOf<Byte>* tempResult1;
-    ArrayOf<Byte>* tempResult2;
+    ArrayOf<Byte>* tempResult1 = NULL;
+    ArrayOf<Byte>* tempResult2 = NULL;
     Int16 tempInt16Parameter1,tempInt16Parameter2;
     Int32 tempInt32Parameter1;
-    ArrayOf<Byte>* tempByteArray1;
-    ArrayOf<Byte>* tempByteArray2;
+    ArrayOf<Byte>* tempByteArray1 = NULL;;
+    ArrayOf<Byte>* tempByteArray2 = NULL;;
 
     settings->GetParameterInt16(String("roomLevel"), &tempInt16Parameter1);
     obj->Int16ToByteArray(tempInt16Parameter1, tempByteArray1);

@@ -2,8 +2,12 @@
 #include <elastos/System.h>
 #include <Logger.h>
 #include <stdlib.h>
+#include <media/AudioEffect.h>
+#include <media/Visualizer.h>
+#include <media/EffectApi.h>
 using namespace Elastos::Core;
 using namespace Elastos::Utility::Logging;
+using namespace android;
 const CString CVisualizer::TAG = "Visualizer-JAVA";
 const Int32 Visualizer_NATIVE_EVENT_PCM_CAPTURE = 0;
 const Int32 Visualizer_NATIVE_EVENT_FFT_CAPTURE = 1;
@@ -97,13 +101,19 @@ ECode CVisualizer::GetEnabled(
 ECode CVisualizer::GetCaptureSizeRange(
     /* [out] */ ArrayOf<Int32>* captureSizeRange)
 {
-    return E_NOT_IMPLEMENTED;
+    ArrayOf_<Int32,2> jRange;
+    ArrayOf_<Int32,2>* nRange;
+    (*nRange)[0] = Visualizer::getMinCaptureSize();
+    (*nRange)[1] = Visualizer::getMaxCaptureSize();
+    captureSizeRange = &jRange;
+    return NOERROR;
 }
 
 ECode CVisualizer::GetMaxCaptureRate(
     /* [out] */ Int32* captureRate)
 {
-    return E_NOT_IMPLEMENTED;
+    *captureRate = Visualizer::getMaxCaptureRate();
+    return NOERROR;
 }
 
 ECode CVisualizer::SetCaptureSize(
@@ -282,29 +292,79 @@ ECode CVisualizer::NativeEventHandler::HandleMessage(
 
     if (l != NULL) {
 //        byte[] data = (byte[])msg.obj;
-        ArrayOf<Byte>* data;
+//        ArrayOf<Byte>* data = NULL;
 //        int samplingRate = msg.arg1;
-        Int32 samplingRate;
+//        Int32 samplingRate = 0;
 //        switch(msg.what) {
         switch (1) {
 /*
-                case NATIVE_EVENT_PCM_CAPTURE:
+                case Visualizer_NATIVE_EVENT_PCM_CAPTURE:
                     l.onWaveFormDataCapture(mVisualizer, data, samplingRate);
                     break;
-                case NATIVE_EVENT_FFT_CAPTURE:
+                case Visualizer_NATIVE_EVENT_FFT_CAPTURE:
                     l.onFftDataCapture(mVisualizer, data, samplingRate);
                     break;
                 default:
-                    Log.e(TAG,"Unknown native event: "+msg.what);
+                    //Log.e(TAG,"Unknown native event: "+msg.what);
                     break;
 */
         }
     }
     return E_NOT_IMPLEMENTED;
 }
+
+struct visualizer_callback_cookie {
+    //jclass      visualizer_class;  // Visualizer class
+    //jobject     visualizer_ref;    // Visualizer object instance
+ };
+ 
+class visualizerJniStorage {
+    public:
+        visualizer_callback_cookie mCallbackData;
+    visualizerJniStorage() {
+    }
+
+    ~visualizerJniStorage() {
+    }
+
+};
+
+#define VISUALIZER_SUCCESS                      0
+#define VISUALIZER_ERROR                       -1
+#define VISUALIZER_ERROR_ALREADY_EXISTS        -2
+#define VISUALIZER_ERROR_NO_INIT               -3
+#define VISUALIZER_ERROR_BAD_VALUE             -4
+#define VISUALIZER_ERROR_INVALID_OPERATION     -5
+#define VISUALIZER_ERROR_NO_MEMORY             -6
+#define VISUALIZER_ERROR_DEAD_OBJECT           -7
+
+#define NATIVE_EVENT_PCM_CAPTURE                0
+#define NATIVE_EVENT_FFT_CAPTURE                1
+
+static Int32 translateError(Int32 code) {
+    switch(code) {
+    case NO_ERROR:
+        return VISUALIZER_SUCCESS;
+    case ALREADY_EXISTS:
+        return VISUALIZER_ERROR_ALREADY_EXISTS;
+    case NO_INIT:
+        return VISUALIZER_ERROR_NO_INIT;
+    case BAD_VALUE:
+        return VISUALIZER_ERROR_BAD_VALUE;
+    case INVALID_OPERATION:
+        return VISUALIZER_ERROR_INVALID_OPERATION;
+    case NO_MEMORY:
+        return VISUALIZER_ERROR_NO_MEMORY;
+    case DEAD_OBJECT:
+        return VISUALIZER_ERROR_DEAD_OBJECT;
+    default:
+        return VISUALIZER_ERROR;
+    }
+}
+
 void CVisualizer::Native_Init()
 {
-    //return E_NOT_IMPLEMENTED;
+
 }
 
 Int32 CVisualizer::Native_Setup(
@@ -312,56 +372,151 @@ Int32 CVisualizer::Native_Setup(
     /* [in] */ Int32 audioSession,
     /* [in] */ ArrayOf<Int32>* id)
 {
-    //return E_NOT_IMPLEMENTED;
+    visualizerJniStorage* lpJniStorage = NULL;
+    Int32 lStatus = VISUALIZER_ERROR_NO_MEMORY;
+    Visualizer* lpVisualizer = NULL;
+    Int32* nId = NULL;
+
+    lpJniStorage = new visualizerJniStorage();
+    if (lpJniStorage == NULL) {
+        goto setup_failure;
+    }
+
+    if (id == NULL) {
+        lStatus = VISUALIZER_ERROR_BAD_VALUE;
+        goto setup_failure;
+    }
+
+    if (lStatus != VISUALIZER_SUCCESS && lStatus != VISUALIZER_ERROR_ALREADY_EXISTS) {
+        goto setup_failure;
+    }
+
+    if (nId == NULL) {
+        lStatus = VISUALIZER_ERROR_BAD_VALUE;
+        goto setup_failure;
+    }
+    nId[0] = lpVisualizer->id();
+    nId = NULL;
+
+    return VISUALIZER_SUCCESS;
+
+    // failures:
+    setup_failure:
+
+    if (lpVisualizer) {
+        delete lpVisualizer;
+    }
+
+    if (lpJniStorage) {
+        delete lpJniStorage;
+    }
+
+    return lStatus;
 }
 
 void CVisualizer::Native_Finalize()
 {
-    //return E_NOT_IMPLEMENTED;
+    // delete the Visualizer object
+    Visualizer* lpVisualizer = NULL;
+    if (lpVisualizer) {
+        delete lpVisualizer;
+    }
+
+    // delete the JNI data
+    visualizerJniStorage* lpJniStorage = NULL;
+    if (lpJniStorage) {
+        delete lpJniStorage;
+    }
 }
 
 void CVisualizer::Native_Release()
 {
-    //return E_NOT_IMPLEMENTED;
+    // do everything a call to finalize would
+    Native_Finalize();
 }
 
 Int32 CVisualizer::Native_SetEnabled(
-        /* [in] */ Boolean enabled)
+    /* [in] */ Boolean enabled)
 {
-    //return E_NOT_IMPLEMENTED;
+    Visualizer* lpVisualizer = NULL;
+    if (lpVisualizer == NULL) {
+        return VISUALIZER_ERROR_NO_INIT;
+    }
+
+    return translateError(lpVisualizer->setEnabled(enabled));
 }
 
 Boolean CVisualizer::Native_GetEnabled()
 {
-    //return E_NOT_IMPLEMENTED;
+    Visualizer* lpVisualizer = NULL;
+    if (lpVisualizer == NULL) {
+        return FALSE;
+    }
+
+    return TRUE;
 }
 
 Int32 CVisualizer::Native_SetCaptureSize(
     /* [in] */ Int32 size)
 {
-    //return E_NOT_IMPLEMENTED;
+    Visualizer* lpVisualizer = NULL;
+    if (lpVisualizer == NULL) {
+        return VISUALIZER_ERROR_NO_INIT;
+    }
+
+    return translateError(/*lpVisualizer->setCaptureSize(*/size/*)*/);
 }
 
 Int32 CVisualizer::Native_GetCaptureSize()
 {
-    //return E_NOT_IMPLEMENTED;
+    Visualizer* lpVisualizer = NULL;
+    if (lpVisualizer == NULL) {
+        return -1;
+    }
+    return lpVisualizer->getCaptureSize();
 }
 
 Int32 CVisualizer::Native_GetSamplingRate()
 {
-    //return E_NOT_IMPLEMENTED;
+    Visualizer* lpVisualizer = NULL;
+    if (lpVisualizer == NULL) {
+        return -1;
+    }
+    return lpVisualizer->getSamplingRate();
 }
 
 Int32 CVisualizer::Native_GetWaveForm(
     /* [in] */ ArrayOf<Byte>* waveform)
 {
-    //return E_NOT_IMPLEMENTED;
+    Visualizer* lpVisualizer = NULL;
+    if (lpVisualizer == NULL) {
+        return VISUALIZER_ERROR_NO_INIT;
+    }
+
+    Byte* nWaveform = NULL;
+    if (nWaveform == NULL) {
+        return VISUALIZER_ERROR_NO_MEMORY;
+    }
+    Int32 status = translateError(/*lpVisualizer->getWaveForm((uint8_t *)waveform)*/1);
+
+    return status;
 }
 
 Int32 CVisualizer::Native_GetFft(
     /* [in] */ ArrayOf<Byte>* fft)
 {
-    //return E_NOT_IMPLEMENTED;
+    Visualizer* lpVisualizer = NULL;
+    if (lpVisualizer == NULL) {
+        return VISUALIZER_ERROR_NO_INIT;
+    }
+
+    Byte* nFft = NULL;
+    if (nFft == NULL) {
+        return VISUALIZER_ERROR_NO_MEMORY;
+    }
+    Int32 status = translateError(/*lpVisualizer->getFft((uint8_t *)nFft)*/1);
+
+    return status;
 }
 
 Int32 CVisualizer::Native_SetPeriodicCapture(
@@ -369,7 +524,25 @@ Int32 CVisualizer::Native_SetPeriodicCapture(
     /* [in] */ Boolean waveForm,
     /* [in] */ Boolean fft)
 {
-    //return E_NOT_IMPLEMENTED;
+    Visualizer* lpVisualizer = NULL;
+    if (lpVisualizer == NULL) {
+        return VISUALIZER_ERROR_NO_INIT;
+    }
+    visualizerJniStorage* lpJniStorage = NULL;
+    if (lpJniStorage == NULL) {
+        return VISUALIZER_ERROR_NO_INIT;
+    }
+
+    Int32 flags = Visualizer::CAPTURE_CALL_JAVA;
+    if (waveForm) flags |= Visualizer::CAPTURE_WAVEFORM;
+    if (fft) flags |= Visualizer::CAPTURE_FFT;
+    Visualizer::capture_cbk_t cbk = NULL;
+    if (!waveForm && !fft) cbk = NULL;
+
+    return translateError(/*lpVisualizer->setCaptureCallBack(cbk,
+                                                &lpJniStorage->mCallbackData,
+                                                flags,
+                                                rate)*/1);
 }
 
 Void CVisualizer::PostEventFromNative(
