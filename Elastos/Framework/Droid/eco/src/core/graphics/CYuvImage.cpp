@@ -2,6 +2,7 @@
 #include "ext/frameworkdef.h"
 #include "graphics/CYuvImage.h"
 #include "graphics/CreateOutputStreamAdaptor.h"
+#include "graphics/YuvToJpegEncoder.h"
 #include <elastos/AutoPtr.h>
 #include <skia/core/SkStream.h>
 
@@ -256,20 +257,13 @@ Boolean CYuvImage::NativeCompressToJpeg(
     Byte* yuv = oriYuv.GetPayload();
     Int32* imgOffsets = offsets.GetPayload();
     Int32* imgStrides = strides.GetPayload();
-
     SkWStream* strm = CreateOutputStreamAdaptor(stream, &tempStorage);
-
-#if 0
     YuvToJpegEncoder* encoder = YuvToJpegEncoder::create(format, imgStrides);
     if (encoder == NULL) {
-        return false;
+        return FALSE;
     }
+	
     encoder->encode(strm, yuv, width, height, imgOffsets, quality);
-
     delete encoder;
-    //env->ReleaseByteArrayElements(inYuv, yuv, 0);
-    //env->ReleaseIntArrayElements(offsets, imgOffsets, 0);
-    //env->ReleaseIntArrayElements(strides, imgStrides, 0);
-#endif
-    return true;
+    return TRUE;
 }

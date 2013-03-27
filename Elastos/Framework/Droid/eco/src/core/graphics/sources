@@ -86,6 +86,7 @@ SOURCES += CLayerRasterizer.cpp
 SOURCES += CPaintFlagsDrawFilter.cpp
 SOURCES += CBitmapRegionDecoder.cpp
 SOURCES += CBitmapRegionDecoderHelper.cpp
+SOURCES += YuvToJpegEncoder.cpp
 
 LIBRARIES += drawable/drawable.lib
 LIBRARIES += drawable/shapes/shapes.lib

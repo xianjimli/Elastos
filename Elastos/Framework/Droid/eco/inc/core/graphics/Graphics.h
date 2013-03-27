@@ -102,7 +102,8 @@ public:
     virtual ~CppMemoryUsageReporter();
 
     // overrides
-    virtual bool reportMemory(size_t memorySize);
+    virtual bool reportMemory(
+        /* [in] */ size_t memorySize);
 
 private:
     // JavaVM* fVM;

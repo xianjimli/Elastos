@@ -105,13 +105,12 @@ private:
 
     static CARAPI NativeNewInstance(
         /* [in] */ IInputStream* is,
-        /* [in] */ //ArrayOf<Byte> & storage,
-        /* [in] */ Byte* storage,
+        /* [in] */ ArrayOf<Byte>* storage,
         /* [in] */ Boolean isShareable,
         /* [out] */ IBitmapRegionDecoder** decoder);
 
     static CARAPI NativeNewInstance(
-        /* [in] */ Int32 asset,
+        /* [in] */ Int32 nativeAsset,
         /* [in] */ Boolean isShareable,
         /* [out] */ IBitmapRegionDecoder** decoder);
 

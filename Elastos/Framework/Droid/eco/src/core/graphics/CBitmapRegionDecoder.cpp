@@ -6,6 +6,7 @@
 #include "graphics/CBitmapFactory.h"
 #include "graphics/CBitmapFactoryOptions.h"
 #include "graphics/Utils.h"
+#include "graphics/CreateOutputStreamAdaptor.h"
 #include <elastos/AutoFree.h>
 #include <skia/images/SkImageDecoder.h>
 #include <skia/core/SkTemplates.h>
@@ -88,8 +89,9 @@ ECode CBitmapRegionDecoder::NewInstance(
         // pass some temp storage down to the native code. 1024 is made up,
         // but should be large enough to avoid too many small calls back
         // into is.read(...).
-        Byte tempStorage[16 * 1024];
-        return NativeNewInstance(is, tempStorage, isShareable, decoder);
+
+        AutoFree< ArrayOf<Byte> > tempStorage = ArrayOf<Byte>::Alloc(16 * 1024);
+        return NativeNewInstance(is, tempStorage.Get(), isShareable, decoder);
     }
 }
 
@@ -265,12 +267,12 @@ static ECode DoBuildTileIndex(
     }
 
     //todo:
-    // CppPixelAllocator* cppAllocator = new CppPixelAllocator(true);
-    // decoder->setAllocator(cppAllocator);
-    // CppMemoryUsageReporter* cppMemoryReporter = new CppMemoryUsageReporter();
-    // decoder->setReporter(cppMemoryReporter);
-    // cppAllocator->unref();
-    // cppMemoryReporter->unref();
+    CppPixelAllocator* cppAllocator = new CppPixelAllocator(TRUE);
+    decoder->setAllocator(cppAllocator);
+    CppMemoryUsageReporter* cppMemoryReporter = new CppMemoryUsageReporter();
+    decoder->setReporter(cppMemoryReporter);
+    cppAllocator->unref();
+    cppMemoryReporter->unref();
 
     if (!decoder->buildTileIndex(stream, &width, &height)) {
         char msg[100];
@@ -445,16 +447,13 @@ ECode CBitmapRegionDecoder::NativeNewInstance(
 
 ECode CBitmapRegionDecoder::NativeNewInstance(
     /* [in] */ IInputStream* is,
-    /* [in] */ //ArrayOf<Byte> & storage,
-    /* [in] */ Byte* storage,
+    /* [in] */ ArrayOf<Byte>* storage,
     /* [in] */ Boolean isShareable,
     /* [out] */ IBitmapRegionDecoder** decoder)
 {
     ECode ec = NOERROR;
     *decoder = NULL;
-
-    assert(0);
-    SkStream* stream = NULL;//CreateJavaInputStreamAdaptor(env, is, storage, 1024);
+    SkStream* stream = CreateInputStreamAdaptor( is, storage, 1024);
 
     if (stream) {
         // for now we don't allow shareable with java inputstreams
@@ -467,15 +466,14 @@ ECode CBitmapRegionDecoder::NativeNewInstance(
 }
 
 ECode CBitmapRegionDecoder::NativeNewInstance(
-    /* [in] */ Int32 asset,
+    /* [in] */ Int32 nativeAsset,
     /* [in] */ Boolean isShareable,
     /* [out] */ IBitmapRegionDecoder** decoder)
 {
-    assert(0);
     SkStream* stream, *assStream;
-    // android::Asset* asset = NULL;//reinterpret_cast<Asset*>(native_asset);
-    // assStream = new AssetStreamAdaptor(asset);
-    // stream = BuildSkMemoryStream(assStream);
-    // assStream->unref();
+    android::Asset* asset = reinterpret_cast<android::Asset*>(nativeAsset);
+    assStream = new AssetStreamAdaptor(asset);
+    stream = BuildSkMemoryStream(assStream);
+    assStream->unref();
     return DoBuildTileIndex(stream, decoder);
 }
