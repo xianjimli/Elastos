@@ -7,6 +7,7 @@
 #include <elastos/AutoPtr.h>
 #include <elastos/Mutex.h>
 #include <elastos/HashMap.h>
+#include <StringBuffer.h>
 #include <Logger.h>
 
 using namespace Elastos;
