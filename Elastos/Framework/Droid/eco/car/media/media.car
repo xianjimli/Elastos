@@ -26,6 +26,8 @@ module
     merge("media/JetPlayer.car");
     merge("media/MediaScannerConnection.car");
     merge("media/SoundPool.car");
+    merge("media/ExifInterface.car");
+    merge("media/MediaMetadataRetriever.car");
 
     class CAudioTrack {
         constructor(
@@ -196,5 +198,20 @@ module
             [in] Int32 srcQuality);
 
         interface ISoundPool;
+    }
+
+    class CExifInterface {
+
+        constructor(
+            [in] String fileName);
+
+        interface IExifInterface;
+    }
+
+    class CMediaMetadataRetriever {
+
+        constructor();
+
+        interface IMediaMetadataRetriever;
     }
 }

@@ -1,0 +1,111 @@
+
+module
+{
+    interface IExifInterface
+    {
+        /**
+         * Returns the value of the specified tag or {@code NULL} if there
+         * is no such tag in the JPEG file.
+         *
+         * @param tag the name of the tag.
+         */
+        GetAttribute(
+            [in] String tag,
+            [out] String* value);
+
+        /**
+         * Returns the integer value of the specified tag. If there is no such tag
+         * in the JPEG file or the value cannot be parsed as integer, return
+         * <var>defaultValue</var>.
+         *
+         * @param tag the name of the tag.
+         * @param defaultValue the value to return if the tag is not available.
+         */
+        GetAttributeInt32(
+            [in] String tag, 
+            [in] Int32 defaultValue,
+            [out] Int32* value);
+
+        /**
+         * Returns the Double value of the specified rational tag. If there is no
+         * such tag in the JPEG file or the value cannot be parsed as Double, return
+         * <var>defaultValue</var>.
+         *
+         * @param tag the name of the tag.
+         * @param defaultValue the value to return if the tag is not available.
+         */
+        GetAttributeDouble(
+            [in] String tag, 
+            [in] Double defaultValue,
+            [out] Double* value);
+
+        /**
+         * Set the value of the specified tag.
+         *
+         * @param tag the name of the tag.
+         * @param value the value of the tag.
+         */
+        SetAttribute(
+            [in] String tag, 
+            [in] String value);
+
+        /**
+         * Save the tag data into the JPEG file. This is expensive because it involves
+         * copying all the JPG data from one file to another and deleting the old file
+         * and renaming the other. It's best to use {@link #setAttribute(String,String)}
+         * to set all attributes to write and make a single call rather than multiple
+         * calls for each attribute.
+         */
+        SaveAttributes();
+
+        /**
+         * Returns TRUE if the JPEG file has a thumbnail.
+         */
+        HasThumbnail(
+            [out] Boolean* thumbnail);
+
+        /**
+         * Returns the thumbnail inside the JPEG file, or {@code NULL} if there is no thumbnail.
+         * The returned data is in JPEG format and can be decoded using
+         * {@link android.graphics.BitmapFactory#decodeByteArray(Byte[],Int32,Int32)}
+         */
+        GetThumbnail(
+            [out, callee] ArrayOf<Byte>* data);
+
+        /**
+         * Stores the latitude and longitude value in a Float array. The first element is
+         * the latitude, and the second element is the longitude. Returns FALSE if the
+         * Exif tags are not available.
+         */
+        GetLatLong(
+            [in] ArrayOf<Float> output,
+            [out] Boolean* available);
+
+        /**
+         * Return the altitude in meters. If the exif tag does not exist, return
+         * <var>defaultValue</var>.
+         *
+         * @param defaultValue the value to return if the tag is not available.
+         */
+        GetAltitude(
+            [in] Double defaultValue,
+            [out] Double* value);
+
+        /**
+         * Returns number of milliseconds since Jan. 1, 1970, midnight.
+         * Returns -1 if the date time information if not available.
+         * @hide
+         */
+        GetDateTime(
+            [out] Int64* milliseconds);
+
+        /**
+         * Returns number of milliseconds since Jan. 1, 1970, midnight UTC.
+         * Returns -1 if the date time information if not available.
+         * @hide
+         */
+        GetGpsDateTime(
+            [out] Int64* dataTime);
+
+    }
+}

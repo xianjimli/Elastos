@@ -1,0 +1,118 @@
+
+module
+{
+    interface IMediaMetadataRetriever
+    {
+        /**
+         * Sets the data source (FileDescriptor) to use. It is the caller's
+         * responsibility to close the file descriptor. It is safe to do so as soon
+         * as this call returns. Call this method before the rest of the methods in
+         * this class. This method may be time-consuming.
+         * 
+         * @param fd the FileDescriptor for the file you want to play
+         * @throws IllegalArgumentException if the FileDescriptor is invalid
+         */
+        SetDataSource(
+            [in] IFileDescriptor* fd);
+
+        /**
+         * Sets the data source as a content Uri. Call this method before 
+         * the rest of the methods in this class. This method may be time-consuming.
+         * 
+         * @param context the Context to use when resolving the Uri
+         * @param uri the Content URI of the data you want to play
+         * @throws IllegalArgumentException if the Uri is invalid
+         * @throws SecurityException if the Uri cannot be used due to lack of
+         * permission.
+         */
+        SetDataSourceEx(
+            [in] IContext* context, 
+            [in] IUri* uri);
+
+        /**
+         * Call this method after setDataSource(). This method finds a
+         * representative frame close to the given time position by considering
+         * the given option if possible, and returns it as a bitmap. This is
+         * useful for generating a thumbnail for an input data source or just
+         * obtain and display a frame at the given time position.
+         *
+         * @param timeUs The time position where the frame will be retrieved.
+         * When retrieving the frame at the given time position, there is no
+         * guarantee that the data source has a frame located at the position.
+         * When this happens, a frame nearby will be returned. If timeUs is
+         * negative, time position and option will ignored, and any frame
+         * that the implementation considers as representative may be returned.
+         *
+         * @param option a hint on how the frame is found. Use
+         * {@link #OPTION_PREVIOUS_SYNC} if one wants to retrieve a sync frame
+         * that has a timestamp earlier than or the same as timeUs. Use
+         * {@link #OPTION_NEXT_SYNC} if one wants to retrieve a sync frame
+         * that has a timestamp later than or the same as timeUs. Use
+         * {@link #OPTION_CLOSEST_SYNC} if one wants to retrieve a sync frame
+         * that has a timestamp closest to or the same as timeUs. Use
+         * {@link #OPTION_CLOSEST} if one wants to retrieve a frame that may
+         * or may not be a sync frame but is closest to or the same as timeUs.
+         * {@link #OPTION_CLOSEST} often has larger performance overhead compared
+         * to the other options if there is no sync frame located at timeUs.
+         *
+         * @return A Bitmap containing a representative video frame, which 
+         *         can be NULL, if such a frame cannot be retrieved.
+         */
+        GetFrameAtTime(
+            [in] Int64 timeUs, 
+            [in] Int32 option,
+            [out] IBitmap** bitmap);
+
+        /**
+         * Call this method after setDataSource(). This method finds a
+         * representative frame close to the given time position if possible,
+         * and returns it as a bitmap. This is useful for generating a thumbnail
+         * for an input data source. Call this method if one does not care
+         * how the frame is found as Int64 as it is close to the given time;
+         * otherwise, please call {@link #getFrameAtTime(Int64, Int32)}.
+         *
+         * @param timeUs The time position where the frame will be retrieved.
+         * When retrieving the frame at the given time position, there is no
+         * guarentee that the data source has a frame located at the position.
+         * When this happens, a frame nearby will be returned. If timeUs is
+         * negative, time position and option will ignored, and any frame
+         * that the implementation considers as representative may be returned.
+         *
+         * @return A Bitmap containing a representative video frame, which
+         *         can be NULL, if such a frame cannot be retrieved.
+         *
+         * @see #getFrameAtTime(Int64, Int32)
+         */
+        GetFrameAtTimeEx(
+            [in] Int64 timeUs,
+            [out] IBitmap** bitmap);
+
+        /**
+         * Call this method after setDataSource(). This method finds a
+         * representative frame at any time position if possible,
+         * and returns it as a bitmap. This is useful for generating a thumbnail
+         * for an input data source. Call this method if one does not
+         * care about where the frame is located; otherwise, please call
+         * {@link #getFrameAtTime(Int64)} or {@link #getFrameAtTime(Int64, Int32)}
+         *
+         * @return A Bitmap containing a representative video frame, which
+         *         can be NULL, if such a frame cannot be retrieved.
+         *
+         * @see #getFrameAtTime(Int64)
+         * @see #getFrameAtTime(Int64, Int32)
+         */
+        GetFrameAtTimeEx2(
+            [out] IBitmap** bitmap);
+        
+        /**
+         * Call this method after setDataSource(). This method finds the optional
+         * graphic or album art associated associated with the data source. If
+         * there are more than one pictures, (any) one of them is returned.
+         * 
+         * @return NULL if no such graphic is found.
+         */
+        GetEmbeddedPicture(
+            [out, callee] ArrayOf<Byte>* graphic);
+
+    }
+}
