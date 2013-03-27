@@ -1,0 +1,65 @@
+
+module
+{
+    interface IAppWidgetHost;
+    interface IAppWidgetProviderInfo;
+
+    [deprecated]
+    interface IAppWidgetService {
+        //
+        // for AppWidgetHost
+        //
+        StartListening(
+            [in] IAppWidgetHost* host,
+            [in] String packageName,
+            [in] Int32 hostId,
+            [out] IObjectContainer** updatedViews,
+            [out, callee] ArrayOf<Int32>* updatedIds);
+
+        StopListening(
+            [in] Int32 hostId);
+
+        AllocateAppWidgetId(
+            [in] String packageName,
+            [in] Int32 hostId,
+            [out] Int32* appWidgetId);
+
+        DeleteAppWidgetId(
+            [in] Int32 appWidgetId);
+
+        DeleteHost(
+            [in] Int32 hostId);
+
+        DeleteAllHosts();
+
+        GetAppWidgetViews(
+            [in] Int32 appWidgetId,
+            [out] IRemoteViews** views);
+
+        //
+        // for AppWidgetManager
+        //
+        UpdateAppWidgetIds(
+            [in] ArrayOf<Int32> appWidgetIds,
+            [in] IRemoteViews* views);
+
+        UpdateAppWidgetProvider(
+            [in] IComponentName* provider,
+            [in] IRemoteViews* views);
+
+        GetInstalledProviders(
+            [out] IObjectContainer** providers);
+
+        GetAppWidgetInfo(
+            [in] Int32 appWidgetId,
+            [out] IAppWidgetProviderInfo** providerInfo);
+
+        BindAppWidgetId(
+            [in] Int32 appWidgetId,
+            [in] IComponentName* provider);
+
+        GetAppWidgetIds(
+            [in] IComponentName* provider,
+            [out, callee] ArrayOf<Int32>* appWidgetIds);
+    }
+}

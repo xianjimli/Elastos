@@ -105,4 +105,11 @@ module
         interface IAccessibilityServiceConnection;
         interface IServiceConnection;
     }
+
+    class CAppWidgetService {
+        constructor(
+            [in] IContext* context);
+
+        interface IAppWidgetService;
+    }
 }

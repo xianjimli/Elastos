@@ -1,0 +1,16 @@
+
+module
+{
+    interface IAppWidgetProviderInfo;
+
+    [deprecated]
+    interface IAppWidgetHost {
+        UpdateAppWidget(
+            [in] Int32 appWidgetId,
+            [in] IRemoteViews* views);
+
+        ProviderChanged(
+            [in] Int32 appWidgetId,
+            [in] IAppWidgetProviderInfo* info);
+    }
+}
