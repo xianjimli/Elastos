@@ -8,6 +8,7 @@
 #include <elastos/Mutex.h>
 #include <elastos/HashMap.h>
 #include <Logger.h>
+#include <usbhost/usbhost.h>
 #include "server/usb/UsbSettingsManager.h"
 
 using namespace Elastos;
@@ -103,7 +104,7 @@ private:
         /* [in] */ const String& deviceName);
 
 private:
-    CARAPI_(Boolean) IsDeviceExists(
+    CARAPI_(Boolean) IsDeviceExistsRef(
         /* [in] */ const String& deviceName);
 
 private:

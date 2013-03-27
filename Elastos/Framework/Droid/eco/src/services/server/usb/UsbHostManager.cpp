@@ -1,9 +1,5 @@
 
 #include "server/usb/UsbHostManager.h"
-#include <usbhost/usbhost.h>
-#include <Logger.h>
-
-using namespace Elastos::Utility::Logging;
 
 const String UsbHostManager::TAG = String("UsbHostManager");
 const Boolean UsbHostManager::LOG = FALSE;
@@ -188,7 +184,7 @@ void UsbHostManager::UsbDeviceAdded(
 
     Mutex::Autolock lock(mLock);
 
-    if (IsDeviceExists(deviceName) == TRUE) {
+    if (IsDeviceExistsRef(deviceName) == TRUE) {
         // Slog.w(TAG, "device already on mDevices list: " + deviceName);
         Logger::W(UsbHostManager::TAG, "device already on mDevices list:");
         Logger::W(UsbHostManager::TAG, deviceName);
@@ -278,7 +274,7 @@ IParcelFileDescriptor* UsbHostManager::NativeOpenDevice(
     return NULL;
 }
 
-Boolean UsbHostManager::IsDeviceExists(
+Boolean UsbHostManager::IsDeviceExistsRef(
     /* [in] */ const String& deviceName)
 {
     HashMap< String, AutoPtr<IUsbDevice> >::Iterator it = mDevices.Find(deviceName);
