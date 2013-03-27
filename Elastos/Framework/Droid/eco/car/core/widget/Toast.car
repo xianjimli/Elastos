@@ -17,7 +17,7 @@ module
      * could be user-definable.
      * @see #setDuration
      */
-    const ToastLENGTH_LONG = 1;
+    const Toast_LENGTH_LONG = 1;
     
     interface IToast {
         /**
