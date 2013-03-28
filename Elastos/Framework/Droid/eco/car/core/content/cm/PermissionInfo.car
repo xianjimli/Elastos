@@ -45,10 +45,10 @@ module
          */
         LoadDescription(
             [in] ILocalCapsuleManager* cm,
-            [out, callee] ArrayOf<Char8>* des);
+            [out] ICharSequence** des);
 
-        GetDescription(
-            [out] String* des);
+        //GetDescription(
+        //    [out] String* des);
 
         GetGroup(
             [out] String* group);

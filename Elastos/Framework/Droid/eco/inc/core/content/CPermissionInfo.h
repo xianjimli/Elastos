@@ -81,10 +81,10 @@ public:
 
     CARAPI LoadDescription(
         /* [in] */ ILocalCapsuleManager* cm,
-        /* [out, callee] */ ArrayOf<Char8>** des);
+        /* [out] */ ICharSequence** des);
 
-    CARAPI GetDescription(
-        /* [out] */ String* des);
+    // CARAPI GetDescription(
+    //     /* [out] */ String* des);
 
     CARAPI GetGroup(
         /* [out] */ String* group);
