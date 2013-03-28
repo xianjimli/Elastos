@@ -112,6 +112,14 @@ protected:
      */
     virtual CARAPI_(AutoPtr<IApplicationInfo>) GetApplicationInfo();
 
+    CARAPI LoadDefaultIcon(
+        /* [in] */ ILocalCapsuleManager* pm,
+        /* [out] */ IDrawable** icon);
+
+    CARAPI LoadDefaultLogo(
+        /* [in] */ ILocalCapsuleManager* pm,
+        /* [out] */ IDrawable** icon);
+
 public:
     /**
      * Public name of this item. From the "android:name" attribute.

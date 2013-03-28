@@ -23,17 +23,20 @@ ECode CapsuleItemInfo::LoadLabel(
     /* [in] */ ILocalCapsuleManager* pm,
     /* [out] */ ICharSequence** label)
 {
+    VALIDATE_NOT_NULL(label);
+
     if (mNonLocalizedLabel != NULL) {
         *label = mNonLocalizedLabel;
         (*label)->AddRef();
         return NOERROR;
     }
     if (mLabelRes != 0) {
-//        CharSequence label = pm.getText(packageName, labelRes, getApplicationInfo());
-//        if (label != null) {
-//            return label.toString().trim();
-//        }
-        assert(0);
+       pm->GetText(mCapsuleName, mLabelRes, GetApplicationInfo(), label);
+       if (*label != NULL) {
+            String str;
+            (*label)->ToString(&str);
+            return CStringWrapper::New(str.Trim(), label);
+       }
     }
     if (mName.IsNull()) {
         return CStringWrapper::New(mName, label);
@@ -41,32 +44,55 @@ ECode CapsuleItemInfo::LoadLabel(
     return CStringWrapper::New(mCapsuleName, label);
 }
 
+ECode CapsuleItemInfo::LoadDefaultIcon(
+    /* [in] */ ILocalCapsuleManager* pm,
+    /* [out] */ IDrawable** icon)
+{
+    VALIDATE_NOT_NULL(icon);
+
+    return pm->GetDefaultActivityIcon(icon);
+}
+
+
 ECode CapsuleItemInfo::LoadIcon(
     /* [in] */ ILocalCapsuleManager* pm,
     /* [out] */ IDrawable** icon)
 {
-//    if (icon != 0) {
-//        Drawable dr = pm.getDrawable(packageName, icon, getApplicationInfo());
-//        if (dr != null) {
-//            return dr;
-//        }
-//    }
-//    return loadDefaultIcon(pm);
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(icon);
+
+    if (mIcon != 0) {
+       pm->GetDrawable(mCapsuleName, mIcon, GetApplicationInfo(), icon);
+       if (*icon != NULL) {
+            return NOERROR;
+       }
+    }
+
+   return LoadDefaultIcon(pm, icon);
+}
+
+ECode CapsuleItemInfo::LoadDefaultLogo(
+    /* [in] */ ILocalCapsuleManager* pm,
+    /* [out] */ IDrawable** icon)
+{
+    VALIDATE_NOT_NULL(icon);
+
+    *icon = NULL;
+    return NOERROR;
 }
 
 ECode CapsuleItemInfo::LoadLogo(
     /* [in] */ ILocalCapsuleManager* pm,
     /* [out] */ IDrawable** icon)
 {
-//    if (logo != 0) {
-//        Drawable d = pm.getDrawable(packageName, logo, getApplicationInfo());
-//        if (d != null) {
-//            return d;
-//        }
-//    }
-//    return loadDefaultLogo(pm);
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(icon);
+    
+    if (mLogo != 0) {
+       pm->GetDrawable(mCapsuleName, mLogo, GetApplicationInfo(), icon);
+       if (*icon != NULL) {
+           return NOERROR;
+       }
+    }
+   return LoadDefaultLogo(pm, icon);
 }
 
 ECode CapsuleItemInfo::LoadXmlMetaData(

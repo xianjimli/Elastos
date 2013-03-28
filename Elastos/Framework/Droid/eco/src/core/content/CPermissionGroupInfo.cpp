@@ -145,16 +145,29 @@ ECode CPermissionGroupInfo::LoadDescription(
     /* [in] */ ILocalCapsuleManager* cm,
     /* [out] */ ICharSequence** des)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    if (mNonLocalizedDescription != NULL) {
+        *des = mNonLocalizedDescription;
+        return NOERROR;
+    }
+
+    if (mDescriptionRes != 0) {
+        ICharSequence* label;
+        cm->GetText(mCapsuleName, mDescriptionRes, NULL, &label);
+        if (label != NULL) {
+            *des = label;
+            return NOERROR;
+        }
+    }
+
+    return NOERROR;
 }
 
-ECode CPermissionGroupInfo::GetDescription(
-    /* [out] */ String* des)
-{
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
-}
+// ECode CPermissionGroupInfo::GetDescription(
+//     /* [out] */ String* des)
+// {
+//     // TODO: Add your code here
+//     return E_NOT_IMPLEMENTED;
+// }
 
 ECode CPermissionGroupInfo::GetDescriptionRes(
     /* [out] */ Int32* desRes)
@@ -181,7 +194,11 @@ ECode CPermissionGroupInfo::ReadFromParcel(
 ECode CPermissionGroupInfo::WriteToParcel(
     /* [in] */ IParcel* dest)
 {
-    // TODO: Add your code here
+    CapsuleItemInfo::WriteToParcel(dest);
+    dest->WriteInt32(mDescriptionRes);
+    //TODO:
+    // TextUtils.writeToParcel(nonLocalizedDescription, dest, parcelableFlags);
+
     return E_NOT_IMPLEMENTED;
 }
 
@@ -194,14 +211,24 @@ ECode CPermissionGroupInfo::constructor()
 ECode CPermissionGroupInfo::constructor(
     /* [in] */ IPermissionGroupInfo* orig)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    CPermissionGroupInfo* corig = (CPermissionGroupInfo*) orig;
+    CapsuleItemInfo::constructor((CapsuleItemInfo*)(CPermissionGroupInfo*)orig);
+    mDescriptionRes = corig->mDescriptionRes;
+    mNonLocalizedDescription = corig->mNonLocalizedDescription;
+
+    return NOERROR;
 }
 
 ECode CPermissionGroupInfo::constructor(
     /* [in] */ IParcel* source)
 {
-    // TODO: Add your code here
+    //TODO:
+    // super(source);
+
+    source->ReadInt32(&mDescriptionRes);
+    //TODO:
+    // nonLocalizedDescription = TextUtils.CHAR_SEQUENCE_CREATOR.createFromParcel(source);
+
     return E_NOT_IMPLEMENTED;
 }
 

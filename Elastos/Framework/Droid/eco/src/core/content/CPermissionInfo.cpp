@@ -155,12 +155,26 @@ ECode CPermissionInfo::SetMetaData(
 
 ECode CPermissionInfo::LoadDescription(
     /* [in] */ ILocalCapsuleManager* cm,
-    /* [out, callee] */ ArrayOf<Char8>** des)
+    /* [out] */ ICharSequence** des)
 {
     VALIDATE_NOT_NULL(cm);
     VALIDATE_NOT_NULL(des);
 
-    return E_NOT_IMPLEMENTED;
+    if (mNonLocalizedDescription != NULL) {
+        *des = mNonLocalizedDescription;
+        return NOERROR;
+    }
+
+    if (mDescriptionRes != 0) {
+        ICharSequence* label;
+        cm->GetText(mCapsuleName, mDescriptionRes, NULL, &label);
+        if (label != NULL) {
+            *des = label;
+            return NOERROR;
+        }
+    }
+
+    return NOERROR;
 }
 
 ECode CPermissionInfo::GetGroup(
@@ -233,20 +247,26 @@ ECode CPermissionInfo::ReadFromParcel(
 ECode CPermissionInfo::WriteToParcel(
     /* [in] */ IParcel* dest)
 {
-    return E_NOT_IMPLEMENTED;
+    CapsuleItemInfo::WriteToParcel(dest);
+    dest->WriteString(mGroup);
+    dest->WriteInt32(mDescriptionRes);
+    dest->WriteInt32(mProtectionLevel);
+    //TODO:
+    //TextUtils::WriteToParcel(nonLocalizedDescription, dest, parcelableFlags);
+    return NOERROR;
 }
 
-ECode CPermissionInfo::GetDescription(
-    /* [out] */ String* des)
-{
-    VALIDATE_NOT_NULL(des);
+// ECode CPermissionInfo::GetDescription(
+//     /* [out] */ String* des)
+// {
+//     VALIDATE_NOT_NULL(des);
 
-    return E_NOT_IMPLEMENTED;
-}
+//     return E_NOT_IMPLEMENTED;
+// }
 
 ECode CPermissionInfo::constructor()
 {
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CPermissionInfo::constructor(
@@ -254,7 +274,14 @@ ECode CPermissionInfo::constructor(
 {
     VALIDATE_NOT_NULL(orig);
 
-    return E_NOT_IMPLEMENTED;
+    CPermissionInfo* corig = (CPermissionInfo*) orig;
+    CapsuleItemInfo::constructor((CapsuleItemInfo*)(CPermissionInfo*)orig);
+    mGroup = corig->mGroup;
+    mDescriptionRes = corig->mDescriptionRes;
+    mProtectionLevel = corig->mProtectionLevel;
+    mNonLocalizedDescription = corig->mNonLocalizedDescription;
+
+    return NOERROR;
 }
 
 ECode CPermissionInfo::constructor(
@@ -262,6 +289,15 @@ ECode CPermissionInfo::constructor(
 {
     VALIDATE_NOT_NULL(source);
 
+    //TODO:
+    //super(source);
+    //CapsuleItemInfo::constructor((CapsuleItemInfo*)(CPermissionInfo*)source);
+
+    source->ReadString(&mGroup);
+    source->ReadInt32(&mDescriptionRes);
+    source->ReadInt32(&mProtectionLevel);
+    //TODO:
+    // nonLocalizedDescription = TextUtils.CHAR_SEQUENCE_CREATOR.createFromParcel(source);
     return E_NOT_IMPLEMENTED;
 }
 
