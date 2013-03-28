@@ -533,7 +533,7 @@ public:
             /* [in] */ const CapsuleSignatures* orig);
 
         CapsuleSignatures(
-            /* [in] */ const ArrayOf< AutoPtr<ISignature> >& sigs);
+            /* [in] */ const ArrayOf< AutoPtr<ISignature> >* sigs);
 
         CapsuleSignatures();
 
@@ -560,7 +560,7 @@ public:
             /* [in] */ List< AutoPtr<ISignature> >* pastSignatures);
 
         CARAPI_(void) AssignSignatures(
-            /* [in] */ const ArrayOf< AutoPtr<ISignature> >& sigs);
+            /* [in] */ const ArrayOf< AutoPtr<ISignature> >* sigs);
 
     public:
         AutoFree< ArrayOf< AutoPtr<ISignature> > > mSignatures;
@@ -1764,9 +1764,6 @@ public:
     CARAPI GetInstallLocation(
         /* [out] */ Int32* loc);
 
-    //todo: should be removed
-    CARAPI constructor();
-
     CARAPI constructor(
         /* [in] */ IContext* context,
         /* [in] */ Boolean factoryTest);
@@ -1964,6 +1961,9 @@ private:
         /* [in] */ Boolean chatty);
 
     static CARAPI_(Boolean) IsCapsuleFilename(
+        /* [in] */ const String& name);
+
+    static CARAPI_(Boolean) IsAndroidAPKFilename(
         /* [in] */ const String& name);
 
     static CARAPI_(Boolean) HasPermission(

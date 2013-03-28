@@ -124,11 +124,11 @@ public:
     {
     public:
         Permission(
-            /* [in] */ Capsule* _owner);
+            /* [in] */ Capsule* owner);
 
         Permission(
-            /* [in] */ Capsule* _owner,
-            /* [in] */ IPermissionInfo* _info);
+            /* [in] */ Capsule* owner,
+            /* [in] */ IPermissionInfo* info);
 
         ~Permission();
 
@@ -440,6 +440,13 @@ public:
                 mAdoptPermissions->Clear();
                 delete mAdoptPermissions;
             }
+
+            List<Permission*>::Iterator it;
+            for (it = mPermissions.Begin();
+                 it != mPermissions.End(); ++it) {
+                Permission* permission = *it;
+                delete permission;
+            }
         }
 
         CARAPI_(PInterface) Probe(
@@ -614,6 +621,9 @@ public:
 
 private:
     static CARAPI_(Boolean) IsCapsuleFilename(
+        /* [in] */ const String& name);
+
+    static CARAPI_(Boolean) IsAndroidAPKFilename(
         /* [in] */ const String& name);
 
     static CARAPI_(void) ValidateName(

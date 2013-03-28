@@ -246,7 +246,7 @@ ECode CPermissionInfo::GetDescription(
 
 ECode CPermissionInfo::constructor()
 {
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CPermissionInfo::constructor(
