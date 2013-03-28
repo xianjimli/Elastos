@@ -7,6 +7,7 @@
 #include "ext/frameworkext.h"
 #include <elastos/AutoPtr.h>
 #include <elastos/AutoFree.h>
+#include <elastos/Mutex.h>
 
 CarClass(CWebHistoryItem)
 {
@@ -143,6 +144,9 @@ private:
     String mTouchIconUrl;
     // Custom client data that is not flattened or read by native code.
     IInterface* mCustomData;
+
+    Core::Threading::Mutex mLock;
+    static Core::Threading::Mutex sLock;
 
 };
 

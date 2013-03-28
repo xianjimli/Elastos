@@ -9,6 +9,7 @@
 #include "ext/frameworkext.h"
 #include <elastos/List.h>
 #include <elastos/AutoPtr.h>
+#include <elastos/Mutex.h>
 
 CarClass(CWebBackForwardList)
 {
@@ -114,6 +115,8 @@ private:
     Boolean mClearPending;
     // CallbackProxy to issue client callbacks.
     /*const*/ AutoPtr<ICallbackProxy> mCallbackProxy;
+
+    Elastos::Core::Threading::Mutex mLock;
 };
 
 #endif // __CWEBBACKFORWARDLIST_H__

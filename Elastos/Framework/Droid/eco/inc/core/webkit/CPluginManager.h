@@ -66,6 +66,9 @@ private:
     static const CString sSIGNATURE_1;
 
     static const AutoFree < ArrayOf < AutoPtr <ISignature> > > sSIGNATURES;
+
+    Core::Threading::Mutex mMutex;
+    Core::Threading::Mutex mMutexPackageInfoCache;
 };
 
 #endif // __CPLUGINMANAGER_H__

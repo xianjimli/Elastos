@@ -179,6 +179,7 @@ private:
     IInterface* mCustomData;
 
     Elastos::Core::Threading::Mutex mLock;
+    static Elastos::Core::Threading::Mutex sLock;
 
 };
 

@@ -1,14 +1,12 @@
 
 #include "webkit/CWebHistoryItem.h"
 
-#include <elastos/Mutex.h>
-
 Int32 CWebHistoryItem::sNextId = 0;
 
 ECode CWebHistoryItem::constructor()
 {
     if(TRUE) {//JAVA:   synchronized (WebHistoryItem.class)
-        Mutex::Autolock lock(_m_syncLock);
+        Mutex::Autolock lock(sLock);
         mId = sNextId++;
     }
     return NOERROR;
@@ -20,7 +18,7 @@ ECode CWebHistoryItem::constructor(
     mUrl = NULL; // This will be updated natively
     mFlattenedData = data;
     if(TRUE){//JAVA:   synchronized (WebHistoryItem.class)
-        Mutex::Autolock lock(_m_syncLock);
+        Mutex::Autolock lock(sLock);
         mId = sNextId++;
     }
     return NOERROR;
@@ -137,7 +135,7 @@ ECode CWebHistoryItem::Clone(
     /* [out] */ IWebHistoryItem** item)
 {
     VALIDATE_NOT_NULL(item);
-    Mutex::Autolock lock(_m_syncLock);
+    Mutex::Autolock lock(mLock);
 
     CWebHistoryItem::New(item);    
     String url;

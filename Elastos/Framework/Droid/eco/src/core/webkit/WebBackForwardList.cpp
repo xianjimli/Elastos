@@ -131,6 +131,7 @@ IWebBackForwardList* WebBackForwardList::Clone()
 void WebBackForwardList::SetCurrentIndex(
     /* [in] */ Int32 newIndex)
 {
+    Elastos::Core::Threading::Mutex::Autolock lock(mLock);
     mCurrentIndex = newIndex;
     if (mCallbackProxy != NULL) {
         mCallbackProxy -> OnIndexChanged(GetItemAtIndex(newIndex), newIndex);

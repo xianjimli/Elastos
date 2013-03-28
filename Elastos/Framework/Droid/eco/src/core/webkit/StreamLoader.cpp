@@ -12,7 +12,7 @@ StreamLoader::StreamLoader(
 void StreamLoader::Load()
 {
     if(TRUE){
-        Elastos::Core::Threading::Mutex::Autolock lock(mLock);
+        Elastos::Core::Threading::Mutex::Autolock lock(mMutex);
         if(mHandler == NULL){
             /*
             AutoPtr<IHandler> pHandler;

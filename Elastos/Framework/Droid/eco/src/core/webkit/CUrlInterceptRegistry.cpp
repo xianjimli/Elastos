@@ -12,10 +12,9 @@ List< AutoPtr<IUrlInterceptHandler> > * CUrlInterceptRegistry::sHandlerList;
 
 ECode CUrlInterceptRegistry::GetHandlers(
         /* [out] */ List< AutoPtr<IUrlInterceptHandler> > ** linkedList )
-{
+{    
     VALIDATE_NOT_NULL(linkedList);
-    Mutex::Autolock lock(_m_syncLock);    
-
+    Mutex::Autolock lock(mMutex);
     if(sHandlerList == NULL) {
         sHandlerList = new List< AutoPtr<IUrlInterceptHandler> >;
     }
@@ -26,6 +25,7 @@ ECode CUrlInterceptRegistry::GetHandlers(
 ECode CUrlInterceptRegistry::SetUrlInterceptDisabled(
     /* [in] */ Boolean disabled)
 {
+    Mutex::Autolock lock(mMutex);
     sDisabled = disabled;
     return NOERROR;
 }
@@ -34,6 +34,7 @@ ECode CUrlInterceptRegistry::UrlInterceptDisabled(
     /* [out] */ Boolean* flag)
 {
     VALIDATE_NOT_NULL(flag);
+    Mutex::Autolock lock(mMutex);
     *flag = sDisabled;
     return NOERROR;
 }
@@ -43,6 +44,7 @@ ECode CUrlInterceptRegistry::RegisterHandler(
     /* [out] */ Boolean * flag)
 {
     VALIDATE_NOT_NULL(flag);
+    Mutex::Autolock lock(mMutex);
     List< AutoPtr<IUrlInterceptHandler> > * tHandlerList = NULL;
     GetHandlers(&tHandlerList);
 
@@ -74,6 +76,7 @@ ECode CUrlInterceptRegistry::UnregisterHandler(
     /* [out] */ Boolean * flag)
 {
     VALIDATE_NOT_NULL(flag);
+    Mutex::Autolock lock(mMutex);
     List< AutoPtr<IUrlInterceptHandler> > * tHandlerList = NULL;
     GetHandlers(&tHandlerList);
     tHandlerList -> Remove(handler);
@@ -87,6 +90,7 @@ ECode CUrlInterceptRegistry::GetSurrogate(
     /* [out] */ ICacheManagerCacheResult ** result)
 {
     VALIDATE_NOT_NULL(result);
+    Mutex::Autolock lock(mMutex);
     Boolean bUrlInterceptDisabled;
     UrlInterceptDisabled(&bUrlInterceptDisabled);
     if(bUrlInterceptDisabled) {
@@ -123,6 +127,7 @@ ECode CUrlInterceptRegistry::GetPluginData(
     /* [out] */ IPluginData ** data)
 {
     VALIDATE_NOT_NULL(data);
+    Mutex::Autolock lock(mMutex);
     Boolean bUrlInterceptDisabled;
     UrlInterceptDisabled(&bUrlInterceptDisabled);
     if(bUrlInterceptDisabled) {

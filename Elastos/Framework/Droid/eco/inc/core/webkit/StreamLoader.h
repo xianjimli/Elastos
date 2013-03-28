@@ -107,7 +107,7 @@ private:
     // Handler which will be initialized in the thread where load() is called.
     AutoPtr<IHandler> mHandler;
 
-    Elastos::Core::Threading::Mutex mLock;
+    Elastos::Core::Threading::Mutex mMutex;
 };
 
 #endif //__STREAMLOADER_H__

@@ -28,7 +28,7 @@ ECode CPluginManager::GetInstance(
     /* [out] */ IPluginManager ** instance)
 {
     VALIDATE_NOT_NULL(instance);
-    Mutex::Autolock lock(_m_syncLock);
+    Mutex::Autolock lock(mMutex);
     
     if(sInstance == NULL) {
         if(context == NULL) {
@@ -85,7 +85,7 @@ ECode CPluginManager::GetPluginDirectories(
     ec = pm -> queryIntentServices(pIntent.Get(),
         IPackageManager::sGET_SERVICES | IPackageManager::sGET_META_DATA,(IResolveInfo**)&plugins);
 
-    Mutex::Autolock lock(_m_syncLock);
+    Mutex::Autolock lock(mMutexPackageInfoCache);
     
     // clear the list of existing packageInfo objects
     mPackageInfoCache -> clear();
@@ -258,7 +258,7 @@ ECode CPluginManager::GetPluginsAPKName(
     }
     
     // must be synchronized to ensure the consistency of the cache
-    Mutex::Autolock lock(_m_syncLock);  //synchronized(mPackageInfoCache)
+    Mutex::Autolock lock(mMutexPackageInfoCache);  //synchronized(mPackageInfoCache)
     /*
     for (List<AutoPtr<IPackageInfo> >::Iterator it = mPackageInfoCache -> begin(); it != (mPackageInfoCache -> end()); it++)  {
         AutoPtr<CPackageInfo> pkgInfo = (CPackageInfo *)((*it).Get());

@@ -65,11 +65,11 @@ CARAPI_(void) CookieSyncManager::GetCookiesForDomain(
 {
 	// null mDataBase implies that the host application doesn't support
     // persistent cookie. No sync needed.
-    if (mDataBase == NULL) {
+    if ( (mDataBase.Get()) == NULL) {
         return;
     }
 
-    ((CWebViewDatabase*)mDataBase)->GetCookiesForDomain(domain, cookielist);
+    ( (CWebViewDatabase*)(mDataBase.Get()) )->GetCookiesForDomain(domain, cookielist);
 }
 
 /**
@@ -80,11 +80,11 @@ CARAPI_(void) CookieSyncManager::ClearAllCookies()
 {
 	// null mDataBase implies that the host application doesn't support
     // persistent cookie.
-    if (mDataBase == NULL) {
+    if ( (mDataBase.Get()) == NULL) {
         return;
     }
 
-    ((CWebViewDatabase*)mDataBase)->ClearCookies();
+    ( (CWebViewDatabase*)(mDataBase.Get()) )->ClearCookies();
 }
 
 /**
@@ -94,11 +94,11 @@ CARAPI_(Boolean) CookieSyncManager::HasCookies()
 {
 	// null mDataBase implies that the host application doesn't support
     // persistent cookie.
-    if (mDataBase == NULL) {
+    if ( (mDataBase.Get()) == NULL) {
         return FALSE;
     }
 
-    return ((CWebViewDatabase*)mDataBase)->HasCookies();
+    return ( (CWebViewDatabase*)(mDataBase.Get()) )->HasCookies();
 }
 
 /**
@@ -109,11 +109,11 @@ CARAPI_(void) CookieSyncManager::ClearSessionCookies()
 {
 	// null mDataBase implies that the host application doesn't support
     // persistent cookie.
-    if (mDataBase == NULL) {
+    if ( (mDataBase.Get()) == NULL) {
         return;
     }
 
-    ((CWebViewDatabase*)mDataBase)->ClearSessionCookies();
+    ( (CWebViewDatabase*)(mDataBase.Get()) )->ClearSessionCookies();
 }
 
 /**
@@ -125,11 +125,11 @@ CARAPI_(void) CookieSyncManager::ClearExpiredCookies(
 {
 	// null mDataBase implies that the host application doesn't support
     // persistent cookie.
-    if (mDataBase == NULL) {
+    if ( (mDataBase.Get()) == NULL) {
         return;
     }
 
-    ((CWebViewDatabase*)mDataBase)->ClearExpiredCookies(now);
+    ( (CWebViewDatabase*)(mDataBase.Get()) )->ClearExpiredCookies(now);
 }
 
 CARAPI_(void) CookieSyncManager::SyncFromRamToFlash()
@@ -175,12 +175,12 @@ CARAPI_(void) CookieSyncManager::SyncFromRamToFlash(
         CCookieManager::Cookie* cookie = list[i];
         if (cookie->mode != CCookieManager::Cookie::MODE_NORMAL) {
             if (cookie->mode != CCookieManager::Cookie::MODE_NEW) {
-                ((CWebViewDatabase*)mDataBase)->DeleteCookies(cookie->domain,
+                ( (CWebViewDatabase*)(mDataBase.Get()) )->DeleteCookies(cookie->domain,
                 	           cookie->path, cookie->name);
             }
 
             if (cookie->mode != CCookieManager::Cookie::MODE_DELETED) {
-                ((CWebViewDatabase*)mDataBase)->AddCookie(*cookie);
+                ( (CWebViewDatabase*)(mDataBase.Get()) )->AddCookie(*cookie);
                 ((CCookieManager*)cookieManager)->SyncedACookie(*cookie);
             } else {
                 ((CCookieManager*)cookieManager)->DeleteACookie(*cookie);

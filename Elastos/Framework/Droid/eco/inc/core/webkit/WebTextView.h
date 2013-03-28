@@ -6,6 +6,9 @@
 #include <elastos/AutoPtr.h>
 #include <elastos/AutoFree.h>
 #include <elastos/ElRefBase.h>
+#include <elastos/List.h>
+#include "widget/ArrayAdapter.h"
+#include "graphics/drawable/Drawable.h"
 
 /**
  * WebTextView is a specialized version of EditText used by WebView
@@ -22,13 +25,14 @@
      *  This is a special version of ArrayAdapter which changes its text size
      *  to match the text size of its host TextView.
      */
-    class AutoCompleteAdapter// : public ArrayAdapter<String>
+    class AutoCompleteAdapter : public ArrayAdapter
     {
     public:
+        friend class WebTextView;
 
         AutoCompleteAdapter(
-            /* [in] */ IContext* context//,
-            /* [in] */ /*ArrayList<String> entries*/);
+            /* [in] */ IContext* context,
+            /* [in] */ IObjectContainer* entries);
 
         /**
          * {@inheritDoc}
@@ -46,6 +50,26 @@
             /* [in] */ ITextView* tv);
 
         AutoPtr<ITextView> mTextView;
+    };
+
+    /**
+     * Private class used for the background of a password textfield.
+     */
+    class OutlineDrawable : public ElRefBase, public Drawable
+    {
+    public:
+        virtual /*CARAPI_(void)*/CARAPI Draw(
+            /* [in] */ ICanvas* canvas);
+
+        // Always want it to be opaque.
+        virtual CARAPI_(Int32) GetOpacity();
+
+        // These are needed because they are abstract in Drawable.
+        virtual /*CARAPI_(void)*/CARAPI SetAlpha(
+            /* [in] */ Int32 alpha);
+
+        virtual /*CARAPI_(void)*/CARAPI SetColorFilter(
+            /* [in] */ IColorFilter* cf);
     };
 
     /**
@@ -126,7 +150,7 @@
      */
     /* package */
 	virtual CARAPI_(void) SetInPassword(
-		CARAPI_(Boolean) inPassword);
+        /* [in] */ Boolean inPassword);
 
     //@Override
 	virtual CARAPI SetInputType(
@@ -141,7 +165,7 @@
      *          WebTextView represents.
      */
     /* package */
-    virtual CARAPI_(void) setNodePointer(
+    virtual CARAPI_(void) SetNodePointer(
         /* [in] */ Int32 ptr);
 
     /**
@@ -244,26 +268,6 @@ private:
 		/* [in] */ IKeyEvent* event);
 
     /**
-     * Private class used for the background of a password textfield.
-     */
-    class OutlineDrawable //: public Drawable
-	{
-	public:
-		virtual CARAPI_(void) Draw(
-			/* [in] */ ICanvas* canvas);
-
-        // Always want it to be opaque.
-		virtual CARAPI_(Int32) GetOpacity();
-
-        // These are needed because they are abstract in Drawable.
-		virtual CARAPI_(void) SetAlpha(
-			/* [in] */ Int32 alpha);
-
-		virtual CARAPI_(void) SetColorFilter(
-			/* [in] */ IColorFilter* cf);
-    };
-
-    /**
      * Create a background for the WebTextView and set up the paint for drawing
      * the text.  This way, we can see the password transformation of the
      * system, which (optionally) shows the actual text before changing to dots.
@@ -288,7 +292,7 @@ private:
     // Keep track of the text before the change so we know whether we actually
     // need to send down the DOM events.
 	String          mPreChange;
-//	Drawable        mBackground;
+	AutoPtr<IDrawable>        mBackground;
     // Variables for keeping track of the touch down, to send to the WebView
     // when a drag starts
 	Float           mDragStartX;
@@ -317,12 +321,14 @@ private:
 	Boolean         mInSetTextAndKeepSelection;
     // Array to store the final character added in onTextChanged, so that its
     // KeyEvents may be determined.
-	AutoFree<ArrayOf<Byte> >      mCharacter;
+	AutoFree<ArrayOf<char> >      mCharacter;
     // This is used to reset the length filter when on a textfield
     // with no max length.
     // FIXME: This can be replaced with TextView.NO_FILTERS if that
     // is made public/protected.
-//	static const InputFilter NO_FILTERS[];
+    /*
+	static const AutoFree<ArrayOf< AutoPtr<IInputFilter> > > NO_FILTERS;
+    */
 };
 
 #endif //__WEBTEXTVIEW_H__

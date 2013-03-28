@@ -8,6 +8,7 @@
 #include <elastos/List.h>
 #include <elastos.h>
 #include <elastos/AutoPtr.h>
+#include <elastos/Mutex.h>
 
 #include "LoadListener.h"
 
@@ -122,9 +123,6 @@ private:
     CARAPI ProcessNextLoader(
         /* [out] */ Boolean * ret);
 
-
-
-
 private:
     static const CString LOGTAG;// = "network";
 
@@ -145,6 +143,7 @@ private:
     // Message id for handling the response
     static const Int32 HANDLE_RESPONSE;// = 100;
 
+    Core::Threading::Mutex mMutex;
 };
 
 #endif // __CSSLERRORHANDLER_H__

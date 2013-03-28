@@ -7,6 +7,7 @@
 #include "ext/frameworkext.h"
 #include <elastos/List.h>
 #include <elastos/AutoPtr.h>
+#include <elastos/Mutex.h>
 
 CarClass(CPluginList)
 {
@@ -32,6 +33,8 @@ public:
 
 private:
     List< AutoPtr< IPlugin > > * mPlugins;
+
+    Core::Threading::Mutex mMutex;
 };
 
 #endif // __CPLUGINLIST_H__

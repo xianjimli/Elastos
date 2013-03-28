@@ -1,7 +1,7 @@
 
 #include "webkit/CSslErrorHandler.h"
 
-#include <elastos/Mutex.h>
+
 #include "os/CBundle.h"
 #include "webkit/DebugFlags.h"
 #include "webkit/CBrowserFrame.h"
@@ -18,7 +18,7 @@ ECode CSslErrorHandler::HandleMessage(
         case HANDLE_RESPONSE:
             AutoPtr< LoadListener > loader = (LoadListener *) (/*msg -> mObj*/NULL);
             if(TRUE) {
-                Mutex::Autolock lock(_m_syncLock);
+                Core::Threading::Mutex::Autolock lock(mMutex);
 
                 HandleSslErrorResponse(loader.Get(), loader -> SslError(), (/*msg -> mArg1*/1) == 1);
                 mLoaderQueue -> Remove(loader);
@@ -59,7 +59,7 @@ ECode CSslErrorHandler::SaveState(
         /* [out] */ Boolean * ret)
 {
     VALIDATE_NOT_NULL(ret);
-    Mutex::Autolock lock(_m_syncLock);
+    Core::Threading::Mutex::Autolock lock(mMutex);
     Boolean success = ( outState != NULL );
     if(success)
     {// TODO?
@@ -74,7 +74,7 @@ ECode CSslErrorHandler::RestoreState(
         /* [out] */ Boolean * ret)
 {
     VALIDATE_NOT_NULL(ret);
-    Mutex::Autolock lock(_m_syncLock);
+    Core::Threading::Mutex::Autolock lock(mMutex);
     Boolean success = (inState != NULL);
     if (success)  {
         ECode ec = inState -> ContainsKey(String("ssl-error-handler"),&success);
@@ -99,7 +99,7 @@ ECode CSslErrorHandler::RestoreState(
 
 ECode CSslErrorHandler::Clear()
 {
-    Mutex::Autolock lock(_m_syncLock);    
+    Core::Threading::Mutex::Autolock lock(mMutex);
     mSslPrefTable -> Clear();
     return NOERROR;
 }
@@ -107,7 +107,7 @@ ECode CSslErrorHandler::Clear()
 ECode CSslErrorHandler::HandleSslErrorRequest(
         /* [in] */ LoadListener * loader)
 {
-    Mutex::Autolock lock(_m_syncLock);
+    Core::Threading::Mutex::Autolock lock(mMutex);
     if (DebugFlags::sSSL_ERROR_HANDLER)  {
         String strUrl;
         loader -> Url(/*&*/strUrl);
@@ -130,7 +130,7 @@ ECode CSslErrorHandler::CheckSslPrefTable(
         /* [out] */ Boolean * ret)
 {
     VALIDATE_NOT_NULL(ret);
-    Mutex::Autolock lock(_m_syncLock);
+    Core::Threading::Mutex::Autolock lock(mMutex);
     ECode ec;
     /*const*/ String host;
     loader -> Host(/*&*/host);
@@ -170,7 +170,7 @@ ECode CSslErrorHandler::ProcessNextLoader(
         /* [out] */ Boolean * ret)
 {
     VALIDATE_NOT_NULL(ret);
-    Mutex::Autolock lock(_m_syncLock);
+    Core::Threading::Mutex::Autolock lock(mMutex);
     AutoPtr<LoadListener> loader = (mLoaderQueue -> GetFront());
     if (loader != NULL) 
     {
@@ -258,7 +258,7 @@ ECode CSslErrorHandler::HandleSslErrorResponse(
         /* [in] */ ISslError * error, 
         /* [in] */ Boolean proceed)
 {
-    Mutex::Autolock lock(_m_syncLock);
+    Core::Threading::Mutex::Autolock lock(mMutex);
     if (DebugFlags::sSSL_ERROR_HANDLER) 
     {
         //JAVA:Assert.assertNotNull(loader);

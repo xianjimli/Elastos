@@ -4,6 +4,7 @@ ECode CPluginList::GetList(
     /* [out] */ IObjectContainer ** list)
 {
     VALIDATE_NOT_NULL(list);
+    Core::Threading::Mutex::Autolock lock(mMutex);
     *list = (IObjectContainer *)mPlugins;
     return NOERROR;
 }
@@ -11,6 +12,7 @@ ECode CPluginList::GetList(
 ECode CPluginList::AddPlugin(
     /* [in] */ IPlugin * plugin)
 {
+    Core::Threading::Mutex::Autolock lock(mMutex);
     mPlugins -> PushBack(plugin);
     return NOERROR;
 }
@@ -18,12 +20,14 @@ ECode CPluginList::AddPlugin(
 ECode CPluginList::RemovePlugin(
     /* [in] */ IPlugin * plugin)
 {
+    Core::Threading::Mutex::Autolock lock(mMutex);
     mPlugins -> Remove(plugin);
     return NOERROR;
 }
 
 ECode CPluginList::Clear()
 {
+    Core::Threading::Mutex::Autolock lock(mMutex);
     mPlugins -> Clear();
     return NOERROR;
 }
@@ -32,6 +36,7 @@ ECode CPluginList::PluginClicked(
     /* [in] */ IContext * context,
     /* [in] */ Int32 position)
 {
+    Core::Threading::Mutex::Autolock lock(mMutex);
     List<AutoPtr<IPlugin> >::Iterator iterT;
     List<AutoPtr<IPlugin> >::Iterator iterE;
     iterT = mPlugins -> Begin();
