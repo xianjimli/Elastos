@@ -81,7 +81,6 @@ class CppPixelAllocator : public SkBitmap::Allocator
 {
 public:
     CppPixelAllocator(
-        // JNIEnv* env,
         /* [in] */ bool reportSizeToVM);
 
     // overrides
@@ -90,14 +89,13 @@ public:
         /* [in] */ SkColorTable* ctable);
 
 private:
-    // JavaVM* fVM;
     bool fReportSizeToVM;
 };
 
 class CppMemoryUsageReporter : public SkVMMemoryReporter
 {
 public:
-    CppMemoryUsageReporter(/*JNIEnv* env*/);
+    CppMemoryUsageReporter();
 
     virtual ~CppMemoryUsageReporter();
 
@@ -106,7 +104,6 @@ public:
         /* [in] */ size_t memorySize);
 
 private:
-    // JavaVM* fVM;
     size_t fTotalSize;
 };
 
