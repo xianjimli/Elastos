@@ -7,11 +7,13 @@
 #include <elastos/AutoPtr.h>
 #include <elastos/HashMap.h>
 #include <elastos/List.h>
+#include <elastos/Character.h>
 #include <StringBuffer.h>
 #include <Logger.h>
 #include "os/SystemProperties.h"
 #include "BroadcastReceiver.h"
 #include "server/usb/UsbSettingsManager.h"
+#include "server/usb/CommonUtil.h"
 
 using namespace Elastos;
 using namespace Elastos::Utility::Logging;

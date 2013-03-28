@@ -48,7 +48,7 @@ ECode UsbDeviceManager::AdbSettingsObserver::GetInterfaceID(
 ECode UsbDeviceManager::AdbSettingsObserver::OnChange(
     /* [in] */ Boolean selfChange)
 {
-    Boolean enable;
+    Boolean enable = FALSE;
     // Java
     // boolean enable = (Settings.Secure.getInt(mContentResolver, Settings.Secure.ADB_ENABLED, 0) > 0);
 
@@ -593,8 +593,38 @@ String UsbDeviceManager::RemoveFunction(
     /* [in] */ const String& functions,
     /* [in] */ const String& function)
 {
-    // NOT IMPLEMENTED
-    return String("");
+    ArrayOf<String>* strArray;
+    CommonUtil::SplitString(functions, ',', &strArray);
+
+    for (Int32 i = 0, size = strArray->GetLength(); i < size; i++) {
+        if (function != (*strArray)[i]) {
+            continue;
+        }
+
+        (*strArray)[i] = NULL;
+    }
+
+    if (strArray->GetLength() == 1 && (*strArray)[0] == NULL) {
+        return String("none");
+    }
+
+    StringBuffer buf;
+
+    for (Int32 i = 0, size = strArray->GetLength(); i < size; i++) {
+        String s = (*strArray)[i];
+
+        if (s == NULL) {
+            continue;
+        }
+
+        if (buf.GetLength() > 0) {
+            buf += ",";
+        }
+
+        buf += s;
+    }
+
+    return (String)buf;
 }
 
 Boolean UsbDeviceManager::ContainsFunction(
@@ -604,17 +634,25 @@ Boolean UsbDeviceManager::ContainsFunction(
     Int32 index = functions.IndexOf(function);
 
     if (index < 0) {
-        return false;
+        return FALSE;
     }
 
+    Char32 c1;
+    Character::GetCharAt(functions, (index - 1), &c1);
+    if (index > 0 && c1 != ',') {
+        return FALSE;
+    }
 
+    Int32 charAfter = index + function.GetLength();
 
+    Char32 c2 = 0;
+    Character::GetCharAt(functions, charAfter, &c2);
 
+    if (charAfter < functions.GetLength() && c2 != ',') {
+        return FALSE;
+    }
 
-
-
-    // NOT IMPLEMENTED
-    return FALSE;
+    return TRUE;
 }
 
 void UsbDeviceManager::StartAccessoryMode()
@@ -624,12 +662,39 @@ void UsbDeviceManager::StartAccessoryMode()
 
 void UsbDeviceManager::ReadOemUsbOverrideConfig()
 {
+    ArrayOf<String>* configList;
+    AutoPtr<IResources> resources;
+    mContext->GetResources((IResources**)&resources);
+    resources->GetStringArray(0x0107002e /* com.android.internal.R.array.config_oemUsbModeOverride */, &configList);
+
+    if (configList == NULL) {
+        return;
+    }
+
+    for (Int32 i = 0, size = configList->GetLength(); i < size; i++) {
+        String config = (*configList)[i];
+
+        ArrayOf<String>* strArray;
+        CommonUtil::SplitString(config, ':', &strArray);
+
+        if (strArray->GetLength() != 3) {
+            continue;
+        }
+
+
+        // ...
+    }
+
     // NOT IMPLEMENTED
 }
 
 Boolean UsbDeviceManager::NeedsOemUsbOverride()
 {
-    // if (mOemModeMap == null) return false;
+    /* RYAN
+    if (mOemModeMap == NULL) {
+        return false;
+    }
+    */
 
     String bootMode = SystemProperties::Get(BOOT_MODE_PROPERTY, "unknown");
     return (IsOemModeExistsRef(bootMode) == TRUE) ? TRUE : FALSE;

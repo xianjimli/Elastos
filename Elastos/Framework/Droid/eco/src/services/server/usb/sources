@@ -17,3 +17,4 @@ SOURCES += UsbService.cpp
 SOURCES += UsbDeviceManager.cpp
 SOURCES += UsbHostManager.cpp
 SOURCES += UsbSettingsManager.cpp
+SOURCES += CommonUtil.cpp
