@@ -25,7 +25,6 @@ module
     merge("app/ResultInfo.car");
     merge("app/RunningAppProcessInfo.car");
 
-
     class CContentProviderHolder {
         interface IContentProviderHolder;
         interface IParcelable;
@@ -54,17 +53,7 @@ module
     interface IContext;
 
     class CContextImpl {
-        constructor();
-
-        constructor(
-            [in] Boolean isSysCtx);
-
-        constructor(
-            [in] IResources* res,
-            [in] IBinder* binder);
-
         interface IContext;
-        interface IContextImpl;
     }
 
     class CApplication {
@@ -83,6 +72,39 @@ module
     }
 
     class CNotification {
+        /**
+         * Constructs a Notification object with everything set to 0.
+         */
+        constructor();
+
+        /**
+         * @deprecated use {@link #Notification(int,CharSequence,long)} and {@link #setLatestEventInfo}.
+         * @hide
+         */
+        // constructor(Context context, int icon, CharSequence tickerText, long when,
+        //        CharSequence contentTitle, CharSequence contentText, Intent contentIntent)
+
+        /**
+         * Constructs a Notification object with the information needed to
+         * have a status bar icon without the standard expanded view.
+         *
+         * @param icon          The resource id of the icon to put in the status bar.
+         * @param tickerText    The text that flows by in the status bar when the notification first
+         *                      activates.
+         * @param when          The time to show in the time field.  In the System.currentTimeMillis
+         *                      timebase.
+         */
+        constructor(
+            [in] Int32 icon,
+            [in] ICharSequence* tickerText,
+            [in] Int64 when);
+
+        /**
+         * Unflatten the notification from a parcel.
+         */
+        constructor(
+            [in] IParcel* parcel);
+
         interface INotification;
         interface IParcelable;
     }
@@ -91,6 +113,10 @@ module
         /*package*/
         constructor(
             [in] IIntentSender* target);
+
+        /*package*/
+        // constructor(
+        //     [in] IBinder* target);
 
         interface IPendingIntent;
         interface IParcelable;

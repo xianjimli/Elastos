@@ -1,10 +1,21 @@
 
 #include "ext/frameworkdef.h"
 #include "app/CNotification.h"
+#include <elastos/System.h>
 
+using namespace Elastos::Core;
 
 CNotification::CNotification()
-    : mAudioStreamType(Notification_STREAM_DEFAULT)
+    : mWhen(0)
+    , mIcon(0)
+    , mNumber(0)
+    , mIconLevel(0)
+    , mAudioStreamType(Notification_STREAM_DEFAULT)
+    , mLedARGB(0)
+    , mLedOnMS(0)
+    , mLedOffMS(0)
+    , mDefaults(0)
+    , mFlags(0)
 {
 }
 
@@ -235,3 +246,107 @@ ECode CNotification::WriteToParcel(
     return E_NOT_IMPLEMENTED;
 }
 
+ECode CNotification::constructor()
+{
+    mWhen = System::GetCurrentTimeMillis();
+
+    return NOERROR;
+}
+
+ECode CNotification::constructor(
+    /* [in] */ Int32 icon,
+    /* [in] */ ICharSequence* tickerText,
+    /* [in] */ Int64 when)
+{
+    mIcon = icon;
+    mTickerText = tickerText;
+    mWhen = when;
+
+    return NOERROR;
+}
+
+ECode CNotification::constructor(
+    /* [in] */ IParcel* parcel)
+{
+    Int32 version;
+    FAIL_RETURN(parcel->ReadInt32(&version));
+
+    parcel->ReadInt64(&mWhen);
+    parcel->ReadInt32(&mIcon);
+    parcel->ReadInt32(&mNumber);
+
+    Int32 temp;
+    FAIL_RETURN(parcel->ReadInt32(&temp));
+    if (temp != 0) {
+        // TODO: ALEX need IParcel ReadStrongBinder
+        /*
+        AutoPtr<IBinder> target;
+        FAIL_RETURN(parcel->ReadStrongBinder((IBinder**)&target));
+        FAIL_RETURN(CPendingIntent::New(
+            target, (IPendingIntent**)&mContentIntent));
+        FAIL_RETURN(mContentIntent->ReadFromParcel(parcel));
+        */
+        return E_NOT_IMPLEMENTED;
+    }
+
+    FAIL_RETURN(parcel->ReadInt32(&temp));
+    if (temp != 0) {
+        // TODO: ALEX need IParcel ReadStrongBinder
+        /*
+        AutoPtr<IBinder> target;
+        FAIL_RETURN(parcel->ReadStrongBinder((IBinder**)&target));
+        FAIL_RETURN(CPendingIntent::New(
+            target, (IPendingIntent**)&mDeleteIntent));
+        FAIL_RETURN(mDeleteIntent->ReadFromParcel(parcel));
+        */
+        return E_NOT_IMPLEMENTED;
+    }
+
+    FAIL_RETURN(parcel->ReadInt32(&temp));
+    if (temp != 0) {
+        // TODO: ALEX need TextUtils.CHAR_SEQUENCE_CREATOR.createFromParcel
+        // tickerText = TextUtils.CHAR_SEQUENCE_CREATOR.createFromParcel(parcel);
+        return E_NOT_IMPLEMENTED;
+    }
+
+    FAIL_RETURN(parcel->ReadInt32(&temp));
+    if (temp != 0) {
+        // TODO: ALEX need RemoteViews
+        // contentView = RemoteViews.CREATOR.createFromParcel(parcel);
+        return E_NOT_IMPLEMENTED;
+    }
+
+    FAIL_RETURN(parcel->ReadInt32(&mDefaults));
+    FAIL_RETURN(parcel->ReadInt32(&mFlags));
+
+    FAIL_RETURN(parcel->ReadInt32(&temp));
+    if (temp != 0) {
+        // TODO: ALEX need Uri.CREATOR.createFromParcel
+        // sound = Uri.CREATOR.createFromParcel(parcel);
+        return E_NOT_IMPLEMENTED;
+    }
+
+    FAIL_RETURN(parcel->ReadInt32(&mAudioStreamType));
+    // TODO: ALEX need IParcel::createLongArray
+    // vibrate = parcel.createLongArray();
+    return E_NOT_IMPLEMENTED;
+    FAIL_RETURN(parcel->ReadInt32(&mLedARGB));
+    FAIL_RETURN(parcel->ReadInt32(&mLedOnMS));
+    FAIL_RETURN(parcel->ReadInt32(&mLedOffMS));
+    FAIL_RETURN(parcel->ReadInt32(&mIconLevel));
+
+    FAIL_RETURN(parcel->ReadInt32(&temp));
+    if (temp != 0) {
+        // TODO: ALEX need IParcel ReadStrongBinder
+        /*
+        AutoPtr<IBinder> target;
+        FAIL_RETURN(parcel->ReadStrongBinder((IBinder**)&target));
+        FAIL_RETURN(CPendingIntent::New(
+            target, (IPendingIntent**)&mFullScreenIntent));
+        FAIL_RETURN(mFullScreenIntent->ReadFromParcel(parcel));
+        */
+        return E_NOT_IMPLEMENTED;
+    }
+
+    return NOERROR;
+}

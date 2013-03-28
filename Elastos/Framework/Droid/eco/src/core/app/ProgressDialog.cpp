@@ -81,7 +81,7 @@ void ProgressDialog::OnCreate(
         AutoPtr<IView> temp2;
         view->FindViewById(
             0x0102000b /* R.id.message */, (IView**)&temp2);
-        mMessageView = (ITextView*)temp1->Probe(EIID_ITextView);
+        mMessageView = (ITextView*)temp2->Probe(EIID_ITextView);
 
         AlertDialog::SetView(view);
     }
@@ -294,9 +294,7 @@ ECode ProgressDialog::SetMessage(
         if (mProgressStyle == ProgressDialog_STYLE_HORIZONTAL) {
             return AlertDialog::SetMessage(message);
         } else {
-            // TODO: ALEX need mMessageView
-            // return mMessageView->SetText(message);
-            return NOERROR;
+            return mMessageView->SetText(message);
         }
     } else {
         mMessage = message;
