@@ -166,6 +166,9 @@ private:
     class MyPackageMonitor : public ElRefBase // private class MyPackageMonitor extends PackageMonitor
     {
     public:
+        MyPackageMonitor(
+            /* [in] */ UsbSettingsManager* host);
+
         CARAPI_(UInt32) AddRef();
 
         CARAPI_(UInt32) Release();
@@ -187,6 +190,8 @@ private:
             /* [in] */ const String& packageName,
             /* [in] */ Int32 uid);
 
+    private:
+        AutoPtr<UsbSettingsManager> mHost;
     };
 
 public:
