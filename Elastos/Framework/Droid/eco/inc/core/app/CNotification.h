@@ -101,6 +101,16 @@ public:
     CARAPI WriteToParcel(
         /* [in] */ IParcel *dest);
 
+    CARAPI constructor();
+
+    CARAPI constructor(
+        /* [in] */ Int32 icon,
+        /* [in] */ ICharSequence* tickerText,
+        /* [in] */ Int64 when);
+
+    CARAPI constructor(
+        /* [in] */ IParcel* parcel);
+
 public:
     /**
      * The timestamp for the notification.  The icons and expanded views
@@ -112,6 +122,14 @@ public:
      * The resource id of a drawable to use as the icon in the status bar.
      */
     Int32 mIcon;
+
+    /**
+     * The number of events that this notification represents.  For example, in a new mail
+     * notification, this could be the number of unread messages.  This number is superimposed over
+     * the icon in the status bar.  If the number is 0 or negative, it is not shown in the status
+     * bar.
+     */
+    Int32 mNumber;
 
     /**
      * The intent to execute when the expanded status entry is clicked.  If
@@ -141,6 +159,15 @@ public:
      * The view that will represent this notification in the expanded status bar.
      */
     AutoPtr<IRemoteViews> mContentView;
+
+    /**
+     * If the icon in the status bar is to have more than one level, you can set this.  Otherwise,
+     * leave it at its default value of 0.
+     *
+     * @see android.widget.ImageView#setImageLevel
+     * @see android.graphics.drawable#setLevel
+     */
+    Int32 mIconLevel;
 
     /**
      * The sound to play.
