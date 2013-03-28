@@ -258,12 +258,12 @@ Boolean CYuvImage::NativeCompressToJpeg(
     Int32* imgOffsets = offsets.GetPayload();
     Int32* imgStrides = strides.GetPayload();
     SkWStream* strm = CreateOutputStreamAdaptor(stream, &tempStorage);
-    YuvToJpegEncoder* encoder = YuvToJpegEncoder::create(format, imgStrides);
+    YuvToJpegEncoder* encoder = YuvToJpegEncoder::Create(format, imgStrides);
     if (encoder == NULL) {
         return FALSE;
     }
-	
-    encoder->encode(strm, yuv, width, height, imgOffsets, quality);
+
+    encoder->Encode(strm, yuv, width, height, imgOffsets, quality);
     delete encoder;
     return TRUE;
 }

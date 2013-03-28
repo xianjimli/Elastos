@@ -89,7 +89,6 @@ ECode CBitmapRegionDecoder::NewInstance(
         // pass some temp storage down to the native code. 1024 is made up,
         // but should be large enough to avoid too many small calls back
         // into is.read(...).
-
         AutoFree< ArrayOf<Byte> > tempStorage = ArrayOf<Byte>::Alloc(16 * 1024);
         return NativeNewInstance(is, tempStorage.Get(), isShareable, decoder);
     }
@@ -266,7 +265,6 @@ static ECode DoBuildTileIndex(
         return NOERROR;
     }
 
-    //todo:
     CppPixelAllocator* cppAllocator = new CppPixelAllocator(TRUE);
     decoder->setAllocator(cppAllocator);
     CppMemoryUsageReporter* cppMemoryReporter = new CppMemoryUsageReporter();
@@ -453,7 +451,7 @@ ECode CBitmapRegionDecoder::NativeNewInstance(
 {
     ECode ec = NOERROR;
     *decoder = NULL;
-    SkStream* stream = CreateInputStreamAdaptor( is, storage, 1024);
+    SkStream* stream = CreateInputStreamAdaptor(is, storage, 1024);
 
     if (stream) {
         // for now we don't allow shareable with java inputstreams

@@ -2,7 +2,7 @@
 #include "CRuleBasedBreakIterator.h"
 ECode CRuleBasedBreakIterator::constructor()
 {
-    RuleBasedBreakIterator::RuleBasedBreakIterator();
+    // RuleBasedBreakIterator::RuleBasedBreakIterator();
     return NOERROR;
 }
 

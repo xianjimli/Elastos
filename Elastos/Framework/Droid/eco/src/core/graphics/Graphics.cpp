@@ -231,61 +231,31 @@ Boolean Graphics::SetPixels(
     return TRUE;
 }
 
+
 CppPixelAllocator::CppPixelAllocator(
     /* [in] */ bool reportSizeToVM)
     : fReportSizeToVM(reportSizeToVM)
-{
-    // if (env->GetJavaVM(&fVM) != JNI_OK) {
-    //     SkDebugf("------ [%p] env->GetJavaVM failed\n", env);
-    //     sk_throw();
-    // }
-}
-    
+{}
+
 bool CppPixelAllocator::allocPixelRef(
     /* [in] */ SkBitmap* bitmap,
     /* [in] */ SkColorTable* ctable)
 {
-    //JNIEnv* env = vm2env(fVM);
     return Graphics::SetPixelRef( bitmap, ctable);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
 CppMemoryUsageReporter::CppMemoryUsageReporter()
-    : fTotalSize(0) 
-{
-    // if (env->GetJavaVM(&fVM) != JNI_OK) {
-    //     SkDebugf("------ [%p] env->GetJavaVM failed\n", env);
-    //     sk_throw();
-    // }
-}
+    : fTotalSize(0)
+{}
 
 CppMemoryUsageReporter::~CppMemoryUsageReporter()
-{
-    // JNIEnv* env = vm2env(fVM);
-    // Int64 jtotalSize = fTotalSize;
-    // env->CallVoidMethod(gVMRuntime_singleton,
-    //         gVMRuntime_trackExternalFreeMethodID,
-    //         jtotalSize);
-}
+{}
 
 bool CppMemoryUsageReporter::reportMemory(
-    /* [in] */ size_t memorySize) 
+    /* [in] */ size_t memorySize)
 {
-    // Int64 jsize = memorySize;  // the VM wants longs for the size
-    // //sJNIEnv* env = vm2env(fVM);
-    // Boolean r = env->CallBooleanMethod(gVMRuntime_singleton,
-    //         gVMRuntime_trackExternalAllocationMethodID,
-    //         jsize);
-    // if (GraphicsJNI::hasException(env)) {
-    //     return false;
-    // }
-    // if (!r) {
-    //     LOGE("VM won't let us allocate %zd bytes\n", memorySize);
-    //     doThrowOOME(env, "bitmap size exceeds VM budget");
-    //     return false;
-    // }
-    // fTotalSize += memorySize;
-
+    fTotalSize += memorySize;
     return TRUE;
 }

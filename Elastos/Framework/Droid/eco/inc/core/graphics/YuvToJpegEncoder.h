@@ -3,6 +3,9 @@
 
 #include "ext/frameworkext.h"
 #include <skia/core/SkStream.h>
+extern "C" {
+#include <jpeg/jpeglib.h>
+}
 
 class YuvToJpegEncoder
 {
@@ -13,7 +16,7 @@ public:
      *  @param strides The number of row bytes in each image plane.
      *  @return an encoder based on the pixelFormat.
      */
-    static YuvToJpegEncoder* create(
+    static CARAPI_(YuvToJpegEncoder*) Create(
         /* [in] */ Int32 pixelFormat,
         /* [in] */ Int32* strides);
 
@@ -30,7 +33,7 @@ public:
      *  @param jpegQuality Picture quality in [0, 100].
      *  @return true if successfully compressed the stream.
      */
-    bool encode(
+    CARAPI_(Boolean) Encode(
         /* [in] */ SkWStream* stream,
         /* [in] */ void* inYuv,
         /* [in] */ Int32 width,
@@ -41,55 +44,56 @@ public:
     virtual ~YuvToJpegEncoder() {}
 
 protected:
-    Int32 fNumPlanes;
-    Int32* fStrides;
+    CARAPI_(void) SetJpegCompressStruct(
+        /* [in] */ jpeg_compress_struct* cinfo,
+        /* [in] */ Int32 width,
+        /* [in] */ Int32 height,
+        /* [in] */ Int32 quality);
 
-    // void setJpegCompressStruct(
-    //     /* [in] */ jpeg_compress_struct* cinfo,
-    //     /* [in] */ Int32 width,
-    //     /* [in] */ Int32 height,
-    //     /* [in] */ Int32 quality);
+    virtual CARAPI_(void) ConfigSamplingFactors(
+        /* [in] */ jpeg_compress_struct* cinfo) = 0;
 
-    // virtual void configSamplingFactors(
-    //     /* [in] */ jpeg_compress_struct* cinfo) = 0;
+    virtual CARAPI_(void) Compress(
+        /* [in] */ jpeg_compress_struct* cinfo,
+        /* [in] */ uint8_t* yuv,
+        /* [in] */ Int32* offsets) = 0;
 
-    // virtual void compress(
-    //     /* [in] */ jpeg_compress_struct* cinfo,
-    //     /* [in] */ uint8_t* yuv,
-    //     /* [in] */ Int32* offsets) = 0;
+protected:
+    Int32 mNumPlanes;
+    Int32* mStrides;
 };
 
 class Yuv420SpToJpegEncoder : public YuvToJpegEncoder
 {
 public:
     Yuv420SpToJpegEncoder(
-    /* [in] */ Int32* strides);
+        /* [in] */ Int32* strides);
 
     virtual ~Yuv420SpToJpegEncoder() {}
 
 private:
-    // void configSamplingFactors(
-    // /* [in] */ jpeg_compress_struct* cinfo);
+    CARAPI_(void) ConfigSamplingFactors(
+        /* [in] */ jpeg_compress_struct* cinfo);
 
-    void deinterleaveYuv(
-    /* [in] */ uint8_t* yuv,
-    /* [in] */ Int32 width,
-    /* [in] */ Int32 height,
-    /* [in] */ uint8_t*& yPlanar,
-    /* [in] */ uint8_t*& uPlanar,
-    /* [in] */ uint8_t*& vPlanar);
+    CARAPI_(void) DeinterleaveYuv(
+        /* [in] */ uint8_t* yuv,
+        /* [in] */ Int32 width,
+        /* [in] */ Int32 height,
+        /* [in] */ uint8_t*& yPlanar,
+        /* [in] */ uint8_t*& uPlanar,
+        /* [in] */ uint8_t*& vPlanar);
 
-    void deinterleave(
-    /* [in] */ uint8_t* vuPlanar,
-    /* [in] */ uint8_t* uRows,
-    /* [in] */ uint8_t* vRows,
-    /* [in] */ Int32 rowIndex,
-    /* [in] */ Int32 width);
+    CARAPI_(void) Deinterleave(
+        /* [in] */ uint8_t* vuPlanar,
+        /* [in] */ uint8_t* uRows,
+        /* [in] */ uint8_t* vRows,
+        /* [in] */ Int32 rowIndex,
+        /* [in] */ Int32 width);
 
-    // void compress(
-    // /* [in] */ jpeg_compress_struct* cinfo,
-    // /* [in] */ uint8_t* yuv,
-    // /* [in] */ Int32* offsets);
+    CARAPI_(void) Compress(
+        /* [in] */ jpeg_compress_struct* cinfo,
+        /* [in] */ uint8_t* yuv,
+        /* [in] */ Int32* offsets);
 };
 
 class Yuv422IToJpegEncoder : public YuvToJpegEncoder
@@ -101,15 +105,15 @@ public:
     virtual ~Yuv422IToJpegEncoder() {}
 
 private:
-    // void configSamplingFactors(
-    //     /* [in] */ jpeg_compress_struct* cinfo);
+    CARAPI_(void) ConfigSamplingFactors(
+        /* [in] */ jpeg_compress_struct* cinfo);
 
-    // void compress(
-    //     /* [in] */ jpeg_compress_struct* cinfo,
-    //     /* [in] */ uint8_t* yuv,
-    //     /* [in] */ Int32* offsets);
+    CARAPI_(void) Compress(
+        /* [in] */ jpeg_compress_struct* cinfo,
+        /* [in] */ uint8_t* yuv,
+        /* [in] */ Int32* offsets);
 
-    void deinterleave(
+    CARAPI_(void) Deinterleave(
         /* [in] */ uint8_t* yuv,
         /* [in] */ uint8_t* yRows,
         /* [in] */ uint8_t* uRows,

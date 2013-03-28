@@ -126,7 +126,7 @@ ECode CActivityOne::MyListener::OnClick(
         mHost->ShowDialog(0);
     }
     else if (view == mHost->mAnimationButton.Get()) {
-        static count = 0;
+        static Int32 count = 0;
         count = count % 4;
         if (count == 0) {
             mHost->mContent->StartAnimation(mHost->mAlphaAnimation);
