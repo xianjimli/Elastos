@@ -13,6 +13,9 @@
 #include <elastos/List.h>
 #include <elastos/AutoPtr.h>
 #include <elastos/Set.h>
+#include <elastos/Mutex.h>
+
+using namespace Elastos::Core::Threading;
 
 
 class ActivityStack;
@@ -94,7 +97,16 @@ public:
     CARAPI_(void) StopFreezingScreenLocked(
         /* [in] */ Boolean force);
 
+    /**
+     * This method will return true if the activity is either visible, is becoming visible, is
+     * currently pausing, or is resumed.
+     */
+    CARAPI_(Boolean) IsInterestingToUserLocked();
+
     CARAPI_(Int32) GetHashCode();
+
+private:
+    CARAPI_(AutoPtr<CActivityRecord>) GetWaitingHistoryRecordLocked();
 
 public:
     AutoPtr<CActivityManagerService> mService; // owner

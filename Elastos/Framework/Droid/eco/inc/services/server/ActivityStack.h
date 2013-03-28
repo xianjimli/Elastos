@@ -274,6 +274,20 @@ public:
         /* [in] */ Int32 changes,
         /* [in] */ Boolean andResume);
 
+    CARAPI_(Millisecond64) GetInitialStartTime();
+
+    CARAPI_(void) SetInitialStartTime(
+        /* [in] */ Millisecond64 time);
+
+    CARAPI_(void) ReportActivityVisibleLocked(
+        /* [in] */ CActivityRecord* r);
+
+    CARAPI_(List<AutoPtr<CActivityRecord> >*) GetWaitingVisibleActivities();
+
+    CARAPI_(AutoPtr<CActivityRecord>) GetResumedActivity();
+
+    CARAPI_(AutoPtr<CActivityRecord>) GetPausingActivity();
+
 private:
     CARAPI_(void) RemoveHistoryRecordsForAppLocked(
         /* [in] */ List<AutoPtr<CActivityRecord> > & list,

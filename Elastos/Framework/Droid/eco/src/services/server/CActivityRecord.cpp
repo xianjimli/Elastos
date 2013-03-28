@@ -3,19 +3,23 @@
 #include "server/AttributeCache.h"
 #include "server/CActivityManagerService.h"
 #include "os/Process.h"
+#include "os/SystemClock.h"
+#include <Slogger.h>
+
+using namespace Elastos::Utility::Logging;
 
 
 CActivityRecord::CActivityRecord() :
     mRealActivity(NULL),
 //    Taskaffinity = null;
 //    Statenotneeded = false;
-//    Basedir = null;
-//    Resdir = null;
-//    Datadir = null;
+    mBaseDir(NULL),
+    mResDir(NULL),
+    mDataDir(NULL),
     mCapsuleName(NULL),
     mProcessName(NULL),
     mFullscreen(TRUE),
-//    Ishomeactivity = false;
+    mIsHomeActivity(FALSE),
     mApp(NULL),
     mState(ActivityState_INITIALIZING),
     mFrontOfTask(FALSE),
@@ -335,28 +339,173 @@ ECode CActivityRecord::GetDescription(
 }
 
 ECode CActivityRecord::WindowsVisible()
-{
-    return E_NOT_IMPLEMENTED;
+{   
+    Mutex::Autolock lock(mService->_m_syncLock);
+    if (mLaunchTime != 0) {
+        const Int32 curTime = SystemClock::GetUptimeMillis();
+        const Int32 thisTime = curTime - mLaunchTime;
+        const Int32 totalTime = mStack->GetInitialStartTime() != 0
+                ? (curTime - mStack->GetInitialStartTime()) : thisTime;
+        if (CActivityManagerService::SHOW_ACTIVITY_START_TIME) {
+//             EventLog.writeEvent(EventLogTags.ACTIVITY_LAUNCH_TIME,
+//                 System.identityHashCode(this), shortComponentName,
+//                 thisTime, totalTime);
+            StringBuffer sb;
+            mService->GetStringBuffer(&sb);
+            sb.SetLength(0);
+            sb += String("Displayed ");
+            sb += String(mShortComponentName);
+            sb += String(": ");
+//            TimeUtils::FormatDuration(thisTime, sb);
+//            if (thisTime != totalTime) {
+//                sb.append(" (total ");
+//                TimeUtils::FormatDuration(totalTime, sb);
+//                sb.append(")");
+//            }
+            Slogger::I(CActivityManagerService::TAG, sb);
+        }
+        mStack->ReportActivityLaunchedLocked(FALSE, this, thisTime, totalTime);
+        if (totalTime > 0) {
+//            mService.mUsageStatsService.noteLaunchTime(realActivity, (int)totalTime);
+        }
+        mLaunchTime = 0;
+        mStack->SetInitialStartTime(0);
+    }
+    mStartTime = 0;
+    mStack->ReportActivityVisibleLocked(this);
+    if (CActivityManagerService::DEBUG_SWITCH)
+        Slogger::V(CActivityManagerService::TAG, String("windowsVisible(): ") + this);
+    if (!mNowVisible) {
+        mNowVisible = TRUE;
+        if (!mIdle) {
+            // Instead of doing the full stop routine here, let's just
+            // hide any activities we now can, and let them stop when
+            // the normal idle happens.
+            mStack->ProcessStoppingActivitiesLocked(FALSE);
+        } 
+        else {
+            // If this activity was already idle, then we now need to
+            // make sure we perform the full stop of any activities
+            // that are waiting to do so.    This is because we won't
+            // do that while they are still waiting for this one to
+            // become visible.
+            List<AutoPtr<CActivityRecord> >* activities;
+            activities = mStack->GetWaitingVisibleActivities();
+            if (activities->Begin() != activities->End()) {
+                    List<AutoPtr<CActivityRecord> >::Iterator it;
+                    for (it = activities->Begin(); it != activities->End(); ++it){
+                        AutoPtr<CActivityRecord> r = *it;
+                        r->mWaitingVisible = FALSE;
+                        if(CActivityManagerService::DEBUG_SWITCH)
+                            Slogger::V(CActivityManagerService::TAG,
+                                String("Was waiting for visible: ") + r);
+                        }
+                    activities->Clear();
+    //                 Message msg = Message.obtain();
+    //                 msg.what = ActivityStack.IDLE_NOW_MSG;
+    //                 stack.mHandler.sendMessage(msg);
+                    }
+                }
+            mService->ScheduleAppGcsLocked();
+        }
+        return NOERROR;
 }
 
 ECode CActivityRecord::WindowsGone()
 {
-    return E_NOT_IMPLEMENTED;
+    if (CActivityManagerService::DEBUG_SWITCH)
+        Slogger::V(CActivityManagerService::TAG, String("windowsGone(): ") + this);
+    mNowVisible = FALSE;
+    return NOERROR;
 }
 
 ECode CActivityRecord::KeyDispatchingTimedOut(
     /* [out] */ Boolean* result)
 {
-    return E_NOT_IMPLEMENTED;
+    AutoPtr<CActivityRecord> r;
+    ProcessRecord* anrApp = NULL;
+    {
+        Mutex::Autolock lock(mService->_m_syncLock);
+        r = GetWaitingHistoryRecordLocked();
+        if (r != NULL && r->mApp != NULL) {
+            if (r->mApp->mDebugging) {
+                *result = FALSE;
+                return NOERROR;
+            }
+            Boolean dDexOpt;
+            mService->GetDidDexOpt(&dDexOpt);    
+            if (dDexOpt) {
+                // Give more time since we were dexopting.
+                mService->SetDidDexOpt(FALSE);
+                *result = FALSE;
+                return NOERROR;
+            }
+
+            if (r->mApp->mInstrumentationClass == NULL) { 
+                    anrApp = r->mApp;
+            }
+            else {
+                AutoPtr<IBundle> info;
+                info->PutString(String("shortMsg"), String("keyDispatchingTimedOut"));
+                info->PutString(String("longMsg"), String("Timed out while dispatching key event"));
+                mService->FinishInstrumentationLocked(
+                    r->mApp, Activity_RESULT_CANCELED, info);
+            }
+        }
+    }
+        
+    if (anrApp != NULL) {
+        mService->AppNotResponding(anrApp, r, this,
+            "keyDispatchingTimedOut");
+    }
+        
+    *result = TRUE;
+}
+
+AutoPtr<CActivityRecord> CActivityRecord::GetWaitingHistoryRecordLocked()
+{
+    // First find the real culprit...  if we are waiting
+    // for another app to start, then we have paused dispatching
+    // for this activity.
+    AutoPtr<CActivityRecord> r = this;
+    if (r->mWaitingVisible) {
+        // Hmmm, who might we be waiting for?
+        r = mStack->GetResumedActivity();
+        if (r == NULL) {
+            r = mStack->GetPausingActivity();
+        }
+        // Both of those null?  Fall back to 'this' again
+        if (r == NULL) {
+            r = this;
+        }
+    }
+        
+    return r;
 }
 
 ECode CActivityRecord::GetKeyDispatchingTimeout(
     /* [out] */ Millisecond64* timeout)
 {
-    return E_NOT_IMPLEMENTED;
+    Mutex::Autolock lock(mService->_m_syncLock);
+    AutoPtr<CActivityRecord> r = GetWaitingHistoryRecordLocked();
+    if (r == NULL || r->mApp == NULL
+        || r->mApp->mInstrumentationClass == NULL) {
+        *timeout = CActivityManagerService::KEY_DISPATCHING_TIMEOUT;
+        return NOERROR;
+    }
+            
+    *timeout = CActivityManagerService::INSTRUMENTATION_KEY_DISPATCHING_TIMEOUT;
+    return NOERROR;
 }
 
 Int32 CActivityRecord::GetHashCode()
 {
     return (Int32)this;
+}
+
+
+Boolean CActivityRecord::IsInterestingToUserLocked()
+{
+    return mVisible || mNowVisible || mState == ActivityState_PAUSING ||
+        mState == ActivityState_RESUMED;
 }

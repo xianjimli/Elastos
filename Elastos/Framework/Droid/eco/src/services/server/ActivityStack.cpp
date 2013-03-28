@@ -4105,3 +4105,56 @@ Boolean ActivityStack::RelaunchActivityLocked(
 
     return TRUE;
 }
+
+
+Millisecond64 ActivityStack::GetInitialStartTime()
+{
+    return mInitialStartTime;
+}
+
+void ActivityStack::SetInitialStartTime(
+    /* [in] */ Millisecond64 time)
+{
+    mInitialStartTime = time;
+}
+
+void ActivityStack::ReportActivityVisibleLocked(
+        /* [in] */ CActivityRecord* r)
+{
+    List<AutoPtr<IWaitResult> >::ReverseIterator it;
+    Int32 i = mWaitingActivityVisible.GetSize();
+    for(it = mWaitingActivityVisible.RBegin(); it != mWaitingActivityVisible.REnd(); it){
+        AutoPtr<IWaitResult> w = *it;
+        w->SetTimeout(FALSE);
+        String cName, name;
+        r->mInfo->GetCapsuleName(&cName);
+        r->mInfo->GetName(&name);
+        if(r != NULL){
+            AutoPtr<IComponentName> component;
+            CComponentName::New(cName, name, (IComponentName**)&component);
+            w->SetWho(component);
+        }
+        Int64 thisTime;
+        w->GetThisTime(&thisTime);
+        w->SetTotalTime(SystemClock::GetUptimeMillis() - thisTime);
+        Int64 totalTime;
+        w->GetTotalTime(&totalTime);
+        w->SetThisTime(totalTime);
+    }
+//    mService.notifyAll();
+}
+
+List<AutoPtr<CActivityRecord> >* ActivityStack::GetWaitingVisibleActivities()
+{
+    return &mWaitingVisibleActivities;
+}
+
+AutoPtr<CActivityRecord> ActivityStack::GetResumedActivity()
+{
+    return mResumedActivity;
+}
+
+AutoPtr<CActivityRecord> ActivityStack::GetPausingActivity()
+{
+    return mPausingActivity;
+}

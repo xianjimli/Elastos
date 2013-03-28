@@ -67,6 +67,7 @@ const Boolean CActivityManagerService::DEBUG_RESULTS;
 const Boolean CActivityManagerService::DEBUG_BACKUP;
 const Boolean CActivityManagerService::DEBUG_CONFIGURATION;
 const Boolean CActivityManagerService::VALIDATE_TOKENS;
+const Boolean CActivityManagerService::SHOW_ACTIVITY_START_TIME;
 const Int32 CActivityManagerService::STOCK_PM_FLAGS;
 const Boolean CActivityManagerService::ENFORCE_PROCESS_LIMIT;
 const Int32 CActivityManagerService::MAX_ACTIVITIES;
@@ -80,6 +81,8 @@ const Int32 CActivityManagerService::SERVICE_RESET_RUN_DURATION;
 const Int32 CActivityManagerService::SERVICE_RESTART_DURATION_FACTOR;
 const Int32 CActivityManagerService::SERVICE_MIN_RESTART_TIME_BETWEEN;
 const Int32 CActivityManagerService::MAX_SERVICE_INACTIVITY;
+//const Int32 CActivityManagerService::KEY_DISPATCHING_TIMEOUT;
+//const Int32 CActivityManagerService::INSTRUMENTATION_KEY_DISPATCHING_TIMEOUT;
 
 Int32 CActivityManagerService::EMPTY_APP_ADJ;
 Int32 CActivityManagerService::HIDDEN_APP_MAX_ADJ;
@@ -227,7 +230,8 @@ CActivityManagerService::CActivityManagerService() :
     mProcessLimit(0),
     mBooted(FALSE),
     mBooting(FALSE),
-    mLaunchWarningShown(FALSE)
+    mLaunchWarningShown(FALSE),
+    mStringBuffer(256)
 {
     CRemoteCallbackList::New((IRemoteCallbackList**)&mWatchers);
     AutoPtr<IApartmentHelper> helper;
@@ -12214,4 +12218,27 @@ void CActivityManagerService::Lock()
 void CActivityManagerService::Unlock()
 {
     SelfUnlock();
+}
+
+ECode CActivityManagerService::GetStringBuffer(
+    /* [out] */ StringBuffer* stringbuffer)
+{
+    VALIDATE_NOT_NULL(stringbuffer);
+    *stringbuffer = mStringBuffer;
+    return NOERROR;
+}
+
+ECode CActivityManagerService::GetDidDexOpt(
+    /* [out] */ Boolean* opt)
+{
+    VALIDATE_NOT_NULL(opt);
+    *opt = mDidDexOpt;
+    return NOERROR;
+}
+
+ECode CActivityManagerService::SetDidDexOpt(
+    /* [in] */ Boolean dexopt)
+{
+    mDidDexOpt = dexopt;
+    return NOERROR;
 }

@@ -27,15 +27,15 @@ ECode CActivityInfo::constructor(
 
     AutoPtr<CActivityInfo> corig = (CActivityInfo*)orig;
     ComponentInfo::constructor((ComponentInfo*)(CActivityInfo*)corig);
-//    theme = orig.theme;
+    mTheme = corig->mTheme;
     mLaunchMode = corig->mLaunchMode;
-//    permission = orig.permission;
+    mPermission = corig->mPermission;
     mTaskAffinity = corig->mTaskAffinity;
     mTargetActivity = corig->mTargetActivity;
     mFlags = corig->mFlags;
-//    screenOrientation = orig.screenOrientation;
-//    configChanges = orig.configChanges;
-//    softInputMode = orig.softInputMode;
+    mScreenOrientation = corig->mScreenOrientation;
+    mConfigChanges = corig->mConfigChanges;
+    mSoftInputMode = corig->mSoftInputMode;
     return NOERROR;
 }
 

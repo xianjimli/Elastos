@@ -135,6 +135,7 @@ public:
     static const Boolean DEBUG_BACKUP = localLOGV || FALSE;
     static const Boolean DEBUG_CONFIGURATION = localLOGV || FALSE;
     static const Boolean VALIDATE_TOKENS = FALSE;
+    static const Boolean SHOW_ACTIVITY_START_TIME = TRUE;
 
     // The flags that are set for all calls we make to the package manager.
     static const Int32 STOCK_PM_FLAGS = CapsuleManager_GET_SHARED_LIBRARY_FILES;
@@ -184,6 +185,12 @@ public:
     // we consider it non-essential and allow its process to go on the
     // LRU background list.
     static const Int32 MAX_SERVICE_INACTIVITY = 30*60*1000;
+
+    // How long we wait until we timeout on key dispatching.
+    static const Int32 KEY_DISPATCHING_TIMEOUT = 5*1000;
+
+    // How long we wait until we timeout on key dispatching during instrumentation.
+    static const Int32 INSTRUMENTATION_KEY_DISPATCHING_TIMEOUT = 60*1000;
 
     // OOM adjustments for processes in various states:
 
@@ -889,6 +896,15 @@ public:
         /* [out] */ IContext** ctx);
 
     CARAPI SetSystemProcess();
+
+    CARAPI GetStringBuffer(
+        /* [out] */ StringBuffer* stringbuffer);
+
+    CARAPI GetDidDexOpt(
+        /* [out] */ Boolean* opt);
+
+    CARAPI SetDidDexOpt(
+        /* [in] */ Boolean dexopt);
 
 private:
     CARAPI_(void) UpdateCpuStats();
@@ -1855,6 +1871,11 @@ private:
      * N procs were started.
      */
     Int32* mProcDeaths;
+
+    /**
+     * Temporary to avoid allocations.  Protected by main lock.
+     */
+    StringBuffer mStringBuffer;
 
     /**
      * This is set if we had to do a delayed dexopt of an app before launching
