@@ -26,6 +26,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+
 using namespace Elastos;
 using namespace Elastos::Core;
 using namespace Elastos::Utility::Logging;
@@ -1624,7 +1625,7 @@ CCapsuleManagerService::CapsuleSignatures::CapsuleSignatures(
 }
 
 CCapsuleManagerService::CapsuleSignatures::CapsuleSignatures(
-    /* [in] */ const ArrayOf< AutoPtr<ISignature> >& sigs)
+    /* [in] */ const ArrayOf< AutoPtr<ISignature> >* sigs)
 {
     AssignSignatures(sigs);
 }
@@ -1830,16 +1831,16 @@ void CCapsuleManagerService::CapsuleSignatures::ReadXml(
 }
 
 void CCapsuleManagerService::CapsuleSignatures::AssignSignatures(
-    /* [in] */ const ArrayOf< AutoPtr<ISignature> >& sigs)
+    /* [in] */ const ArrayOf< AutoPtr<ISignature> >* sigs)
 {
-    Int32 size = sigs.GetLength();
-    if (size == 0) {
+    if (sigs == NULL) {
         mSignatures = NULL;
         return;
     }
+    Int32 size = sigs->GetLength();
     mSignatures = ArrayOf< AutoPtr<ISignature> >::Alloc(size);
     for (Int32 i = 0; i < size; ++i) {
-        (*mSignatures.Get())[i] = sigs[i];
+        (*mSignatures.Get())[i] = (*sigs)[i];
     }
 }
 
@@ -3326,19 +3327,19 @@ void CCapsuleManagerService::Settings::InsertCapsuleSettingLP(
         c->mNativeLibraryPathString = nativeLibraryPath;
     }
     // Update version code if needed
-     if (cap->mVersionCode != c->mVersionCode) {
+    if (cap->mVersionCode != c->mVersionCode) {
         c->mVersionCode = cap->mVersionCode;
     }
-     // Update signatures if needed.
-     if (c->mSignatures->mSignatures == NULL) {
-         c->mSignatures->AssignSignatures(*(cap->mSignatures));
-     }
-     // If this app defines a shared user id initialize
-     // the shared user signatures as well.
-     if (c->mSharedUser != NULL && c->mSharedUser->mSignatures->mSignatures == NULL) {
-         c->mSharedUser->mSignatures->AssignSignatures(*(cap->mSignatures));
-     }
-     AddCapsuleSettingLP(c, cap->mCapsuleName, c->mSharedUser);
+    // Update signatures if needed.
+    if (c->mSignatures->mSignatures == NULL) {
+         c->mSignatures->AssignSignatures(cap->mSignatures);
+    }
+    // If this app defines a shared user id initialize
+    // the shared user signatures as well.
+    if (c->mSharedUser != NULL && c->mSharedUser->mSignatures->mSignatures == NULL) {
+        c->mSharedUser->mSignatures->AssignSignatures(cap->mSignatures);
+    }
+    AddCapsuleSettingLP(c, cap->mCapsuleName, c->mSharedUser);
 }
 
 void CCapsuleManagerService::Settings::AddCapsuleSettingLP(
@@ -4978,8 +4979,6 @@ CCapsuleManagerService::CCapsuleManagerService()
     , mMediaMounted(FALSE)
     , mBound(FALSE)
 {
-    //should move to constructor
-
     if (DEFAULT_CONTAINER_COMPONENT == NULL) {
         ASSERT_SUCCEEDED(CComponentName::New(
             String(DEFAULT_CONTAINER_CAPSULE),
@@ -4987,17 +4986,12 @@ CCapsuleManagerService::CCapsuleManagerService()
             (IComponentName**)&DEFAULT_CONTAINER_COMPONENT));
     }
 
-    char cwd[512];
-
     mActivities = new ActivityIntentResolver(this);
     mReceivers = new ActivityIntentResolver(this);
     mServices = new ServiceIntentResolver(this);
     CActivityInfo::New((IActivityInfo**)&mResolveActivity);
     CResolveInfo::New((IResolveInfo**)&mResolveInfo);
     mOutPermissions = ArrayOf<Int32>::Alloc(3);
-
-    getcwd(cwd, 512);
-    ScanDir(String(cwd));
 }
 
 CCapsuleManagerService::~CCapsuleManagerService()
@@ -5152,9 +5146,10 @@ ECode CCapsuleManagerService::constructor(
             mDrmAppPrivateInstallDir->Mkdirs(&succeeded);
         }
 
-        ReadPermissions();
+        // todo:
+        // ReadPermissions();
 
-        mRestoredSettings = mSettings->ReadLP();
+        // mRestoredSettings = mSettings->ReadLP();
         Int64 startTime = SystemClock::GetUptimeMillis();
 
 //	        EventLog.writeEvent(EventLogTags.BOOT_PROGRESS_PMS_SYSTEM_SCAN_START,
@@ -5282,32 +5277,35 @@ ECode CCapsuleManagerService::constructor(
 
         // Find base frameworks (resource packages without code).
         String path;
-        mFrameworkDir->GetPath(&path);
-        mFrameworkInstallObserver
-            = new AppDirObserver(path, OBSERVER_EVENTS, TRUE, this);
-        mFrameworkInstallObserver->StartWatching();
-        ScanDirLI(mFrameworkDir, CapsuleParser::PARSE_IS_SYSTEM
-            | CapsuleParser::PARSE_IS_SYSTEM_DIR,
-            scanMode | SCAN_NO_DEX, 0);
+        //todo:
+        // mFrameworkDir->GetPath(&path);
+        // mFrameworkInstallObserver
+        //     = new AppDirObserver(path, OBSERVER_EVENTS, TRUE, this);
+        // mFrameworkInstallObserver->StartWatching();
+        // ScanDirLI(mFrameworkDir, CapsuleParser::PARSE_IS_SYSTEM
+        //     | CapsuleParser::PARSE_IS_SYSTEM_DIR,
+        //     scanMode | SCAN_NO_DEX, 0);
 
         // Collect all system packages.
-        FAIL_RETURN(CFile::New(Environment::GetRootDirectory(),
-                String("app"), (IFile**)&mSystemAppDir));
-        mSystemAppDir->GetPath(&path);
-        mSystemInstallObserver
-            = new AppDirObserver(path, OBSERVER_EVENTS, TRUE, this);
-        mSystemInstallObserver->StartWatching();
-        ScanDirLI(mSystemAppDir, CapsuleParser::PARSE_IS_SYSTEM
-            | CapsuleParser::PARSE_IS_SYSTEM_DIR, scanMode, 0);
+        //todo:
+        // FAIL_RETURN(CFile::New(Environment::GetRootDirectory(),
+        //         String("app"), (IFile**)&mSystemAppDir));
+        // mSystemAppDir->GetPath(&path);
+        // mSystemInstallObserver
+        //     = new AppDirObserver(path, OBSERVER_EVENTS, TRUE, this);
+        // mSystemInstallObserver->StartWatching();
+        // ScanDirLI(mSystemAppDir, CapsuleParser::PARSE_IS_SYSTEM
+        //     | CapsuleParser::PARSE_IS_SYSTEM_DIR, scanMode, 0);
 
         // Collect all vendor packages.
-        FAIL_RETURN(CFile::New(String("/vendor/app"), (IFile**)&mVendorAppDir));
-        mVendorAppDir->GetPath(&path);
-        mVendorInstallObserver
-            = new AppDirObserver(path, OBSERVER_EVENTS, TRUE, this);
-        mVendorInstallObserver->StartWatching();
-        ScanDirLI(mVendorAppDir, CapsuleParser::PARSE_IS_SYSTEM
-            | CapsuleParser::PARSE_IS_SYSTEM_DIR, scanMode, 0);
+        //todo:
+        // FAIL_RETURN(CFile::New(String("/vendor/app"), (IFile**)&mVendorAppDir));
+        // mVendorAppDir->GetPath(&path);
+        // mVendorInstallObserver
+        //     = new AppDirObserver(path, OBSERVER_EVENTS, TRUE, this);
+        // mVendorInstallObserver->StartWatching();
+        // ScanDirLI(mVendorAppDir, CapsuleParser::PARSE_IS_SYSTEM
+        //     | CapsuleParser::PARSE_IS_SYSTEM_DIR, scanMode, 0);
 
         if (mInstaller != NULL) {
             if (DEBUG_UPGRADE) Logger::V(TAG, "Running installd update commands");
@@ -5366,12 +5364,13 @@ ECode CCapsuleManagerService::constructor(
         mAppInstallObserver->StartWatching();
         ScanDirLI(mAppInstallDir, 0, scanMode, 0);
 
-        mDrmAppPrivateInstallDir->GetPath(&path);
-        mDrmAppInstallObserver
-            = new AppDirObserver(path, OBSERVER_EVENTS, FALSE, this);
-        mDrmAppInstallObserver->StartWatching();
-        ScanDirLI(mDrmAppPrivateInstallDir.Get(), CapsuleParser::PARSE_FORWARD_LOCK,
-            scanMode, 0);
+        //todo:
+        // mDrmAppPrivateInstallDir->GetPath(&path);
+        // mDrmAppInstallObserver
+        //     = new AppDirObserver(path, OBSERVER_EVENTS, FALSE, this);
+        // mDrmAppInstallObserver->StartWatching();
+        // ScanDirLI(mDrmAppPrivateInstallDir.Get(), CapsuleParser::PARSE_FORWARD_LOCK,
+        //     scanMode, 0);
 
 //	        EventLog.writeEvent(EventLogTags.BOOT_PROGRESS_PMS_SCAN_END,
 //	                SystemClock.uptimeMillis());
@@ -5391,9 +5390,10 @@ ECode CCapsuleManagerService::constructor(
                 + "; regranting permissions for Int32ernal storage");
         mSettings->mInternalSdkPlatform = mSdkVersion;
 
-        UpdatePermissionsLP(String(NULL), NULL, TRUE, regrantPermissions, regrantPermissions);
+        //todo:
+        // UpdatePermissionsLP(String(NULL), NULL, TRUE, regrantPermissions, regrantPermissions);
 
-        mSettings->WriteLP();
+        // mSettings->WriteLP();
 
 //	        EventLog.writeEvent(EventLogTags.BOOT_PROGRESS_PMS_READY,
 //	                SystemClock.uptimeMillis());
@@ -5403,6 +5403,12 @@ ECode CCapsuleManagerService::constructor(
         // tidy.
 //	        Runtime.getRuntime().gc();
     }
+
+    //todo: parse Elastos apps
+    char cwd[512];
+    getcwd(cwd, 512);
+    ScanDir(String(cwd));
+
     return NOERROR;
 }
 
@@ -8000,13 +8006,13 @@ ECode CCapsuleManagerService::ScanDirLI(
         AutoPtr<IFile> file;
 
         FAIL_RETURN(CFile::New(dir, (*files)[i], (IFile**)&file));
-
-        if (!IsCapsuleFilename((*files)[i])) {
+        if (!IsCapsuleFilename((*files)[i]) && !IsAndroidAPKFilename((*files)[i])) {
             // Ignore entries which are not apk's
             continue;
         }
         CapsuleParser::Capsule* cap = ScanCapsuleLI(file,
             flags | CapsuleParser::PARSE_MUST_BE_APK, scanMode, currentTime);
+
         // Don't mess around with apps in system partition.
         if (cap == NULL && (flags & CapsuleParser::PARSE_IS_SYSTEM) == 0 &&
             mLastScanError == CapsuleManager::INSTALL_FAILED_INVALID_APK) {
@@ -8060,23 +8066,25 @@ Boolean CCapsuleManagerService::CollectCertificatesLI(
     /* [in] */ Int32 parseFlags)
 {
     if (GET_CERTIFICATES) {
-        Boolean isSame = FALSE;
-        cs->mCodePath->Equals(srcFile, &isSame);
-        Int64 timeStamp = 0;
-        srcFile->LastModified(&timeStamp);
-        if (cs != NULL && isSame && cs->mTimeStamp == timeStamp) {
-            if (cs->mSignatures->mSignatures != NULL
-                && cs->mSignatures->mSignatures->GetLength() != 0) {
-                // Optimization: reuse the existing cached certificates
-                // if the package appears to be unchanged.
-                //todo: reference counting
-                cap->mSignatures = cs->mSignatures->mSignatures->Clone();
-                return TRUE;
-            }
+        if (cs != NULL) {
+            Boolean isSame = FALSE;
+            cs->mCodePath->Equals(srcFile, &isSame);
+            Int64 timeStamp = 0;
+            srcFile->LastModified(&timeStamp);
+            if (isSame && cs->mTimeStamp == timeStamp) {
+                if (cs->mSignatures->mSignatures != NULL
+                    && cs->mSignatures->mSignatures->GetLength() != 0) {
+                    // Optimization: reuse the existing cached certificates
+                    // if the package appears to be unchanged.
+                    //todo: reference counting
+                    cap->mSignatures = cs->mSignatures->mSignatures->Clone();
+                    return TRUE;
+                }
 
-            Slogger::W(TAG, StringBuffer("CapsuleSetting for ")
-                + cs->mName
-                + " is missing signatures.  Collecting certs again to recover them.");
+                Slogger::W(TAG, StringBuffer("CapsuleSetting for ")
+                    + cs->mName
+                    + " is missing signatures.  Collecting certs again to recover them.");
+            }
         }
         else {
             String des;
@@ -8208,8 +8216,8 @@ CapsuleParser::Capsule* CCapsuleManagerService::ScanCapsuleLI(
     // are kept in different files.
     // TODO grab this value from PackageSettings
     Boolean isSame = FALSE;
-    cs->mCodePath->Equals(cs->mResourcePath, &isSame);
-    if (cs != NULL && !isSame) {
+
+    if (cs != NULL && (cs->mCodePath->Equals(cs->mResourcePath, &isSame), !isSame)) {
         parseFlags |= CapsuleParser::PARSE_FORWARD_LOCK;
     }
 
@@ -8577,7 +8585,7 @@ CapsuleParser::Capsule* CCapsuleManagerService::ScanCapsuleLI(
             }
         }
 
-        if (cap->mSharedUserId != NULL) {
+        if (!cap->mSharedUserId.IsNull()) {
             suid = mSettings->GetSharedUserLP(cap->mSharedUserId,
                     capFlags, TRUE);
             if (suid == NULL) {
@@ -9254,7 +9262,8 @@ CapsuleParser::Capsule* CCapsuleManagerService::ScanCapsuleLI(
             CapsuleParser::Activity* a = *cait;
             String aPName;
             a->mInfo->GetProcessName(&aPName);
-            String n = FixProcessName(capPName, aPName, capUid);
+            aPName = FixProcessName(capPName, aPName, capUid);
+            a->mInfo->SetProcessName(aPName);
             mActivities->AddActivity(a, "activity");
             if ((parseFlags & CapsuleParser::PARSE_CHATTY) != 0) {
                 if (r == NULL) {
@@ -9703,6 +9712,12 @@ Boolean CCapsuleManagerService::IsCapsuleFilename(
     /* [in] */ const String& name)
 {
     return !name.IsNull() && name.EndWith(".cap");
+}
+
+Boolean CCapsuleManagerService::IsAndroidAPKFilename(
+    /* [in] */ const String& name)
+{
+    return !name.IsNull() && name.EndWith(".apk");
 }
 
 Boolean CCapsuleManagerService::HasPermission(
@@ -13085,17 +13100,6 @@ ECode CCapsuleManagerService::GetInstallLocation(
 //	    return android.provider.Settings.System.getInt(mContext.getContentResolver(),
 //	        android.provider.Settings.Secure.DEFAULT_INSTALL_LOCATION, PackageHelper.APP_INSTALL_AUTO);
     return E_NOT_IMPLEMENTED;
-}
-
-//todo: this constructor should be removed.
-ECode CCapsuleManagerService::constructor()
-{
-    FAIL_RETURN(CApartment::New(FALSE, (IApartment**)&mApartment));
-    mApartment->Start(ApartmentAttr_New);
-    mSettings = new Settings(this);
-    assert(mSettings != NULL);
-
-    return NOERROR;
 }
 
 void CCapsuleManagerService::ScanDir(

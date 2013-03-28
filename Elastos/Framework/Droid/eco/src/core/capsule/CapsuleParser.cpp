@@ -21,6 +21,7 @@
 #include <StringBuffer.h>
 #include <stdlib.h>
 
+
 using namespace Elastos::Core;
 using namespace Elastos::Utility::Logging;
 
@@ -101,20 +102,22 @@ void CapsuleParser::Component<II>::SetCapsuleName(
 // CapsuleParser::Permission
 
 CapsuleParser::Permission::Permission(
-    /* [in] */ Capsule* _owner)
-    : mTree(FALSE)
+    /* [in] */ Capsule* owner)
+    : Component<IntentInfo>(owner)
+    , mTree(FALSE)
     , mGroup(NULL)
 {
-    // E_NOT_IMPLEMENTED
+    ASSERT_SUCCEEDED(CPermissionInfo::New((IPermissionInfo**)&mInfo));
 }
 
 CapsuleParser::Permission::Permission(
-    /* [in] */ Capsule* _owner,
-    /* [in] */ IPermissionInfo* _info)
-    : mTree(FALSE)
+    /* [in] */ Capsule* owner,
+    /* [in] */ IPermissionInfo* info)
+    : Component<IntentInfo>(owner)
+    , mTree(FALSE)
     , mGroup(NULL)
+    , mInfo(info)
 {
-    // E_NOT_IMPLEMENTED
 }
 
 CapsuleParser::Permission::~Permission()
@@ -440,6 +443,12 @@ Boolean CapsuleParser::IsCapsuleFilename(
     return name.EndWith(String(".cap"));
 }
 
+Boolean CapsuleParser::IsAndroidAPKFilename(
+    /* [in] */ const String& name)
+{
+    return name.EndWith(String(".apk"));
+}
+
 void CapsuleParser::ValidateName(
     /* [in] */ const String& name,
     /* [in] */ Boolean requiresSeparator,
@@ -728,7 +737,7 @@ CapsuleParser::Capsule* CapsuleParser::ParseCapsule(
     }
     String name;
     sourceFile->GetName(&name);
-    if (!IsCapsuleFilename(name)
+    if ((!IsCapsuleFilename(name) && !IsAndroidAPKFilename(name))
             && (flags & PARSE_MUST_BE_APK) != 0) {
         if ((flags & PARSE_IS_SYSTEM) == 0) {
             // We expect to have non-.apk files in the system dir,
@@ -1688,6 +1697,11 @@ CapsuleParser::PermissionGroup* CapsuleParser::ParsePermissionGroup(
     return perm;
 }
 
+static
+Int32 R_Styleable_AndroidManifestPermission[] = {
+    0x01010001, 0x01010002, 0x01010003, 0x01010009, 0x0101000a, 0x01010020
+};
+
 CapsuleParser::Permission* CapsuleParser::ParsePermission(
     /* [in] */ Capsule* owner,
     /* [in] */ IResources* res,
@@ -1699,8 +1713,8 @@ CapsuleParser::Permission* CapsuleParser::ParsePermission(
 
     AutoPtr<ITypedArray> sa;
     FAIL_RETURN_NULL(res->ObtainAttributes(attrs,
-        ArrayOf<Int32>(R_Styleable_AndroidManifestPermissionGroup,
-            sizeof(R_Styleable_AndroidManifestPermissionGroup) / sizeof(Int32))
+        ArrayOf<Int32>(R_Styleable_AndroidManifestPermission,
+            sizeof(R_Styleable_AndroidManifestPermission) / sizeof(Int32))
         /*com.android.internal.R.styleable.AndroidManifestPermission*/,
         (ITypedArray**)&sa));
 

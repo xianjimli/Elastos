@@ -19,8 +19,6 @@ module
     }
 
     class CCapsuleManagerService {
-        constructor();
-
         constructor(
             [in] IContext* ctx,
             [in] Boolean factoryTest);

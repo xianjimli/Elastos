@@ -21,10 +21,6 @@ ECode SystemServer::Init()
 
     CServiceManager::AcquireSingleton((IServiceManager**)&serviceManager);
 
-    CCapsuleManagerService::New((ICapsuleManager**)&capsuleManager);
-    ec = serviceManager->AddService(String("capsule"), capsuleManager.Get());
-    if (FAILED(ec)) return ec;
-
     CWindowManagerService::New((IWindowManager**)&windowManager);
     ec = serviceManager->AddService(String("window"), windowManager.Get());
     if (FAILED(ec)) return ec;
@@ -36,6 +32,10 @@ ECode SystemServer::Init()
     AutoPtr<IContext> ctx;
     IActivityManagerService::Probe(activityManagerService)->GetSystemContext((IContext**)&ctx);
     IActivityManagerService::Probe(activityManagerService)->SetSystemProcess();
+
+    CCapsuleManagerService::New(ctx, FALSE, (ICapsuleManager**)&capsuleManager);
+    ec = serviceManager->AddService(String("capsule"), capsuleManager.Get());
+    if (FAILED(ec)) return ec;
 
     CInputMethodManagerService::New(ctx, NULL, (IInputMethodManager**)&inputmethodService);
     IInputMethodManagerService::Probe(inputmethodService)->SystemReady();
