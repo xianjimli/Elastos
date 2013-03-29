@@ -7,6 +7,24 @@ const CString Network::LOGTAG = "network";
 Core::Threading::Mutex Network::mSyncLock;
 
 /**
+ * Static instance of a Network object.
+ */
+Network* Network::sNetwork;
+
+/**
+ * Flag to store the state of platform notifications, for the case
+ * when the Network object has not been constructed yet
+ */
+Boolean Network::sPlatformNotifications;
+
+/**
+ * Reference count for platform notifications as the network class is a 
+ * static and can exist over multiple activities, thus over multiple 
+ * onPause/onResume pairs. 
+ */
+Int32 Network::sPlatformNotificationEnableRefCount;
+
+/**
  * Creates a new Network object.
  * XXX: Must be created in the same thread as WebCore!!!!!
  */
@@ -96,7 +114,7 @@ CARAPI_(Boolean) Network::RequestURL(
 /**
  * @return True iff there is a valid proxy set.
  */
-CARAPI_(Boolean) IsValidProxySet()
+CARAPI_(Boolean) Network::IsValidProxySet()
 {
 	return FALSE;
 }
@@ -115,8 +133,7 @@ CARAPI_(void) Network::GetProxyHostname(
  *
  * synchronized
  */
-CARAPI_(void) Network::GetProxyUsername(
-    /* [out] */ String& str) const
+CARAPI_(const String*) Network::GetProxyUsername() const
 {}
 
 /**
@@ -141,10 +158,8 @@ CARAPI_(void) Network::SetProxyUsername(
  *
  * synchronized
  */
-CARAPI_(void) Network::GetProxyPassword(
-    /* [out] */ String& str) const
+CARAPI_(const String*) Network::GetProxyPassword() const
 {
-	str = mProxyPassword;
 }
 
 /**

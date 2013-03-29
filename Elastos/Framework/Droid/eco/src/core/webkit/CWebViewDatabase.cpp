@@ -691,10 +691,10 @@ CARAPI_(void) CWebViewDatabase::SetHttpAuthUsernamePassword(
 CARAPI_(void) CWebViewDatabase::GetHttpAuthUsernamePassword(
     /* [in] */ const String& host,
     /* [in] */ const String& realm,
-    /* [out] */ Vector<String>& ret)
+    /* [out] */ ArrayOf<String>* ret)
 {
     if (host.GetLength() == 0 || realm.GetLength() == 0
-       || mDatabase == NULL) {
+       || mDatabase == NULL || ret == NULL) {
         return;
     }
 
@@ -724,9 +724,9 @@ CARAPI_(void) CWebViewDatabase::GetHttpAuthUsernamePassword(
             Int32 columnIndex = 0;
 
             cursor->GetColumnIndex((String)HTTPAUTH_USERNAME_COL, &columnIndex);
-            cursor->GetString(columnIndex, &ret[0]);
+            cursor->GetString(columnIndex, &(*ret)[0]);
             cursor->GetColumnIndex((String)HTTPAUTH_PASSWORD_COL, &columnIndex);
-            cursor->GetString(columnIndex, &ret[1]);
+            cursor->GetString(columnIndex, &(*ret)[1]);
         }
     }
     mHttpAuthLock.Unlock();

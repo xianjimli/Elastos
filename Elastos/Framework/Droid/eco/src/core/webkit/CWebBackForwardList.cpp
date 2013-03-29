@@ -63,7 +63,7 @@ ECode CWebBackForwardList::SetClearPending()
 }
 
 ECode CWebBackForwardList::GetClearPending(
-    /* [in] */ Boolean* clearPending)
+    /* [out] */ Boolean* clearPending)
 {
     Mutex::Autolock lock(_m_syncLock);
     *clearPending = mClearPending;

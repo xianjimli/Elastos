@@ -65,9 +65,6 @@ public:
      *
      * synchronized
      */
-	virtual CARAPI_(void) GetProxyUsername(
-        /* [out] */ String& str) const;
-
     virtual CARAPI_(const String*) GetProxyUsername() const;
 
     /**
@@ -85,9 +82,6 @@ public:
      *
      * synchronized
      */
-	virtual CARAPI_(void) GetProxyPassword(
-        /* [out] */ String& str) const;
-
     virtual CARAPI_(const String*) GetProxyPassword() const;
 
     /**

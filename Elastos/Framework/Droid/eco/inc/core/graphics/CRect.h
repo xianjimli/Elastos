@@ -91,7 +91,7 @@ public:
      *
      * @param r The rectangle being tested for containment.
      * @return true iff the specified rectangle r is inside or equal to this
-     *              rectangle
+     *              rectangleIntersects
      */
     CARAPI ContainsEx2(
         /* [in] */ IRect* r,

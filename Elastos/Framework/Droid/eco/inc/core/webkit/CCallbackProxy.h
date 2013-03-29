@@ -202,9 +202,9 @@ public:
 
 public:
     CARAPI_(void) SetWebBackForwardListClient(
-        /* [in] */ WebBackForwardListClient* client);
+        /* [in] */ IWebBackForwardListClient* client);
 
-    CARAPI_(AutoPtr<WebBackForwardListClient>) GetWebBackForwardListClient() const;
+    CARAPI_(AutoPtr<IWebBackForwardListClient>) GetWebBackForwardListClient() const;
 
     /**
      * Called by WebCore side to switch out of history Picture drawing mode

@@ -11,6 +11,7 @@
 #include "view/VelocityTracker.h"
 #include "widget/OverScroller.h"
 #include "widget/FrameLayout.h"
+#include "widget/AbsoluteLayout.h"
 #include "widget/EdgeGlow.h"
 #include "database/DataSetObserver.h"
 #include "PluginFullScreenHolder.h"
@@ -18,9 +19,55 @@
 #include "WebViewCore.h"
 #include "WebTextView.h"
 
-CarClass(CWebView)
+CarClass(CWebView), public AbsoluteLayout
 {
 public:
+    // FIXME: Want to make this public, but need to change the API file.
+    class HitTestResult : public ElRefBase, IHitTestResult {
+        friend class CWebView;
+    public:
+        HitTestResult();
+
+        CARAPI GetType(
+           /* out */ Int32* type);
+
+        CARAPI GetExtra(
+           /* out */ String* extra);
+
+        CARAPI_(PInterface) Probe(
+            /* [in] */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
+    private:
+        CARAPI_(void) SetType(
+            /* [in] */ Int32 type);
+
+        CARAPI_(void) SetExtra(
+            /* [in] */ const String& extra);
+
+    private:
+        Int32 mType;
+        String mExtra;
+    };
+
+public:
+    CWebView() {}
+
+    IVIEW_METHODS_DECL();
+
+    IVIEWGROUP_METHODS_DECL();
+
+    CARAPI_(PInterface) Probe(
+            /* [in]  */ REIID riid);
+
+#if 0
     CARAPI GetVerticalFadingEdgeLength(
         /* [out] */ Int32* length);
 
@@ -726,7 +773,9 @@ public:
 
     CARAPI SetOverScrollMode(
         /* [in] */ Int32 overScrollMode);
+#endif
 
+#if 0
     CARAPI GetDescendantFocusability(
         /* [out] */ Int32* focusability);
 
@@ -855,6 +904,7 @@ public:
 
     CARAPI SetLayoutAnimationListener(
         /* [in] */ IAnimationListener* animationListener);
+#endif
 
     CARAPI SetHorizontalScrollbarOverlay(
         /* [in] */ Boolean overlay);
@@ -888,7 +938,7 @@ public:
     CARAPI GetHttpAuthUsernamePassword(
         /* [in] */ const String& host,
         /* [in] */ const String& realm,
-        /* [out, callee] */ ArrayOf<String>** strlist);
+        /* [out] */ ArrayOf<String>* strlist);
 
     CARAPI Destroy();
 
@@ -1547,8 +1597,8 @@ public:
      * @param selection Which position is initally selected.
      */
     CARAPI_(void) RequestListBox(
-        /* [in] */ ArrayOf<String> array,
-        /* [in] */ ArrayOf<Int32> enabledArray,
+        /* [in] */ ArrayOf<String>* array,
+        /* [in] */ ArrayOf<Int32>* enabledArray,
         /* [in] */ Int32 selection);
 
     CARAPI_(void) DismissZoomControl();
@@ -1579,9 +1629,9 @@ public:
      * @param selectedArray Which positions are initally selected.
      */
     CARAPI_(void) RequestListBox(
-        /* [in] */ ArrayOf<String>& array,
-        /* [in] */ ArrayOf<Int32>&  enabledArray,
-        /* [in] */ ArrayOf<Int32>&  selectedArray);
+        /* [in] */ ArrayOf<String>* array,
+        /* [in] */ ArrayOf<Int32>*  enabledArray,
+        /* [in] */ ArrayOf<Int32>*  selectedArray);
 
     /**
      *  Update our cache with updatedText.
@@ -1592,7 +1642,7 @@ public:
         /* [in] */ const String& updatedText);
 
     /* package */
-    CARAPI_(AutoPtr<IViewManager>) GetViewManager();
+    CARAPI_(AutoPtr<ViewManager>) GetViewManager();
 
     /* package */
     CARAPI_(void)     NativeClearCursor();
@@ -1623,7 +1673,7 @@ public:
 
     // Used by WebViewCore to create child views.
     /* package */
-    const AutoPtr<IViewManager> mViewManager;
+    /*const*/ AutoPtr<ViewManager> mViewManager;
 
     // Used to display in full screen mode
     PluginFullScreenHolder* mFullScreenHolder;
@@ -1686,7 +1736,7 @@ protected:
      * object implementing those interfaces, as values.
      * @hide pending API council approval.
      */
-    WebView(
+    CWebView(
         /* [in] */ IContext* context,
         /* [in] */ IAttributeSet* attrs,
         /* [in] */ Int32 defStyle,
@@ -2031,10 +2081,10 @@ private:
 
     private:
 
-        const AutoPtr<IDragTracker> mProxy;
-        const Float mStartY, mStartX;
-        const Float mMinDY, mMinDX;
-        const Float mMaxDY, mMaxDX;
+        /*const*/ AutoPtr<IDragTracker> mProxy;
+        /*const*/ Float mStartY, mStartX;
+        /*const*/ Float mMinDY, mMinDX;
+        /*const*/ Float mMaxDY, mMaxDX;
         Float mCurrStretchY, mCurrStretchX;
         Int32 mSX, mSY;
         AutoPtr<IInterpolator> mInterp;
@@ -2044,7 +2094,9 @@ private:
         static const Int32 DRAGGING_STATE = 0;
         static const Int32 ANIMATING_STATE = 1;
         static const Int32 FINISHED_STATE = 2;
-        Int32 mState;        
+        Int32 mState;
+
+        CWebView* webview;   
     };
 
     class ScaleDetectorListener //: public ScaleGestureDetector.OnScaleGestureListener 
@@ -2411,7 +2463,7 @@ private:
      * webkit draws.  Thus we need to reposition it to show in the correct
      * place.
      */
-    CARAPI_(Boolean) mNeedToAdjustWebTextView;
+    Boolean mNeedToAdjustWebTextView;
 
     CARAPI_(Boolean) DidUpdateTextViewBounds(
         /* [in] */ Boolean allowIntersect);
@@ -2616,14 +2668,14 @@ private:
     CARAPI_(void)     NativeCreate(
         /* [in] */ Int32 ptr);
     CARAPI_(Int32)      NativeCursorFramePointer();
-    CARAPI_(AutoPtr<IRect>)     nativeCursorNodeBounds();
+    CARAPI_(AutoPtr<IRect>)     NativeCursorNodeBounds();
     CARAPI_(Int32) NativeCursorNodePointer();
 
     CARAPI_(Boolean)  NativeCursorIntersects(
         /* [in] */ IRect* visibleRect);
     CARAPI_(Boolean)  NativeCursorIsAnchor();
     CARAPI_(Boolean)  NativeCursorIsTextInput();
-    CARAPI_(AutoPtr<IPoint>)    nativeCursorPosition();
+    CARAPI_(AutoPtr<IPoint>)    NativeCursorPosition();
     CARAPI_(String)   NativeCursorText();
 
     /**

@@ -267,7 +267,7 @@ public:
     CARAPI_(void) GetHttpAuthUsernamePassword(
         /* [in] */ const String& host,
         /* [in] */ const String& realm,
-        /* [out] */ Vector<String>& list);
+        /* [out] */ ArrayOf<String>* list);
 
     //
     // form data functions
