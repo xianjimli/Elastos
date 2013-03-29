@@ -122,7 +122,60 @@ ECode UsbSettingsManager::DeviceFilter::Write(
 Boolean UsbSettingsManager::DeviceFilter::Matches(
     /* [in] */ IUsbDevice* device)
 {
-    // NOT IMPLEMENTED
+    // 1. Check Vendor ID
+    Int32 vendorId;
+    device->GetVendorId(&vendorId);
+
+    if (mVendorId != -1 && vendorId != mVendorId) {
+        return FALSE;
+    }
+
+    // 2. Check Product ID
+    Int32 productId;
+    device->GetProductId(&productId);
+
+    if (mProductId != -1 && productId != mProductId) {
+        return FALSE;
+    }
+
+    // 3. check device class/subclass/protocol
+    Int32 deviceCls;
+    device->GetDeviceClass(&deviceCls);
+
+    Int32 deviceSubCls;
+    device->GetDeviceSubclass(&deviceSubCls);
+
+    Int32 deviceProtocol;
+    device->GetDeviceProtocol(&deviceProtocol);
+
+    if (Matches(deviceCls, deviceSubCls, deviceProtocol) == TRUE) {
+        return TRUE;
+    }
+
+    // 4. if device doesn't match, check the interfaces
+    Int32 count = 0;
+    device->GetInterfaceCount(&count);
+
+    for (Int32 i = 0; i < count; i++) {
+        AutoPtr<IUsbInterface> intf;
+        device->GetInterface(i, (IUsbInterface**)&intf);
+
+        Int32 intfCls;
+        intf->GetInterfaceClass(&intfCls);
+
+        Int32 intfSubCls;
+        intf->GetInterfaceSubclass(&intfSubCls);
+
+        Int32 intfProtocol;
+        intf->GetInterfaceProtocol(&intfProtocol);
+
+        if (Matches(intfCls, intfSubCls, intfProtocol) == FALSE) {
+            continue;
+        }
+
+        return TRUE;
+    }
+
     return FALSE;
 }
 
@@ -380,6 +433,12 @@ ECode UsbSettingsManager::AccessoryFilter::ToString(
     return NOERROR;
 }
 
+UsbSettingsManager::MyPackageMonitor::MyPackageMonitor(
+    /* [in] */ UsbSettingsManager* host)
+{
+    mHost = host;
+}
+
 UInt32 UsbSettingsManager::MyPackageMonitor::AddRef()
 {
     return ElRefBase::AddRef();
@@ -401,7 +460,7 @@ void UsbSettingsManager::MyPackageMonitor::OnPackageAdded(
     /* [in] */ const String& packageName,
     /* [in] */ Int32 uid)
 {
-    // NOT IMPLEMENTED
+    mHost->HandlePackageUpdate(packageName);
 }
 
 void UsbSettingsManager::MyPackageMonitor::OnPackageChanged(
@@ -409,14 +468,14 @@ void UsbSettingsManager::MyPackageMonitor::OnPackageChanged(
     /* [in] */ Int32 uid,
     /* [in] */ const ArrayOf<String>& components)
 {
-    // NOT IMPLEMENTED
+    mHost->HandlePackageUpdate(packageName);
 }
 
 void UsbSettingsManager::MyPackageMonitor::OnPackageRemoved(
     /* [in] */ const String& packageName,
     /* [in] */ Int32 uid)
 {
-    // NOT IMPLEMENTED
+    mHost->ClearDefaults(packageName);
 }
 
 UsbSettingsManager::UsbSettingsManager(
