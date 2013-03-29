@@ -45,7 +45,7 @@ public:
     /*package*/ 
     //synchronized 
     CARAPI GetClearPending(
-        /* [in] */ Boolean* clearPending);
+        /* [out] */ Boolean* clearPending);
 
     /**
      * Add a new history item to the list. This will remove all items after the

@@ -232,7 +232,7 @@ module
         GetHttpAuthUsernamePassword(
            [in] String host,
            [in] String realm,
-           [out, callee] ArrayOf<String>* strlist);
+           [out] ArrayOf<String> strlist);
 
         /**
          * Destroy the internal state of the WebView. This method should be called

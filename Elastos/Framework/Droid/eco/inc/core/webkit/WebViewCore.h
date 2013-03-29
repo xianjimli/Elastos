@@ -28,7 +28,8 @@ public:
         	/* [in] */ Int32 frame, 
         	/* [in] */ Int32 node, 
         	/* [in] */ Int32 x, 
-        	/* [in] */ Int32 y);
+        	/* [in] */ Int32 y) : mFrame(frame), mNode(node),
+                        mX(x), mY(y) {}
 
         Int32 mMoveGeneration;
         Int32 mFrame;
@@ -67,7 +68,7 @@ public:
 	struct PostUrlData 
 	{
         String mUrl;
-        byte mPostData[];
+        ArrayOf<Byte>* mPostData;
     };
 
 	struct ReplaceTextData 
@@ -82,7 +83,8 @@ public:
 	{
         TextSelectionData(
         	/* [in] */ Int32 start, 
-        	/* [in] */ Int32 end);
+        	/* [in] */ Int32 end) : mStart(start), mEnd(end)
+        {}
 
         Int32 mStart;
         Int32 mEnd;

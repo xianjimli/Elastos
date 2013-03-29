@@ -973,3 +973,38 @@ ECode CCallbackProxy::constructor(
     return NOERROR;
 }
 
+
+CARAPI_(void) CCallbackProxy::SetWebBackForwardListClient(
+    /* [in] */ IWebBackForwardListClient* client)
+{}
+
+CARAPI_(AutoPtr<IWebBackForwardListClient>) CCallbackProxy::GetWebBackForwardListClient() const
+{}
+
+/**
+ * Called by WebCore side to switch out of history Picture drawing mode
+ */
+CARAPI_(void) CCallbackProxy::SwitchOutDrawHistory()
+{}
+
+/* package */
+CARAPI_(void) CCallbackProxy::OnReceivedTouchIconUrl(
+    /* [in] */ const String& url,
+    /* [in] */ Boolean precomposed)
+{}
+
+/**
+ * Called by WebViewCore to open a file chooser.
+ */
+/* package */
+CARAPI_(AutoPtr<IUri>) CCallbackProxy::OpenFileChooser()
+{}
+
+CARAPI_(void) CCallbackProxy::OnNewHistoryItem(
+    /* [in] */ WebHistoryItem* item)
+{}
+
+CARAPI_(void) CCallbackProxy::OnIndexChanged(
+    /* [in] */ WebHistoryItem* item,
+    /* [in] */ Int32 index)
+{}
