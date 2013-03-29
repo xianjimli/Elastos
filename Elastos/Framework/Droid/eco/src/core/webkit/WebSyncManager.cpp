@@ -52,7 +52,7 @@ ECode WebSyncManager::SyncHandler::GetInterfaceID(
 ECode WebSyncManager::SyncHandler::HandleMessage(
     /* [in] */ IMessage* msg)
 {
-    if ( (/*msg -> what*/0) == (mWebSyncManager -> SYNC_MESSAGE) ) {
+    if ( (/*msg -> what*/0) == (WebSyncManager::SYNC_MESSAGE) ) {
         if (DebugFlags::sWEB_SYNC_MANAGER) {
             Utility::Logging::Logger::V(LOGTAG, String("*** WebSyncManager sync ***\n") );
         }

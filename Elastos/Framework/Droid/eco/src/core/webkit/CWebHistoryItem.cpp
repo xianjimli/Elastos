@@ -2,6 +2,7 @@
 #include "webkit/CWebHistoryItem.h"
 
 Int32 CWebHistoryItem::sNextId = 0;
+Core::Threading::Mutex CWebHistoryItem::sLock;
 
 ECode CWebHistoryItem::constructor()
 {

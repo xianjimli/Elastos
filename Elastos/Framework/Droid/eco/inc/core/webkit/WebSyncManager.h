@@ -7,6 +7,7 @@
 
 class WebSyncManager: public ElRefBase, public IRunnable 
 {
+    friend class SyncHandler;
 private:
     class SyncHandler: public ElRefBase, public IHandler 
     {
