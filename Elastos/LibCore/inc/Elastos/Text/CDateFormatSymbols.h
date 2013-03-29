@@ -11,7 +11,7 @@ public:
     CARAPI constructor();
 
     CARAPI constructor(
-        /* [in] */ ILocale * pLocale);
+        /* [in] */ ILocale* locale);
 
     CARAPI GetLongStandAloneMonths(
         /* [out, callee] */ ArrayOf<String> ** ppLongStandAloneMonths);
@@ -29,7 +29,7 @@ public:
         /* [out] */ Boolean * pCustomZoneStrings);
 
     CARAPI GetLocale(
-        /* [out] */ ILocale ** ppLocale);  
+        /* [out] */ ILocale ** ppLocale);
 
     CARAPI GetAmPmStrings(
         /* [out, callee] */ ArrayOf<String> ** ppAmPmStrings);

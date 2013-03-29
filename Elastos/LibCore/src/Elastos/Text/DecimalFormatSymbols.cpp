@@ -1,19 +1,20 @@
-#include "DecimalFormatSymbols.h"
 
-DecimalFormatSymbols::~DecimalFormatSymbols()
-{}
+#include "cmdef.h"
+#include "DecimalFormatSymbols.h"
+#include "CDecimalFormatSymbols.h"
+
 
 ECode DecimalFormatSymbols::Init()
 {
-    AutoPtr<ILocaleHelper> pLocaleHelper;
-    CLocaleHelper::AcquireSingleton((ILocaleHelper**)&pLocaleHelper);
-    AutoPtr<ILocale> pLocale;
-    pLocaleHelper->GetDefault((ILocale**)&pLocale);
-    return Init((ILocale*)pLocale);
+    AutoPtr<ILocaleHelper> localeHelper;
+    CLocaleHelper::AcquireSingleton((ILocaleHelper**)&localeHelper);
+    AutoPtr<ILocale> locale;
+    FAIL_RETURN(localeHelper->GetDefault((ILocale**)&locale));
+    return Init(locale);
 }
 
 ECode DecimalFormatSymbols::Init(
-        /* [in] */ ILocale* locale)
+    /* [in] */ ILocale* locale)
 {
 /*
     LocaleData *localeData = LocaleData::Get(locale);
@@ -40,167 +41,172 @@ ECode DecimalFormatSymbols::Init(
     //    intlCurrencySymbol = localeData.internationalCurrencySymbol;
     //}
 */
-    return NOERROR;
+    assert(0);
+    return E_NOT_IMPLEMENTED;
 }
 
 ECode DecimalFormatSymbols::GetInstance(
-        /* [out] */ IDecimalFormatSymbols** instance)
+    /* [out] */ IDecimalFormatSymbols** instance)
 {
-    AutoPtr<ILocaleHelper> pLocaleHelper;
-    CLocaleHelper::AcquireSingleton((ILocaleHelper**)&pLocaleHelper);
-    AutoPtr<ILocale> pLocale;
-    pLocaleHelper->GetDefault((ILocale**)&pLocale);
-    return GetInstance((ILocale*)pLocale, instance);
+    VALIDATE_NOT_NULL(instance);
+
+    AutoPtr<ILocaleHelper> localeHelper;
+    CLocaleHelper::AcquireSingleton((ILocaleHelper**)&localeHelper);
+    AutoPtr<ILocale> locale;
+    FAIL_RETURN(localeHelper->GetDefault((ILocale**)&locale));
+    return GetInstance(locale, instance);
 }
 
 ECode DecimalFormatSymbols::GetInstance(
-        /* [in] */ ILocale* locale,
-        /* [out] */ IDecimalFormatSymbols** instance)
+    /* [in] */ ILocale* locale,
+    /* [out] */ IDecimalFormatSymbols** instance)
 {
+    VALIDATE_NOT_NULL(instance);
+
     if (locale == NULL) {
         //throw new NullPointerException();
         return E_NULL_POINTER_EXCEPTION;
     }
-//    CDecimalFormatSymbols::New(locale, instance);
-    return NOERROR;
+    return CDecimalFormatSymbols::New(locale, instance);
 }
 
 ECode DecimalFormatSymbols::GetAvailableLocales(
-        /* [out] */ ArrayOf<ILocale*>** locales)
+    /* [out] */ ArrayOf<ILocale*>** locales)
 {
-    AutoPtr<IICUHelper> pICUHelper;
-    CICUHelper::AcquireSingleton((IICUHelper**)&pICUHelper);
-    return pICUHelper->GetAvailableDecimalFormatSymbolsLocales(locales);
+    VALIDATE_NOT_NULL(locales);
+
+    AutoPtr<IICUHelper> ICUHelper;
+    CICUHelper::AcquireSingleton((IICUHelper**)&ICUHelper);
+    return ICUHelper->GetAvailableDecimalFormatSymbolsLocales(locales);
+}
+
+ECode DecimalFormatSymbols::Clone(
+    /* [out] */ IDecimalFormatSymbols** object)
+{
+    assert(0);
+   // try {
+   //     return super.clone();
+   // } catch (CloneNotSupportedException e) {
+   //     throw new AssertionError(e);
+   // }
+    return E_NOT_IMPLEMENTED;
 }
 
 ECode DecimalFormatSymbols::GetCurrency(
-        /* [out] */ ICurrency** currency)
+    /* [out] */ ICurrency** currency)
 {
-    *currency = (ICurrency*)mCurrency;
+    *currency = mCurrency;
+    if (*currency != NULL) (*currency)->AddRef();
     return NOERROR;
 }
 
 ECode DecimalFormatSymbols::GetInternationalCurrencySymbol(
-        /* [out] */ String* symbol)
+    /* [out] */ String* symbol)
 {
-    VALIDATE_NOT_NULL(symbol);
     *symbol = mIntlCurrencySymbol;
     return NOERROR;
 }
 
 ECode DecimalFormatSymbols::GetCurrencySymbol(
-        /* [out] */ String* symbol)
+    /* [out] */ String* symbol)
 {
-    VALIDATE_NOT_NULL(symbol);
     *symbol = mCurrencySymbol;
     return NOERROR;
 }
 
 ECode DecimalFormatSymbols::GetDecimalSeparator(
-        /* [out] */ Char32* separator)
+    /* [out] */ Char32* separator)
 {
-    VALIDATE_NOT_NULL(separator);
     *separator = mDecimalSeparator;
     return NOERROR;
 }
 
 ECode DecimalFormatSymbols::GetDigit(
-        /* [out] */ Char32* digit)
+    /* [out] */ Char32* digit)
 {
-    VALIDATE_NOT_NULL(digit);
     *digit = mDigit;
     return NOERROR;
 }
 
 ECode DecimalFormatSymbols::GetGroupingSeparator(
-        /* [out] */ Char32* separator)
+    /* [out] */ Char32* separator)
 {
-    VALIDATE_NOT_NULL(separator);
     *separator = mGroupingSeparator;
     return NOERROR;
 }
 
 ECode DecimalFormatSymbols::GetInfinity(
-        /* [out] */ String* infinity)
+    /* [out] */ String* infinity)
 {
-    VALIDATE_NOT_NULL(infinity);
     *infinity = mInfinity;
     return NOERROR;
 }
 
 ECode DecimalFormatSymbols::GetMinusSign(
-        /* [out] */ Char32* minusSign)
+    /* [out] */ Char32* minusSign)
 {
-    VALIDATE_NOT_NULL(minusSign);
     *minusSign = mMinusSign;
     return NOERROR;
 }
 
 ECode DecimalFormatSymbols::GetMonetaryDecimalSeparator(
-        /* [out] */ Char32* separator)
+    /* [out] */ Char32* separator)
 {
-    VALIDATE_NOT_NULL(separator);
     *separator = mMonetarySeparator;
     return NOERROR;
 }
 
 ECode DecimalFormatSymbols::GetNaN(
-            /* [out] */ String* infinity)
+    /* [out] */ String* infinity)
 {
-    VALIDATE_NOT_NULL(infinity);
     *infinity = mNaN;
     return NOERROR;
 }
 
 ECode DecimalFormatSymbols::GetPatternSeparator(
-        /* [out] */ Char32* separator)
+    /* [out] */ Char32* separator)
 {
-    VALIDATE_NOT_NULL(separator);
     *separator = mPatternSeparator;
     return NOERROR;
 }
 
 ECode DecimalFormatSymbols::GetPercent(
-            /* [out] */ Char32* percent)
+    /* [out] */ Char32* percent)
 {
-    VALIDATE_NOT_NULL(percent);
     *percent = mPercent;
     return NOERROR;
 }
 
 ECode DecimalFormatSymbols::GetPerMill(
-        /* [out] */ Char32* perMill)
+    /* [out] */ Char32* perMill)
 {
-    VALIDATE_NOT_NULL(perMill);
     *perMill = mPerMill;
     return NOERROR;
 }
 
 ECode DecimalFormatSymbols::GetZeroDigit(
-        /* [out] */ Char32* zeroDigit)
+    /* [out] */ Char32* zeroDigit)
 {
-    VALIDATE_NOT_NULL(zeroDigit);
     *zeroDigit = mZeroDigit;
     return NOERROR;
 }
 
 ECode DecimalFormatSymbols::GetExponentSeparator(
-        /* [out] */ String* separator)
+    /* [out] */ String* separator)
 {
-    VALIDATE_NOT_NULL(separator);
     *separator = mExponentSeparator;
     return NOERROR;
 }
 
 ECode DecimalFormatSymbols::SetCurrency(
-        /* [in] */ ICurrency* currency)
+    /* [in] */ ICurrency* currency)
 {
     if (currency == NULL) {
         //throw new NullPointerException();
         return E_NULL_POINTER_EXCEPTION;
     }
     if (currency == mCurrency) {
-        return NULL;
+        return NOERROR;
     }
     mCurrency = currency;
     currency->GetCurrencyCode(&mIntlCurrencySymbol);
@@ -209,21 +215,22 @@ ECode DecimalFormatSymbols::SetCurrency(
 }
 
 ECode DecimalFormatSymbols::SetInternationalCurrencySymbol(
-        /* [in] */ String value)
+    /* [in] */ const String& value)
 {
     if (value.IsNull()) {
         mCurrency = NULL;
-        mIntlCurrencySymbol = String(NULL);
-        return NULL;
+        mIntlCurrencySymbol = NULL;
+        return NOERROR;
     }
 
     if (value.Equals(mIntlCurrencySymbol)) {
-        return NULL;
+        return NOERROR;
     }
 
     //try {
+    assert(0);
 //        Currency::GetInstance(value, (ICurrency**)&mCurrency);
-        mCurrency->GetSymbolEx(mLocale, &mCurrencySymbol);
+    mCurrency->GetSymbolEx(mLocale, &mCurrencySymbol);
     //} catch (IllegalArgumentException e) {
     //    currency = null;
     //}
@@ -232,53 +239,56 @@ ECode DecimalFormatSymbols::SetInternationalCurrencySymbol(
 }
 
 ECode DecimalFormatSymbols::SetCurrencySymbol(
-        /* [in] */ String value)
+    /* [in] */ const String& value)
 {
     mCurrencySymbol = value;
     return NOERROR;
 }
 
 ECode DecimalFormatSymbols::SetDecimalSeparator(
-        /* [in] */ Char32 value)
+    /* [in] */ Char32 value)
 {
     mDecimalSeparator = value;
     return NOERROR;
 }
 
 ECode DecimalFormatSymbols::SetDigit(
-        /* [in] */ Char32 value)
+    /* [in] */ Char32 value)
 {
     mDigit = value;
     return NOERROR;
 }
+
 ECode DecimalFormatSymbols::SetGroupingSeparator(
-            /* [in] */ Char32 value)
+    /* [in] */ Char32 value)
 {
     mGroupingSeparator = value;
     return NOERROR;
 }
 
 ECode DecimalFormatSymbols::SetInfinity(
-        /* [in] */ String value)
+    /* [in] */ const String& value)
 {
     mInfinity = value;
     return NOERROR;
 }
+
 ECode DecimalFormatSymbols::SetMinusSign(
-                /* [in] */ Char32 value)
+    /* [in] */ Char32 value)
 {
     mMinusSign = value;
     return NOERROR;
 }
+
 ECode DecimalFormatSymbols::SetMonetaryDecimalSeparator(
-                    /* [in] */ Char32 value)
+    /* [in] */ Char32 value)
 {
     mMonetarySeparator = value;
     return NOERROR;
 }
 
 ECode DecimalFormatSymbols::SetNaN(
-        /* [in] */ String value)
+    /* [in] */ const String& value)
 {
     mNaN = value;
     return NOERROR;
@@ -311,8 +321,9 @@ ECode DecimalFormatSymbols::SetZeroDigit(
     return NOERROR;
 }
 
+
 ECode DecimalFormatSymbols::SetExponentSeparator(
-    /* [in] */ String value)
+    /* [in] */ const String& value)
 {
     if (value.IsNull()) {
         //throw new NullPointerException();

@@ -1,42 +1,12 @@
 #ifndef __DECIMALFORMATSYMBOLS_H__
 #define __DECIMALFORMATSYMBOLS_H__
 
-#include "cmdef.h"
 #include "Elastos.Text_server.h"
-
-#include <elastos.h>
 #include <elastos/AutoPtr.h>
 
-using namespace Elastos;
 
 class DecimalFormatSymbols
 {
-public:
-    virtual ~DecimalFormatSymbols();
-    /**
-     * Constructs a new {@code DecimalFormatSymbols} containing the symbols for
-     * the user's default locale.
-     * See "<a href="../util/Locale.html#default_locale">Be wary of the default locale</a>".
-     * Best practice is to create a {@code DecimalFormat}
-     * and then to get the {@code DecimalFormatSymbols} from that object by
-     * calling {@link DecimalFormat#getDecimalFormatSymbols()}.
-     */
-    CARAPI Init();
-
-    /**
-     * Constructs a new DecimalFormatSymbols containing the symbols for the
-     * specified Locale.
-     * See "<a href="../util/Locale.html#default_locale">Be wary of the default locale</a>".
-     * Best practice is to create a {@code DecimalFormat}
-     * and then to get the {@code DecimalFormatSymbols} from that object by
-     * calling {@link DecimalFormat#getDecimalFormatSymbols()}.
-     *
-     * @param locale
-     *            the locale.
-     */
-    CARAPI Init(
-        /* [in] */ ILocale* locale);
-
 public:
     /**
      * Returns a new {@code DecimalFormatSymbols} instance for the user's default locale.
@@ -67,16 +37,11 @@ public:
      * @since 1.6
      */
     static CARAPI GetAvailableLocales(
-        /* [out] */ ArrayOf<ILocale*>** locales);
+        /* [out, callee] */ ArrayOf<ILocale*>** locales);
 
     //@Override
-    //public Object clone() {
-    //    try {
-    //        return super.clone();
-    //    } catch (CloneNotSupportedException e) {
-    //        throw new AssertionError(e);
-    //    }
-    //}
+    virtual CARAPI Clone(
+        /* [out] */ IDecimalFormatSymbols** object);
 
     /**
      * Compares the specified object to this {@code DecimalFormatSymbols} and
@@ -316,7 +281,7 @@ public:
      *            the currency code.
      */
     virtual CARAPI SetInternationalCurrencySymbol(
-        /* [in] */ String value);
+        /* [in] */ const String& value);
 
     /**
      * Sets the currency symbol.
@@ -325,7 +290,7 @@ public:
      *            the currency symbol.
      */
     virtual CARAPI SetCurrencySymbol(
-        /* [in] */ String value);
+        /* [in] */ const String& value);
 
     /**
      * Sets the character which represents the decimal point in a number.
@@ -361,7 +326,7 @@ public:
      *            the string representing infinity.
      */
     virtual CARAPI SetInfinity(
-        /* [in] */ String value);
+        /* [in] */ const String& value);
 
     /**
      * Sets the minus sign character.
@@ -389,7 +354,7 @@ public:
      *            the string representing NaN.
      */
     virtual CARAPI SetNaN(
-        /* [in] */ String value);
+        /* [in] */ const String& value);
 
     /**
      * Sets the character which separates the positive and negative patterns in
@@ -433,7 +398,7 @@ public:
      * @since 1.6
      */
     virtual CARAPI SetExponentSeparator(
-        /* [in] */ String value);
+        /* [in] */ const String& value);
 
 /*    private static ObjectStreamField[] serialPersistentFields = {
         new ObjectStreamField("currencySymbol", String.class),
@@ -517,9 +482,33 @@ public:
         }
     }
 */
-private:
-    //const static Int64 serialVersionUID = 5772796243397350300L;
 
+protected:
+    /**
+     * Constructs a new {@code DecimalFormatSymbols} containing the symbols for
+     * the user's default locale.
+     * See "<a href="../util/Locale.html#default_locale">Be wary of the default locale</a>".
+     * Best practice is to create a {@code DecimalFormat}
+     * and then to get the {@code DecimalFormatSymbols} from that object by
+     * calling {@link DecimalFormat#getDecimalFormatSymbols()}.
+     */
+    CARAPI Init();
+
+    /**
+     * Constructs a new DecimalFormatSymbols containing the symbols for the
+     * specified Locale.
+     * See "<a href="../util/Locale.html#default_locale">Be wary of the default locale</a>".
+     * Best practice is to create a {@code DecimalFormat}
+     * and then to get the {@code DecimalFormatSymbols} from that object by
+     * calling {@link DecimalFormat#getDecimalFormatSymbols()}.
+     *
+     * @param locale
+     *            the locale.
+     */
+    CARAPI Init(
+        /* [in] */ ILocale* locale);
+
+private:
     Char32 mZeroDigit;
     Char32 mDigit;
     Char32 mDecimalSeparator;
@@ -534,6 +523,6 @@ private:
     mutable AutoPtr<ICurrency> mCurrency;
     mutable AutoPtr<ILocale> mLocale;
     mutable String mExponentSeparator;
-
 };
+
 #endif //__DECIMALFORMATSYMBOLS_H__

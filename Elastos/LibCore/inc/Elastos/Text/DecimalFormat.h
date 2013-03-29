@@ -1,18 +1,12 @@
 #ifndef __DECIMALFORMAT__
 #define __DECIMALFORMAT__
 
-#include "cmdef.h"
-
-#include <elastos.h>
-#include <elastos/AutoPtr.h>
-#include <StringBuffer.h>
 
 #include "Elastos.Text_server.h"
-#include "Math.h"
 #include "NumberFormat.h"
-#include "CDecimalFormatSymbols.h"
-#include "CNativeDecimalFormat.h"
 //#include "LocaleData.h"
+#include <elastos/AutoPtr.h>
+// #include <StringBuffer.h>
 
 
 using namespace Elastos;
@@ -25,7 +19,7 @@ public:
      * for the user's default locale.
      * See "<a href="../util/Locale.html#default_locale">Be wary of the default locale</a>".
      */
-    CARAPI Init();
+    DecimalFormat();
 
     /**
      * Constructs a new {@code DecimalFormat} using the specified non-localized
@@ -36,8 +30,8 @@ public:
      * @throws IllegalArgumentException
      *            if the pattern cannot be parsed.
      */
-    CARAPI Init(
-        /* [in] */ String pattern);
+    DecimalFormat(
+        /* [in] */ const String& pattern);
 
     /**
      * Constructs a new {@code DecimalFormat} using the specified non-localized
@@ -50,8 +44,8 @@ public:
      * @throws IllegalArgumentException
      *            if the pattern cannot be parsed.
      */
-    CARAPI Init(
-        /* [in] */ String pattern,
+    DecimalFormat(
+        /* [in] */ const String& pattern,
         /* [in] */ IDecimalFormatSymbols* value);
 
     /**
@@ -64,7 +58,7 @@ public:
      *            if the pattern cannot be parsed.
      */
     virtual CARAPI ApplyLocalizedPattern(
-        /* [in] */ String pattern);
+        /* [in] */ const String& pattern);
 
     /**
      * Changes the pattern of this decimal format to the specified pattern which
@@ -76,7 +70,7 @@ public:
      *            if the pattern cannot be parsed.
      */
     virtual CARAPI ApplyPattern(
-        /* [in] */ String pattern);
+        /* [in] */ const String& pattern);
 
     /**
      * Returns a new instance of {@code DecimalFormat} with the same pattern and
@@ -133,29 +127,29 @@ public:
      */
     //@Override
     CARAPI FormatToCharacterIterator(
-            /* [in] */ IInterface* object,
-            /* [out] */ IAttributedCharacterIterator** characterIterator);
+        /* [in] */ IInterface* object,
+        /* [out] */ IAttributedCharacterIterator** characterIterator);
 
     //@Override
-    CARAPI formatEx3(
-            /* [in] */ Double value,
-            /* [in] */ StringBuffer* buffer,
-            /* [in] */ IFieldPosition* field,
-            /* [out] */ StringBuffer* result);
+    CARAPI FormatDoubleEx(
+        /* [in] */ Double value,
+        /* [in] */ const String& buffer,
+        /* [in] */ IFieldPosition* field,
+        /* [out] */ String* result);
 
     //@Override
-    CARAPI formatEx5(
-            /* [in] */ Int64 value,
-            /* [in] */ StringBuffer* buffer,
-            /* [in] */ IFieldPosition* field,
-            /* [out] */ StringBuffer* formattedString);
+    CARAPI FormatInt64Ex(
+        /* [in] */ Int64 value,
+        /* [in] */ const String& buffer,
+        /* [in] */ IFieldPosition* field,
+        /* [out] */ String* result);
 
     //@Override
-    CARAPI formatEx(
-            /* [in] */ IInterface* object,
-            /* [in] */ StringBuffer* buffer,
-            /* [in] */ IFieldPosition* field,
-            /* [out] */ StringBuffer* value);
+    CARAPI FormatObjectEx(
+        /* [in] */ IInterface* object,
+        /* [in] */ const String& buffer,
+        /* [in] */ IFieldPosition* field,
+        /* [out] */ String* value);
 
     /**
      * Returns the {@code DecimalFormatSymbols} used by this decimal format.
@@ -164,7 +158,7 @@ public:
      *         format.
      */
     virtual CARAPI GetDecimalFormatSymbols(
-        /* [out] */ IDecimalFormatSymbols** decimalFormatSymbols);
+        /* [out] */ IDecimalFormatSymbols** symbols);
 
     /**
      * Returns the currency used by this decimal format.
@@ -172,10 +166,9 @@ public:
      * @return the currency used by this decimal format.
      * @see DecimalFormatSymbols#getCurrency()
      */
-    //@Override
-    //public Currency getCurrency() {
-    //    return symbols.getCurrency();
-    //}
+    // @Override
+    CARAPI GetCurrency(
+        /* [out] */ ICurrency** currency);
 
     /**
      * Returns the number of digits grouped together by the grouping separator.
@@ -185,7 +178,7 @@ public:
      * @return the number of digits grouped together.
      */
     virtual CARAPI GetGroupingSize(
-        /* [out] */ Int32* groupingSize);
+        /* [out] */ Int32* size);
 
     /**
      * Returns the multiplier which is applied to the number before formatting
@@ -202,7 +195,7 @@ public:
      * @return the negative prefix.
      */
     virtual CARAPI GetNegativePrefix(
-        /* [out] */ String* negativePrefix);
+        /* [out] */ String* prefix);
 
     /**
      * Returns the suffix which is formatted or parsed after a negative number.
@@ -210,7 +203,7 @@ public:
      * @return the negative suffix.
      */
     virtual CARAPI GetNegativeSuffix(
-        /* [out] */ String* negativeSuffix);
+        /* [out] */ String* suffix);
 
     /**
      * Returns the prefix which is formatted or parsed before a positive number.
@@ -218,7 +211,7 @@ public:
      * @return the positive prefix.
      */
     virtual CARAPI GetPositivePrefix(
-        /* [out] */ String* positivePrefix);
+        /* [out] */ String* prefix);
 
     /**
      * Returns the suffix which is formatted or parsed after a positive number.
@@ -226,7 +219,7 @@ public:
      * @return the positive suffix.
      */
     virtual CARAPI GetPositiveSuffix(
-        /* [out] */ String* positiveSuffix);
+        /* [out] */ String* suffix);
 
     //@Override
     //public int hashCode() {
@@ -241,7 +234,7 @@ public:
      *         {@code false} otherwise.
      */
     virtual CARAPI IsDecimalSeparatorAlwaysShown(
-        /* [out] */ Boolean* isDecimalSeparatorAlwaysShown);
+        /* [out] */ Boolean* alwaysShown);
 
     /**
      * This value indicates whether the return object of the parse operation is
@@ -252,7 +245,7 @@ public:
      *         {@code Double}.
      */
     virtual CARAPI IsParseBigDecimal(
-        /* [out] */ Boolean* isParseBigDecimal);
+        /* [out] */ Boolean* isBigDecimal);
 
     /**
      * Sets the flag that indicates whether numbers will be parsed as integers.
@@ -280,7 +273,7 @@ public:
      */
     //@Override
     CARAPI IsParseIntegerOnly(
-            /* [out] */ Boolean* isParseIntegerOnly);
+        /* [out] */ Boolean* isParseIntegerOnly);
 
     /**
      * Parses a {@code Long} or {@code Double} from the specified string
@@ -307,9 +300,9 @@ public:
      */
     //@Override
     CARAPI ParseEx(
-            /* [in] */ String string,
-            /* [in] */ IParsePosition* position,
-            /* [out] */ INumber** value);
+        /* [in] */ const String& string,
+        /* [in] */ IParsePosition* position,
+        /* [out] */ INumber** value);
 
     /**
      * Sets the {@code DecimalFormatSymbols} used by this decimal format.
@@ -329,12 +322,8 @@ public:
      * @see DecimalFormatSymbols#setCurrency(Currency)
      */
     //@Override
-    //public void setCurrency(Currency currency) {
-        // BEGIN android-changed
-    //    dform.setCurrency(Currency.getInstance(currency.getCurrencyCode()));
-        // END android-changed
-    //    symbols.setCurrency(currency);
-    //}
+    CARAPI SetCurrency(
+        /* [in] */ ICurrency* currency);
 
     /**
      * Sets whether the decimal separator is shown when there are no fractional
@@ -419,8 +408,8 @@ public:
      * @param value the minimum number of integer digits.
      */
     //@Override
-    CARAPI GetMinimumIntegerDigits(
-        /* [out] */ Int32* number);
+    CARAPI SetMinimumIntegerDigits(
+        /* [in] */ Int32 value);
 
     /**
      * Sets the multiplier which is applied to the number before formatting or
@@ -439,7 +428,7 @@ public:
      *            the negative prefix.
      */
     virtual CARAPI SetNegativePrefix(
-        /* [in] */ String value);
+        /* [in] */ const String& value);
 
     /**
      * Sets the suffix which is formatted or parsed after a negative number.
@@ -448,7 +437,7 @@ public:
      *            the negative suffix.
      */
     virtual CARAPI SetNegativeSuffix(
-        /* [in] */ String value);
+        /* [in] */ const String& value);
 
     /**
      * Sets the prefix which is formatted or parsed before a positive number.
@@ -457,7 +446,7 @@ public:
      *            the positive prefix.
      */
     virtual CARAPI SetPositivePrefix(
-        /* [in] */ String value);
+        /* [in] */ const String& value);
 
     /**
      * Sets the suffix which is formatted or parsed after a positive number.
@@ -466,7 +455,7 @@ public:
      *            the positive suffix.
      */
     virtual CARAPI SetPositiveSuffix(
-        /* [in] */ String value);
+        /* [in] */ const String& value);
 
     /**
      * Sets the behaviour of the parse method. If set to {@code true} then all
@@ -501,44 +490,67 @@ public:
      * Returns the {@code RoundingMode} used by this {@code NumberFormat}.
      * @since 1.6
      */
-    virtual CARAPI GetRoundingMode(
-        /* [out] */ RoundingMode* roundingMode);
+    //override
+    CARAPI GetRoundingMode(
+        /* [out] */ RoundingMode* mode);
 
     /**
      * Sets the {@code RoundingMode} used by this {@code NumberFormat}.
      * @since 1.6
      */
-    virtual CARAPI SetRoundingMode(
-        /* [in] */ RoundingMode roundingMode);
+    //override
+    CARAPI SetRoundingMode(
+        /* [in] */ RoundingMode mode);
 
-    // the fields list to be serialized
-/*
-    private static final ObjectStreamField[] serialPersistentFields = {
-            new ObjectStreamField("positivePrefix", String.class),
-            new ObjectStreamField("positiveSuffix", String.class),
-            new ObjectStreamField("negativePrefix", String.class),
-            new ObjectStreamField("negativeSuffix", String.class),
-            new ObjectStreamField("posPrefixPattern", String.class),
-            new ObjectStreamField("posSuffixPattern", String.class),
-            new ObjectStreamField("negPrefixPattern", String.class),
-            new ObjectStreamField("negSuffixPattern", String.class),
-            new ObjectStreamField("multiplier", int.class),
-            new ObjectStreamField("groupingSize", byte.class),
-            new ObjectStreamField("groupingUsed", boolean.class),
-            new ObjectStreamField("decimalSeparatorAlwaysShown", boolean.class),
-            new ObjectStreamField("parseBigDecimal", boolean.class),
-            new ObjectStreamField("roundingMode", RoundingMode.class),
-            new ObjectStreamField("symbols", DecimalFormatSymbols.class),
-            new ObjectStreamField("useExponentialNotation", boolean.class),
-            new ObjectStreamField("minExponentDigits", byte.class),
-            new ObjectStreamField("maximumIntegerDigits", int.class),
-            new ObjectStreamField("minimumIntegerDigits", int.class),
-            new ObjectStreamField("maximumFractionDigits", int.class),
-            new ObjectStreamField("minimumFractionDigits", int.class),
-            new ObjectStreamField("serialVersionOnStream", int.class), };
-*/
+protected:
+    /**
+     * Constructs a new {@code DecimalFormat} for formatting and parsing numbers
+     * for the user's default locale.
+     * See "<a href="../util/Locale.html#default_locale">Be wary of the default locale</a>".
+     */
+    CARAPI Init();
 
     /**
+     * Constructs a new {@code DecimalFormat} using the specified non-localized
+     * pattern and the {@code DecimalFormatSymbols} for the user's default Locale.
+     * See "<a href="../util/Locale.html#default_locale">Be wary of the default locale</a>".
+     * @param pattern
+     *            the non-localized pattern.
+     * @throws IllegalArgumentException
+     *            if the pattern cannot be parsed.
+     */
+    CARAPI Init(
+        /* [in] */ const String& pattern);
+
+    /**
+     * Constructs a new {@code DecimalFormat} using the specified non-localized
+     * pattern and {@code DecimalFormatSymbols}.
+     *
+     * @param pattern
+     *            the non-localized pattern.
+     * @param value
+     *            the DecimalFormatSymbols.
+     * @throws IllegalArgumentException
+     *            if the pattern cannot be parsed.
+     */
+    CARAPI Init(
+        /* [in] */ const String& pattern,
+        /* [in] */ IDecimalFormatSymbols* value);
+
+    // Used by NumberFormat.getInstance because cloning DecimalFormatSymbols is slow.
+    CARAPI Init(
+        /* [in] */ const String& pattern,
+        /* [in] */ ILocale* locale);
+
+private:
+    CARAPI InitNative(
+        /* [in] */ const String& pattern);
+
+    CARAPI CheckBufferAndFieldPosition(
+        /* [in] */ const String& buffer,
+        /* [in] */ IFieldPosition* position);
+
+        /**
      * Writes serialized fields following serialized forms specified by Java
      * specification.
      *
@@ -639,20 +651,6 @@ public:
     }
 */
 
-protected:
-    // Used by NumberFormat.getInstance because cloning DecimalFormatSymbols is slow.
-    CARAPI Init(
-        /* [in] */ String pattern,
-        /* [in] */ ILocale* locale);
-
-private:
-    CARAPI_(void) InitNative(
-        /* [in] */ String pattern);
-
-    CARAPI CheckBufferAndFieldPosition(
-        /* [in] */ StringBuffer buffer,
-        /* [in] */ IFieldPosition* position);
-
 private:
     mutable AutoPtr<IDecimalFormatSymbols> mSymbols;
 
@@ -669,9 +667,36 @@ private:
     };
     */
 
-    mutable RoundingMode mRoundingMode;// = RoundingMode_HALF_EVEN;
+    mutable RoundingMode mRoundingMode;
 
-    static const Double NEGATIVE_ZERO_DOUBLE = -0.0;//new Double(-0.0);
+    static const Double NEGATIVE_ZERO_DOUBLE = -0.0;
+
+        // the fields list to be serialized
+/*
+    private static final ObjectStreamField[] serialPersistentFields = {
+            new ObjectStreamField("positivePrefix", String.class),
+            new ObjectStreamField("positiveSuffix", String.class),
+            new ObjectStreamField("negativePrefix", String.class),
+            new ObjectStreamField("negativeSuffix", String.class),
+            new ObjectStreamField("posPrefixPattern", String.class),
+            new ObjectStreamField("posSuffixPattern", String.class),
+            new ObjectStreamField("negPrefixPattern", String.class),
+            new ObjectStreamField("negSuffixPattern", String.class),
+            new ObjectStreamField("multiplier", int.class),
+            new ObjectStreamField("groupingSize", byte.class),
+            new ObjectStreamField("groupingUsed", boolean.class),
+            new ObjectStreamField("decimalSeparatorAlwaysShown", boolean.class),
+            new ObjectStreamField("parseBigDecimal", boolean.class),
+            new ObjectStreamField("roundingMode", RoundingMode.class),
+            new ObjectStreamField("symbols", DecimalFormatSymbols.class),
+            new ObjectStreamField("useExponentialNotation", boolean.class),
+            new ObjectStreamField("minExponentDigits", byte.class),
+            new ObjectStreamField("maximumIntegerDigits", int.class),
+            new ObjectStreamField("minimumIntegerDigits", int.class),
+            new ObjectStreamField("maximumFractionDigits", int.class),
+            new ObjectStreamField("minimumFractionDigits", int.class),
+            new ObjectStreamField("serialVersionOnStream", int.class), };
+*/
 };
 
 #endif //__DECIMALFORMAT__

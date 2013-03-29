@@ -1,5 +1,7 @@
 
+#include "cmdef.h"
 #include "CDecimalFormat.h"
+
 
 ECode CDecimalFormat::constructor()
 {
@@ -14,23 +16,24 @@ ECode CDecimalFormat::constructor(
 
 ECode CDecimalFormat::constructor(
     /* [in] */ const String& pattern,
-    /* [in] */ IDecimalFormatSymbols * pValue)
+    /* [in] */ IDecimalFormatSymbols* value)
 {
-    return DecimalFormat::Init(pattern, pValue);
+    return DecimalFormat::Init(pattern, value);
 }
 
 ECode CDecimalFormat::constructor(
     /* [in] */ const String& pattern,
-    /* [in] */ ILocale * pLocale)
+    /* [in] */ ILocale* locale)
 {
-    return DecimalFormat::Init(pattern, pLocale);
+    return DecimalFormat::Init(pattern, locale);
 }
 
 ECode CDecimalFormat::FormatObject(
-    /* [in] */ IInterface * pObject,
-    /* [out] */ String * pValue)
+    /* [in] */ IInterface* object,
+    /* [out] */ String* value)
 {
-    return DecimalFormat::FormatObject(pObject, pValue);
+    VALIDATE_NOT_NULL(value);
+    return DecimalFormat::FormatObject(object, value);
 }
 
 ECode CDecimalFormat::FormatObjectEx(
@@ -39,36 +42,41 @@ ECode CDecimalFormat::FormatObjectEx(
     /* [in] */ IFieldPosition* field,
     /* [out] */ String* value)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(value);
+    return DecimalFormat::FormatObjectEx(object, buffer, field, value);
 }
 
 ECode CDecimalFormat::FormatToCharacterIterator(
-    /* [in] */ IInterface * pObject,
-    /* [out] */ IAttributedCharacterIterator ** ppCharactorIterator)
+    /* [in] */ IInterface* object,
+    /* [out] */ IAttributedCharacterIterator** iterator)
 {
-    return DecimalFormat::FormatToCharacterIterator(pObject, ppCharactorIterator);
+    VALIDATE_NOT_NULL(iterator);
+    return DecimalFormat::FormatToCharacterIterator(object, iterator);
 }
 
 ECode CDecimalFormat::ParseObject(
     /* [in] */ const String& string,
-    /* [out] */ IInterface ** ppObject)
+    /* [out] */ IInterface** object)
 {
-    return DecimalFormat::ParseObject(string, ppObject);
+    VALIDATE_NOT_NULL(object);
+    return DecimalFormat::ParseObject(string, object);
 }
 
 ECode CDecimalFormat::ParseObjectEx(
     /* [in] */ const String& string,
-    /* [in] */ IParsePosition * pPosition,
-    /* [out] */ IInterface ** ppObject)
+    /* [in] */ IParsePosition* position,
+    /* [out] */ IInterface** object)
 {
-    return DecimalFormat::ParseObjectEx(string, pPosition, ppObject);
+    VALIDATE_NOT_NULL(object);
+    return DecimalFormat::ParseObjectEx(string, position, object);
 }
 
 ECode CDecimalFormat::FormatDouble(
     /* [in] */ Double value,
-    /* [out] */ String * pFormat)
+    /* [out] */ String* result)
 {
-    return DecimalFormat::FormatDouble(value, pFormat);
+    VALIDATE_NOT_NULL(result);
+    return DecimalFormat::FormatDouble(value, result);
 }
 
 ECode CDecimalFormat::FormatDoubleEx(
@@ -77,14 +85,16 @@ ECode CDecimalFormat::FormatDoubleEx(
     /* [in] */ IFieldPosition* field,
     /* [out] */ String* result)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(result);
+    return DecimalFormat::FormatDoubleEx(value, buffer, field, result);
 }
 
 ECode CDecimalFormat::FormatInt64(
     /* [in] */ Int64 value,
-    /* [out] */ String * pFormat)
+    /* [out] */ String* result)
 {
-    return DecimalFormat::FormatInt64(value, pFormat);
+    VALIDATE_NOT_NULL(result);
+    return DecimalFormat::FormatInt64(value, result);
 }
 
 ECode CDecimalFormat::FormatInt64Ex(
@@ -93,58 +103,67 @@ ECode CDecimalFormat::FormatInt64Ex(
     /* [in] */ IFieldPosition* field,
     /* [out] */ String* result)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(result);
+    return DecimalFormat::FormatInt64Ex(value, buffer, field, result);
 }
 
 ECode CDecimalFormat::GetMaximumFractionDigits(
-    /* [out] */ Int32 * pMaximumFractionDigits)
+    /* [out] */ Int32* maxFractionDigits)
 {
-    return DecimalFormat::GetMaximumFractionDigits(pMaximumFractionDigits);
+    VALIDATE_NOT_NULL(maxFractionDigits);
+    return DecimalFormat::GetMaximumFractionDigits(maxFractionDigits);
 }
 
 ECode CDecimalFormat::GetMaximumIntegerDigits(
-    /* [out] */ Int32 * pMaximumIntegerDigits)
+    /* [out] */ Int32* maxIntegerDigits)
 {
-    return DecimalFormat::GetMaximumIntegerDigits(pMaximumIntegerDigits);
+    VALIDATE_NOT_NULL(maxIntegerDigits);
+    return DecimalFormat::GetMaximumIntegerDigits(maxIntegerDigits);
 }
 
 ECode CDecimalFormat::GetMinimumFractionDigits(
-    /* [out] */ Int32 * pMinimumFractionDigits)
+    /* [out] */ Int32* minFractionDigits)
 {
-    return DecimalFormat::GetMinimumFractionDigits(pMinimumFractionDigits);
+    VALIDATE_NOT_NULL(minFractionDigits);
+    return DecimalFormat::GetMinimumFractionDigits(minFractionDigits);
 }
 
 ECode CDecimalFormat::GetMinimumIntegerDigits(
-    /* [out] */ Int32 * pMinimumIntegerDigits)
+    /* [out] */ Int32* minIntegerDigits)
 {
-    return DecimalFormat::GetMinimumIntegerDigits(pMinimumIntegerDigits);
+    VALIDATE_NOT_NULL(minIntegerDigits);
+    return DecimalFormat::GetMinimumIntegerDigits(minIntegerDigits);
 }
 
 ECode CDecimalFormat::IsGroupingUsed(
-    /* [out] */ Boolean * pIsGroupingUsed)
+    /* [out] */ Boolean* isGroupingUsed)
 {
-    return DecimalFormat::IsGroupingUsed(pIsGroupingUsed);
+    VALIDATE_NOT_NULL(isGroupingUsed);
+    return DecimalFormat::IsGroupingUsed(isGroupingUsed);
 }
 
 ECode CDecimalFormat::IsParseIntegerOnly(
-    /* [out] */ Boolean * pIsParseIntegerOnly)
+    /* [out] */ Boolean* isParseIntegerOnly)
 {
-    return DecimalFormat::IsParseIntegerOnly(pIsParseIntegerOnly);
+    VALIDATE_NOT_NULL(isParseIntegerOnly);
+    return DecimalFormat::IsParseIntegerOnly(isParseIntegerOnly);
 }
 
 ECode CDecimalFormat::Parse(
     /* [in] */ const String& string,
-    /* [out] */ INumber ** ppValue)
+    /* [out] */ INumber** value)
 {
-    return DecimalFormat::Parse(string, ppValue);
+    VALIDATE_NOT_NULL(value);
+    return DecimalFormat::Parse(string, value);
 }
 
 ECode CDecimalFormat::ParseEx(
     /* [in] */ const String& string,
-    /* [in] */ IParsePosition * pPosition,
-    /* [out] */ INumber ** ppValue)
+    /* [in] */ IParsePosition* position,
+    /* [out] */ INumber** value)
 {
-    return DecimalFormat::ParseEx(string, pPosition, ppValue);
+    VALIDATE_NOT_NULL(value);
+    return DecimalFormat::ParseEx(string, position, value);
 }
 
 ECode CDecimalFormat::SetGroupingUsed(
@@ -196,63 +215,72 @@ ECode CDecimalFormat::ApplyPattern(
 }
 
 ECode CDecimalFormat::GetDecimalFormatSymbols(
-    /* [out] */ IDecimalFormatSymbols ** ppDecimalFormatSymbols)
+    /* [out] */ IDecimalFormatSymbols** symbols)
 {
-    return DecimalFormat::GetDecimalFormatSymbols(ppDecimalFormatSymbols);
+    VALIDATE_NOT_NULL(symbols);
+    return DecimalFormat::GetDecimalFormatSymbols(symbols);
 }
 
 ECode CDecimalFormat::GetGroupingSize(
-    /* [out] */ Int32 * pGroupingSize)
+    /* [out] */ Int32* size)
 {
-    return DecimalFormat::GetGroupingSize(pGroupingSize);
+    VALIDATE_NOT_NULL(size);
+    return DecimalFormat::GetGroupingSize(size);
 }
 
 ECode CDecimalFormat::GetMultiplier(
-    /* [out] */ Int32 * pMultiplier)
+    /* [out] */ Int32* multiplier)
 {
-    return DecimalFormat::GetMultiplier(pMultiplier);
+    VALIDATE_NOT_NULL(multiplier);
+    return DecimalFormat::GetMultiplier(multiplier);
 }
 
 ECode CDecimalFormat::GetNegativePrefix(
-    /* [out] */ String * pNegativePrefix)
+    /* [out] */ String* prefix)
 {
-    return DecimalFormat::GetNegativePrefix(pNegativePrefix);
+    VALIDATE_NOT_NULL(prefix);
+    return DecimalFormat::GetNegativePrefix(prefix);
 }
 
 ECode CDecimalFormat::GetNegativeSuffix(
-    /* [out] */ String * pNegativeSuffix)
+    /* [out] */ String* suffix)
 {
-    return DecimalFormat::GetNegativeSuffix(pNegativeSuffix);
+    VALIDATE_NOT_NULL(suffix);
+    return DecimalFormat::GetNegativeSuffix(suffix);
 }
 
 ECode CDecimalFormat::GetPositivePrefix(
-    /* [out] */ String * pPositivePrefix)
+    /* [out] */ String* prefix)
 {
-    return DecimalFormat::GetPositivePrefix(pPositivePrefix);
+    VALIDATE_NOT_NULL(prefix);
+    return DecimalFormat::GetPositivePrefix(prefix);
 }
 
 ECode CDecimalFormat::GetPositiveSuffix(
-    /* [out] */ String * pPositiveSuffix)
+    /* [out] */ String* suffix)
 {
-    return DecimalFormat::GetPositiveSuffix(pPositiveSuffix);
+    VALIDATE_NOT_NULL(suffix);
+    return DecimalFormat::GetPositiveSuffix(suffix);
 }
 
 ECode CDecimalFormat::IsDecimalSeparatorAlwaysShown(
-    /* [out] */ Boolean * pIsDecimalSeparatorAlwaysShown)
+    /* [out] */ Boolean * isAlwaysShown)
 {
-    return DecimalFormat::IsDecimalSeparatorAlwaysShown(pIsDecimalSeparatorAlwaysShown);
+    VALIDATE_NOT_NULL(isAlwaysShown);
+    return DecimalFormat::IsDecimalSeparatorAlwaysShown(isAlwaysShown);
 }
 
 ECode CDecimalFormat::IsParseBigDecimal(
-    /* [out] */ Boolean * pIsParseBigDecimal)
+    /* [out] */ Boolean* isParseBigDecimal)
 {
-    return DecimalFormat::IsParseBigDecimal(pIsParseBigDecimal);
+    VALIDATE_NOT_NULL(isParseBigDecimal);
+    return DecimalFormat::IsParseBigDecimal(isParseBigDecimal);
 }
 
 ECode CDecimalFormat::SetDecimalFormatSymbols(
-    /* [in] */ IDecimalFormatSymbols * pValue)
+    /* [in] */ IDecimalFormatSymbols* value)
 {
-    return DecimalFormat::SetDecimalFormatSymbols(pValue);
+    return DecimalFormat::SetDecimalFormatSymbols(value);
 }
 
 ECode CDecimalFormat::SetDecimalSeparatorAlwaysShown(
@@ -304,37 +332,41 @@ ECode CDecimalFormat::SetParseBigDecimal(
 }
 
 ECode CDecimalFormat::ToLocalizedPattern(
-    /* [out] */ String * pLocalizedPattern)
+    /* [out] */ String* pattern)
 {
-    return DecimalFormat::ToLocalizedPattern(pLocalizedPattern);
+    VALIDATE_NOT_NULL(pattern);
+    return DecimalFormat::ToLocalizedPattern(pattern);
 }
 
 ECode CDecimalFormat::ToPattern(
-    /* [out] */ String * pPattern)
+    /* [out] */ String* pattern)
 {
-    return DecimalFormat::ToPattern(pPattern);
+    VALIDATE_NOT_NULL(pattern);
+    return DecimalFormat::ToPattern(pattern);
 }
 
 ECode CDecimalFormat::GetCurrency(
     /* [out] */ ICurrency** currency)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(currency);
+    return DecimalFormat::GetCurrency(currency);
 }
 
 ECode CDecimalFormat::SetCurrency(
     /* [in] */ ICurrency* currency)
 {
-    return E_NOT_IMPLEMENTED;
+    return DecimalFormat::SetCurrency(currency);
 }
 
 ECode CDecimalFormat::GetRoundingMode(
-    /* [out] */ RoundingMode* pRoundingMode)
+    /* [out] */ RoundingMode* mode)
 {
-    return DecimalFormat::GetRoundingMode(pRoundingMode);
+    VALIDATE_NOT_NULL(mode);
+    return DecimalFormat::GetRoundingMode(mode);
 }
 
 ECode CDecimalFormat::SetRoundingMode(
-    /* [in] */ RoundingMode roundingMode)
+    /* [in] */ RoundingMode mode)
 {
-    return DecimalFormat::SetRoundingMode(roundingMode);
+    return DecimalFormat::SetRoundingMode(mode);
 }

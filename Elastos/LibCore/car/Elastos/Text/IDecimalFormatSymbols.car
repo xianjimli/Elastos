@@ -185,5 +185,8 @@ module
          */
         SetExponentSeparator(
             [in] String value);
+
+        Clone(
+            [out] IDecimalFormatSymbols** obj);
     }
 }

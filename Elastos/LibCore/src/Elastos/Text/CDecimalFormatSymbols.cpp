@@ -1,110 +1,128 @@
 
+#include "cmdef.h"
 #include "CDecimalFormatSymbols.h"
+
+
 ECode CDecimalFormatSymbols::constructor()
 {
     return DecimalFormatSymbols::Init();
 }
 
 ECode CDecimalFormatSymbols::constructor(
-    /* [in] */ ILocale * pLocale)
+    /* [in] */ ILocale* locale)
 {
-    return DecimalFormatSymbols::Init(pLocale);
+    return DecimalFormatSymbols::Init(locale);
 }
 
 ECode CDecimalFormatSymbols::GetCurrency(
-    /* [out] */ ICurrency ** ppCurrency)
+    /* [out] */ ICurrency** currency)
 {
-    return DecimalFormatSymbols::GetCurrency(ppCurrency);
+    VALIDATE_NOT_NULL(currency);
+    return DecimalFormatSymbols::GetCurrency(currency);
 }
 
 ECode CDecimalFormatSymbols::GetInternationalCurrencySymbol(
-    /* [out] */ String * pInternationalCurrencySymbol)
+    /* [out] */ String* symbol)
 {
-    return DecimalFormatSymbols::GetInternationalCurrencySymbol(pInternationalCurrencySymbol);
+    VALIDATE_NOT_NULL(symbol);
+    return DecimalFormatSymbols::GetInternationalCurrencySymbol(symbol);
 }
 
 ECode CDecimalFormatSymbols::GetCurrencySymbol(
-    /* [out] */ String * pCurrencySymbol)
+    /* [out] */ String* symbol)
 {
-    return DecimalFormatSymbols::GetCurrencySymbol(pCurrencySymbol);
+    VALIDATE_NOT_NULL(symbol);
+    return DecimalFormatSymbols::GetCurrencySymbol(symbol);
 }
 
 ECode CDecimalFormatSymbols::GetDecimalSeparator(
-    /* [out] */ Char32 * pDecimalSeparator)
+    /* [out] */ Char32* separator)
 {
-    return DecimalFormatSymbols::GetDecimalSeparator(pDecimalSeparator);
+    VALIDATE_NOT_NULL(separator);
+    return DecimalFormatSymbols::GetDecimalSeparator(separator);
 }
 
 ECode CDecimalFormatSymbols::GetDigit(
-    /* [out] */ Char32 * pDigit)
+    /* [out] */ Char32* digit)
 {
-    return DecimalFormatSymbols::GetDigit(pDigit);
+    VALIDATE_NOT_NULL(digit);
+    return DecimalFormatSymbols::GetDigit(digit);
 }
 
 ECode CDecimalFormatSymbols::GetGroupingSeparator(
-    /* [out] */ Char32 * pGroupingSeparator)
+    /* [out] */ Char32* separator)
 {
-    return DecimalFormatSymbols::GetGroupingSeparator(pGroupingSeparator);
+    VALIDATE_NOT_NULL(separator);
+    return DecimalFormatSymbols::GetGroupingSeparator(separator);
 }
 
 ECode CDecimalFormatSymbols::GetInfinity(
-    /* [out] */ String * pInfinity)
+    /* [out] */ String* infinity)
 {
-    return DecimalFormatSymbols::GetInfinity(pInfinity);
+    VALIDATE_NOT_NULL(infinity);
+    return DecimalFormatSymbols::GetInfinity(infinity);
 }
 
 ECode CDecimalFormatSymbols::GetMinusSign(
-    /* [out] */ Char32 * pMinusSign)
+    /* [out] */ Char32* minusSign)
 {
-    return DecimalFormatSymbols::GetMinusSign(pMinusSign);
+    VALIDATE_NOT_NULL(minusSign);
+    return DecimalFormatSymbols::GetMinusSign(minusSign);
 }
 
 ECode CDecimalFormatSymbols::GetMonetaryDecimalSeparator(
-    /* [out] */ Char32 * pMonetaryDecimalSeparator)
+    /* [out] */ Char32* separator)
 {
-    return DecimalFormatSymbols::GetMonetaryDecimalSeparator(pMonetaryDecimalSeparator);
+    VALIDATE_NOT_NULL(separator);
+    return DecimalFormatSymbols::GetMonetaryDecimalSeparator(separator);
 }
 
 ECode CDecimalFormatSymbols::GetNaN(
-    /* [out] */ String * pNaN)
+    /* [out] */ String* NaN)
 {
-    return DecimalFormatSymbols::GetNaN(pNaN);
+    VALIDATE_NOT_NULL(NaN);
+    return DecimalFormatSymbols::GetNaN(NaN);
 }
 
 ECode CDecimalFormatSymbols::GetPatternSeparator(
-    /* [out] */ Char32 * pPatternSeparator)
+    /* [out] */ Char32* separator)
 {
-    return DecimalFormatSymbols::GetPatternSeparator(pPatternSeparator);
+    VALIDATE_NOT_NULL(separator);
+    return DecimalFormatSymbols::GetPatternSeparator(separator);
 }
 
 ECode CDecimalFormatSymbols::GetPercent(
-    /* [out] */ Char32 * pPercent)
+    /* [out] */ Char32* percent)
 {
-    return DecimalFormatSymbols::GetPercent(pPercent);
+    VALIDATE_NOT_NULL(percent);
+    return DecimalFormatSymbols::GetPercent(percent);
 }
 
 ECode CDecimalFormatSymbols::GetPerMill(
-    /* [out] */ Char32 * pPerMill)
+    /* [out] */ Char32* perMill)
 {
-    return DecimalFormatSymbols::GetPerMill(pPerMill);
+    VALIDATE_NOT_NULL(perMill);
+    return DecimalFormatSymbols::GetPerMill(perMill);
 }
 
 ECode CDecimalFormatSymbols::GetZeroDigit(
-    /* [out] */ Char32 * pZeroDigit)
+    /* [out] */ Char32* zeroDigit)
 {
-    return DecimalFormatSymbols::GetZeroDigit(pZeroDigit);
+    VALIDATE_NOT_NULL(zeroDigit);
+    return DecimalFormatSymbols::GetZeroDigit(zeroDigit);
 }
 
 ECode CDecimalFormatSymbols::GetExponentSeparator(
-    /* [out] */ String * pExponentSeparator)
+    /* [out] */ String* separator)
 {
-    return DecimalFormatSymbols::GetExponentSeparator(pExponentSeparator);
+    VALIDATE_NOT_NULL(separator);
+    return DecimalFormatSymbols::GetExponentSeparator(separator);
 }
 
 ECode CDecimalFormatSymbols::SetCurrency(
-    /* [in] */ ICurrency * pCurrency)
+    /* [in] */ ICurrency* currency)
 {
-    return DecimalFormatSymbols::SetCurrency(pCurrency);
+    return DecimalFormatSymbols::SetCurrency(currency);
 }
 
 ECode CDecimalFormatSymbols::SetInternationalCurrencySymbol(
@@ -189,4 +207,11 @@ ECode CDecimalFormatSymbols::SetExponentSeparator(
     /* [in] */ const String& value)
 {
     return DecimalFormatSymbols::SetExponentSeparator(value);
+}
+
+ECode CDecimalFormatSymbols::Clone(
+    /* [out] */ IDecimalFormatSymbols** object)
+{
+    VALIDATE_NOT_NULL(object);
+    return DecimalFormatSymbols::Clone(object);
 }

@@ -4,61 +4,62 @@
 
 #include "_CDecimalFormatSymbols.h"
 #include "DecimalFormatSymbols.h"
+
 CarClass(CDecimalFormatSymbols), public DecimalFormatSymbols
 {
 public:
     CARAPI constructor();
 
     CARAPI constructor(
-        /* [in] */ ILocale * pLocale);
+        /* [in] */ ILocale* locale);
 
     CARAPI GetCurrency(
-        /* [out] */ ICurrency ** ppCurrency);
+        /* [out] */ ICurrency** currency);
 
     CARAPI GetInternationalCurrencySymbol(
-        /* [out] */ String * pInternationalCurrencySymbol);
+        /* [out] */ String* symbol);
 
     CARAPI GetCurrencySymbol(
-        /* [out] */ String * pCurrencySymbol);
+        /* [out] */ String* symbol);
 
     CARAPI GetDecimalSeparator(
-        /* [out] */ Char32 * pDecimalSeparator);
+        /* [out] */ Char32* separator);
 
     CARAPI GetDigit(
-        /* [out] */ Char32 * pDigit);
+        /* [out] */ Char32* digit);
 
     CARAPI GetGroupingSeparator(
-        /* [out] */ Char32 * pGroupingSeparator);
+        /* [out] */ Char32* separator);
 
     CARAPI GetInfinity(
-        /* [out] */ String * pInfinity);
+        /* [out] */ String* infinity);
 
     CARAPI GetMinusSign(
-        /* [out] */ Char32 * pMinusSign);
+        /* [out] */ Char32* minusSign);
 
     CARAPI GetMonetaryDecimalSeparator(
-        /* [out] */ Char32 * pMonetaryDecimalSeparator);
+        /* [out] */ Char32* separator);
 
     CARAPI GetNaN(
-        /* [out] */ String * pNaN);
+        /* [out] */ String* NaN);
 
     CARAPI GetPatternSeparator(
-        /* [out] */ Char32 * pPatternSeparator);
+        /* [out] */ Char32* separator);
 
     CARAPI GetPercent(
-        /* [out] */ Char32 * pPercent);
+        /* [out] */ Char32* percent);
 
     CARAPI GetPerMill(
-        /* [out] */ Char32 * pPerMill);
+        /* [out] */ Char32* perMill);
 
     CARAPI GetZeroDigit(
-        /* [out] */ Char32 * pZeroDigit);
+        /* [out] */ Char32* zeroDigit);
 
     CARAPI GetExponentSeparator(
-        /* [out] */ String * pExponentSeparator);
+        /* [out] */ String* separator);
 
     CARAPI SetCurrency(
-        /* [in] */ ICurrency * pCurrency);
+        /* [in] */ ICurrency* currency);
 
     CARAPI SetInternationalCurrencySymbol(
         /* [in] */ const String& value);
@@ -102,8 +103,8 @@ public:
     CARAPI SetExponentSeparator(
         /* [in] */ const String& value);
 
-private:
-    // TODO: Add your private member variables here.
+    CARAPI Clone(
+        /* [out] */ IDecimalFormatSymbols** object);
 };
 
 #endif // __CDECIMALFORMATSYMBOLS_H__

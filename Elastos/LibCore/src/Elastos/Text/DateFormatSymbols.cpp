@@ -1,3 +1,5 @@
+
+#include "cmdef.h"
 #include "DateFormatSymbols.h"
 
 ECode DateFormatSymbols::InternalZoneStrings(
@@ -208,14 +210,14 @@ ECode DateFormatSymbols::GetShortWeekdays(
             /* [out, callee] */ ArrayOf<String>** arrayOfStrings)
 {
     *arrayOfStrings = mShortWeekdays->Clone();
-    return NOERROR;    
+    return NOERROR;
 }
 
 ECode DateFormatSymbols::GetWeekdays(
             /* [out, callee] */ ArrayOf<String>** arrayOfStrings)
 {
     *arrayOfStrings = mWeekdays->Clone();
-    return NOERROR;    
+    return NOERROR;
 }
 
 ECode DateFormatSymbols::GetZoneStrings(

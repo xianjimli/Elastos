@@ -15,15 +15,15 @@ public:
 
     CARAPI constructor(
         /* [in] */ const String& pattern,
-        /* [in] */ IDecimalFormatSymbols * pValue);
+        /* [in] */ IDecimalFormatSymbols* value);
 
     CARAPI constructor(
         /* [in] */ const String& pattern,
-        /* [in] */ ILocale * pLocale);
+        /* [in] */ ILocale* locale);
 
     CARAPI FormatObject(
-        /* [in] */ IInterface * pObject,
-        /* [out] */ String * pValue);
+        /* [in] */ IInterface* object,
+        /* [out] */ String* value);
 
     CARAPI FormatObjectEx(
         /* [in] */ IInterface* object,
@@ -32,21 +32,21 @@ public:
         /* [out] */ String* value);
 
     CARAPI FormatToCharacterIterator(
-        /* [in] */ IInterface * pObject,
-        /* [out] */ IAttributedCharacterIterator ** ppCharactorIterator);
+        /* [in] */ IInterface* object,
+        /* [out] */ IAttributedCharacterIterator** iterator);
 
     CARAPI ParseObject(
         /* [in] */ const String& string,
-        /* [out] */ IInterface ** ppObject);
+        /* [out] */ IInterface** object);
 
     CARAPI ParseObjectEx(
         /* [in] */ const String& string,
-        /* [in] */ IParsePosition * pPosition,
-        /* [out] */ IInterface ** ppObject);
+        /* [in] */ IParsePosition* position,
+        /* [out] */ IInterface** object);
 
     CARAPI FormatDouble(
         /* [in] */ Double value,
-        /* [out] */ String * pFormat);
+        /* [out] */ String* result);
 
     CARAPI FormatDoubleEx(
         /* [in] */ Double value,
@@ -56,7 +56,7 @@ public:
 
     CARAPI FormatInt64(
         /* [in] */ Int64 value,
-        /* [out] */ String * pFormat);
+        /* [out] */ String* result);
 
     CARAPI FormatInt64Ex(
         /* [in] */ Int64 value,
@@ -65,31 +65,31 @@ public:
         /* [out] */ String* result);
 
     CARAPI GetMaximumFractionDigits(
-        /* [out] */ Int32 * pMaximumFractionDigits);
+        /* [out] */ Int32* maxFractionDigits);
 
     CARAPI GetMaximumIntegerDigits(
-        /* [out] */ Int32 * pMaximumIntegerDigits);
+        /* [out] */ Int32* maxIntegerDigits);
 
     CARAPI GetMinimumFractionDigits(
-        /* [out] */ Int32 * pMinimumFractionDigits);
+        /* [out] */ Int32* minFractionDigits);
 
     CARAPI GetMinimumIntegerDigits(
-        /* [out] */ Int32 * pMinimumIntegerDigits);
+        /* [out] */ Int32* minIntegerDigits);
 
     CARAPI IsGroupingUsed(
-        /* [out] */ Boolean * pIsGroupingUsed);
+        /* [out] */ Boolean* isGroupingUsed);
 
     CARAPI IsParseIntegerOnly(
-        /* [out] */ Boolean * pIsParseIntegerOnly);
+        /* [out] */ Boolean* isParseIntegerOnly);
 
     CARAPI Parse(
         /* [in] */ const String& string,
-        /* [out] */ INumber ** ppValue);
+        /* [out] */ INumber** value);
 
     CARAPI ParseEx(
         /* [in] */ const String& string,
-        /* [in] */ IParsePosition * pPosition,
-        /* [out] */ INumber ** ppValue);
+        /* [in] */ IParsePosition* position,
+        /* [out] */ INumber** value);
 
     CARAPI SetGroupingUsed(
         /* [in] */ Boolean value);
@@ -116,34 +116,34 @@ public:
         /* [in] */ const String& pattern);
 
     CARAPI GetDecimalFormatSymbols(
-        /* [out] */ IDecimalFormatSymbols ** ppDecimalFormatSymbols);
+        /* [out] */ IDecimalFormatSymbols** symbols);
 
     CARAPI GetGroupingSize(
-        /* [out] */ Int32 * pGroupingSize);
+        /* [out] */ Int32* groupingSize);
 
     CARAPI GetMultiplier(
-        /* [out] */ Int32 * pMultiplier);
+        /* [out] */ Int32* multiplier);
 
     CARAPI GetNegativePrefix(
-        /* [out] */ String * pNegativePrefix);
+        /* [out] */ String* prefix);
 
     CARAPI GetNegativeSuffix(
-        /* [out] */ String * pNegativeSuffix);
+        /* [out] */ String* suffix);
 
     CARAPI GetPositivePrefix(
-        /* [out] */ String * pPositivePrefix);
+        /* [out] */ String* prefix);
 
     CARAPI GetPositiveSuffix(
-        /* [out] */ String * pPositiveSuffix);
+        /* [out] */ String* suffix);
 
     CARAPI IsDecimalSeparatorAlwaysShown(
-        /* [out] */ Boolean * pIsDecimalSeparatorAlwaysShown);
+        /* [out] */ Boolean* isAlwaysShown);
 
     CARAPI IsParseBigDecimal(
-        /* [out] */ Boolean * pIsParseBigDecimal);
+        /* [out] */ Boolean* isParseBigDecimal);
 
     CARAPI SetDecimalFormatSymbols(
-        /* [in] */ IDecimalFormatSymbols * pValue);
+        /* [in] */ IDecimalFormatSymbols* value);
 
     CARAPI SetDecimalSeparatorAlwaysShown(
         /* [in] */ Boolean value);
@@ -170,10 +170,10 @@ public:
         /* [in] */ Boolean newValue);
 
     CARAPI ToLocalizedPattern(
-        /* [out] */ String * pLocalizedPattern);
+        /* [out] */ String* localizedPattern);
 
     CARAPI ToPattern(
-        /* [out] */ String * pPattern);
+        /* [out] */ String* pattern);
 
     CARAPI GetCurrency(
         /* [out] */ ICurrency** currency);
