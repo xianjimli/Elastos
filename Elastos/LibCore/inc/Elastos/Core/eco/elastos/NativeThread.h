@@ -64,6 +64,14 @@ enum {
 #define kMaxThreadId        ((1 << 16) - 1)
 #define kMainThreadId       1
 
+struct NativeAttachArgs
+{
+    Int32        mVersion;    /* must be >= JNI_VERSION_1_2 */
+    String       mName;       /* NULL or name of thread as modified UTF-8 str */
+    // jobject     group;      /* global ref of a ThreadGroup object, or NULL */
+};
+typedef struct NativeAttachArgs NativeAttachArgs;
+
 class Thread;
 
 /*
@@ -328,6 +336,11 @@ inline void NativeUnlockMutex(
 ELAPI_(Boolean) NativeCreateThread(
     /* [in] */ Thread* threadObj,
     /* [in] */ Int32 reqStackSize);
+
+ELAPI NativeAttachCurrentThread(
+    /* [in] */ const NativeAttachArgs* args,
+    /* [in] */ Boolean isDaemon,
+    /* [out] */ IThread** thread);
 
 ELAPI_(void) NativeDetachCurrentThread();
 

@@ -248,8 +248,6 @@ public:
     virtual CARAPI GetState(
         /* [out] */ ThreadState* state);
 
-
-
     /**
      * Returns the ThreadGroup to which this Thread belongs.
      *
@@ -606,6 +604,15 @@ public:
      * @see Thread#start
      */
     virtual CARAPI Run();
+
+    static CARAPI Attach(
+        /* [out] */ IThread** thread);
+
+    static CARAPI Attach(
+        /* [in] */ const String& name,
+        /* [out] */ IThread** thread);
+
+    virtual CARAPI Detach();
 
 protected:
     Thread();

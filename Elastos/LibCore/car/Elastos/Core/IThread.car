@@ -448,5 +448,7 @@ module
          */
         //@Deprecated
         Suspend();
+
+        Detach();
     }
 }

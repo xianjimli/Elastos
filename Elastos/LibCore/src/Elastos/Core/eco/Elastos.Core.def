@@ -59,9 +59,12 @@ EXPORTS
     ;;NativeThread
     NativeThreadSelf
     NativeCreateThread
+    NativeAttachCurrentThread
+    NativeDetachCurrentThread
     NativeGetThreadFromThreadObject
     NativeLockThreadList
     NativeUnlockThreadList
+    NativeChangeStatus
     NativeChangeThreadPriority
     NativeGetCount
     NativeCreateObject
