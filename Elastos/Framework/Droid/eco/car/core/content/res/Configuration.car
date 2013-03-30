@@ -190,5 +190,29 @@ module
 
         SetSeq(
             [in] Int32 seq);
+
+        GetMcc(
+            [out] Int32* mcc);
+
+        SetMcc(
+            [in] Int32 mcc);
+
+        GetMnc(
+            [out] Int32* mnc);
+
+        SetMnc(
+            [in] Int32 mnc);
+
+        GetUiMode(
+            [out] Int32* uiMode);
+
+        SetUiMode(
+            [in] Int32 uiMode);
+
+        GetLocale(
+            [out] ILocale** locale);
+
+        SetLocale(
+            [in] ILocale* locale);
     }
 }

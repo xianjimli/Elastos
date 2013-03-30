@@ -108,6 +108,12 @@ public:
     CARAPI SetUiMode(
         /* [in] */ Int32 uiMode);
 
+    CARAPI GetLocale(
+        /* [out] */ ILocale** locale);
+
+    CARAPI SetLocale(
+        /* [in] */ ILocale* locale);
+
     CARAPI ReadFromParcel(
         /* [in] */ IParcel *source);
 

@@ -555,6 +555,24 @@ ECode CConfiguration::SetUiMode(
     return NOERROR;
 }
 
+ECode CConfiguration::GetLocale(
+    /* [out] */ ILocale** locale)
+{
+    VALIDATE_NOT_NULL(locale);
+    *locale = mLocale;
+    mLocale->AddRef();
+
+    return NOERROR;
+}
+
+ECode CConfiguration::SetLocale(
+    /* [in] */ ILocale* locale)
+{
+    mLocale = locale;
+
+    return NOERROR;
+}
+
 ECode CConfiguration::CompareTo(
     /* [in] */ IConfiguration* object,
     /* [out] */ Int32* result)
