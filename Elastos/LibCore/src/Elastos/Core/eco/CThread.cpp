@@ -657,6 +657,11 @@ ECode CThread::Run()
     return Thread::Run();
 }
 
+ECode CThread::Detach()
+{
+    return Thread::Detach();
+}
+
 ECode CThread::Lock()
 {
     return Thread::Lock();

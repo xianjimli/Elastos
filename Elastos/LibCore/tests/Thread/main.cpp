@@ -18,14 +18,9 @@ void printArgs(
             id, priority, (const char*)name);
 }
 
-int main(int argc, char *argv[])
+ECode test1()
 {
     printf("Start main() at Line:%d\n", __LINE__);
-    // AutoPtr<IRunnable> r = new MyRunnable();
-    // AutoPtr<IThread> thr1;
-    // CThread::New(r, (IThread**)&thr1);
-    //thr1->Start();
-    //printArgs(thr1);
 
     MyThread* myThread = new MyThread();
     AutoPtr<IThread> thr2 = (IThread*)myThread->Probe(EIID_IThread);
@@ -34,11 +29,47 @@ int main(int argc, char *argv[])
     printArgs(thr2);
     thr2->SetPriority(ELASTOS_PRIORITY_FOREGROUND);
     printArgs(thr2);
-    // printArgs(thr2);
     myThread->mStop = TRUE;
     thr2->Interrupt();
     Thread::Sleep(3000);
+    return NOERROR;
+}
 
-    //sleep(2);
-    return 0;
+void* EntryRoutine(void *arg)
+{
+    ECode ec;
+
+    AutoPtr<IThread> thread;
+    Thread::Attach((IThread**)&thread);
+    printf("==== Thread attached ====\n");
+    ISynchronize* syncObj = ISynchronize::Probe(thread);
+    assert(syncObj != NULL);
+    syncObj->Lock();
+    printf("==== Thread locked ====\n");
+    syncObj->Unlock();
+    printf("==== Thread unlocked ====\n");
+    thread->Detach();
+    printf("==== Thread detached ====\n");
+
+    return (void*)NOERROR;
+}
+
+ECode test2()
+{
+    pthread_t pthread;
+
+    if (pthread_create(&pthread, NULL, EntryRoutine, NULL)) {
+        return E_THREAD_ABORTED;
+    }
+    Thread::Sleep(2000);
+    return NOERROR;
+}
+
+int main(int argc, char *argv[])
+{
+    int ret;
+
+    // ret = test1();
+    ret = test2();
+    return ret;
 }

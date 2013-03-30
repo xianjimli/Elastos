@@ -224,11 +224,47 @@ ECode MyThread::Suspend()
     return Thread::Suspend();
 }
 
-ECode MyThread::Wait(
-    /* [in] */ Int64 time,
-    /* [in] */ Int32 frac)
+ECode MyThread::Detach()
 {
-    return Thread::Wait(time, frac);
+    return Thread::Detach();
+}
+
+ECode MyThread::Lock()
+{
+    return Thread::Lock();
+}
+
+ECode MyThread::Unlock()
+{
+    return Thread::Unlock();
+}
+
+ECode MyThread::Notify()
+{
+    return Thread::Notify();
+}
+
+ECode MyThread::NotifyAll()
+{
+    return Thread::NotifyAll();
+}
+
+ECode MyThread::Wait()
+{
+    return Thread::Wait();
+}
+
+ECode MyThread::WaitEx(
+    /* [in] */ Int64 millis)
+{
+    return Thread::Wait(millis);
+}
+
+ECode MyThread::WaitEx2(
+    /* [in] */ Int64 millis,
+    /* [in] */ Int32 nanos)
+{
+    return Thread::Wait(millis, nanos);
 }
 
 ECode MyThread::Run()

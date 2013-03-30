@@ -115,11 +115,26 @@ public:
 
     CARAPI Suspend();
 
-    CARAPI Wait(
-        /* [in] */ Int64 time,
-        /* [in] */ Int32 frac);
+    CARAPI Detach();
 
     CARAPI Run();
+
+    CARAPI Lock();
+
+    CARAPI Unlock();
+
+    CARAPI Notify();
+
+    CARAPI NotifyAll();
+
+    CARAPI Wait();
+
+    CARAPI WaitEx(
+        /* [in] */ Int64 millis);
+
+    CARAPI WaitEx2(
+        /* [in] */ Int64 millis,
+        /* [in] */ Int32 nanos);
 
 private:
     CARAPI_(Mutex*) GetSelfLock();

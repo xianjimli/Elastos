@@ -435,12 +435,9 @@ AutoPtr<IThread> Thread::GetCurrentThread()
 
 AutoPtr<IThread> Thread::NativeGetCurrentThread()
 {
-    NativeThread* nt = NativeThreadSelf();
-    if (nt == NULL) {
-        printf("=======fun: %s========,========line: %d========\n", __FUNCTION__, __LINE__);
-    }
-    return AutoPtr<IThread>((IThread*)nt->mThreadObj->Probe(EIID_IThread));
-    //return AutoPtr<IThread>((IThread*)NativeThreadSelf()->mThreadObj->Probe(EIID_IThread));
+    NativeThread* self = NativeThreadSelf();
+    assert(self != NULL);
+    return (IThread*)self->mThreadObj->Probe(EIID_IThread);
 }
 
 /**
@@ -1338,7 +1335,8 @@ ECode Thread::Suspend()
  * Suspends the Thread.
  */
 //@SuppressWarnings("ThrowableInstanceNeverThrown")
-void Thread::NativeSuspend() {
+void Thread::NativeSuspend()
+{
     // Logger.global.log(Level.SEVERE, UNSUPPORTED_THREAD_METHOD,
     //         new UnsupportedOperationException());
 }
@@ -1360,3 +1358,110 @@ void Thread::Yield()
  *         object; false otherwise
  */
 //static CARAPI_(Boolean) HoldsLock(Object object);
+
+ECode Thread::Attach(
+    /* [out] */ IThread** thread)
+{
+    return Thread::Attach(String(NULL), thread);
+}
+
+ECode Thread::Attach(
+    /* [in] */ const String& name,
+    /* [out] */ IThread** thread)
+{
+    VALIDATE_NOT_NULL(thread);
+
+    // JavaVMAttachArgs* args = (JavaVMAttachArgs*) thr_args;
+    NativeThread* self;
+    Boolean result = FALSE;
+
+    /*
+     * Return immediately if we're already one with the VM.
+     */
+    self = NativeThreadSelf();
+    if (self != NULL) {
+        // *p_env = self->jniEnv;
+        // return JNI_OK;
+        *thread = (IThread*)self->mThreadObj->Probe(EIID_IThread);
+        (*thread)->AddRef();
+        return NOERROR;
+    }
+
+    /*
+     * No threads allowed in zygote mode.
+     */
+    // if (gDvm.zygote) {
+    //     return JNI_ERR;
+    // }
+
+    /* increment the count to keep the VM from bailing while we run */
+    // dvmLockThreadList(NULL);
+    // if (gDvm.nonDaemonThreadCount == 0) {
+    //     // dead or dying
+    //     LOGV("Refusing to attach thread '%s' -- VM is shutting down\n",
+    //         (thr_args == NULL) ? "(unknown)" : args->name);
+    //     dvmUnlockThreadList();
+    //     return JNI_ERR;
+    // }
+    // gDvm.nonDaemonThreadCount++;
+    // dvmUnlockThreadList();
+
+    /* tweak the JavaVMAttachArgs as needed */
+    NativeAttachArgs argsCopy;
+    // if (args == NULL) {
+    //     /* allow the v1.1 calling convention */
+    //     argsCopy.version = JNI_VERSION_1_2;
+    //     argsCopy.name = NULL;
+    //     argsCopy.group = dvmGetMainThreadGroup();
+    // } else {
+    //     assert(args->version >= JNI_VERSION_1_2);
+
+    //     argsCopy.version = args->version;
+    //     argsCopy.name = args->name;
+    //     if (args->group != NULL)
+    //         argsCopy.group = args->group;
+    //     else
+    //         argsCopy.group = dvmGetMainThreadGroup();
+    // }
+    argsCopy.mName = name;
+    ECode ec = NativeAttachCurrentThread(&argsCopy, FALSE, thread);
+
+    /* restore the count */
+    // dvmLockThreadList(NULL);
+    // gDvm.nonDaemonThreadCount--;
+    // dvmUnlockThreadList();
+
+    /*
+     * Change the status to indicate that we're out in native code.  This
+     * call is not guarded with state-change macros, so we have to do it
+     * by hand.
+     */
+    // if (result) {
+    //     self = dvmThreadSelf();
+    //     assert(self != NULL);
+    //     dvmChangeStatus(self, THREAD_NATIVE);
+    //     *p_env = self->jniEnv;
+    //     return JNI_OK;
+    // } else {
+    //     return JNI_ERR;
+    // }
+    return ec;
+}
+
+ECode Thread::Detach()
+{
+    NativeThread* self = NativeThreadSelf();
+
+    if (self == NULL || mNativeThread != self) {              /* not attached, can't do anything */
+        return E_ILLEGAL_THREAD_STATE_EXCEPTION;
+    }
+
+    /* switch to "running" to check for suspension */
+    NativeChangeStatus(self, NTHREAD_RUNNING);
+
+    /* detach the thread */
+    NativeDetachCurrentThread();
+
+    /* (no need to change status back -- we have no status) */
+    return NOERROR;
+}

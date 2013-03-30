@@ -567,6 +567,8 @@ public:
 
     CARAPI Run();
 
+    CARAPI Detach();
+
     CARAPI Lock();
 
     CARAPI Unlock();
