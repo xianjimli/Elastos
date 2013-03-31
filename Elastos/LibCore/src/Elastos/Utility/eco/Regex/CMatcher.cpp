@@ -15,7 +15,7 @@
 *         creation of the exception to be thrown fails
  * @exception thrown if errorCode represents an error
 */
-ECode icu4_error(UErrorCode errorCode)
+static ECode icu4_error(UErrorCode errorCode)
 {
 //    const char* message = u_errorName(errorCode);
     if (errorCode <= U_ZERO_ERROR || errorCode >= U_ERROR_LIMIT) {
@@ -64,10 +64,10 @@ public:
         //StringBuf x(p, 4);
         char *p = NULL;
         UnicodeString in = UNICODE_STRING((const char *)input, input.GetLength());
-        
+
         Int64 len = in.length();
         mUText = utext_openUChars(NULL, in.getBuffer(), len, &mStatus);
-        
+
         if(U_FAILURE(mStatus))
  	{
         } else {
@@ -706,21 +706,21 @@ Boolean CMatcher::MatchesImpl(
         UErrorCode errcode;
         RegexPattern *pat = RegexPattern::compile(UNICODE_STRING("a*b", 3), 0, err, errcode);
         RegexMatcher *ma = pat->matcher(errcode);
-        UChar a[2] = {'a', 'b'}; 
+        UChar a[2] = {'a', 'b'};
         UText *pt = utext_openUChars(NULL, a, 2, &errcode);
-      
-        
+
+
         ma->reset(pt);
         if (ma->matches(errcode)) {
             printf("Greate Flag is Success!\n");
         } else {
             printf("Greate Flag is FAILED!\n");
-        } 
+        }
     }
     UParseError err;
     UErrorCode errCode;
     UBool result = matcherAccessor->matches(xUNICODE_STRING("3", 1), UNICODE_STRING("a3b", 3), err, errCode);
-    
+
     UErrorCode errCode;
     RegexMatcher *tst =new  RegexMatcher(UNICODE_STRING("a*b", 3), UNICODE_STRING("ab", 2), 0, errCode);
     UBool result = tst->matches(errCode);

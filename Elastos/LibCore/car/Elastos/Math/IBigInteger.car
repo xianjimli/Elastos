@@ -1,9 +1,7 @@
 
 module
 {
-    interface INumber;
     interface IBigInt;
-    interface IRandom;
 
     /** The {@code BigInteger} constant 0. */
 //    public static final BigInteger ZERO = new BigInteger(0, 0);
@@ -13,7 +11,7 @@ module
 
     /** The {@code BigInteger} constant 10. */
 //    public static final BigInteger TEN = new BigInteger(1, 10);
-	
+
 	interface IBigInteger
 	{
 		/** Returns a {@code BigInteger} whose value is equal to {@code value}. */
@@ -62,7 +60,7 @@ module
 		 *     {@code 1} if {@code this > 0}.
 		 */
 		Signum(
-            [out] Int32* sign); 
+            [out] Int32* sign);
 
 		/**
 		 * Returns a {@code BigInteger} whose value is {@code this >> n}. For
@@ -110,7 +108,7 @@ module
 		 *
 		 * @return the length of the minimal two's complement representation for
 		 *     {@code this} without the sign bit.
-		 */		
+		 */
 		BitLength(
 		    [out] Int32* length);
 
@@ -141,7 +139,7 @@ module
 		 */
 		SetBit(
             [in] Int32 n,
-            [out] IBigInteger** newObj); 
+            [out] IBigInteger** newObj);
 
 		/**
 		 * Returns a {@code BigInteger} which has the same binary representation
@@ -156,7 +154,7 @@ module
 		 */
 		ClearBit(
             [in] Int32 n,
-            [out] IBigInteger** newObj); 
+            [out] IBigInteger** newObj);
 
 		/**
 		 * Returns a {@code BigInteger} which has the same binary representation
@@ -171,7 +169,7 @@ module
 		 */
 		FlipBit(
             [in] Int32 n,
-            [out] IBigInteger** newObj); 
+            [out] IBigInteger** newObj);
 
 		/**
 		 * Returns the position of the lowest set bit in the two's complement
@@ -409,7 +407,7 @@ module
 		 *     this is not relatively prime to {@code m}.
 		 */
 		ModPow(
-            [in] IBigInteger* exponent, 
+            [in] IBigInteger* exponent,
             [in] IBigInteger* m,
             [out] IBigInteger** newObj);
 
@@ -471,6 +469,5 @@ module
             [in] Int32 bitLength,
             [in] IRandom* unused,
             [out] IBigInteger** newObj);
-		
 	}
 }

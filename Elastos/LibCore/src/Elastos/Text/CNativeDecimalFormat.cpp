@@ -1,12 +1,12 @@
 
+#include "cmdef.h"
 #include "CNativeDecimalFormat.h"
 
 ECode CNativeDecimalFormat::constructor(
     /* [in] */ const String& pattern,
-    /* [in] */ IDecimalFormatSymbols * pDfs)
+    /* [in] */ IDecimalFormatSymbols* dfs)
 {
-    NativeDecimalFormat::Init(pattern, pDfs);
-    return NOERROR;
+    return NativeDecimalFormat::Init(pattern, dfs);
 }
 
 ECode CNativeDecimalFormat::Close()
@@ -15,25 +15,51 @@ ECode CNativeDecimalFormat::Close()
 }
 
 ECode CNativeDecimalFormat::SetDecimalFormatSymbols(
-    /* [in] */ IDecimalFormatSymbols * pDfs)
+    /* [in] */ IDecimalFormatSymbols* dfs)
 {
-    return NativeDecimalFormat::SetDecimalFormatSymbols(pDfs);
+    return NativeDecimalFormat::SetDecimalFormatSymbols(dfs);
 }
 
-ECode CNativeDecimalFormat::FormatLong(
-    /* [in] */ Int64 value,
-    /* [in] */ IFieldPosition * pField,
-    /* [out, callee] */ ArrayOf<Char32> ** ppArray)
+ECode CNativeDecimalFormat::SetDecimalFormatSymbolsEx(
+    /* [in] */ ILocaleData* ld)
 {
-    return NativeDecimalFormat::FormatLong(value, pField, ppArray);
+    return NativeDecimalFormat::SetDecimalFormatSymbols(ld);
+}
+
+ECode CNativeDecimalFormat::FormatBigDecimal(
+    /* [in] */ IBigDecimal* value,
+    /* [in] */ IFieldPosition* field,
+    /* [out, callee] */ ArrayOf<Char32>** result)
+{
+    VALIDATE_NOT_NULL(result);
+    return NativeDecimalFormat::FormatBigDecimal(value, field, result);
+}
+
+ECode CNativeDecimalFormat::FormatBigInteger(
+    /* [in] */ IBigInteger* value,
+    /* [in] */ IFieldPosition* field,
+    /* [out, callee] */ ArrayOf<Char32>** result)
+{
+    VALIDATE_NOT_NULL(result);
+    return NativeDecimalFormat::FormatBigInteger(value, field, result);
+}
+
+ECode CNativeDecimalFormat::FormatInt64(
+    /* [in] */ Int64 value,
+    /* [in] */ IFieldPosition* field,
+    /* [out, callee] */ ArrayOf<Char32>** array)
+{
+    VALIDATE_NOT_NULL(array);
+    return NativeDecimalFormat::FormatInt64(value, field, array);
 }
 
 ECode CNativeDecimalFormat::FormatDouble(
     /* [in] */ Double value,
-    /* [in] */ IFieldPosition * pField,
-    /* [out, callee] */ ArrayOf<Char32> ** ppArray)
+    /* [in] */ IFieldPosition* field,
+    /* [out, callee] */ ArrayOf<Char32>** array)
 {
-    return NativeDecimalFormat::FormatDouble(value, pField, ppArray);
+    VALIDATE_NOT_NULL(array);
+    return NativeDecimalFormat::FormatDouble(value, field, array);
 }
 
 ECode CNativeDecimalFormat::ApplyLocalizedPattern(
@@ -49,114 +75,132 @@ ECode CNativeDecimalFormat::ApplyPattern(
 }
 
 ECode CNativeDecimalFormat::FormatToCharacterIterator(
-    /* [in] */ IInterface * pObject,
-    /* [out] */ IAttributedCharacterIterator ** ppResult)
+    /* [in] */ IInterface* object,
+    /* [out] */ IAttributedCharacterIterator** result)
 {
-    return NativeDecimalFormat::FormatToCharacterIterator(pObject, ppResult);
+    VALIDATE_NOT_NULL(result);
+    return NativeDecimalFormat::FormatToCharacterIterator(object, result);
 }
 
 ECode CNativeDecimalFormat::ToLocalizedPattern(
-    /* [out] */ String * pLocalizedPattern)
+    /* [out] */ String* pattern)
 {
-    return NativeDecimalFormat::ToLocalizedPattern(pLocalizedPattern);
+    VALIDATE_NOT_NULL(pattern);
+    return NativeDecimalFormat::ToLocalizedPattern(pattern);
 }
 
 ECode CNativeDecimalFormat::ToPattern(
-    /* [out] */ String * pPattern)
+    /* [out] */ String* pattern)
 {
-    return NativeDecimalFormat::ToPattern(pPattern);
+    VALIDATE_NOT_NULL(pattern);
+    return NativeDecimalFormat::ToPattern(pattern);
 }
 
 ECode CNativeDecimalFormat::Parse(
     /* [in] */ const String& string,
-    /* [in] */ IParsePosition * pPosition,
-    /* [out] */ INumber ** ppResult)
+    /* [in] */ IParsePosition* position,
+    /* [out] */ INumber** result)
 {
-    return NativeDecimalFormat::Parse(string, pPosition, ppResult);
+    VALIDATE_NOT_NULL(result);
+    return NativeDecimalFormat::Parse(string, position, result);
 }
 
 ECode CNativeDecimalFormat::GetMaximumFractionDigits(
-    /* [out] */ Int32 * pMaximumFractionDigits)
+    /* [out] */ Int32* maxFractionDigits)
 {
-    return NativeDecimalFormat::GetMaximumFractionDigits(pMaximumFractionDigits);
+    VALIDATE_NOT_NULL(maxFractionDigits);
+    return NativeDecimalFormat::GetMaximumFractionDigits(maxFractionDigits);
 }
 
 ECode CNativeDecimalFormat::GetMaximumIntegerDigits(
-    /* [out] */ Int32 * pMaximumIntegerDigits)
+    /* [out] */ Int32* maxIntegerDigits)
 {
-    return NativeDecimalFormat::GetMaximumIntegerDigits(pMaximumIntegerDigits);
+    VALIDATE_NOT_NULL(maxIntegerDigits);
+    return NativeDecimalFormat::GetMaximumIntegerDigits(maxIntegerDigits);
 }
 
 ECode CNativeDecimalFormat::GetMinimumFractionDigits(
-    /* [out] */ Int32 * pMinimumFractionDigits)
+    /* [out] */ Int32* minFractionDigits)
 {
-    return NativeDecimalFormat::GetMinimumFractionDigits(pMinimumFractionDigits);
+    VALIDATE_NOT_NULL(minFractionDigits);
+    return NativeDecimalFormat::GetMinimumFractionDigits(minFractionDigits);
 }
 
 ECode CNativeDecimalFormat::GetMinimumIntegerDigits(
-    /* [out] */ Int32 * pMinimumIntegerDigits)
+    /* [out] */ Int32* minIntegerDigits)
 {
-    return NativeDecimalFormat::GetMinimumIntegerDigits(pMinimumIntegerDigits);
+    VALIDATE_NOT_NULL(minIntegerDigits);
+    return NativeDecimalFormat::GetMinimumIntegerDigits(minIntegerDigits);
 }
 
 ECode CNativeDecimalFormat::GetGroupingSize(
-    /* [out] */ Int32 * pGroupingSize)
+    /* [out] */ Int32* size)
 {
-    return NativeDecimalFormat::GetGroupingSize(pGroupingSize);
+    VALIDATE_NOT_NULL(size);
+    return NativeDecimalFormat::GetGroupingSize(size);
 }
 
 ECode CNativeDecimalFormat::GetMultiplier(
-    /* [out] */ Int32 * pMultiplier)
+    /* [out] */ Int32* multiplier)
 {
-    return NativeDecimalFormat::GetMultiplier(pMultiplier);
+    VALIDATE_NOT_NULL(multiplier);
+    return NativeDecimalFormat::GetMultiplier(multiplier);
 }
 
 ECode CNativeDecimalFormat::GetNegativePrefix(
-    /* [out] */ String * pNegativePrefix)
+    /* [out] */ String* prefix)
 {
-    return NativeDecimalFormat::GetNegativePrefix(pNegativePrefix);
+    VALIDATE_NOT_NULL(prefix);
+    return NativeDecimalFormat::GetNegativePrefix(prefix);
 }
 
 ECode CNativeDecimalFormat::GetNegativeSuffix(
-    /* [out] */ String * pNegativeSuffix)
+    /* [out] */ String* suffix)
 {
-    return NativeDecimalFormat::GetNegativeSuffix(pNegativeSuffix);
+    VALIDATE_NOT_NULL(suffix);
+    return NativeDecimalFormat::GetNegativeSuffix(suffix);
 }
 
 ECode CNativeDecimalFormat::GetPositivePrefix(
-    /* [out] */ String * pPositivePrefix)
+    /* [out] */ String* prefix)
 {
-    return NativeDecimalFormat::GetPositivePrefix(pPositivePrefix);
+    VALIDATE_NOT_NULL(prefix);
+    return NativeDecimalFormat::GetPositivePrefix(prefix);
 }
 
 ECode CNativeDecimalFormat::GetPositiveSuffix(
-    /* [out] */ String * pPositiveSuffix)
+    /* [out] */ String* suffix)
 {
-    return NativeDecimalFormat::GetPositiveSuffix(pPositiveSuffix);
+    VALIDATE_NOT_NULL(suffix);
+    return NativeDecimalFormat::GetPositiveSuffix(suffix);
 }
 
 ECode CNativeDecimalFormat::IsDecimalSeparatorAlwaysShown(
-    /* [out] */ Boolean * pIsDecimalSeparatorAlwaysShown)
+    /* [out] */ Boolean* isAlwaysShown)
 {
-    return NativeDecimalFormat::IsDecimalSeparatorAlwaysShown(pIsDecimalSeparatorAlwaysShown);
+    VALIDATE_NOT_NULL(isAlwaysShown);
+    return NativeDecimalFormat::IsDecimalSeparatorAlwaysShown(isAlwaysShown);
 }
 
 ECode CNativeDecimalFormat::IsParseBigDecimal(
-    /* [out] */ Boolean * pIsParseBigDecimal)
+    /* [out] */ Boolean* isParseBigDecimal)
 {
-    return NativeDecimalFormat::IsParseBigDecimal(pIsParseBigDecimal);
+    VALIDATE_NOT_NULL(isParseBigDecimal);
+    return NativeDecimalFormat::IsParseBigDecimal(isParseBigDecimal);
 }
 
 ECode CNativeDecimalFormat::IsParseIntegerOnly(
-    /* [out] */ Boolean * pIsParseIntegerOnly)
+    /* [out] */ Boolean* isParseIntegerOnly)
 {
-    return NativeDecimalFormat::IsParseIntegerOnly(pIsParseIntegerOnly);
+    VALIDATE_NOT_NULL(isParseIntegerOnly);
+    return NativeDecimalFormat::IsParseIntegerOnly(isParseIntegerOnly);
 }
 
 ECode CNativeDecimalFormat::IsGroupingUsed(
-    /* [out] */ Boolean * pIsGroupingUsed)
+    /* [out] */ Boolean* isGroupingUsed)
 {
-    return NativeDecimalFormat::IsGroupingUsed(pIsGroupingUsed);
+    VALIDATE_NOT_NULL(isGroupingUsed);
+    return NativeDecimalFormat::IsGroupingUsed(isGroupingUsed);
 }
 
 ECode CNativeDecimalFormat::SetDecimalSeparatorAlwaysShown(
@@ -166,9 +210,9 @@ ECode CNativeDecimalFormat::SetDecimalSeparatorAlwaysShown(
 }
 
 ECode CNativeDecimalFormat::SetCurrency(
-    /* [in] */ ICurrency * pCurrency)
+    /* [in] */ ICurrency* currency)
 {
-    return NativeDecimalFormat::SetCurrency(pCurrency);
+    return NativeDecimalFormat::SetCurrency(currency);
 }
 
 ECode CNativeDecimalFormat::SetGroupingSize(
@@ -256,40 +300,7 @@ ECode CNativeDecimalFormat::SetRoundingMode(
     return NativeDecimalFormat::SetRoundingMode(roundingMode, roundingIncrement);
 }
 
-ECode CNativeDecimalFormat::GetAddr(
-    /* [out] */ Int32 * pValue)
+Mutex* CNativeDecimalFormat::GetSelfLock()
 {
-    return NativeDecimalFormat::GetAddr(pValue);
+    return &_m_syncLock;
 }
-
-ECode CNativeDecimalFormat::GetLastPattern(
-    /* [out] */ String * pValue)
-{
-    return NativeDecimalFormat::GetLastPattern(pValue);
-}
-
-ECode CNativeDecimalFormat::GetNegPrefNull(
-    /* [out] */ Boolean * pValue)
-{
-    return NativeDecimalFormat::GetNegPrefNull(pValue);
-}
-
-ECode CNativeDecimalFormat::GetNegSuffNull(
-    /* [out] */ Boolean * pValue)
-{
-    return NativeDecimalFormat::GetNegSuffNull(pValue);
-}
-
-ECode CNativeDecimalFormat::GetPosPrefNull(
-    /* [out] */ Boolean * pValue)
-{
-    return NativeDecimalFormat::GetPosPrefNull(pValue);
-}
-
-ECode CNativeDecimalFormat::GetPosSuffNull(
-    /* [out] */ Boolean * pValue)
-{
-    return NativeDecimalFormat::GetPosSuffNull(pValue);
-}
-
-

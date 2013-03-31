@@ -7,6 +7,7 @@ Elastos.IO.Errors                                   0x23
 Elastos.Utility.Zip.Exceptions                      0x24
 Elastos.Utility.Zip.Errors                          0x25
 Elastos.Utility.Regex.Exceptions                    0x26
+Elastos.Utility.Exceptions                          0x27
 Elastos.SQL.Exceptions                              0x28
 Com.Kortide.Platform.Exceptions                     0x2A
 Elastos.Net.Exceptions                              0x2B

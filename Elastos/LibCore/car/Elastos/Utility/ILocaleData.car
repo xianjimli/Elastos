@@ -1,0 +1,13 @@
+
+module
+{
+    interface ILocaleData {
+        GetDateFormat(
+            [in] Int32 style,
+            [out] String* format);
+
+        GetTimeFormat(
+            [in] Int32 style,
+            [out] String* format);
+    }
+}

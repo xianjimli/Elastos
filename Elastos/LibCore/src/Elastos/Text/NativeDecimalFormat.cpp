@@ -1,33 +1,202 @@
+
+#include "cmdef.h"
 #include "NativeDecimalFormat.h"
+#include "ElStringByteSink.h"
+#include <Elastos.Utility.h>
+#include <unicode/decimfmt.h>
+// #include <unicode/numfmt.h>
+#include <unicode/unum.h>
 
-ArrayOf<IFormatField*>* NativeDecimalFormat::FieldPositionIterator::fields;
 
-NativeDecimalFormat::NativeDecimalFormat(){}
+ArrayOf< AutoPtr<IFormatField> >* NativeDecimalFormat::FieldPositionIterator::sFields; /*= {
+            // The old java field values were 0 for integer and 1 for fraction.
+            // The new java field attributes are all objects.  ICU assigns the values
+            // starting from 0 in the following order; note that integer and
+            // fraction positions match the old field values.
+            NumberFormat.Field.INTEGER,
+            NumberFormat.Field.FRACTION,
+            NumberFormat.Field.DECIMAL_SEPARATOR,
+            NumberFormat.Field.EXPONENT_SYMBOL,
+            NumberFormat.Field.EXPONENT_SIGN,
+            NumberFormat.Field.EXPONENT,
+            NumberFormat.Field.GROUPING_SEPARATOR,
+            NumberFormat.Field.CURRENCY,
+            NumberFormat.Field.PERCENT,
+            NumberFormat.Field.PERMILLE,
+            NumberFormat.Field.SIGN,
+        };*/
+
+NativeDecimalFormat::FieldPositionIterator::FieldPositionIterator()
+    : mData(NULL)
+    , mPos(-3)
+{}
+
+AutoPtr<NativeDecimalFormat::FieldPositionIterator> NativeDecimalFormat::FieldPositionIterator::ForFieldPosition(
+    /* [in] */ IFieldPosition* fp)
+{
+    Int32 field;
+    if (fp != NULL && (fp->GetField(&field), field != -1)) {
+        return new FieldPositionIterator();
+    }
+    return NULL;
+}
+
+Int32 NativeDecimalFormat::FieldPositionIterator::GetNativeFieldPositionId(
+    /* [in] */ IFieldPosition* fp)
+{
+    // NOTE: -1, 0, and 1 were the only valid original java field values
+    // for NumberFormat.  They take precedence.  This assumes any other
+    // value is a mistake and the actual value is in the attribute.
+    // Clients can construct FieldPosition combining any attribute with any field
+    // value, which is just wrong, but there you go.
+
+    Int32 id;
+    fp->GetField(&id);
+    if (id < -1 || id > 1) {
+        id = -1;
+    }
+    if (id == -1) {
+        AutoPtr<IFormatField> attr;
+        fp->GetFieldAttribute((IFormatField**)&attr);
+        if (attr != NULL) {
+            for (Int32 i = 0; i < sFields->GetLength(); ++i) {
+                if ((*sFields)[i] == attr) {
+                    id = i;
+                    break;
+                }
+            }
+        }
+    };
+    return id;
+}
+
+ECode NativeDecimalFormat::FieldPositionIterator::SetFieldPosition(
+    /* [in] */ FieldPositionIterator* fpi,
+    /* [in] */ IFieldPosition* fp)
+{
+    if (fpi != NULL && fp != NULL) {
+        Int32 field = GetNativeFieldPositionId(fp);
+        if (field != -1) {
+            Boolean isNext;
+            FAIL_RETURN(fpi->Next(&isNext));
+            while (isNext) {
+                Int32 fieldId;
+                FAIL_RETURN(fpi->FieldId(&fieldId));
+                if (fieldId == field) {
+                    Int32 start, limit;
+                    FAIL_RETURN(fpi->Start(&start));
+                    FAIL_RETURN(fpi->Limit(&limit));
+                    fp->SetBeginIndex(start);
+                    fp->SetEndIndex(limit);
+                    break;
+                }
+                FAIL_RETURN(fpi->Next(&isNext));
+            }
+        }
+    }
+    return NOERROR;
+}
+
+ECode NativeDecimalFormat::FieldPositionIterator::Next(
+    /* [out] */ Boolean* next)
+{
+    assert(next != NULL);
+
+    // if pos == data.length, we've already returned false once
+    if (mData == NULL || mPos == mData->GetLength()) {
+        //throw new NoSuchElementException();
+        return E_NO_SUCH_ELEMENT_EXCEPTION;
+    }
+    mPos += 3;
+    *next = mPos < mData->GetLength();
+    return NOERROR;
+}
+
+ECode NativeDecimalFormat::FieldPositionIterator::CheckValid()
+{
+    if (mData == NULL || mPos < 0 || mPos == mData->GetLength()) {
+        //throw new NoSuchElementException();
+        return E_NO_SUCH_ELEMENT_EXCEPTION;
+    }
+    return NOERROR;
+}
+
+ECode NativeDecimalFormat::FieldPositionIterator::FieldId(
+    /* [out] */ Int32* fieldId)
+{
+    assert(fieldId != NULL);
+    *fieldId = (*mData)[mPos];
+    return NOERROR;
+}
+
+ECode NativeDecimalFormat::FieldPositionIterator::Field(
+    /* [out] */ IFormatField** field)
+{
+    assert(field != NULL);
+    FAIL_RETURN(CheckValid());
+    *field = (*sFields)[(*mData)[mPos]];
+    if (*field != NULL) (*field)->AddRef();
+    return NOERROR;
+}
+
+ECode NativeDecimalFormat::FieldPositionIterator::Start(
+    /* [out] */ Int32* start)
+{
+    assert(start != NULL);
+    FAIL_RETURN(CheckValid());
+    *start = (*mData)[mPos + 1];
+    return NOERROR;
+}
+
+ECode NativeDecimalFormat::FieldPositionIterator::Limit(
+    /* [out] */ Int32* limit)
+{
+    assert(limit != NULL);
+    FAIL_RETURN(CheckValid());
+    *limit = (*mData)[mPos + 2];
+    return NOERROR;
+}
+
+ECode NativeDecimalFormat::FieldPositionIterator::SetData(
+    /* [in] */ ArrayOf<Int32>* data)
+{
+    mData = data;
+    mPos = -3;
+    return NOERROR;
+}
+
+NativeDecimalFormat::NativeDecimalFormat()
+    : mNegPrefNull(FALSE)
+    , mNegSuffNull(FALSE)
+    , mPosPrefNull(FALSE)
+    , mPosSuffNull(FALSE)
+    , mParseBigDecimal(FALSE)
+{}
 
 ECode NativeDecimalFormat::Init(
-        /* [in] */ String pattern,
-        /* [in] */ IDecimalFormatSymbols* dfs)
+    /* [in] */ const String& pattern,
+    /* [in] */ IDecimalFormatSymbols* dfs)
 {
-    String* currencySymbol = new String("");
-    dfs->GetCurrencySymbol(currencySymbol);
+    String currencySymbol;
+    dfs->GetCurrencySymbol(&currencySymbol);
     Char32 decimalSeparator;
     dfs->GetDecimalSeparator(&decimalSeparator);
     Char32 digit;
     dfs->GetDigit(&digit);
-    String* exponentSeparator = new String("");
-    dfs->GetExponentSeparator(exponentSeparator);
+    String exponentSeparator;
+    dfs->GetExponentSeparator(&exponentSeparator);
     Char32 groupingSeparator;
     dfs->GetGroupingSeparator(&groupingSeparator);
-    String* infinity = new String("");
-    dfs->GetInfinity(infinity);
-    String* internationalCurrencySymbol = new String("");
-    dfs->GetInternationalCurrencySymbol(internationalCurrencySymbol);
+    String infinity;
+    dfs->GetInfinity(&infinity);
+    String internationalCurrencySymbol;
+    dfs->GetInternationalCurrencySymbol(&internationalCurrencySymbol);
     Char32 minusSign;
     dfs->GetMinusSign(&minusSign);
     Char32 monetaryDecimalSeparator;
     dfs->GetMonetaryDecimalSeparator(&monetaryDecimalSeparator);
-    String* naN = new String("");
-    dfs->GetNaN(naN);
+    String naN;
+    dfs->GetNaN(&naN);
     Char32 patternSeparator;
     dfs->GetPatternSeparator(&patternSeparator);
     Char32 percent;
@@ -37,13 +206,13 @@ ECode NativeDecimalFormat::Init(
     Char32 zeroDigit;
     dfs->GetZeroDigit(&zeroDigit);
     //try {
-        this->addr = Open(pattern, *currencySymbol,
-                decimalSeparator, digit, *exponentSeparator,
-                groupingSeparator, *infinity,
-                *internationalCurrencySymbol, minusSign,
-                monetaryDecimalSeparator, *naN, patternSeparator,
-                percent, perMill, zeroDigit);
-        this->lastPattern = new String(pattern);
+    FAIL_RETURN(Open(pattern, currencySymbol,
+            decimalSeparator, digit, exponentSeparator,
+            groupingSeparator, infinity,
+            internationalCurrencySymbol, minusSign,
+            monetaryDecimalSeparator, naN, patternSeparator,
+            percent, perMill, zeroDigit, &mAddr));
+    mLastPattern = pattern;
     //} catch (NullPointerException npe) {
     //    throw npe;
     //} catch (RuntimeException re) {
@@ -52,44 +221,47 @@ ECode NativeDecimalFormat::Init(
     return NOERROR;
 }
 
-//NativeDecimalFormat::NativeDecimalFormat(
-//        /* [in] */ String pattern,
-//        /* [in] */ LocaleData* data)
-//{
-//    this->addr = Open(pattern, data->mCurrencySymbol,
-//            data->mDecimalSeparator, data->mDigit, data->mEexponentSeparator, data->mGroupingSeparator,
-//            data->mInfinity, data->mInternationalCurrencySymbol, data->mMinusSign,
-//            data->mMonetarySeparator, data->mNaN, data->mPatternSeparator,
-//            data->mPercent, data->mPerMill, data->mZeroDigit);
-//    this->lastPattern = new String(pattern);
-//    return NOERROR;
-//}
-
-NativeDecimalFormat::NativeDecimalFormat(
-    /* [in] */ INativeDecimalFormat* other)
+ECode NativeDecimalFormat::Init(
+   /* [in] */ const String& pattern,
+   /* [in] */ ILocaleData* data)
 {
-    Int32 oaddr;
-    String olastPattern = String(NULL);
-    Boolean onegPrefNull, onegSuffNull, oposPrefNull, oposSuffNull;
-    other->GetAddr(&oaddr);
-    other->GetLastPattern(&olastPattern);
-    other->GetNegPrefNull(&onegPrefNull);
-    other->GetNegSuffNull(&onegSuffNull);
-    other->GetPosPrefNull(&oposPrefNull);
-    other->GetPosSuffNull(&oposSuffNull);
-    addr = CloneImpl(oaddr);
-    lastPattern = new String(olastPattern);
-    negPrefNull = onegPrefNull;
-    negSuffNull = onegSuffNull;
-    posPrefNull = oposPrefNull;
-    posSuffNull = oposSuffNull;
+    assert(0);
+   // this->addr = Open(pattern, data->mCurrencySymbol,
+   //         data->mDecimalSeparator, data->mDigit, data->mEexponentSeparator, data->mGroupingSeparator,
+   //         data->mInfinity, data->mInternationalCurrencySymbol, data->mMinusSign,
+   //         data->mMonetarySeparator, data->mNaN, data->mPatternSeparator,
+   //         data->mPercent, data->mPerMill, data->mZeroDigit);
+   // this->lastPattern = new String(pattern);
+   return E_NOT_IMPLEMENTED;
 }
+
+// NativeDecimalFormat::NativeDecimalFormat(
+//     /* [in] */ INativeDecimalFormat* other)
+// {
+//     Int32 oaddr;
+//     String olastPattern = String(NULL);
+//     Boolean onegPrefNull, onegSuffNull, oposPrefNull, oposSuffNull;
+//     other->GetAddr(&oaddr);
+//     other->GetLastPattern(&olastPattern);
+//     other->GetNegPrefNull(&onegPrefNull);
+//     other->GetNegSuffNull(&onegSuffNull);
+//     other->GetPosPrefNull(&oposPrefNull);
+//     other->GetPosSuffNull(&oposSuffNull);
+//     addr = CloneImpl(oaddr);
+//     lastPattern = new String(olastPattern);
+//     negPrefNull = onegPrefNull;
+//     negSuffNull = onegSuffNull;
+//     posPrefNull = oposPrefNull;
+//     posSuffNull = oposSuffNull;
+// }
 
 ECode NativeDecimalFormat::Close()
 {
-    if (addr != 0) {
-        Close(addr);
-        addr = 0;
+    Mutex::Autolock lock(GetSelfLock());
+
+    if (mAddr != 0) {
+        Close(mAddr);
+        mAddr = 0;
     }
     return NOERROR;
 }
@@ -97,26 +269,26 @@ ECode NativeDecimalFormat::Close()
 ECode NativeDecimalFormat::SetDecimalFormatSymbols(
     /* [in] */ IDecimalFormatSymbols* dfs)
 {
-    String* currencySymbol = new String("");
-    dfs->GetCurrencySymbol(currencySymbol);
+    String currencySymbol;
+    dfs->GetCurrencySymbol(&currencySymbol);
     Char32 decimalSeparator;
     dfs->GetDecimalSeparator(&decimalSeparator);
     Char32 digit;
     dfs->GetDigit(&digit);
-    String* exponentSeparator = new String("");
-    dfs->GetExponentSeparator(exponentSeparator);
+    String exponentSeparator;
+    dfs->GetExponentSeparator(&exponentSeparator);
     Char32 groupingSeparator;
     dfs->GetGroupingSeparator(&groupingSeparator);
-    String* infinity = new String("");
-    dfs->GetInfinity(infinity);
-    String* internationalCurrencySymbol = new String("");
-    dfs->GetInternationalCurrencySymbol(internationalCurrencySymbol);
+    String infinity;
+    dfs->GetInfinity(&infinity);
+    String internationalCurrencySymbol;
+    dfs->GetInternationalCurrencySymbol(&internationalCurrencySymbol);
     Char32 minusSign;
     dfs->GetMinusSign(&minusSign);
     Char32 monetaryDecimalSeparator;
     dfs->GetMonetaryDecimalSeparator(&monetaryDecimalSeparator);
-    String* naN = new String("");
-    dfs->GetNaN(naN);
+    String NaN;
+    dfs->GetNaN(&NaN);
     Char32 patternSeparator;
     dfs->GetPatternSeparator(&patternSeparator);
     Char32 percent;
@@ -125,33 +297,64 @@ ECode NativeDecimalFormat::SetDecimalFormatSymbols(
     dfs->GetPerMill(&perMill);
     Char32 zeroDigit;
     dfs->GetZeroDigit(&zeroDigit);
-    SetDecimalFormatSymbols(this->addr, *currencySymbol, decimalSeparator,
-            digit, *exponentSeparator, groupingSeparator,
-            *infinity, *internationalCurrencySymbol, minusSign,
-            monetaryDecimalSeparator, *naN, patternSeparator,
+    SetDecimalFormatSymbols(mAddr, currencySymbol, decimalSeparator,
+            digit, exponentSeparator, groupingSeparator,
+            infinity, internationalCurrencySymbol, minusSign,
+            monetaryDecimalSeparator, NaN, patternSeparator,
             percent, perMill, zeroDigit);
     return NOERROR;
 }
 
-//ECode NativeDecimalFormat::SetDecimalFormatSymbols(
-//        /* [in] */ const LocaleData* localeData)
-//{
+ECode NativeDecimalFormat::SetDecimalFormatSymbols(
+    /* [in] */ ILocaleData* localeData)
+{
+    assert(0);
+    return E_NOT_IMPLEMENTED;
 //    SetDecimalFormatSymbols(this->addr, localeData->mCurrencySymbol, localeData->mDecimalSeparator,
 //            localeData->mDigit, localeData->mExponentSeparator, localeData->mGroupingSeparator,
 //            localeData->mInfinity, localeData->mInternationalCurrencySymbol, localeData->mMinusSign,
 //            localeData->mMonetarySeparator, localeData->mNaN, localeData->mPatternSeparator,
 //            localeData->mPercent, localeData->mPerMill, localeData->mZeroDigit);
 //    return NOERROR;
-//}
+}
 
-ECode NativeDecimalFormat::FormatLong(
-        /* [in] */ Int64 value,
-        /* [in] */ IFieldPosition* field,
-        /* [out, callee] */ ArrayOf<Char32>** array)
+ECode NativeDecimalFormat::FormatBigDecimal(
+    /* [in] */ IBigDecimal* value,
+    /* [in] */ IFieldPosition* field,
+    /* [out, callee] */ ArrayOf<Char32>** result)
 {
-    FieldPositionIterator* fpi;
-    FieldPositionIterator::ForFieldPosition(field, &fpi);
-    ArrayOf<Char32>* result = FormatLong(this->addr, value, fpi);
+    assert(0);
+    return E_NOT_IMPLEMENTED;
+    // FieldPositionIterator fpi = FieldPositionIterator.forFieldPosition(field);
+    // char[] result = formatDigitList(this.addr, value.toString(), fpi);
+    // if (fpi != null) {
+    //     FieldPositionIterator.setFieldPosition(fpi, field);
+    // }
+    // return result;
+}
+
+ECode NativeDecimalFormat::FormatBigInteger(
+    /* [in] */ IBigInteger* value,
+    /* [in] */ IFieldPosition* field,
+    /* [out, callee] */ ArrayOf<Char32>** result)
+{
+    assert(0);
+    return E_NOT_IMPLEMENTED;
+    // FieldPositionIterator fpi = FieldPositionIterator.forFieldPosition(field);
+    // char[] result = formatDigitList(this.addr, value.toString(10), fpi);
+    // if (fpi != null) {
+    //     FieldPositionIterator.setFieldPosition(fpi, field);
+    // }
+    // return result;
+}
+
+ECode NativeDecimalFormat::FormatInt64(
+    /* [in] */ Int64 value,
+    /* [in] */ IFieldPosition* field,
+    /* [out, callee] */ ArrayOf<Char32>** array)
+{
+    AutoPtr<FieldPositionIterator> fpi = FieldPositionIterator::ForFieldPosition(field);
+    ArrayOf<Char32>* result = FormatInt64(mAddr, value, fpi);
     if (fpi != NULL) {
         FieldPositionIterator::SetFieldPosition(fpi, field);
     }
@@ -160,13 +363,12 @@ ECode NativeDecimalFormat::FormatLong(
 }
 
 ECode NativeDecimalFormat::FormatDouble(
-        /* [in] */ Double value,
-        /* [in] */ IFieldPosition* field,
-        /* [out, callee] */ ArrayOf<Char32>** array)
+    /* [in] */ Double value,
+    /* [in] */ IFieldPosition* field,
+    /* [out, callee] */ ArrayOf<Char32>** array)
 {
-    FieldPositionIterator* fpi;
-    FieldPositionIterator::ForFieldPosition(field, &fpi);
-    ArrayOf<Char32>* result = FormatDouble(addr, value, fpi);
+    AutoPtr<FieldPositionIterator> fpi = FieldPositionIterator::ForFieldPosition(field);
+    ArrayOf<Char32>* result = FormatDouble(mAddr, value, fpi);
     if (fpi != NULL) {
         FieldPositionIterator::SetFieldPosition(fpi, field);
     }
@@ -175,27 +377,27 @@ ECode NativeDecimalFormat::FormatDouble(
 }
 
 ECode NativeDecimalFormat::ApplyLocalizedPattern(
-        /* [in] */ String pattern)
+    /* [in] */ const String& pattern)
 {
-    ApplyPattern(this->addr, TRUE, pattern);
-    lastPattern = new String(NULL);
+    FAIL_RETURN(ApplyPattern(mAddr, TRUE, pattern));
+    mLastPattern = NULL;
     return NOERROR;
 }
 
 ECode NativeDecimalFormat::ApplyPattern(
-        /* [in] */ String pattern)
+    /* [in] */ const String& pattern)
 {
-    if (lastPattern->IsNull() && pattern.Equals(*lastPattern)) {
-        return E_NULL_POINTER_EXCEPTION;
+    if (!mLastPattern.IsNull() && pattern.Equals(mLastPattern)) {
+        return NOERROR;
     }
-    ApplyPattern(addr, FALSE, pattern);
-    lastPattern = new String(pattern);
+    FAIL_RETURN(ApplyPattern(mAddr, FALSE, pattern));
+    mLastPattern = pattern;
     return NOERROR;
 }
 
 ECode NativeDecimalFormat::FormatToCharacterIterator(
-        /* [in] */ IInterface* object,
-        /* [out] */ IAttributedCharacterIterator** iter)
+    /* [in] */ IInterface* object,
+    /* [out] */ IAttributedCharacterIterator** iter)
 {
 /*
     if (!(object instanceof Number)) {
@@ -224,15 +426,14 @@ ECode NativeDecimalFormat::FormatToCharacterIterator(
     // return the CharacterIterator from AttributedString
     return as.getIterator();
 */
+    assert(0);
     return NOERROR;
 }
 
-ECode NativeDecimalFormat::MakeScalePositive(
-        /* [in] */ Int32 scale,
-        /* [in] */ StringBuffer val,
-        /* [out] */ Int32* value)
+Int32 NativeDecimalFormat::MakeScalePositive(
+    /* [in] */ Int32 scale,
+    /* [in] */ StringBuffer& val)
 {
-    VALIDATE_NOT_NULL(value);
     if (scale < 0) {
         scale = -scale;
         for (Int32 i = scale; i > 0; i--) {
@@ -240,291 +441,305 @@ ECode NativeDecimalFormat::MakeScalePositive(
         }
         scale = 0;
     }
-    *value = scale;
-    return NOERROR;
+    return scale;
 }
 
 ECode NativeDecimalFormat::ToLocalizedPattern(
-        /* [out] */ String* localizedPattern)
+    /* [out] */ String* pattern)
 {
-    VALIDATE_NOT_NULL(localizedPattern);
-    *localizedPattern = String(ToPatternImpl(this->addr, TRUE));
+    assert(pattern != NULL);
+    *pattern = ToPatternImpl(mAddr, TRUE);
     return NOERROR;
 }
 
 ECode NativeDecimalFormat::ToPattern(
-        /* [out] */ String* pattern)
+    /* [out] */ String* pattern)
 {
-    *pattern = String(ToPatternImpl(this->addr, FALSE));
+    assert(pattern != NULL);
+    *pattern = ToPatternImpl(mAddr, FALSE);
     return NOERROR;
 }
 
 ECode NativeDecimalFormat::Parse(
-        /* [in] */ String string,
-        /* [in] */ IParsePosition* position,
-        /* [out] */ INumber** number)
+    /* [in] */ const String& string,
+    /* [in] */ IParsePosition* position,
+    /* [out] */ INumber** number)
 {
-    *number = Parse(addr, string, position, parseBigDecimal);
+    AutoPtr<INumber> _number;
+    _number = Parse(mAddr, string, position, mParseBigDecimal);
+    *number = _number;
+    if (*number != NULL) (*number)->AddRef();
     return NOERROR;
 }
 
 ECode NativeDecimalFormat::GetMaximumFractionDigits(
-        /* [out] */ Int32* maximumFractionDigits)
+    /* [out] */ Int32* maxFractionDigits)
 {
-    VALIDATE_NOT_NULL(maximumFractionDigits);
-    *maximumFractionDigits = GetAttribute(this->addr, UNUM_MAX_FRACTION_DIGITS);
+    assert(maxFractionDigits != NULL);
+    *maxFractionDigits = GetAttribute(mAddr, UNUM_MAX_FRACTION_DIGITS);
     return NOERROR;
 }
 
 ECode NativeDecimalFormat::GetMaximumIntegerDigits(
-        /* [out] */ Int32* maximumIntegerDigits)
+    /* [out] */ Int32* maxIntegerDigits)
 {
-    VALIDATE_NOT_NULL(maximumIntegerDigits);
-    *maximumIntegerDigits = GetAttribute(this->addr, UNUM_MAX_INTEGER_DIGITS);
+    assert(maxIntegerDigits != NULL);
+    *maxIntegerDigits = GetAttribute(mAddr, UNUM_MAX_INTEGER_DIGITS);
     return NOERROR;
 }
 
 ECode NativeDecimalFormat::GetMinimumFractionDigits(
-        /* [out] */ Int32* minimumFractionDigits)
+    /* [out] */ Int32* minFractionDigits)
 {
-    VALIDATE_NOT_NULL(minimumFractionDigits);
-    *minimumFractionDigits = GetAttribute(this->addr, UNUM_MIN_FRACTION_DIGITS);
+    assert(minFractionDigits != NULL);
+    *minFractionDigits = GetAttribute(mAddr, UNUM_MIN_FRACTION_DIGITS);
     return NOERROR;
 }
 
 ECode NativeDecimalFormat::GetMinimumIntegerDigits(
-        /* [out] */ Int32* minimumIntegerDigits)
+    /* [out] */ Int32* minIntegerDigits)
 {
-    VALIDATE_NOT_NULL(minimumIntegerDigits);
-    *minimumIntegerDigits = GetAttribute(this->addr, UNUM_MIN_INTEGER_DIGITS);
+    assert(minIntegerDigits != NULL);
+    *minIntegerDigits = GetAttribute(mAddr, UNUM_MIN_INTEGER_DIGITS);
     return NOERROR;
 }
 
 ECode NativeDecimalFormat::GetGroupingSize(
-        /* [out] */ Int32* groupingSize)
+    /* [out] */ Int32* size)
 {
-    VALIDATE_NOT_NULL(groupingSize);
-    *groupingSize = GetAttribute(this->addr, UNUM_GROUPING_SIZE);
+    assert(size != NULL);
+    *size = GetAttribute(mAddr, UNUM_GROUPING_SIZE);
     return NOERROR;
 }
 
 ECode NativeDecimalFormat::GetMultiplier(
-        /* [out] */ Int32* multiplier)
+    /* [out] */ Int32* multiplier)
 {
-    VALIDATE_NOT_NULL(multiplier);
-    *multiplier = GetAttribute(this->addr, UNUM_MULTIPLIER);
+    assert(multiplier != NULL);
+    *multiplier = GetAttribute(mAddr, UNUM_MULTIPLIER);
     return NOERROR;
 }
 
 ECode NativeDecimalFormat::GetNegativePrefix(
-        /* [out] */ String* negativePrefix)
+    /* [out] */ String* prefix)
 {
-    VALIDATE_NOT_NULL(negativePrefix);
-    if (negPrefNull) {
-        *negativePrefix = String(NULL);
+    assert(prefix != NULL);
+    if (mNegPrefNull) {
+        *prefix = NULL;
         return NOERROR;
     }
-    *negativePrefix = String(GetTextAttribute(this->addr, UNUM_NEGATIVE_PREFIX));
-    return NOERROR;
+    return GetTextAttribute(mAddr, UNUM_NEGATIVE_PREFIX, prefix);
 }
 
 ECode NativeDecimalFormat::GetNegativeSuffix(
-        /* [out] */ String* negativeSuffix)
+    /* [out] */ String* suffix)
 {
-    VALIDATE_NOT_NULL(negativeSuffix);
-    if (negSuffNull) {
-        *negativeSuffix = String(NULL);
+    assert(suffix != NULL);
+    if (mNegSuffNull) {
+        *suffix = NULL;
+        return NOERROR;
     }
-    *negativeSuffix = String(GetTextAttribute(this->addr, UNUM_NEGATIVE_SUFFIX));
-    return NOERROR;
+    return GetTextAttribute(mAddr, UNUM_NEGATIVE_SUFFIX, suffix);
 }
 
 ECode NativeDecimalFormat::GetPositivePrefix(
-        /* [out] */ String* positivePrefix)
+    /* [out] */ String* prefix)
 {
-    VALIDATE_NOT_NULL(positivePrefix);
-    if (posPrefNull) {
-        *positivePrefix = String(NULL);
+    assert(prefix != NULL);
+    if (mPosPrefNull) {
+        *prefix = NULL;
         return NOERROR;
     }
-    *positivePrefix = String(GetTextAttribute(this->addr, UNUM_POSITIVE_PREFIX));
-    return NOERROR;
+    return GetTextAttribute(mAddr, UNUM_POSITIVE_PREFIX, prefix);
 }
 
 ECode NativeDecimalFormat::GetPositiveSuffix(
-        /* [out] */ String* positiveSuffix)
+    /* [out] */ String* suffix)
 {
-    VALIDATE_NOT_NULL(positiveSuffix)
-    if (posSuffNull) {
-        *positiveSuffix = String(NULL);
+    assert(suffix != NULL);
+    if (mPosSuffNull) {
+        *suffix = NULL;
         return NOERROR;
     }
-    *positiveSuffix = String(GetTextAttribute(this->addr, UNUM_POSITIVE_SUFFIX));
-    return NOERROR;
+    return GetTextAttribute(mAddr, UNUM_POSITIVE_SUFFIX, suffix);
 }
 
 ECode NativeDecimalFormat::IsDecimalSeparatorAlwaysShown(
-        /* [out] */ Boolean* isDecimalSeparatorAlwaysShown)
+    /* [out] */ Boolean* isAlwaysShown)
 {
-    VALIDATE_NOT_NULL(isDecimalSeparatorAlwaysShown);
-    *isDecimalSeparatorAlwaysShown = (GetAttribute(this->addr, UNUM_DECIMAL_ALWAYS_SHOWN) != 0) ? TRUE : FALSE;
+    assert(isAlwaysShown != NULL);
+    *isAlwaysShown = GetAttribute(mAddr, UNUM_DECIMAL_ALWAYS_SHOWN) != 0;
     return NOERROR;
 }
 
 ECode NativeDecimalFormat::IsParseBigDecimal(
-        /* [out] */ Boolean* isParseBigDecimal)
+    /* [out] */ Boolean* isParseBigDecimal)
 {
-    VALIDATE_NOT_NULL(isParseBigDecimal);
-    *isParseBigDecimal = parseBigDecimal;
+    assert(isParseBigDecimal != NULL);
+    *isParseBigDecimal = mParseBigDecimal;
     return NOERROR;
 }
 
 ECode NativeDecimalFormat::IsParseIntegerOnly(
-        /* [out] */ Boolean* isParseIntegerOnly)
+    /* [out] */ Boolean* isParseIntegerOnly)
 {
-    VALIDATE_NOT_NULL(isParseIntegerOnly);
-    *isParseIntegerOnly = (GetAttribute(this->addr, UNUM_PARSE_INT_ONLY) != 0) ? TRUE : FALSE;
+    assert(isParseIntegerOnly != NULL);
+    *isParseIntegerOnly = GetAttribute(mAddr, UNUM_PARSE_INT_ONLY) != 0;
     return NOERROR;
 }
 
 ECode NativeDecimalFormat::IsGroupingUsed(
-        /* [out] */ Boolean* isGroupingUsed)
+    /* [out] */ Boolean* isGroupingUsed)
 {
-    VALIDATE_NOT_NULL(isGroupingUsed);
-    *isGroupingUsed = (GetAttribute(this->addr, UNUM_GROUPING_USED) != 0) ? TRUE : FALSE;
+    assert(isGroupingUsed != NULL);
+    *isGroupingUsed = GetAttribute(mAddr, UNUM_GROUPING_USED) != 0;
     return NOERROR;
 }
 
 ECode NativeDecimalFormat::SetDecimalSeparatorAlwaysShown(
-        /* [in] */ Boolean value)
+    /* [in] */ Boolean value)
 {
     Int32 i = value ? -1 : 0;
-    SetAttribute(this->addr, UNUM_DECIMAL_ALWAYS_SHOWN, i);
+    SetAttribute(mAddr, UNUM_DECIMAL_ALWAYS_SHOWN, i);
     return NOERROR;
 }
 
 ECode NativeDecimalFormat::SetCurrency(
     /* [in] */ ICurrency* currency)
 {
-    String* symbol = new String("");
-    currency->GetSymbol(symbol);
-    String* currencyCode = new String("");
-    currency->GetCurrencyCode(currencyCode);
-    SetSymbol(this->addr, UNUM_CURRENCY_SYMBOL, *symbol);
-    SetSymbol(this->addr, UNUM_INTL_CURRENCY_SYMBOL, *currencyCode);
-    return NOERROR;
+    String symbol;
+    currency->GetSymbol(&symbol);
+    String currencyCode;
+    currency->GetCurrencyCode(&currencyCode);
+    FAIL_RETURN(SetSymbol(mAddr, UNUM_CURRENCY_SYMBOL, symbol));
+    return SetSymbol(mAddr, UNUM_INTL_CURRENCY_SYMBOL, currencyCode);
 }
 
 ECode NativeDecimalFormat::SetGroupingSize(
-        /* [in] */ Int32 value)
+    /* [in] */ Int32 value)
 {
-    SetAttribute(this->addr, UNUM_GROUPING_SIZE, value);
+    SetAttribute(mAddr, UNUM_GROUPING_SIZE, value);
     return NOERROR;
 }
 
 ECode NativeDecimalFormat::SetGroupingUsed(
-        /* [in] */ Boolean value)
+    /* [in] */ Boolean value)
 {
     Int32 i = value ? -1 : 0;
-    SetAttribute(this->addr, UNUM_GROUPING_USED, i);
+    SetAttribute(mAddr, UNUM_GROUPING_USED, i);
     return NOERROR;
 }
 
 ECode NativeDecimalFormat::SetMaximumFractionDigits(
-        /* [in] */ Int32 value)
+    /* [in] */ Int32 value)
 {
-    SetAttribute(this->addr, UNUM_MAX_FRACTION_DIGITS, value);
+    SetAttribute(mAddr, UNUM_MAX_FRACTION_DIGITS, value);
     return NOERROR;
 }
 
 ECode NativeDecimalFormat::SetMaximumIntegerDigits(
-        /* [in] */ Int32 value)
+    /* [in] */ Int32 value)
 {
-    SetAttribute(this->addr, UNUM_MAX_INTEGER_DIGITS, value);
+    SetAttribute(mAddr, UNUM_MAX_INTEGER_DIGITS, value);
     return NOERROR;
 }
 
 ECode NativeDecimalFormat::SetMinimumFractionDigits(
-        /* [in] */ Int32 value)
+    /* [in] */ Int32 value)
 {
-    SetAttribute(this->addr, UNUM_MIN_FRACTION_DIGITS, value);
+    SetAttribute(mAddr, UNUM_MIN_FRACTION_DIGITS, value);
     return NOERROR;
 }
 
 ECode NativeDecimalFormat::SetMinimumIntegerDigits(
-        /* [in] */ Int32 value)
+    /* [in] */ Int32 value)
 {
-    SetAttribute(this->addr, UNUM_MIN_INTEGER_DIGITS, value);
+    SetAttribute(mAddr, UNUM_MIN_INTEGER_DIGITS, value);
     return NOERROR;
 }
 
 ECode NativeDecimalFormat::SetMultiplier(
-        /* [in] */ Int32 value)
+    /* [in] */ Int32 value)
 {
-    SetAttribute(this->addr, UNUM_MULTIPLIER, value);
+    SetAttribute(mAddr, UNUM_MULTIPLIER, value);
     // Update the cached BigDecimal for multiplier.
+    assert(0);
 //    multiplierBigDecimal = BigDecimal.valueOf(value);
     return NOERROR;
 }
 
 ECode NativeDecimalFormat::SetNegativePrefix(
-        /* [in] */ String value)
+    /* [in] */ const String& value)
 {
-    negPrefNull = (value == NULL);
-    if (!negPrefNull) {
-        SetTextAttribute(this->addr, UNUM_NEGATIVE_PREFIX, value);
+    mNegPrefNull = value.IsNull();
+    if (!mNegPrefNull) {
+        return SetTextAttribute(mAddr, UNUM_NEGATIVE_PREFIX, value);
     }
     return NOERROR;
 }
 
 ECode NativeDecimalFormat::SetNegativeSuffix(
-        /* [in] */ String value)
+    /* [in] */ const String& value)
 {
-    negSuffNull = (value == NULL);
-    if (!negSuffNull) {
-        SetTextAttribute(this->addr, UNUM_NEGATIVE_SUFFIX, value);
+    mNegSuffNull = value.IsNull();
+    if (!mNegSuffNull) {
+        return SetTextAttribute(mAddr, UNUM_NEGATIVE_SUFFIX, value);
     }
     return NOERROR;
 }
 
 ECode NativeDecimalFormat::SetPositivePrefix(
-        /* [in] */ String value)
+    /* [in] */ const String& value)
 {
-    posPrefNull = (value == NULL);
-    if (!posPrefNull) {
-        SetTextAttribute(this->addr, UNUM_POSITIVE_PREFIX, value);
+    mPosPrefNull = value.IsNull();
+    if (!mPosPrefNull) {
+        return SetTextAttribute(mAddr, UNUM_POSITIVE_PREFIX, value);
     }
     return NOERROR;
 }
 
 ECode NativeDecimalFormat::SetPositiveSuffix(
-        /* [in] */ String value)
+    /* [in] */ const String& value)
 {
-    posSuffNull = (value == NULL);
-    if (!posSuffNull) {
-        SetTextAttribute(this->addr, UNUM_POSITIVE_SUFFIX, value);
+    mPosSuffNull = value.IsNull();
+    if (!mPosSuffNull) {
+        return SetTextAttribute(mAddr, UNUM_POSITIVE_SUFFIX, value);
     }
     return NOERROR;
 }
 
 ECode NativeDecimalFormat::SetParseBigDecimal(
-        /* [in] */ Boolean value)
+    /* [in] */ Boolean value)
 {
-    parseBigDecimal = value;
+    mParseBigDecimal = value;
     return NOERROR;
 }
 
 ECode NativeDecimalFormat::SetParseIntegerOnly(
-        /* [in] */ Boolean value)
+    /* [in] */ Boolean value)
 {
     Int32 i = value ? -1 : 0;
-    SetAttribute(this->addr, UNUM_PARSE_INT_ONLY, i);
+    SetAttribute(mAddr, UNUM_PARSE_INT_ONLY, i);
     return NOERROR;
 }
 
+ECode NativeDecimalFormat::ApplyPattern(
+    /* [in] */ Handle32 addr,
+    /* [in] */ Boolean localized,
+    /* [in] */ const String& pattern)
+{
+    //try {
+    return ApplyPatternImpl(addr, localized, pattern);
+    //} catch (NullPointerException npe) {
+    //    throw npe;
+    //} catch (RuntimeException re) {
+    //    throw new IllegalArgumentException("syntax error: " + re.getMessage() + ": " + pattern);
+    //}
+}
+
 ECode NativeDecimalFormat::SetRoundingMode(
-        /* [in] */ RoundingMode roundingMode,
-        /* [in] */ Double roundingIncrement)
+    /* [in] */ RoundingMode roundingMode,
+    /* [in] */ Double roundingIncrement)
 {
     Int32 nativeRoundingMode;
     switch (roundingMode) {
@@ -536,355 +751,440 @@ ECode NativeDecimalFormat::SetRoundingMode(
         case RoundingMode_HALF_DOWN: nativeRoundingMode = 5; break;
         case RoundingMode_HALF_UP: nativeRoundingMode = 6; break;
         default: //throw new AssertionError();
-            return NOERROR;
+            return E_ASSERTION_ERROR;
     }
-    SetRoundingMode(addr, nativeRoundingMode, roundingIncrement);
+    SetRoundingMode(mAddr, nativeRoundingMode, roundingIncrement);
     return NOERROR;
 }
 
-ECode NativeDecimalFormat::ApplyPattern(
-        /* [in] */ Int32 addr,
-        /* [in] */ Boolean localized,
-        /* [in] */ String pattern)
+static U_ICU_NAMESPACE::DecimalFormat* toDecimalFormat(Handle32 addr)
 {
-    //try {
-        ApplyPatternImpl(addr, localized, pattern);
-    //} catch (NullPointerException npe) {
-    //    throw npe;
-    //} catch (RuntimeException re) {
-    //    throw new IllegalArgumentException("syntax error: " + re.getMessage() + ": " + pattern);
-    //}
-    return NOERROR;
+    return reinterpret_cast<U_ICU_NAMESPACE::DecimalFormat*>(static_cast<uintptr_t>(addr));
 }
 
-ECode NativeDecimalFormat::GetAddr(
-    /* [out] */ Int32* value)
+static UNumberFormat* toUNumberFormat(Handle32 addr)
 {
-    VALIDATE_NOT_NULL(value);
-    *value = addr;
-    return NOERROR;
+    return reinterpret_cast<UNumberFormat*>(static_cast<uintptr_t>(addr));
 }
 
-ECode NativeDecimalFormat::GetLastPattern(
-            /* [out] */ String* value)
-{
-    VALIDATE_NOT_NULL(value);
-    *value = String(*lastPattern);
-    return NOERROR;
-}
-
-ECode NativeDecimalFormat::GetNegPrefNull(
-    /* [out] */ Boolean* value)
-{
-    VALIDATE_NOT_NULL(value);
-    *value = negPrefNull;
-    return NOERROR;
-}
-
-ECode NativeDecimalFormat::GetNegSuffNull(
-    /* [out] */ Boolean* value)
-{
-    VALIDATE_NOT_NULL(value);
-    *value = negSuffNull;
-    return NOERROR;
-}
-
-ECode NativeDecimalFormat::GetPosPrefNull(
-    /* [out] */ Boolean* value)
-{
-    VALIDATE_NOT_NULL(value);
-    *value = posPrefNull;
-    return NOERROR;
-}
-
-ECode NativeDecimalFormat::GetPosSuffNull(
-    /* [out] */ Boolean* value)
-{
-    VALIDATE_NOT_NULL(value);
-    *value = posSuffNull;
-    return NOERROR;
-}
-
-void NativeDecimalFormat::ApplyPatternImpl(
-    /* [in] */ Int32 addr,
-    /* [in] */ Boolean localized,
-    /* [in] */ String pattern)
-{
-    return ;
-}
-
-Int32 NativeDecimalFormat::CloneImpl(
-    /* [in] */ Int32 addr)
-{
-    return 0;
-}
-
-void NativeDecimalFormat::Close(
-    /* [in] */ Int32 addr)
-{
-    return ;
-}
-
-ArrayOf<Char32>* NativeDecimalFormat::FormatLong(
-    /* [in] */ Int32 addr,
-    /* [in] */ Int64 value,
-    /* [in] */ FieldPositionIterator* iter)
-{
-    return NULL;
-}
-
-ArrayOf<Char32>* NativeDecimalFormat::FormatDouble(
-    /* [in] */ Int32 addr,
-    /* [in] */ Double value,
-    /* [in] */ FieldPositionIterator* iter)
-{
-    return NULL;
-}
-
-ArrayOf<Char32>* NativeDecimalFormat::FormatDigitList(
-    /* [in] */ Int32 addr,
-    /* [in] */ String value,
-    /* [in] */ FieldPositionIterator* iter)
-{
-    return NULL;
-}
-
-Int32 NativeDecimalFormat::GetAttribute(
-    /* [in] */ Int32 addr,
-    /* [in] */ Int32 symbol)
-{
-    return 0;
-}
-
-String NativeDecimalFormat::GetTextAttribute(
-    /* [in] */ Int32 addr,
-    /* [in] */ Int32 symbol)
-{
-    return String(NULL);
-}
-
-Int32 NativeDecimalFormat::Open(
-    /* [in] */ String pattern,
-    /* [in] */ String currencySymbol,
+static U_ICU_NAMESPACE::DecimalFormatSymbols* makeDecimalFormatSymbols(
+    /* [in] */ const String& currencySymbol,
     /* [in] */ Char32 decimalSeparator,
     /* [in] */ Char32 digit,
-    /* [in] */ String exponentSeparator,
+    /* [in] */ const String& exponentSeparator,
     /* [in] */ Char32 groupingSeparator,
-    /* [in] */ String infinity,
-    /* [in] */ String internationalCurrencySymbol,
+    /* [in] */ const String& infinity,
+    /* [in] */ const String& internationalCurrencySymbol,
     /* [in] */ Char32 minusSign,
     /* [in] */ Char32 monetaryDecimalSeparator,
-    /* [in] */ String nan,
+    /* [in] */ const String& nan,
     /* [in] */ Char32 patternSeparator,
     /* [in] */ Char32 percent,
     /* [in] */ Char32 perMill,
     /* [in] */ Char32 zeroDigit)
 {
-    return 0;
+    U_ICU_NAMESPACE::DecimalFormatSymbols* result = new U_ICU_NAMESPACE::DecimalFormatSymbols;
+    result->setSymbol(U_ICU_NAMESPACE::DecimalFormatSymbols::kCurrencySymbol,
+            UnicodeString::fromUTF8(currencySymbol.string()));
+    result->setSymbol(U_ICU_NAMESPACE::DecimalFormatSymbols::kDecimalSeparatorSymbol,
+            UnicodeString((UChar32)decimalSeparator));
+    result->setSymbol(U_ICU_NAMESPACE::DecimalFormatSymbols::kDigitSymbol,
+            UnicodeString((UChar32)digit));
+    result->setSymbol(U_ICU_NAMESPACE::DecimalFormatSymbols::kExponentialSymbol,
+            UnicodeString::fromUTF8(exponentSeparator.string()));
+    result->setSymbol(U_ICU_NAMESPACE::DecimalFormatSymbols::kGroupingSeparatorSymbol,
+            UnicodeString((UChar32)groupingSeparator));
+    result->setSymbol(U_ICU_NAMESPACE::DecimalFormatSymbols::kMonetaryGroupingSeparatorSymbol,
+            UnicodeString((UChar32)groupingSeparator));
+    result->setSymbol(U_ICU_NAMESPACE::DecimalFormatSymbols::kInfinitySymbol,
+            UnicodeString::fromUTF8(infinity.string()));
+    result->setSymbol(U_ICU_NAMESPACE::DecimalFormatSymbols::kIntlCurrencySymbol,
+            UnicodeString::fromUTF8(internationalCurrencySymbol.string()));
+    result->setSymbol(U_ICU_NAMESPACE::DecimalFormatSymbols::kMinusSignSymbol,
+            UnicodeString((UChar32)minusSign));
+    result->setSymbol(U_ICU_NAMESPACE::DecimalFormatSymbols::kMonetarySeparatorSymbol,
+            UnicodeString((UChar32)monetaryDecimalSeparator));
+    result->setSymbol(U_ICU_NAMESPACE::DecimalFormatSymbols::kNaNSymbol,
+            UnicodeString::fromUTF8(nan.string()));
+    result->setSymbol(U_ICU_NAMESPACE::DecimalFormatSymbols::kPatternSeparatorSymbol,
+            UnicodeString((UChar32)patternSeparator));
+    result->setSymbol(U_ICU_NAMESPACE::DecimalFormatSymbols::kPercentSymbol,
+            UnicodeString((UChar32)percent));
+    result->setSymbol(U_ICU_NAMESPACE::DecimalFormatSymbols::kPerMillSymbol,
+            UnicodeString((UChar32)perMill));
+    result->setSymbol(U_ICU_NAMESPACE::DecimalFormatSymbols::kZeroDigitSymbol,
+            UnicodeString((UChar32)zeroDigit));
+    return result;
 }
 
-INumber* NativeDecimalFormat::Parse(
-    /* [in] */ Int32 addr,
-    /* [in] */ String string,
+/**
+* Checks if an error has occurred, throwing a suitable exception if so.
+* @param env JNI environment
+* @param errorCode code to determine if it is an error
+* @return 0 if errorCode is not an error, 1 if errorCode is an error, but the
+*         creation of the exception to be thrown fails
+ * @exception thrown if errorCode represents an error
+*/
+static ECode icu4_error(UErrorCode errorCode)
+{
+//    const char* message = u_errorName(errorCode);
+    if (errorCode <= U_ZERO_ERROR || errorCode >= U_ERROR_LIMIT) {
+        return NOERROR;
+    }
+
+    switch (errorCode) {
+    case U_ILLEGAL_ARGUMENT_ERROR:
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
+    case U_INDEX_OUTOFBOUNDS_ERROR:
+    case U_BUFFER_OVERFLOW_ERROR:
+        return E_ARRAY_INDEX_OUT_OF_BOUNDS_EXCEPTION;
+    case U_UNSUPPORTED_ERROR:
+        return E_UNSUPPORTED_OPERATION_EXCEPTION;
+    default:
+        return E_RUNTIME_EXCEPTION;
+    }
+}
+
+ECode NativeDecimalFormat::ApplyPatternImpl(
+    /* [in] */ Handle32 addr,
+    /* [in] */ Boolean localized,
+    /* [in] */ const String& pattern)
+{
+    if (pattern.IsNull()) {
+        // jniThrowNullPointerException(env, NULL);
+        return E_NULL_POINTER_EXCEPTION;
+    }
+    U_ICU_NAMESPACE::DecimalFormat* fmt = toDecimalFormat(addr);
+    UErrorCode status = U_ZERO_ERROR;
+    if (localized) {
+        fmt->applyLocalizedPattern(
+            UnicodeString::fromUTF8(pattern.string()), status);
+    }
+    else {
+        fmt->applyPattern(
+            UnicodeString::fromUTF8(pattern.string()), status);
+    }
+    return icu4_error(status);
+}
+
+Handle32 NativeDecimalFormat::CloneImpl(
+    /* [in] */ Handle32 addr)
+{
+    U_ICU_NAMESPACE::DecimalFormat* fmt = toDecimalFormat(addr);
+    return static_cast<Handle32>(reinterpret_cast<uintptr_t>(fmt->clone()));
+}
+
+void NativeDecimalFormat::Close(
+    /* [in] */ Handle32 addr)
+{
+    delete toDecimalFormat(addr);
+}
+
+static ArrayOf<Char32>* formatResult(
+    /* [in] */ const UnicodeString &str,
+    /* [in] */ U_ICU_NAMESPACE::FieldPositionIterator* fpi,
+    /* [in] */ NativeDecimalFormat::FieldPositionIterator* fpIter)
+{
+    if (fpi != NULL) {
+        int len = fpi->getData(NULL, 0);
+        ArrayOf<Int32>* data = NULL;
+        if (len > 0) {
+            data = ArrayOf<Int32>::Alloc(len);
+            // ScopedIntArrayRW ints(env, data);
+            // if (ints.get() == NULL) {
+            //     return NULL;
+            // }
+            fpi->getData(data->GetPayload(), len);
+        }
+        fpIter->SetData(data);
+    }
+
+    int len = str.length();
+    ArrayOf<Char32>* result = ArrayOf<Char32>::Alloc(len);
+    if (result != NULL) {
+        const UChar* buffer = str.getBuffer();
+        for (Int32 i = 0; i < len; ++i) {
+            (*result)[i] = buffer[i];
+        }
+    }
+    return result;
+}
+
+ArrayOf<Char32>* NativeDecimalFormat::FormatInt64(
+    /* [in] */ Handle32 addr,
+    /* [in] */ Int64 value,
+    /* [in] */ NativeDecimalFormat::FieldPositionIterator* fpIter)
+{
+    UErrorCode status = U_ZERO_ERROR;
+    UnicodeString str;
+    U_ICU_NAMESPACE::DecimalFormat* fmt = toDecimalFormat(addr);
+    U_ICU_NAMESPACE::FieldPositionIterator fpi;
+    U_ICU_NAMESPACE::FieldPositionIterator* pfpi = fpIter ? &fpi : NULL;
+    fmt->format(value, str, pfpi, status);
+    return formatResult(str, pfpi, fpIter);
+}
+
+ArrayOf<Char32>* NativeDecimalFormat::FormatDouble(
+    /* [in] */ Handle32 addr,
+    /* [in] */ Double value,
+    /* [in] */ NativeDecimalFormat::FieldPositionIterator* fpIter)
+{
+    UErrorCode status = U_ZERO_ERROR;
+    UnicodeString str;
+    U_ICU_NAMESPACE::DecimalFormat* fmt = toDecimalFormat(addr);
+    U_ICU_NAMESPACE::FieldPositionIterator fpi;
+    U_ICU_NAMESPACE::FieldPositionIterator* pfpi = fpIter ? &fpi : NULL;
+    fmt->format(value, str, pfpi, status);
+    return formatResult(str, pfpi, fpIter);
+}
+
+ArrayOf<Char32>* NativeDecimalFormat::FormatDigitList(
+    /* [in] */ Handle32 addr,
+    /* [in] */ const String& value,
+    /* [in] */ NativeDecimalFormat::FieldPositionIterator* fpIter)
+{
+    if (value.string() == NULL) {
+        return NULL;
+    }
+    StringPiece sp(value.string());
+
+    UErrorCode status = U_ZERO_ERROR;
+    UnicodeString str;
+    U_ICU_NAMESPACE::DecimalFormat* fmt = toDecimalFormat(addr);
+    U_ICU_NAMESPACE::FieldPositionIterator fpi;
+    U_ICU_NAMESPACE::FieldPositionIterator* pfpi = fpIter ? &fpi : NULL;
+    fmt->format(sp, str, pfpi, status);
+    return formatResult(str, pfpi, fpIter);
+}
+
+Int32 NativeDecimalFormat::GetAttribute(
+    /* [in] */ Handle32 addr,
+    /* [in] */ Int32 symbol)
+{
+    UNumberFormatAttribute attr = static_cast<UNumberFormatAttribute>(symbol);
+    return unum_getAttribute(toUNumberFormat(addr), attr);
+}
+
+ECode NativeDecimalFormat::GetTextAttribute(
+    /* [in] */ Handle32 addr,
+    /* [in] */ Int32 symbol,
+    /* [out] */ String* _attr)
+{
+    UErrorCode status = U_ZERO_ERROR;
+    UNumberFormat* fmt = toUNumberFormat(addr);
+    UNumberFormatTextAttribute attr = static_cast<UNumberFormatTextAttribute>(symbol);
+
+    // Find out how long the result will be...
+    UChar* chars;
+    uint32_t charCount = 0;
+    uint32_t desiredCount = unum_getTextAttribute(fmt, attr, chars, charCount, &status);
+    if (status == U_BUFFER_OVERFLOW_ERROR) {
+        // ...then get it.
+        status = U_ZERO_ERROR;
+        charCount = desiredCount + 1;
+        chars = new UChar[charCount];
+        charCount = unum_getTextAttribute(fmt, attr, chars, charCount, &status);
+    }
+    ElStringByteSink sink(_attr);
+    UnicodeString(chars, charCount).toUTF8(sink);
+    delete[] chars;
+    return icu4_error(status);
+}
+
+ECode NativeDecimalFormat::Open(
+    /* [in] */ const String& pattern,
+    /* [in] */ const String& currencySymbol,
+    /* [in] */ Char32 decimalSeparator,
+    /* [in] */ Char32 digit,
+    /* [in] */ const String& exponentSeparator,
+    /* [in] */ Char32 groupingSeparator,
+    /* [in] */ const String& infinity,
+    /* [in] */ const String& internationalCurrencySymbol,
+    /* [in] */ Char32 minusSign,
+    /* [in] */ Char32 monetaryDecimalSeparator,
+    /* [in] */ const String& nan,
+    /* [in] */ Char32 patternSeparator,
+    /* [in] */ Char32 percent,
+    /* [in] */ Char32 perMill,
+    /* [in] */ Char32 zeroDigit,
+    /* [out] */ Handle32* addr)
+{
+    if (pattern.IsNull()) {
+        // jniThrowNullPointerException(env, NULL);
+        *addr = 0;
+        return E_NULL_POINTER_EXCEPTION;
+    }
+    UErrorCode status = U_ZERO_ERROR;
+    UParseError parseError;
+    U_ICU_NAMESPACE::DecimalFormatSymbols* symbols = makeDecimalFormatSymbols(
+            currencySymbol, decimalSeparator, digit, exponentSeparator, groupingSeparator,
+            infinity, internationalCurrencySymbol, minusSign,
+            monetaryDecimalSeparator, nan, patternSeparator, percent, perMill,
+            zeroDigit);
+    U_ICU_NAMESPACE::DecimalFormat* fmt = new U_ICU_NAMESPACE::DecimalFormat(
+            UnicodeString::fromUTF8(pattern.string()), symbols, parseError, status);
+    if (fmt == NULL) {
+        delete symbols;
+    }
+    FAIL_RETURN(icu4_error(status));
+    *addr = static_cast<Handle32>(reinterpret_cast<uintptr_t>(fmt));
+    return NOERROR;
+}
+
+AutoPtr<INumber> NativeDecimalFormat::Parse(
+    /* [in] */ Handle32 addr,
+    /* [in] */ const String& string,
     /* [in] */ IParsePosition* position,
     /* [in] */ Boolean parseBigDecimal)
 {
+    assert(0);
+    // static jmethodID gPP_getIndex = env->GetMethodID(JniConstants::parsePositionClass, "getIndex", "()I");
+    // static jmethodID gPP_setIndex = env->GetMethodID(JniConstants::parsePositionClass, "setIndex", "(I)V");
+    // static jmethodID gPP_setErrorIndex = env->GetMethodID(JniConstants::parsePositionClass, "setErrorIndex", "(I)V");
+
+    // // make sure the ParsePosition is valid. Actually icu4c would parse a number
+    // // correctly even if the parsePosition is set to -1, but since the RI fails
+    // // for that case we have to fail too
+    // int parsePos = env->CallIntMethod(position, gPP_getIndex, NULL);
+    // if (parsePos < 0 || parsePos > env->GetStringLength(text)) {
+    //     return NULL;
+    // }
+
+    // Formattable res;
+    // ParsePosition pp(parsePos);
+    // ScopedJavaUnicodeString src(env, text);
+    // DecimalFormat* fmt = toDecimalFormat(addr);
+    // fmt->parse(src.unicodeString(), res, pp);
+
+    // if (pp.getErrorIndex() == -1) {
+    //     env->CallVoidMethod(position, gPP_setIndex, (jint) pp.getIndex());
+    // } else {
+    //     env->CallVoidMethod(position, gPP_setErrorIndex, (jint) pp.getErrorIndex());
+    //     return NULL;
+    // }
+
+    // if (parseBigDecimal) {
+    //     UErrorCode status = U_ZERO_ERROR;
+    //     StringPiece str = res.getDecimalNumber(status);
+    //     if (U_SUCCESS(status)) {
+    //         int len = str.length();
+    //         const char* data = str.data();
+    //         if (strncmp(data, "NaN", 3) == 0 ||
+    //             strncmp(data, "Inf", 3) == 0 ||
+    //             strncmp(data, "-Inf", 4) == 0) {
+    //             double resultDouble = res.getDouble(status);
+    //             return doubleValueOf(env, (jdouble) resultDouble);
+    //         }
+    //         return newBigDecimal(env, data, len);
+    //     }
+    //     return NULL;
+    // }
+
+    // Formattable::Type numType = res.getType();
+    //     switch(numType) {
+    //     case Formattable::kDouble: {
+    //         double resultDouble = res.getDouble();
+    //         return doubleValueOf(env, (jdouble) resultDouble);
+    //     }
+    //     case Formattable::kLong: {
+    //         long resultLong = res.getLong();
+    //         return longValueOf(env, (jlong) resultLong);
+    //     }
+    //     case Formattable::kInt64: {
+    //         int64_t resultInt64 = res.getInt64();
+    //         return longValueOf(env, (jlong) resultInt64);
+    //     }
+    //     default: {
+    //         return NULL;
+    //     }
+    // }
     return NULL;
 }
 
 void NativeDecimalFormat::SetDecimalFormatSymbols(
-    /* [in] */ Int32 addr,
-    /* [in] */ String currencySymbol,
+    /* [in] */ Handle32 addr,
+    /* [in] */ const String& currencySymbol,
     /* [in] */ Char32 decimalSeparator,
     /* [in] */ Char32 digit,
-    /* [in] */ String exponentSeparator,
+    /* [in] */ const String& exponentSeparator,
     /* [in] */ Char32 groupingSeparator,
-    /* [in] */ String infinity,
-    /* [in] */ String internationalCurrencySymbol,
+    /* [in] */ const String& infinity,
+    /* [in] */ const String& internationalCurrencySymbol,
     /* [in] */ Char32 minusSign,
     /* [in] */ Char32 monetaryDecimalSeparator,
-    /* [in] */ String nan,
+    /* [in] */ const String& nan,
     /* [in] */ Char32 patternSeparator,
     /* [in] */ Char32 percent,
     /* [in] */ Char32 perMill,
     /* [in] */ Char32 zeroDigit)
 {
-    return;
+    U_ICU_NAMESPACE::DecimalFormatSymbols* symbols = makeDecimalFormatSymbols(
+            currencySymbol, decimalSeparator, digit, exponentSeparator, groupingSeparator,
+            infinity, internationalCurrencySymbol, minusSign,
+            monetaryDecimalSeparator, nan, patternSeparator, percent, perMill,
+            zeroDigit);
+    toDecimalFormat(addr)->adoptDecimalFormatSymbols(symbols);
 }
 
-void NativeDecimalFormat::SetSymbol(
-    /* [in] */ Int32 addr,
-    /* [in] */ Int32 symbol,
-    /* [in] */ String str)
+ECode NativeDecimalFormat::SetSymbol(
+    /* [in] */ Handle32 addr,
+    /* [in] */ Int32 _symbol,
+    /* [in] */ const String& str)
 {
-    return;
+    UnicodeString _s = UnicodeString::fromUTF8(str.string());
+    UnicodeString& s(_s);
+    UErrorCode status = U_ZERO_ERROR;
+    UNumberFormatSymbol symbol = static_cast<UNumberFormatSymbol>(_symbol);
+    unum_setSymbol(toUNumberFormat(addr), symbol, s.getBuffer(), s.length(), &status);
+    return icu4_error(status);
 }
 
 void NativeDecimalFormat::SetAttribute(
-    /* [in] */ Int32 addr,
+    /* [in] */ Handle32 addr,
     /* [in] */ Int32 symbol,
     /* [in] */ Int32 i)
 {
-    return;
+    UNumberFormatAttribute attr = static_cast<UNumberFormatAttribute>(symbol);
+    unum_setAttribute(toUNumberFormat(addr), attr, i);
 }
 
 void NativeDecimalFormat::SetRoundingMode(
-    /* [in] */ Int32 addr,
-    /* [in] */ Int32 roundingMode,
-    /* [in] */ Double roundingIncrement)
+    /* [in] */ Handle32 addr,
+    /* [in] */ Int32 mode,
+    /* [in] */ Double increment)
 {
-    return;
+    U_ICU_NAMESPACE::DecimalFormat* fmt = toDecimalFormat(addr);
+    fmt->setRoundingMode(static_cast<U_ICU_NAMESPACE::DecimalFormat::ERoundingMode>(mode));
+    fmt->setRoundingIncrement(increment);
 }
 
-void NativeDecimalFormat::SetTextAttribute(
-    /* [in] */ Int32 addr,
+ECode NativeDecimalFormat::SetTextAttribute(
+    /* [in] */ Handle32 addr,
     /* [in] */ Int32 symbol,
-    /* [in] */ String str)
+    /* [in] */ const String& str)
 {
-    return;
+    UnicodeString _s = UnicodeString::fromUTF8(str.string());
+    UnicodeString& s(_s);
+    UErrorCode status = U_ZERO_ERROR;
+    UNumberFormatTextAttribute attr = static_cast<UNumberFormatTextAttribute>(symbol);
+    unum_setTextAttribute(toUNumberFormat(addr), attr, s.getBuffer(), s.length(), &status);
+    return icu4_error(status);
 }
 
 String NativeDecimalFormat::ToPatternImpl(
-    /* [in] */ Int32 addr,
+    /* [in] */ Handle32 addr,
     /* [in] */ Boolean localized)
 {
-    return String(NULL);
-}
-
-NativeDecimalFormat::FieldPositionIterator::FieldPositionIterator() : pos(-3)
-{
-}
-
-ECode NativeDecimalFormat::FieldPositionIterator::ForFieldPosition(
-        /* [in] */ IFieldPosition* fp,
-        /* [out] */ FieldPositionIterator** fpi)
-{
-    Int32 field;
-    fp->GetField(&field);
-    if (fp != NULL && field != -1) {
-        *fpi = new FieldPositionIterator();
-        return NOERROR;
+    U_ICU_NAMESPACE::DecimalFormat* fmt = toDecimalFormat(addr);
+    UnicodeString pattern;
+    if (localized) {
+        fmt->toLocalizedPattern(pattern);
     }
-    *fpi = NULL;
-    return NOERROR;
-}
-
-ECode NativeDecimalFormat::FieldPositionIterator::GetNativeFieldPositionId(
-            /* [in] */ IFieldPosition* fp,
-            /* [out] */ Int32* nfpid)
-{
-    // NOTE: -1, 0, and 1 were the only valid original java field values
-    // for NumberFormat.  They take precedence.  This assumes any other
-    // value is a mistake and the actual value is in the attribute.
-    // Clients can construct FieldPosition combining any attribute with any field
-    // value, which is just wrong, but there you go.
-
-    Int32 id;
-    fp->GetField(&id);
-    if (id < -1 || id > 1) {
-        id = -1;
+    else {
+        fmt->toPattern(pattern);
     }
-    if (id == -1) {
-        AutoPtr<IFormatField> attr;
-        fp->GetFieldAttribute((IFormatField**)&attr);
-        if (attr != NULL) {
-            for (Int32 i = 0; i < fields->GetLength(); ++i) {
-                if ((*fields)[i] == attr) {
-                    id = i;
-                    break;
-                }
-            }
-        }
-    }
-    *nfpid = id;
-    return NOERROR;
-}
-
-ECode NativeDecimalFormat::FieldPositionIterator::SetFieldPosition(
-        /* [in] */ FieldPositionIterator* fpi,
-        /* [in] */ IFieldPosition* fp)
-{
-    if (fpi != NULL && fp != NULL) {
-        Int32 field;
-        GetNativeFieldPositionId(fp, &field);
-        if (field != -1) {
-            Boolean isNext;
-            fpi->Next(&isNext);
-            while (isNext) {
-                Int32 fieldId;
-                fpi->FieldId(&fieldId);
-                if (fieldId == field) {
-                    Int32 start, limit;
-                    fp->SetBeginIndex(fpi->Start(&start));
-                    fp->SetEndIndex(fpi->Limit(&limit));
-                    break;
-                }
-            }
-        }
-    }
-    return NOERROR;
-}
-
-ECode NativeDecimalFormat::FieldPositionIterator::Next(
-        /* [out] */ Boolean* next) {
-    VALIDATE_NOT_NULL(next);
-    // if pos == data.length, we've already returned false once
-    if (data == NULL || pos == data->GetLength()) {
-        //throw new NoSuchElementException();
-        return NOERROR;
-    }
-    pos += 3;
-    *next = (pos < data->GetLength()) ? TRUE : FALSE;
-    return NOERROR;
-}
-
-ECode NativeDecimalFormat::FieldPositionIterator::CheckValid()
-{
-    if (data == NULL || pos < 0 || pos == data->GetLength()) {
-        //throw new NoSuchElementException();
-        return NOERROR;
-    }
-    return NOERROR;
-}
-
-ECode NativeDecimalFormat::FieldPositionIterator::FieldId(
-        /* [out] */ Int32* fieldId)
-{
-    VALIDATE_NOT_NULL(fieldId);
-    *fieldId = (*data)[pos];
-    return NOERROR;
-}
-
-ECode NativeDecimalFormat::FieldPositionIterator::Field(
-        /* [out] */ IFormatField** ff)
-{
-    CheckValid();
-    *ff = (*fields)[(*data)[pos]];
-    return NOERROR;
-}
-
-ECode NativeDecimalFormat::FieldPositionIterator::Start(
-        /* [out] */ Int32* start)
-{
-    VALIDATE_NOT_NULL(start);
-    CheckValid();
-    *start = (*data)[pos + 1];
-    return NOERROR;
-}
-
-ECode NativeDecimalFormat::FieldPositionIterator::Limit(
-        /* [out] */ Int32* limit)
-{
-    VALIDATE_NOT_NULL(limit);
-    CheckValid();
-    *limit = (*data)[pos + 2];
-    return NOERROR;
-}
-
-ECode NativeDecimalFormat::FieldPositionIterator::SetData(
-        /* [in] */ ArrayOf<Int32>* data)
-{
-    this->data = data;
-    this->pos = -3;
-    return NOERROR;
+    String s;
+    ElStringByteSink sink(&s);
+    pattern.toUTF8(sink);
+    return s;
 }

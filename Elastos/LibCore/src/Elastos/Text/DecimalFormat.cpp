@@ -1,4 +1,5 @@
 
+#include "cmdef.h"
 #include "DecimalFormat.h"
 #include "CDecimalFormatSymbols.h"
 #include "CNativeDecimalFormat.h"
@@ -162,7 +163,7 @@ ECode DecimalFormat::FormatInt64Ex(
 {
     FAIL_RETURN(CheckBufferAndFieldPosition(buffer, field));
     AutoFree< ArrayOf<Char32> > v;
-    FAIL_RETURN(mDform->FormatLong(value, field, (ArrayOf<Char32>**)&v));
+    FAIL_RETURN(mDform->FormatInt64(value, field, (ArrayOf<Char32>**)&v));
     StringBuffer sb(buffer.string());
     for (Int32 i = 0; i < v->GetLength(); ++i) {
         sb += (*v.Get())[i];

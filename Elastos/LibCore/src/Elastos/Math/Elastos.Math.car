@@ -1,6 +1,14 @@
 module
 {
+    importlib("Elastos.Core.eco");
+    importlib("Elastos.Utility.eco");
+
+    merge("../../../car/Elastos/Math/IMathContext.car");
+    merge("../../../car/Elastos/Math/IBigDecimal.car");
+    merge("../../../car/Elastos/Math/IBigInteger.car");
+    merge("../../../car/Elastos/Math/IBigInt.car");
     merge("../../../car/Elastos/Math/RoundingMode.car");
+
 
     interface IDummy {}
 

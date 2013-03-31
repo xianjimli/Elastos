@@ -1,9 +1,8 @@
 
 module
 {
-    interface INumber;
+    enum RoundingMode;
     interface IMathContext;
-    interface IRoundingMode;
     interface IBigInteger;
 
     /**
@@ -20,7 +19,7 @@ module
      * The constant ten as a {@code BigDecimal}.
      */
 //    public static final BigDecimal TEN = new BigDecimal(10, 0);
-	
+
     /**
      * Rounding mode where positive values are rounded towards positive infinity
      * and negative values towards negative infinity.
@@ -186,7 +185,7 @@ module
 		 */
 		Subtract(
             [in] IBigDecimal* subtrahend,
-            [out] IBigDecimal** newObj); 
+            [out] IBigDecimal** newObj);
 
 		/**
 		 * Returns a new {@code BigDecimal} whose value is {@code this - subtrahend}.
@@ -294,7 +293,7 @@ module
 		Divide2(
             [in] IBigDecimal* divisor,
             [in] Int32 scale,
-            [in] IRoundingMode* roundingMode,
+            [in] RoundingMode roundingMode,
             [out] IBigDecimal** newObj);
 
 		/**
@@ -346,7 +345,7 @@ module
 		 */
 		Divide4(
             [in] IBigDecimal* divisor,
-			[in] IRoundingMode* roundingMode,
+			[in] RoundingMode roundingMode,
 			[out] IBigDecimal** newObj);
 
 		/**
@@ -368,7 +367,7 @@ module
 		 */
 		Divide5(
             [in] IBigDecimal* divisor,
-            [out] IBigDecimal** newObj); 
+            [out] IBigDecimal** newObj);
 
 		/**
 		 * Returns a new {@code BigDecimal} whose value is {@code this / divisor}.
@@ -390,7 +389,7 @@ module
 		 *             is necessary according {@code mc.getPrecision()}.
 		 */
 		Divide6(
-		    [in] IBigDecimal* divisor, 
+		    [in] IBigDecimal* divisor,
 			[in] IMathContext* mc,
 			[out] IBigDecimal** newObj);
 
@@ -410,7 +409,7 @@ module
 		DivideToIntegralValue(
             [in] IBigDecimal* divisor,
             [out] IBigDecimal** newObj);
-	
+
 		/**
 		 * Returns a new {@code BigDecimal} whose value is the integral part of
 		 * {@code this / divisor}. The quotient is rounded down towards zero to the
@@ -433,7 +432,7 @@ module
 		 *             digits to be represented.
 		 */
         DivideToIntegralValue2(
-		    [in] IBigDecimal* divisor, 
+		    [in] IBigDecimal* divisor,
 			[in] IMathContext* mc,
 			[out] IBigDecimal** newObj);
 
@@ -478,7 +477,7 @@ module
 		 *             to be represented.
 		 */
         Remainder2(
-		    [in] IBigDecimal* divisor, 
+		    [in] IBigDecimal* divisor,
 			[in] IMathContext* mc,
 			[out] IBigDecimal** newObj);
 
@@ -526,7 +525,7 @@ module
 		 * @see #remainder
 		 */
 		DivideAndRemainder2(
-		    [in] IBigDecimal* divisor, 
+		    [in] IBigDecimal* divisor,
 			[in] IMathContext* mc,
 			[out] ArrayOf<IBigDecimal*> newObjArray);
 
@@ -565,7 +564,7 @@ module
 		 *             if {@code n < 0} or {@code n > 999999999}.
 		 */
 		Pow2(
-            [in] Int32 n, 
+            [in] Int32 n,
             [in] IMathContext* mc,
             [out] IBigDecimal** newObj);
 
@@ -719,8 +718,8 @@ module
 		 *             necessary according to the given scale.
 		 */
 		SetScale(
-		    [in] Int32 newScale, 
-		    [in] IRoundingMode* roundingMode,
+		    [in] Int32 newScale,
+		    [in] RoundingMode roundingMode,
 			[out] IBigDecimal** newObj);
 
 		/**
@@ -748,7 +747,7 @@ module
 		SetScale2(
             [in] Int32 newScale,
 			[in] Int32 roundingMode,
-            [out] IBigDecimal** newObj); 
+            [out] IBigDecimal** newObj);
 
 		/**
 		 * Returns a new {@code BigDecimal} instance with the specified scale. If
@@ -767,8 +766,8 @@ module
 		 *             if rounding would be necessary.
 		 */
 		SetScale3(
-            [in] Int32 newScale, 
-			[out] IBigDecimal** newObj); 
+            [in] Int32 newScale,
+			[out] IBigDecimal** newObj);
 
 		/**
 		 * Returns a new {@code BigDecimal} instance where the decimal point has
@@ -787,7 +786,7 @@ module
 		 * @return {@code this * 10^(-n}).
 		 */
 		MovePointLeft(
-           [in] Int32 n, 
+           [in] Int32 n,
 		   [out] IBigDecimal** newObj);
 
 		/**
@@ -807,7 +806,7 @@ module
 		 * @return {@code this * 10^n}.
 		 */
 		MovePointRight(
-           [in] Int32 n, 
+           [in] Int32 n,
 		   [out] IBigDecimal** newObj);
 
 		/**
@@ -823,7 +822,7 @@ module
 		 * @return {@code this * 10^n}
 		 */
 		ScaleByPowerOfTen(
-     	   [in] Int32 n, 
+     	   [in] Int32 n,
 		   [out] IBigDecimal** newObj);
 
 		/**
@@ -837,7 +836,7 @@ module
 		 */
 		StripTrailingZeros(
 		   [out] IBigDecimal** newObj);
-		
+
 		/**
 		 * Compares this {@code BigDecimal} with {@code val}. Returns one of the
 		 * three values {@code 1}, {@code 0}, or {@code -1}. The method behaves as
@@ -948,7 +947,7 @@ module
 		 *             if rounding is necessary or the number doesn't fit in a long.
 		 */
 		LongValueExact(
-            [out] Int64* value); 
+            [out] Int64* value);
 
 		/**
 		 * Returns this {@code BigDecimal} as a int value if it has no fractional
@@ -960,7 +959,7 @@ module
 		 *             if rounding is necessary or the number doesn't fit in a int.
 		 */
 		IntValueExact(
-            [out] Int32* value); 
+            [out] Int32* value);
 
 		/**
 		 * Returns this {@code BigDecimal} as a short value if it has no fractional

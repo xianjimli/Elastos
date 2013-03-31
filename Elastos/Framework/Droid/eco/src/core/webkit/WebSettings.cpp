@@ -9,13 +9,13 @@
 //#include <elastos/CLocale.h>
 #include "os/Build.h"
 #include "webkit/CWebView.h"
-#include "webkit/DebugFlags.h" 
+#include "webkit/DebugFlags.h"
 #include <Logger.h>
 
 // User agent strings.
 const CString WebSettings::DESKTOP_USERAGENT =
         "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_5_7; en-us) AppleWebKit/530.17 (KHTML, like Gecko) Version/4.0 Safari/530.17";
-const CString WebSettings::IPHONE_USERAGENT = 
+const CString WebSettings::IPHONE_USERAGENT =
         "Mozilla/5.0 (iPhone; U; CPU iPhone OS 3_0 like Mac OS X; en-us) AppleWebKit/528.18 (KHTML, like Gecko) Version/4.0 Mobile/7A341 Safari/528.16";
 
 // private WebSettings, not accessible by the host activity
@@ -94,7 +94,7 @@ void WebSettings::WsEventHandler::WsEhHandler::HandleMessage(
             break;
         }
         case (WsEventHandler::SET_DOUBLE_TAP_TOAST_COUNT): {
-            /*            
+            /*
             AutoPtr<ISharedPreferences> sharedPreferencesT;    //JAVA:    content/SharedPreferences(Interface)
             mContext -> GetSharedPreferences(PREF_FILE,Context_MODE_PRIVATE,(ISharedPreferences**)&sharedPreferencesT);
             AutoPtr<ISharedPreferencesEditor> editor;        //JAVA:    content/SharedPreferences(Interface)::Editor(Interface)
@@ -131,10 +131,10 @@ void WebSettings::WsEventHandler::SetRenderPriority()
     Core::Threading::Mutex::Autolock lock(mWebSettings -> mMutex);
     if ((mWebSettings -> mRenderPriority) == RP_NORMAL) {
         Process::SetThreadPriority(Process::THREAD_PRIORITY_DEFAULT);    //JAVA:    android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_DEFAULT);
-    } 
+    }
     else if ((mWebSettings -> mRenderPriority) == RP_HIGH) {
         Process::SetThreadPriority(Process::THREAD_PRIORITY_FOREGROUND + Process::THREAD_PRIORITY_LESS_FAVORABLE);    //JAVA:    android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_FOREGROUND + android.os.Process.THREAD_PRIORITY_LESS_FAVORABLE);
-    } 
+    }
     else if ((mWebSettings -> mRenderPriority) == RP_LOW) {
         Process::SetThreadPriority(Process::THREAD_PRIORITY_BACKGROUND);
     }
@@ -151,7 +151,7 @@ Boolean WebSettings::WsEventHandler::SendMessage(
         //Boolean bSdMsg;
         //mHandler -> SendMessage(msg,&bSdMsg);
         return TRUE;
-    } 
+    }
     else {
         return FALSE;
     }
@@ -232,16 +232,16 @@ WebSettings::WebSettings()
  * instance.
  */
 WebSettings::WebSettings(
-    /* [in] */ IContext* context, 
+    /* [in] */ IContext* context,
     /* [in] */ IWebView* webview)
 {
     InitPara();
-    mEventHandler = new WebSettings::WsEventHandler::WsEventHandler(this);
+    mEventHandler = new WebSettings::WsEventHandler(this);
     mContext = context;
     mWebView = webview;
     context -> GetString(R::string::default_text_encoding,&mDefaultTextEncoding);
 
-    if(sLocale.Get() == NULL){        
+    if(sLocale.Get() == NULL){
         AutoPtr<ILocaleHelper> localeHelper;
         CLocaleHelper::AcquireSingleton((ILocaleHelper**)&localeHelper);
         localeHelper->GetDefault((ILocale**)&sLocale);
@@ -270,7 +270,7 @@ String WebSettings::GetCurrentAcceptLanguage()
     /*const*/ String country;
     locale -> GetLanguage(&language);
     if(language.IsNullOrEmpty()){
-        buffer += language;        
+        buffer += language;
         locale -> GetCountry(&country);
         if (country.IsNullOrEmpty()) {
             buffer += String("-");
@@ -304,10 +304,10 @@ String WebSettings::GetCurrentUserAgent()
     /*const*/ String version;// = Build::VERSION::RELEASE;    //JAVA:    Build.VERSION.RELEASE;
     if (version.GetLength() > 0) {
         buffer += version;
-    } 
+    }
     else { // default to "1.0"
         buffer += String("1.0");
-    }  
+    }
     buffer += String("; ");
     /*const*/ String language;
     locale -> GetLanguage(&language);
@@ -344,7 +344,7 @@ String WebSettings::GetCurrentUserAgent()
     AutoPtr<ICharSequence> base;
     resT -> GetText(R::string::web_user_agent,(ICharSequence**)&base);
     String retVal;
-    retVal.AppendFormat((char*)(base.Get()),buffer);
+    // retVal.AppendFormat((char*)(base.Get()), buffer);
     return retVal;
 }
 
@@ -620,15 +620,15 @@ void WebSettings::SetUserAgent(
     if (ua == 1) {
         if (mUserAgent.Equals(DESKTOP_USERAGENT)) {
             return; // do nothing
-        } 
+        }
         else {
             uaString = DESKTOP_USERAGENT;
         }
-    } 
+    }
     else if (ua == 2) {
         if (mUserAgent.Equals(IPHONE_USERAGENT)) {
             return; // do nothing
-        } 
+        }
         else {
             uaString = IPHONE_USERAGENT;
         }
@@ -652,10 +652,10 @@ Int32 WebSettings::GetUserAgent()
 
     if (mUserAgent.Equals(DESKTOP_USERAGENT)) {
         return 1;
-    } 
+    }
     else if (mUserAgent.Equals(IPHONE_USERAGENT)) {
         return 2;
-    } 
+    }
     else if (mUseDefaultUserAgent) {
         return 0;
     }
@@ -1525,7 +1525,7 @@ String* WebSettings::GetUserAgentString()
     }
 
     Boolean doPostSync = FALSE;
-    
+
     sLockForLocaleSettings.Lock();
     {
         AutoPtr<ILocale> currentLocale;// = Locale.GetDefault();
@@ -1546,7 +1546,7 @@ String* WebSettings::GetUserAgentString()
 }
 
 /* package api to grab the Accept Language string. */
-/*package*/ 
+/*package*/
 String* WebSettings::GetAcceptLanguage()
 {
     Mutex::Autolock lock(mMutex);
@@ -1567,7 +1567,7 @@ String* WebSettings::GetAcceptLanguage()
 /**
  * Tell the WebView whether it needs to set a node to have focus when
  * {@link WebView#requestFocus(int, android.graphics.Rect)} is called.
- * 
+ *
  * @param flag
  */
 void WebSettings::SetNeedInitialFocus(
@@ -1579,7 +1579,7 @@ void WebSettings::SetNeedInitialFocus(
 }
 
 /* Package api to get the choice whether it needs to set initial focus. */
-/* package */ 
+/* package */
 Boolean WebSettings::GetNeedInitialFocus()
 {
     return mNeedInitialFocus;
@@ -1720,7 +1720,7 @@ CARAPI_(void) WebSettings::PostSync()
     	//JAVA:    mSyncPending = mEventHandler.sendMessage(Message.obtain(null, EventHandler.SYNC));
     	AutoPtr<IMessage> messageT;
     	//CMessage::Obtain(NULL, WsEventHandler::SYNC,(IMessage**)&messageT);
-    	mSyncPending = mEventHandler -> SendMessage(messageT.Get());		
+    	mSyncPending = mEventHandler -> SendMessage(messageT.Get());
     }
 }
 
@@ -1728,6 +1728,6 @@ CARAPI_(void) WebSettings::PostSync()
 CARAPI_(void) WebSettings::NativeSync(
     /* [in] */ Int32 nativeFrame)
 {
-    
+
 }
 

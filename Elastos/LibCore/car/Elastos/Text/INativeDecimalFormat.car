@@ -1,4 +1,10 @@
 module {
+    interface IDecimalFormatSymbols;
+    interface IFieldPosition;
+    interface IParsePosition;
+    interface IAttributedCharacterIterator;
+    interface ICurrency;
+
     interface INativeDecimalFormat {
         Close();
 
@@ -8,28 +14,28 @@ module {
         SetDecimalFormatSymbols(
             [in] IDecimalFormatSymbols* dfs);
 
-//        SetDecimalFormatSymbolsEx(
-//            [in] LocaleData* ld);
+        SetDecimalFormatSymbolsEx(
+            [in] ILocaleData* ld);
 
-//        FormatBigDecimal(
-//            [in] IBigDecimal* value,
-//            [in] FieldPosition field,
-//            [out, callee] ArrayOf<Char32>* array);
+        FormatBigDecimal(
+            [in] IBigDecimal* value,
+            [in] IFieldPosition* field,
+            [out, callee] ArrayOf<Char32>* result);
 
-//        FormatBigInteger(
-//            [in] IBigInteger* value,
-//            [in] IFieldPosition* field,
-//            [out, callee] ArrayOf<Char32>* array);
+        FormatBigInteger(
+            [in] IBigInteger* value,
+            [in] IFieldPosition* field,
+            [out, callee] ArrayOf<Char32>* result);
 
-        FormatLong(
+        FormatInt64(
             [in] Int64 value,
             [in] IFieldPosition* field,
-            [out, callee] ArrayOf<Char32>* array);
+            [out, callee] ArrayOf<Char32>* result);
 
         FormatDouble(
             [in] Double value,
             [in] IFieldPosition* field,
-            [out, callee] ArrayOf<Char32>* array);
+            [out, callee] ArrayOf<Char32>* result);
 
         ApplyLocalizedPattern(
             [in] String pattern);
@@ -42,7 +48,7 @@ module {
             [out] IAttributedCharacterIterator** result);
 
         ToLocalizedPattern(
-            [out] String* localizedPattern);
+            [out] String* pattern);
 
         ToPattern(
             [out] String* pattern);
@@ -55,37 +61,37 @@ module {
         // start getter and setter
 
         GetMaximumFractionDigits(
-            [out] Int32* maximumFractionDigits);
+            [out] Int32* maxFractionDigits);
 
         GetMaximumIntegerDigits(
-            [out] Int32* maximumIntegerDigits);
+            [out] Int32* maxIntegerDigits);
 
         GetMinimumFractionDigits(
-            [out] Int32* minimumFractionDigits);
+            [out] Int32* minFractionDigits);
 
         GetMinimumIntegerDigits(
-            [out] Int32* minimumIntegerDigits);
+            [out] Int32* minIntegerDigits);
 
         GetGroupingSize(
-            [out] Int32* groupingSize);
+            [out] Int32* size);
 
         GetMultiplier(
             [out] Int32* multiplier);
 
         GetNegativePrefix(
-            [out] String* negativePrefix);
+            [out] String* prefix);
 
         GetNegativeSuffix(
-            [out] String* negativeSuffix);
+            [out] String* suffix);
 
         GetPositivePrefix(
-            [out] String* positivePrefix);
+            [out] String* prefix);
 
         GetPositiveSuffix(
-            [out] String* positiveSuffix);
+            [out] String* suffix);
 
         IsDecimalSeparatorAlwaysShown(
-            [out] Boolean* isDecimalSeparatorAlwaysShown);
+            [out] Boolean* isAlwaysShown);
 
         IsParseBigDecimal(
             [out] Boolean* isParseBigDecimal);
@@ -142,25 +148,7 @@ module {
             [in] Boolean value);
 
         SetRoundingMode(
-            [in] RoundingMode roundingMode,
+            [in] RoundingMode mode,
             [in] Double roundingIncrement);
-
-        GetAddr(
-            [out] Int32* value);
-
-        GetLastPattern(
-            [out] String* value);
-
-        GetNegPrefNull(
-            [out] Boolean* value);
-
-        GetNegSuffNull(
-            [out] Boolean* value);
-
-        GetPosPrefNull(
-            [out] Boolean* value);
-
-        GetPosSuffNull(
-            [out] Boolean* value);
     }
 }

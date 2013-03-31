@@ -7,6 +7,6 @@ module
 //    #define FRAMEWORK_SUCCESS(c)    MAKE_SUCCESS(FAMILY_FRAMEWORK, c)
 
     //==========================================================================
-    // Elastos IO exception codes (Family: 0x2D)
+    // Elastos Text exception codes (Family: 0x2D)
     const E_PARSE_EXCEPTION                                = 0xAD010000;
 }

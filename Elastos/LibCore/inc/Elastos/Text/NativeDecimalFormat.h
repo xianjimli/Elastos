@@ -1,22 +1,27 @@
+
 #ifndef __NATIVEDECIMALFORMAT_H__
 #define __NATIVEDECIMALFORMAT_H__
 
-#include "cmdef.h"
 #include "Elastos.Text_server.h"
-#include <elastos.h>
 #include <elastos/AutoPtr.h>
-//#include "LocaleData.h"
+#include <elastos/ElRefBase.h>
+#include <elastos/AutoFree.h>
+#include <elastos/Mutex.h>
 #include <StringBuffer.h>
-using namespace Elastos;
 
-class NativeDecimalFormat {
-private:
+using namespace Elastos::Core::Threading;
+
+class NativeDecimalFormat
+{
+public:
     // Utility to get information about field positions from native (ICU) code.
-    class FieldPositionIterator {
+    class FieldPositionIterator : public ElRefBase
+    {
+        friend class NativeDecimalFormat;
+
     public:
-        static CARAPI ForFieldPosition(
-            /* [in] */ IFieldPosition* fp,
-            /* [out] */ FieldPositionIterator** fpi);
+        static CARAPI_(AutoPtr<FieldPositionIterator>) ForFieldPosition(
+            /* [in] */ IFieldPosition* fp);
 
         CARAPI Next(
             /* [out] */ Boolean* next);
@@ -33,61 +38,29 @@ private:
         CARAPI Limit(
             /* [out] */ Int32* limit);
 
-        static CARAPI SetFieldPosition(
-            /* [in] */ FieldPositionIterator* fpi,
-            /* [in] */ IFieldPosition* fp);
-    private:
-        FieldPositionIterator();
-
-        static CARAPI GetNativeFieldPositionId(
-            /* [in] */ IFieldPosition* fp,
-            /* [out] */ Int32* nfpid);
-
-        CARAPI CheckValid();
-
         // called by native
         CARAPI SetData(
             /* [in] */ ArrayOf<Int32>* data);
+
     private:
-        ArrayOf<Int32>* data;
-        Int32 pos; // so first call to next() leaves pos at 0
-        static ArrayOf<IFormatField*>* fields; /*= {
-            // The old java field values were 0 for integer and 1 for fraction.
-            // The new java field attributes are all objects.  ICU assigns the values
-            // starting from 0 in the following order; note that integer and
-            // fraction positions match the old field values.
-            NumberFormat.Field.INTEGER,
-            NumberFormat.Field.FRACTION,
-            NumberFormat.Field.DECIMAL_SEPARATOR,
-            NumberFormat.Field.EXPONENT_SYMBOL,
-            NumberFormat.Field.EXPONENT_SIGN,
-            NumberFormat.Field.EXPONENT,
-            NumberFormat.Field.GROUPING_SEPARATOR,
-            NumberFormat.Field.CURRENCY,
-            NumberFormat.Field.PERCENT,
-            NumberFormat.Field.PERMILLE,
-            NumberFormat.Field.SIGN,
-        };*/
+        FieldPositionIterator();
 
+        static CARAPI_(Int32) GetNativeFieldPositionId(
+            /* [in] */ IFieldPosition* fp);
+
+        static CARAPI SetFieldPosition(
+            /* [in] */ FieldPositionIterator* fpi,
+            /* [in] */ IFieldPosition* fp);
+
+        CARAPI CheckValid();
+
+    private:
+        AutoFree< ArrayOf<Int32> > mData;
+        Int32 mPos; // so first call to next() leaves pos at 0
+        static ArrayOf< AutoPtr<IFormatField> >* sFields;
     };
+
 public:
-    NativeDecimalFormat();
-    /**
-     * Cache the BigDecimal form of the multiplier. This is null until we've
-     * formatted a BigDecimal (with a multiplier that is not 1), or the user has
-     * explicitly called {@link #setMultiplier(int)} with any multiplier.
-     */
-//    private BigDecimal multiplierBigDecimal = null;
-
-    CARAPI Init(
-        /* [in] */ String pattern,
-        /* [in] */ IDecimalFormatSymbols* dfs);
-
-    // Used so java.util.Formatter doesn't need to allocate DecimalFormatSymbols instances.
-//    NativeDecimalFormat(
-//        /* [in] */ String pattern,
-//        /* [in] */ LocaleData* data);
-
     // TODO: remove this and just have DecimalFormat.hashCode do the right thing itself.
     //@Override
     //public int hashCode() {
@@ -147,29 +120,20 @@ public:
     CARAPI SetDecimalFormatSymbols(
         /* [in] */ IDecimalFormatSymbols* dfs);
 
-//    CARAPI SetDecimalFormatSymbols(
-//        /* [in] */ const LocaleData* localeData);
+    CARAPI SetDecimalFormatSymbols(
+        /* [in] */ ILocaleData* localeData);
 
-/*
-    public char[] formatBigDecimal(BigDecimal value, FieldPosition field) {
-        FieldPositionIterator fpi = FieldPositionIterator.forFieldPosition(field);
-        char[] result = formatDigitList(this.addr, value.toString(), fpi);
-        if (fpi != null) {
-            FieldPositionIterator.setFieldPosition(fpi, field);
-        }
-        return result;
-    }
+    CARAPI FormatBigDecimal(
+        /* [in] */ IBigDecimal* value,
+        /* [in] */ IFieldPosition* field,
+        /* [out, callee] */ ArrayOf<Char32>** result);
 
-    public char[] formatBigInteger(BigInteger value, FieldPosition field) {
-        FieldPositionIterator fpi = FieldPositionIterator.forFieldPosition(field);
-        char[] result = formatDigitList(this.addr, value.toString(10), fpi);
-        if (fpi != null) {
-            FieldPositionIterator.setFieldPosition(fpi, field);
-        }
-        return result;
-    }
-*/
-    CARAPI FormatLong(
+    CARAPI FormatBigInteger(
+        /* [in] */ IBigInteger* value,
+        /* [in] */ IFieldPosition* field,
+        /* [out, callee] */ ArrayOf<Char32>** result);
+
+    CARAPI FormatInt64(
         /* [in] */ Int64 value,
         /* [in] */ IFieldPosition* field,
         /* [out, callee] */ ArrayOf<Char32>** array);
@@ -180,10 +144,10 @@ public:
         /* [out, callee] */ ArrayOf<Char32>** array);
 
     CARAPI ApplyLocalizedPattern(
-        /* [in] */ String pattern);
+        /* [in] */ const String& pattern);
 
     CARAPI ApplyPattern(
-        /* [in] */ String pattern);
+        /* [in] */ const String& pattern);
 
     CARAPI FormatToCharacterIterator(
         /* [in] */ IInterface* object,
@@ -196,44 +160,44 @@ public:
         /* [out] */ String* pattern);
 
     CARAPI Parse(
-        /* [in] */ String string,
+        /* [in] */ const String& string,
         /* [in] */ IParsePosition* position,
         /* [out] */ INumber** number);
 
     // start getter and setter
 
     CARAPI GetMaximumFractionDigits(
-        /* [out] */ Int32* maximumFractionDigits);
+        /* [out] */ Int32* maxFractionDigits);
 
     CARAPI GetMaximumIntegerDigits(
-        /* [out] */ Int32* maximumIntegerDigits);
+        /* [out] */ Int32* maxIntegerDigits);
 
     CARAPI GetMinimumFractionDigits(
-        /* [out] */ Int32* minimumFractionDigits);
+        /* [out] */ Int32* minFractionDigits);
 
     CARAPI GetMinimumIntegerDigits(
-        /* [out] */ Int32* minimumIntegerDigits);
+        /* [out] */ Int32* minIntegerDigits);
 
     CARAPI GetGroupingSize(
-        /* [out] */ Int32* groupingSize);
+        /* [out] */ Int32* size);
 
     CARAPI GetMultiplier(
         /* [out] */ Int32* multiplier);
 
     CARAPI GetNegativePrefix(
-        /* [out] */ String* negativePrefix);
+        /* [out] */ String* prefix);
 
     CARAPI GetNegativeSuffix(
-        /* [out] */ String* negativeSuffix);
+        /* [out] */ String* suffix);
 
     CARAPI GetPositivePrefix(
-        /* [out] */ String* positivePrefix);
+        /* [out] */ String* prefix);
 
     CARAPI GetPositiveSuffix(
-        /* [out] */ String* positiveSuffix);
+        /* [out] */ String* suffix);
 
     CARAPI IsDecimalSeparatorAlwaysShown(
-        /* [out] */ Boolean* isDecimalSeparatorAlwaysShown);
+        /* [out] */ Boolean* isAlwaysShown);
 
     CARAPI IsParseBigDecimal(
         /* [out] */ Boolean* isParseBigDecimal);
@@ -272,16 +236,16 @@ public:
         /* [in] */ Int32 value);
 
     CARAPI SetNegativePrefix(
-        /* [in] */ String value);
+        /* [in] */ const String& value);
 
     CARAPI SetNegativeSuffix(
-        /* [in] */ String value);
+        /* [in] */ const String& value);
 
     CARAPI SetPositivePrefix(
-        /* [in] */ String value);
+        /* [in] */ const String& value);
 
     CARAPI SetPositiveSuffix(
-        /* [in] */ String value);
+        /* [in] */ const String& value);
 
     CARAPI SetParseBigDecimal(
         /* [in] */ Boolean value);
@@ -290,7 +254,7 @@ public:
         /* [in] */ Boolean value);
 
     CARAPI SetRoundingMode(
-        /* [in] */ RoundingMode roundingMode,
+        /* [in] */ RoundingMode mode,
         /* [in] */ Double roundingIncrement);
 
     CARAPI GetAddr(
@@ -310,117 +274,135 @@ public:
 
     CARAPI GetPosSuffNull(
         /* [out] */ Boolean* value);
+
+protected:
+    NativeDecimalFormat();
+
+    CARAPI Init(
+        /* [in] */ const String& pattern,
+        /* [in] */ IDecimalFormatSymbols* dfs);
+
+    // Used so java.util.Formatter doesn't need to allocate DecimalFormatSymbols instances.
+    CARAPI Init(
+        /* [in] */ const String& pattern,
+        /* [in] */ ILocaleData* data);
+
+    virtual CARAPI_(Mutex*) GetSelfLock() = 0;
+
 private:
     // Used to implement clone.
-    NativeDecimalFormat(
-        /* [in] */ INativeDecimalFormat* other);
+    // NativeDecimalFormat(
+    //     /* [in] */ INativeDecimalFormat* other);
 
-    CARAPI MakeScalePositive(
+    CARAPI_(Int32) MakeScalePositive(
         /* [in] */ Int32 scale,
-        /* [in] */ StringBuffer val,
-        /* [out] */ Int32* value);
+        /* [in] */ StringBuffer& val);
 
     static CARAPI ApplyPattern(
-        /* [in] */ Int32 addr,
+        /* [in] */ Handle32 addr,
         /* [in] */ Boolean localized,
-        /* [in] */ String pattern);
+        /* [in] */ const String& pattern);
 
-    static CARAPI_(void) ApplyPatternImpl(
-        /* [in] */ Int32 addr,
+    static CARAPI ApplyPatternImpl(
+        /* [in] */ Handle32 addr,
         /* [in] */ Boolean localized,
-        /* [in] */ String pattern);
+        /* [in] */ const String& pattern);
 
-    static CARAPI_(Int32) CloneImpl(
-        /* [in] */ Int32 addr);
+    static CARAPI_(Handle32) CloneImpl(
+        /* [in] */ Handle32 addr);
 
     static CARAPI_(void) Close(
-        /* [in] */ Int32 addr);
+        /* [in] */ Handle32 addr);
 
-    static CARAPI_(ArrayOf<Char32>*) FormatLong(
-        /* [in] */ Int32 addr,
+    static CARAPI_(ArrayOf<Char32>*) FormatInt64(
+        /* [in] */ Handle32 addr,
         /* [in] */ Int64 value,
         /* [in] */ FieldPositionIterator* iter);
 
     static CARAPI_(ArrayOf<Char32>*) FormatDouble(
-        /* [in] */ Int32 addr,
+        /* [in] */ Handle32 addr,
         /* [in] */ Double value,
         /* [in] */ FieldPositionIterator* iter);
 
     static CARAPI_(ArrayOf<Char32>*) FormatDigitList(
-        /* [in] */ Int32 addr,
-        /* [in] */ String value,
+        /* [in] */ Handle32 addr,
+        /* [in] */ const String& value,
         /* [in] */ FieldPositionIterator* iter);
 
     static CARAPI_(Int32) GetAttribute(
-        /* [in] */ Int32 addr,
+        /* [in] */ Handle32 addr,
         /* [in] */ Int32 symbol);
 
-    static CARAPI_(String) GetTextAttribute(
-        /* [in] */ Int32 addr,
-        /* [in] */ Int32 symbol);
+    static CARAPI GetTextAttribute(
+        /* [in] */ Handle32 addr,
+        /* [in] */ Int32 symbol,
+        /* [out] */ String* attr);
 
-    static CARAPI_(Int32) Open(
-        /* [in] */ String pattern,
-        /* [in] */ String currencySymbol,
+    static CARAPI Open(
+        /* [in] */ const String& pattern,
+        /* [in] */ const String& currencySymbol,
         /* [in] */ Char32 decimalSeparator,
         /* [in] */ Char32 digit,
-        /* [in] */ String exponentSeparator,
+        /* [in] */ const String& exponentSeparator,
         /* [in] */ Char32 groupingSeparator,
-        /* [in] */ String infinity,
-        /* [in] */ String internationalCurrencySymbol,
+        /* [in] */ const String& infinity,
+        /* [in] */ const String& internationalCurrencySymbol,
         /* [in] */ Char32 minusSign,
         /* [in] */ Char32 monetaryDecimalSeparator,
-        /* [in] */ String nan,
+        /* [in] */ const String& nan,
         /* [in] */ Char32 patternSeparator,
         /* [in] */ Char32 percent,
         /* [in] */ Char32 perMill,
-        /* [in] */ Char32 zeroDigit);
+        /* [in] */ Char32 zeroDigit,
+        /* [out] */ Handle32* addr);
 
-    static CARAPI_(INumber*) Parse(
-        /* [in] */ Int32 addr,
-        /* [in] */ String string,
+    static CARAPI_(AutoPtr<INumber>) Parse(
+        /* [in] */ Handle32 addr,
+        /* [in] */ const String& string,
         /* [in] */ IParsePosition* position,
         /* [in] */ Boolean parseBigDecimal);
 
     static CARAPI_(void) SetDecimalFormatSymbols(
-        /* [in] */ Int32 addr,
-        /* [in] */ String currencySymbol,
+        /* [in] */ Handle32 addr,
+        /* [in] */ const String& currencySymbol,
         /* [in] */ Char32 decimalSeparator,
         /* [in] */ Char32 digit,
-        /* [in] */ String exponentSeparator,
+        /* [in] */ const String& exponentSeparator,
         /* [in] */ Char32 groupingSeparator,
-        /* [in] */ String infinity,
-        /* [in] */ String internationalCurrencySymbol,
+        /* [in] */ const String& infinity,
+        /* [in] */ const String& internationalCurrencySymbol,
         /* [in] */ Char32 minusSign,
         /* [in] */ Char32 monetaryDecimalSeparator,
-        /* [in] */ String nan,
+        /* [in] */ const String& nan,
         /* [in] */ Char32 patternSeparator,
         /* [in] */ Char32 percent,
         /* [in] */ Char32 perMill,
         /* [in] */ Char32 zeroDigit);
 
-    static CARAPI_(void) SetSymbol(
-        /* [in] */ Int32 addr,
+    static CARAPI SetSymbol(
+        /* [in] */ Handle32 addr,
         /* [in] */ Int32 symbol,
-        /* [in] */ String str);
+        /* [in] */ const String& str);
+
     static CARAPI_(void) SetAttribute(
-        /* [in] */ Int32 addr,
+        /* [in] */ Handle32 addr,
         /* [in] */ Int32 symbol,
         /* [in] */ Int32 i);
 
     static CARAPI_(void) SetRoundingMode(
-        /* [in] */ Int32 addr,
+        /* [in] */ Handle32 addr,
         /* [in] */ Int32 roundingMode,
         /* [in] */ Double roundingIncrement);
 
-    static CARAPI_(void) SetTextAttribute(
-        /* [in] */ Int32 addr,
+    static CARAPI SetTextAttribute(
+        /* [in] */ Handle32 addr,
         /* [in] */ Int32 symbol,
-        /* [in] */ String str);
+        /* [in] */ const String& str);
 
     static CARAPI_(String) ToPatternImpl(
-        /* [in] */ Int32 addr,
+        /* [in] */ Handle32 addr,
         /* [in] */ Boolean localized);
+
 private:
     /**
      * Constants corresponding to the native type UNumberFormatSymbol, for setSymbol.
@@ -486,21 +468,29 @@ private:
     /**
      * The address of the ICU DecimalFormat* on the native heap.
      */
-    Int32 addr;
+    Handle32 mAddr;
 
     /**
      * The last pattern we gave to ICU, so we can make repeated applications cheap.
      * This helps in cases like String.format("%.2f,%.2f\n", x, y) where the DecimalFormat is
      * reused.
      */
-    String* lastPattern;
+    String mLastPattern;
 
     // TODO: store all these in DecimalFormat instead!
-    Boolean negPrefNull;
-    Boolean negSuffNull;
-    Boolean posPrefNull;
-    Boolean posSuffNull;
+    Boolean mNegPrefNull;
+    Boolean mNegSuffNull;
+    Boolean mPosPrefNull;
+    Boolean mPosSuffNull;
 
-    mutable Boolean parseBigDecimal;
+    mutable Boolean mParseBigDecimal;
+
+    /**
+     * Cache the BigDecimal form of the multiplier. This is null until we've
+     * formatted a BigDecimal (with a multiplier that is not 1), or the user has
+     * explicitly called {@link #setMultiplier(int)} with any multiplier.
+     */
+//    private BigDecimal multiplierBigDecimal = null;
 };
+
 #endif //__NATIVEDECIMALFORMAT_H__

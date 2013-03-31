@@ -1,10 +1,12 @@
 
 module
 {
-
+    merge("../../../../car/Elastos/Utility/Exceptions.car");
+    merge("../../../../car/Elastos/Utility/IRandom.car");
     merge("../../../../car/Elastos/Utility/IComparator.car");
     merge("../../../../car/Elastos/Utility/IDate.car");
     merge("../../../../car/Elastos/Utility/ILocale.car");
+    merge("../../../../car/Elastos/Utility/ILocaleData.car");
     merge("../../../../car/Elastos/Utility/ICalendar.car");
     merge("../../../../car/Elastos/Utility/IGregorianCalendar.car");
     merge("../../../../car/Elastos/Utility/IICUHelper.car");
@@ -14,6 +16,7 @@ module
     merge("../../../../car/Elastos/Utility/ITimerTask.car");
     merge("../../../../car/Elastos/Utility/ITimer.car");
     merge("../../../../car/Elastos/Utility/ICurrency.car");
+
 
     class CObjectContainer {
         interface IObjectContainer;
