@@ -1,15 +1,17 @@
-#ifndef _STRINGENCODER_H_
-#define _STRINGENCODER_H_
+#ifndef _CSTRINGENCODER_H_
+#define _CSTRINGENCODER_H_
 
 #include <elastos.h>
 #include <Elastos.SQL_server.h>
 #include <elastos/AutoPtr.h>
+#include "_CStringEncoder.h"
 
 using namespace Elastos;
 
-class StringEncoder
+CarClass(CStringEncoder)
 {
 public:
+
     /**
      * Encodes the given byte array into a string that can be used by
      * the SQLite database. The database cannot handle null (0x00) and
@@ -42,8 +44,8 @@ public:
      *    a valid encoded string for this encoder.
      */
     CARAPI Decode(
-        /** [in] **/String s,
-        /** [out] **/ArrayOf<Byte>* code);
+        /** [in] **/const String& s,
+        /** [out] **/ArrayOf<Byte>** code);
 
     /**
      * Encodes the given byte array into SQLite3 blob notation, ie X'..'
@@ -69,7 +71,7 @@ private:
         /** [in] **/const ArrayOf<Byte>& source, 
         /** [in] **/Int32 offset,
         /** [in] **/Int32 count, 
-        /** [in] **/const ArrayOf<Byte>& target,
+        /** [in] **/ArrayOf<Byte>* target,
         /** [out] **/ArrayOf<Byte>* code);
 };
-#endif //_STRINGENCODER_H_
+#endif //_CSTRINGENCODER_H_
