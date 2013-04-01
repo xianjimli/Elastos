@@ -1457,7 +1457,8 @@ ECode Thread::Detach()
     }
 
     /* switch to "running" to check for suspension */
-    NativeChangeStatus(self, NTHREAD_RUNNING);
+    // NativeChangeStatus(self, NTHREAD_RUNNING);
+    NativeChangeStatus(self, NTHREAD_NATIVE);
 
     /* detach the thread */
     NativeDetachCurrentThread();

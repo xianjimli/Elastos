@@ -1162,6 +1162,7 @@ ECode NativeAttachCurrentThread(
 //        ret = true;
 //    }
 //    dvmSetFieldObject(threadObj, gDvm.offJavaLangThread_vmThread, vmThreadObj);
+    ((Thread*)threadObj.Get())->mNativeThread = self;
 //
 //    /* we can now safely un-pin these */
 //    dvmReleaseTrackedAlloc(threadObj, self);
