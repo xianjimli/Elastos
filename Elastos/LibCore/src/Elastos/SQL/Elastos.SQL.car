@@ -24,6 +24,7 @@ module
     merge("../../../car/Elastos/SQL/ITableResult.car");
     merge("../../../car/Elastos/SQL/ITrace.car");
     merge("../../../car/Elastos/SQL/IVm.car");
+    merge("../../../car/Elastos/SQL/IStringEncoder.car");
     merge("../../../car/Elastos/SQL/IDatabase.car");
 /*
     merge("../../../car/Elastos/Core/INumber.car");
@@ -115,5 +116,7 @@ module
         interface ITableResult;
     }
 
-
+    singleton class CStringEncoder {
+        interface IStringEncoder;
+    }
 }

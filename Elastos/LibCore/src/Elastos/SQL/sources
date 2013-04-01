@@ -26,7 +26,7 @@ SOURCES += Vm.cpp
 SOURCES += CVm.cpp
 SOURCES += TableResult.cpp
 SOURCES += CTableResult.cpp
-SOURCES += StringEncoder.cpp
+SOURCES += CStringEncoder.cpp
 
 
 
