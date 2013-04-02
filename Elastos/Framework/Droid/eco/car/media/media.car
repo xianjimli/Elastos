@@ -28,6 +28,8 @@ module
     merge("media/SoundPool.car");
     merge("media/ExifInterface.car");
     merge("media/MediaMetadataRetriever.car");
+    merge("media/AmrInputStream.car");
+    merge("media/AsyncPlayer.car");
 
     class CAudioTrack {
         constructor(
@@ -213,5 +215,19 @@ module
         constructor();
 
         interface IMediaMetadataRetriever;
+    }
+
+    class CAmrInputStream {
+        constructor(
+            [in] IInputStream* inputStream);
+
+        interface IAmrInputStream;
+    }
+
+    class CAsyncPlayer {
+        constructor(
+            [in] String tag);
+
+        interface IAsyncPlayer;
     }
 }
