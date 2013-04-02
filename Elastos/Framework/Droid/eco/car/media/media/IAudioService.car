@@ -1,8 +1,7 @@
 
 module
 {
-    interface IIAudioService
-    {
+    interface IAudioService {
         AdjustVolume(
             [in] Int32 direction,
             [in] Int32 flags);
@@ -65,31 +64,31 @@ module
         GetMode(
             [out] Int32* mode);
 
-        PlaySoundEffect(
+        /* oneway */ PlaySoundEffect(
             [in] Int32 effectType);
 
-        PlaySoundEffectVolume(
+        /* oneway */ PlaySoundEffectVolume(
             [in] Int32 effectType,
             [in] Float volume);
 
         LoadSoundEffects(
             [out] Boolean* load);
 
-        UnloadSoundEffects();
+        /* oneway */ UnloadSoundEffects();
 
-        ReloadAudioSettings();
+        /* oneway */ ReloadAudioSettings();
 
         SetSpeakerphoneOn(
             [in] Boolean on);
 
         IsSpeakerphoneOn(
-            [out] Boolean* speakerphoneOn);
+            [out] Boolean* isOn);
 
         SetBluetoothScoOn(
             [in] Boolean on);
 
         IsBluetoothScoOn(
-            [out] Boolean* on);
+            [out] Boolean* isOn);
 
         RequestAudioFocus(
             [in] Int32 mainStreamType,

@@ -5,8 +5,7 @@ module
      * Interface for notifying clients of the result of scanning a
      * requested media file.
      */
-    interface IOnScanCompletedListener 
-    {
+    interface IOnScanCompletedListener {
         /**
          * Called to notify the client when the media scanner has finished
          * scanning a file.
@@ -15,7 +14,7 @@ module
          * and the file was added to the media database, or NULL if scanning failed.
          */
         OnScanCompleted(
-            [in] String path, 
+            [in] String path,
             [in] IUri* uri);
     }
 
@@ -24,8 +23,7 @@ module
      * when a connection to the MediaScanner service has been established
      * and when the scanning of a file has completed.
      */
-    interface IMediaScannerConnectionClient extends IOnScanCompletedListener
-    {
+    interface IMediaScannerConnectionClient extends IOnScanCompletedListener {
         /**
          * Called to notify the client when a connection to the
          * MediaScanner service has been established.
@@ -33,8 +31,7 @@ module
         OnMediaScannerConnected();
     }
 
-    interface IMediaScannerConnection extends IServiceConnection
-    {
+    interface IMediaScannerConnection extends IServiceConnection {
         /**
          * Initiates a connection to the media scanner service.
          * {@link MediaScannerConnectionClient#onMediaScannerConnected()}
@@ -63,10 +60,12 @@ module
          * @param mimeType  an optional mimeType for the file.
          * If mimeType is NULL, then the mimeType will be inferred from the file extension.
          */
-         ScanFile(
-             [in] String path, 
-             [in] String mimeType);
-    
+        ScanFile(
+            [in] String path,
+            [in] String mimeType);
+    }
+
+    interface IMediaScannerConnectionHelper {
         /**
          * Convenience for constructing a {@link MediaScannerConnection}, calling
          * {@link #connect} on it, and calling {@link #scanFile} with the given
@@ -84,10 +83,10 @@ module
          * you will not get a result back.
          * @see scanFile(String, String)
          */
-        ScanFileEx(
-            [in] IContext* context, 
-            [in] ArrayOf<String> paths, 
+        ScanFile(
+            [in] IContext* context,
+            [in] ArrayOf<String> paths,
             [in] ArrayOf<String> mimeTypes,
-            [in] IOnScanCompletedListener* cb);   
+            [in] IOnScanCompletedListener* cb);
     }
 }

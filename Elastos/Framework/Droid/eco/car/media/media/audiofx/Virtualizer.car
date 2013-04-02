@@ -9,8 +9,8 @@ module
      * {@link android.media.audiofx.Virtualizer.OnParameterChangeListener}
      */
     const Virtualizer_PARAM_STRENGTH = 1;
- 
-     interface IVirtualizer;
+
+    interface IVirtualizer;
 
     /**
      * The OnParameterChangeListener interface defines a method called by the Virtualizer when a
@@ -46,7 +46,7 @@ module
             [in] Int16 result);
     }
 
-    interface IVirtualizer /* extends IAudioEffect */ {
+    interface IVirtualizer extends IAudioEffect {
 
         /**
          * Indicates whether setting strength is supported. If this method returns false, only one
@@ -85,7 +85,7 @@ module
          * Registers an OnParameterChangeListener interface.
          * @param listener OnParameterChangeListener interface registered
          */
-        SetParameterListenerEx5(
+        SetParameterListenerEx(
             [in] IVirtualizerOnParameterChangeListener* listener);
 
         /**

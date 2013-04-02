@@ -56,7 +56,7 @@ ECode CExifInterface::GetThumbnail(
 }
 
 ECode CExifInterface::GetLatLong(
-    /* [in] */ const ArrayOf<Float> & output,
+    /* [out] */ ArrayOf<Float>* output,
     /* [out] */ Boolean * pAvailable)
 {
     // TODO: Add your code here

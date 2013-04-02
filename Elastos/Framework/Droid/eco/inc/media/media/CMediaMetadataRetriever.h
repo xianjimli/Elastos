@@ -10,11 +10,23 @@ CarClass(CMediaMetadataRetriever), public MediaMetadataRetriever
 {
 public:
     CARAPI SetDataSource(
-        /* [in] */ IFileDescriptor * pFd);
+        /* [in] */ const String& path);
 
     CARAPI SetDataSourceEx(
+        /* [in] */ IFileDescriptor * pFd);
+
+    CARAPI SetDataSourceEx2(
+        /* [in] */ IFileDescriptor* fd,
+        /* [in] */ Int64 offset,
+        /* [in] */ Int64 length);
+
+    CARAPI SetDataSourceEx3(
         /* [in] */ IContext * pContext,
         /* [in] */ IUri * pUri);
+
+    CARAPI ExtractMetadata(
+        /* [in] */ Int32 keyCode,
+        /* [out] */ String* value);
 
     CARAPI GetFrameAtTime(
         /* [in] */ Int64 timeUs,

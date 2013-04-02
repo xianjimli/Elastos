@@ -1,8 +1,7 @@
 
 module
 {
-    interface IMediaScannerListener
-    {
+    interface IMediaScannerListener {
         /**
          * Called when a IMediaScannerService.scanFile() call has completed.
          * @param path the path to the file that has been scanned.

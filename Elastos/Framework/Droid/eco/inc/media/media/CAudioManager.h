@@ -147,7 +147,8 @@ public:
     CARAPI RequestAudioFocus(
         /* [in] */ IOnAudioFocusChangeListener * pL,
         /* [in] */ Int32 streamType,
-        /* [in] */ Int32 durationHint);
+        /* [in] */ Int32 durationHint,
+        /* [out] */ Int32* result);
 
     CARAPI AbandonAudioFocus(
         /* [in] */ IOnAudioFocusChangeListener * pL,

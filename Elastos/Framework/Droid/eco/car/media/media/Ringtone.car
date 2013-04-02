@@ -1,11 +1,10 @@
 
 module
 {
-    interface IRingtone
-    {
+    interface IRingtone {
         /**
          * Sets the stream type where this ringtone will be played.
-         * 
+         *
          * @param streamType The stream, see {@link AudioManager}.
          */
         SetStreamType(
@@ -13,7 +12,7 @@ module
 
         /**
          * Gets the stream type where this ringtone will be played.
-         * 
+         *
          * @return The stream type, see {@link AudioManager}.
          */
         GetStreamType(
@@ -22,8 +21,8 @@ module
         /**
          * Returns a human-presentable title for ringtone. Looks in media and DRM
          * content providers. If not in either, uses the filename
-         * 
-         * @param context A context used for querying. 
+         *
+         * @param context A context used for querying.
          */
         GetTitle(
             [in] IContext* context,
@@ -41,10 +40,10 @@ module
 
         /**
          * Whether this ringtone is currently playing.
-         * 
+         *
          * @return True if playing, FALSE otherwise.
          */
         IsPlaying(
-            [out] Boolean* playing);
+            [out] Boolean* isPlaying);
     }
 }

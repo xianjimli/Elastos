@@ -9,15 +9,14 @@ module
      * or for periodic updates on the progress of the record head, as set by
      * {@link AudioRecord#setPositionNotificationPeriod(Int32)}.
      */
-    interface IOnRecordPositionUpdateListener
-    {
+    interface IOnRecordPositionUpdateListener {
         /**
          * Called on the listener to notify it that the previously set marker has been reached
          * by the recording head.
          */
         OnMarkerReached(
             [in] IAudioRecord* recorder);
-        
+
         /**
          * Called on the listener to periodically notify it that the record head has reached
          * a multiple of the notification period.
@@ -26,14 +25,13 @@ module
             [in] IAudioRecord* recorder);
     }
 
-    interface IAudioRecord
-    {
+    interface IAudioRecord {
         /**
          * Releases the native AudioRecord resources.
          * The object can no longer be used and the reference should be set to NULL
          * after a call to release()
          */
-        ReleaseEx();
+        ReleaseResources();
 
         /**
          * Returns the configured audio data sample rate in Hz
@@ -42,7 +40,7 @@ module
             [out] Int32* rate);
 
         /**
-         * Returns the audio recording source. 
+         * Returns the audio recording source.
          * @see MediaRecorder.AudioSource
          */
         GetAudioSource(
@@ -56,7 +54,7 @@ module
             [out] Int32* format);
 
         /**
-         * Returns the configured channel configuration. 
+         * Returns the configured channel configuration.
          * See {@link AudioFormat#CHANNEL_IN_MONO}
          * and {@link AudioFormat#CHANNEL_IN_STEREO}.
          */
@@ -71,7 +69,7 @@ module
 
         /**
          * Returns the state of the AudioRecord instance. This is useful after the
-         * AudioRecord instance has been created to check if it was initialized 
+         * AudioRecord instance has been created to check if it was initialized
          * properly. This ensures that the appropriate hardware resources have been
          * acquired.
          * @see AudioRecord#STATE_INITIALIZED
@@ -100,35 +98,11 @@ module
         GetPositionNotificationPeriod(
             [out] Int32* period);
 
-        /**
-         * Returns the minimum buffer size required for the successful creation of an AudioRecord
-         * object.
-         * Note that this size doesn't guarantee a smooth recording under load, and higher values
-         * should be chosen according to the expected frequency at which the AudioRecord instance
-         * will be polled for new data.
-         * @param sampleRateInHz the sample rate expressed in Hertz.
-         * @param channelConfig describes the configuration of the audio channels. 
-         *   See {@link AudioFormat#CHANNEL_IN_MONO} and
-         *   {@link AudioFormat#CHANNEL_IN_STEREO}
-         * @param audioFormat the format in which the audio data is represented. 
-         *   See {@link AudioFormat#ENCODING_PCM_16BIT}.
-         * @return {@link #ERROR_BAD_VALUE} if the recording parameters are not supported by the 
-         *  hardware, or an invalid parameter was passed,
-         *  or {@link #ERROR} if the implementation was unable to query the hardware for its 
-         *  output properties, 
-         *   or the minimum buffer size expressed in bytes.
-         */
-        GetMinBufferSize(
-            [in] Int32 sampleRateInHz, 
-            [in] Int32 channelConfig, 
-            [in] Int32 audioFormat,
-            [out] Int32* size);
-
         //---------------------------------------------------------
         // Transport control methods
         //--------------------
         /**
-         * Starts recording from the AudioRecord instance. 
+         * Starts recording from the AudioRecord instance.
          * @throws IllegalStateException
          */
         StartRecording();
@@ -151,10 +125,10 @@ module
          *    if the object wasn't properly initialized, or {@link #ERROR_BAD_VALUE} if
          *    the parameters don't resolve to valid data and indexes.
          *    The number of bytes will not exceed sizeInBytes.
-         */    
+         */
         Read(
-            [in] ArrayOf<Byte> audioData, 
-            [in] Int32 offsetInBytes, 
+            [out] ArrayOf<Byte> audioData,
+            [in] Int32 offsetInBytes,
             [in] Int32 sizeInBytes,
             [out] Int32* num);
 
@@ -167,10 +141,10 @@ module
          *    if the object wasn't properly initialized, or {@link #ERROR_BAD_VALUE} if
          *    the parameters don't resolve to valid data and indexes.
          *    The number of shorts will not exceed sizeInShorts.
-         */    
+         */
         ReadEx(
-            [in] ArrayOf<Int16> audioData, 
-            [in] Int32 offsetInShorts, 
+            [out] ArrayOf<Int16> audioData,
+            [in] Int32 offsetInShorts,
             [in] Int32 sizeInShorts,
             [out] Int32* num);
 
@@ -183,15 +157,15 @@ module
          *    if the object wasn't properly initialized, or {@link #ERROR_BAD_VALUE} if
          *    the parameters don't resolve to valid data and indexes.
          *    The number of bytes will not exceed sizeInBytes.
-         */    
-        /*ReadEx2(
-            [in] ByteBuffer audioBuffer, 
+         */
+        ReadEx2(
+            [in] IByteBuffer* audioBuffer,
             [in] Int32 sizeInBytes,
-            [out] Int32* num);*/
+            [out] Int32* num);
 
         //--------------------------------------------------------------------------
         // Initialization / configuration
-        //--------------------  
+        //--------------------
         /**
          * Sets the listener the AudioRecord notifies when a previously set marker is reached or
          * for each periodic record head position update.
@@ -209,16 +183,16 @@ module
          * @param handler the Handler that will receive the event notification messages.
          */
         SetRecordPositionUpdateListenerEx(
-            [in] IOnRecordPositionUpdateListener* listener, 
-            [in] IHandler* handler);
+            [in] IOnRecordPositionUpdateListener* listener,
+            [in] IApartment* handler);
 
         /**
-         * Sets the marker position at which the listener is called, if set with 
-         * {@link #setRecordPositionUpdateListener(OnRecordPositionUpdateListener)} or 
+         * Sets the marker position at which the listener is called, if set with
+         * {@link #setRecordPositionUpdateListener(OnRecordPositionUpdateListener)} or
          * {@link #setRecordPositionUpdateListener(OnRecordPositionUpdateListener, Handler)}.
          * @param markerInFrames marker position expressed in frames
          * @return error code or success, see {@link #SUCCESS}, {@link #ERROR_BAD_VALUE},
-         *  {@link #ERROR_INVALID_OPERATION} 
+         *  {@link #ERROR_INVALID_OPERATION}
          */
         SetNotificationMarkerPosition(
             [in] Int32 markerInFrames,
@@ -226,7 +200,7 @@ module
 
         /**
          * Sets the period at which the listener is called, if set with
-         * {@link #setRecordPositionUpdateListener(OnRecordPositionUpdateListener)} or 
+         * {@link #setRecordPositionUpdateListener(OnRecordPositionUpdateListener)} or
          * {@link #setRecordPositionUpdateListener(OnRecordPositionUpdateListener, Handler)}.
          * @param periodInFrames update period expressed in frames
          * @return error code or success, see {@link #SUCCESS}, {@link #ERROR_INVALID_OPERATION}
@@ -235,4 +209,30 @@ module
             [in] Int32 periodInFrames,
             [out] Int32* err);
     }
-}  
+
+    interface IAudioRecordHelper {
+        /**
+         * Returns the minimum buffer size required for the successful creation of an AudioRecord
+         * object.
+         * Note that this size doesn't guarantee a smooth recording under load, and higher values
+         * should be chosen according to the expected frequency at which the AudioRecord instance
+         * will be polled for new data.
+         * @param sampleRateInHz the sample rate expressed in Hertz.
+         * @param channelConfig describes the configuration of the audio channels.
+         *   See {@link AudioFormat#CHANNEL_IN_MONO} and
+         *   {@link AudioFormat#CHANNEL_IN_STEREO}
+         * @param audioFormat the format in which the audio data is represented.
+         *   See {@link AudioFormat#ENCODING_PCM_16BIT}.
+         * @return {@link #ERROR_BAD_VALUE} if the recording parameters are not supported by the
+         *  hardware, or an invalid parameter was passed,
+         *  or {@link #ERROR} if the implementation was unable to query the hardware for its
+         *  output properties,
+         *   or the minimum buffer size expressed in bytes.
+         */
+        GetMinBufferSize(
+            [in] Int32 sampleRateInHz,
+            [in] Int32 channelConfig,
+            [in] Int32 audioFormat,
+            [out] Int32* size);
+    }
+}

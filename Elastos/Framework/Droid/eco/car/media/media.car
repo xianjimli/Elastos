@@ -1,19 +1,26 @@
 
 module
 {
-    merge("media/AudioFocusDispatcher.car");
+    merge("Drm/Mobile1/DrmConstraintInfo.car");
+    merge("Drm/Mobile1/DrmRights.car");
+    merge("Drm/Mobile1/DrmRawContent.car");
+    merge("Drm/Mobile1/DrmRightsManager.car");
+    merge("media/audiofx/AudioEffect.car");
+    merge("media/audiofx/BassBoost.car");
+    merge("media/audiofx/EnvironmentalReverb.car");
+    merge("media/audiofx/Equalizer.car");
+    merge("media/audiofx/PresetReverb.car");
+    merge("media/audiofx/Virtualizer.car");
+    merge("media/audiofx/Visualizer.car");
+    merge("media/IAudioFocusDispatcher.car");
     merge("media/IAudioService.car");
     merge("media/AudioService.car");
-    merge("media/MediaScannerListener.car");
+    merge("media/IMediaScannerListener.car");
     merge("media/MediaScannerService.car");
     merge("media/MediaScannerClient.car");
     merge("media/AudioTrack.car");
     merge("media/AudioSystem.car");
     merge("media/AudioManager.car");
-    merge("Drm/Mobile1/DrmConstraintInfo.car");
-    merge("Drm/Mobile1/DrmRights.car");
-    merge("Drm/Mobile1/DrmRawContent.car");
-    merge("Drm/Mobile1/DrmRightsManager.car");
     merge("media/Metadata.car");
     merge("media/MediaPlayer.car");
     merge("media/CamcorderProfile.car");
@@ -30,6 +37,63 @@ module
     merge("media/MediaMetadataRetriever.car");
     merge("media/AmrInputStream.car");
     merge("media/AsyncPlayer.car");
+
+    class CAudioEffect {
+        constructor(
+            //[in] IUUID* type,
+            //[in] IUUID* uuid,
+            [in] Int32 priority,
+            [in] Int32 audioSession);
+
+        interface IAudioEffect;
+    }
+
+    class CBassBoost {
+        constructor(
+            [in] Int32 priority,
+            [in] Int32 audioSession);
+
+        interface IBassBoost;
+    }
+
+    class CEnvironmentalReverb {
+        constructor(
+            [in] Int32 priority,
+            [in] Int32 audioSession);
+
+        interface IEnvironmentalReverb;
+    }
+
+    class CEqualizer {
+        constructor(
+            [in] Int32 priority,
+            [in] Int32 audioSession);
+
+        interface IEqualizer;
+    }
+
+    class CPresetReverb {
+        constructor(
+            [in] Int32 priority,
+            [in] Int32 audioSession);
+
+        interface IPresetReverb;
+    }
+
+    class CVirtualizer {
+        constructor(
+            [in] Int32 priority,
+            [in] Int32 audioSession);
+
+        interface IVirtualizer;
+    }
+
+    class CVisualizer {
+        constructor(
+            [in] Int32 audioSession);
+
+        interface IVisualizer;
+    }
 
     class CAudioTrack {
         constructor(
@@ -186,7 +250,7 @@ module
     class CMediaScannerConnection {
 
         constructor(
-            [in] IContext* context, 
+            [in] IContext* context,
             [in] IMediaScannerConnectionClient* client);
 
         interface IMediaScannerConnection;
@@ -195,8 +259,8 @@ module
     class CSoundPool {
 
         constructor(
-            [in] Int32 maxStreams, 
-            [in] Int32 streamType, 
+            [in] Int32 maxStreams,
+            [in] Int32 streamType,
             [in] Int32 srcQuality);
 
         interface ISoundPool;

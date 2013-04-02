@@ -1,7 +1,8 @@
 
 #include "media/CAudioRecord.h"
 
-ECode CAudioRecord::ReleaseEx()
+
+ECode CAudioRecord::ReleaseResources()
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -93,7 +94,7 @@ ECode CAudioRecord::Stop()
 }
 
 ECode CAudioRecord::Read(
-    /* [in] */ const ArrayOf<Byte> & audioData,
+    /* [out] */ ArrayOf<Byte>* audioData,
     /* [in] */ Int32 offsetInBytes,
     /* [in] */ Int32 sizeInBytes,
     /* [out] */ Int32 * pNum)
@@ -103,10 +104,19 @@ ECode CAudioRecord::Read(
 }
 
 ECode CAudioRecord::ReadEx(
-    /* [in] */ const ArrayOf<Int16> & audioData,
+    /* [out] */ ArrayOf<Int16>* audioData,
     /* [in] */ Int32 offsetInShorts,
     /* [in] */ Int32 sizeInShorts,
     /* [out] */ Int32 * pNum)
+{
+    // TODO: Add your code here
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CAudioRecord::ReadEx2(
+    /* [in] */ IByteBuffer* audioBuffer,
+    /* [in] */ Int32 sizeInBytes,
+    /* [out] */ Int32* num)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -121,7 +131,7 @@ ECode CAudioRecord::SetRecordPositionUpdateListener(
 
 ECode CAudioRecord::SetRecordPositionUpdateListenerEx(
     /* [in] */ IOnRecordPositionUpdateListener * pListener,
-    /* [in] */ IHandler * pHandler)
+    /* [in] */ IApartment * pHandler)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;

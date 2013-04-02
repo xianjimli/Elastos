@@ -49,7 +49,7 @@ ECode CVisualizer::constructor(
     return NOERROR;
 }
 
-ECode CVisualizer::ReleaseIt()
+ECode CVisualizer::ReleaseResources()
 {
     Native_Release();
     mState = Visualizer_STATE_UNINITIALIZED;
@@ -161,7 +161,7 @@ ECode CVisualizer::GetSamplingRate(
 }
 
 ECode CVisualizer::GetWaveForm(
-    /* [in] */ const ArrayOf<Byte>& waveform,
+    /* [out] */ ArrayOf<Byte>* waveform,
     /* [out] */ Int32* result)
 {
     VALIDATE_NOT_NULL(result);
@@ -171,13 +171,13 @@ ECode CVisualizer::GetWaveForm(
 //        throw(new IllegalStateException("getWaveForm() called in wrong state: "+mState));
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
-    ArrayOf<Byte>* x = waveform.Clone();
+    ArrayOf<Byte>* x = waveform;
     *result = Native_GetWaveForm(x);
     return NOERROR;
 }
 
 ECode CVisualizer::GetFft(
-    /* [in] */ const ArrayOf<Byte>& fft,
+    /* [out] */ ArrayOf<Byte>* fft,
     /* [out] */ Int32* result)
 {
     VALIDATE_NOT_NULL(result);
@@ -187,7 +187,7 @@ ECode CVisualizer::GetFft(
 //        throw(new IllegalStateException("getFft() called in wrong state: "+mState));
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
-    ArrayOf<Byte>* x = fft.Clone();
+    ArrayOf<Byte>* x = fft;
     *result = Native_GetFft(x);
     return NOERROR;
 }
@@ -195,8 +195,8 @@ ECode CVisualizer::GetFft(
 ECode CVisualizer::SetDataCaptureListener(
     /* [in] */ IVisualizerOnDataCaptureListener* listener,
     /* [in] */ Int32 rate,
-    /* [out] */ Boolean* waveform,
-    /* [out] */ Boolean* fft,
+    /* [in] */ Boolean waveform,
+    /* [in] */ Boolean fft,
     /* [out] */ Int32* result)
 {
     VALIDATE_NOT_NULL(waveform);
@@ -210,7 +210,7 @@ ECode CVisualizer::SetDataCaptureListener(
         waveform = FALSE;
         fft = FALSE;
     }
-    Int32 status = Native_SetPeriodicCapture(rate, *waveform, *fft);
+    Int32 status = Native_SetPeriodicCapture(rate, waveform, fft);
     if (status == Visualizer_SUCCESS) {
         if ((listener != NULL) && (mNativeEventHandler == NULL)) {
 /*
@@ -317,7 +317,7 @@ struct visualizer_callback_cookie {
     //jclass      visualizer_class;  // Visualizer class
     //jobject     visualizer_ref;    // Visualizer object instance
  };
- 
+
 class visualizerJniStorage {
     public:
         visualizer_callback_cookie mCallbackData;

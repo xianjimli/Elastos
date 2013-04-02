@@ -72,25 +72,68 @@ module
      * all parameters in a single call.
      */
     interface IEnvironmentalReverbSettings {
-        GetParameterInt32(
-            [in] String param,
-            [out] Int32* result);
+        GetRoomLevel(
+            [out] Int16* level);
 
-        SetParameterInt32(
-            [in] String param,
-            [in] Int32 result);
+        SetRoomLevel(
+            [in] Int16 level);
 
-        GetParameterInt16(
-            [in] String param,
-            [out] Int16* result);
+        GetRoomHFLevel(
+            [out] Int16* level);
 
-        SetParameterInt16(
-            [in] String param,
-            [in] Int16 result);
+        SetRoomHFLevel(
+            [in] Int16 level);
+
+        GetDecayTime(
+            [out] Int32* time);
+
+        SetDecayTime(
+            [in] Int32 time);
+
+        GetDecayHFRatio(
+            [out] Int16* ratio);
+
+        SetDecayHFRatio(
+            [in] Int16 ratio);
+
+        GetReflectionsLevel(
+            [out] Int16* level);
+
+        SetReflectionsLevel(
+            [in] Int16 level);
+
+        GetReflectionsDelay(
+            [out] Int32* delay);
+
+        SetReflectionsDelay(
+            [in] Int32 delay);
+
+        GetReverbLevel(
+            [out] Int16* level);
+
+        SetReverbLevel(
+            [in] Int16 level);
+
+        GetReverbDelay(
+            [out] Int32* delay);
+
+        SetReverbDelay(
+            [in] Int32 delay);
+
+        GetDiffusion(
+            [out] Int16* diffusion);
+
+        SetDiffusion(
+            [in] Int16 diffusion);
+
+        GetDensity(
+            [out] Int16* density);
+
+        SetDensity(
+            [in] Int16 density);
     }
 
-    interface IEnvironmentalReverb /* extends IAudioEffect */ {
-
+    interface IEnvironmentalReverb extends IAudioEffect {
         /**
          * Sets the master volume level of the environmental reverb effect.
          * @param room room level in millibels. The valid range is [-9000, 0].
@@ -152,6 +195,7 @@ module
          */
         GetDecayTime(
             [out] Int32* decayTime);
+
         /**
          * Sets the ratio of high frequency decay time (at 5 kHz) relative to the decay time at low
          * frequencies.
@@ -311,7 +355,7 @@ module
          * Registers an OnParameterChangeListener interface.
          * @param listener OnParameterChangeListener interface registered
          */
-        SetParameterListenerEx2(
+        SetParameterListenerEx(
             [in] IEnvironmentalReverbOnParameterChangeListener* listener);
 
         /**

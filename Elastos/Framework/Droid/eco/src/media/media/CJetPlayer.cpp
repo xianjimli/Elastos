@@ -8,7 +8,7 @@ ECode CJetPlayer::Clone(
     return E_NOT_IMPLEMENTED;
 }
 
-ECode CJetPlayer::ReleaseEx()
+ECode CJetPlayer::ReleaseResources()
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -136,7 +136,7 @@ ECode CJetPlayer::SetEventListener(
 
 ECode CJetPlayer::SetEventListenerEx(
     /* [in] */ IOnJetEventListener * pListener,
-    /* [in] */ IHandler * pHandler)
+    /* [in] */ IApartment * pHandler)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;

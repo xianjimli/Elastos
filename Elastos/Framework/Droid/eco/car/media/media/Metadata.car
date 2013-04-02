@@ -1,8 +1,7 @@
 
 module
 {
-    interface IMetadata
-    {
+    interface IMetadata {
         /**
          * Check a parcel containing metadata is well formed. The header
          * is checked as well as the individual records format. However, the
@@ -32,13 +31,13 @@ module
          */
         Parse(
             [in] IParcel* parcel,
-            [out] Boolean* res);
+            [out] Boolean* result);
 
         /**
          * @return The set of metadata ID found.
          */
-        /*KeySet(
-            [out] Set<Int32>* set);*/
+        KeySet(
+            [out] IObjectContainer** set);
 
         /**
          * @return true if a value is present for the given key.
@@ -50,29 +49,49 @@ module
         // Accessors.
         // Caller must make sure the key is present using the {@code has}
         // method otherwise a RuntimeException will occur.
-
         GetString(
             [in] Int32 key,
-            [out] String* str);
+            [out] String* value);
 
         GetInt32(
             [in] Int32 key,
-            [out] Int32* res);
+            [out] Int32* value);
 
         GetBoolean(
             [in] Int32 key,
-            [out] Boolean* res);
+            [out] Boolean* value);
 
         GetInt64(
             [in] Int32 key,
-            [out] Int64* res);
+            [out] Int64* value);
 
         GetDouble(
             [in] Int32 key,
-            [out] Double* res);
+            [out] Double* value);
 
         GetByteArray(
             [in] Int32 key,
-            [out, callee] ArrayOf<Byte>* result);
+            [out, callee] ArrayOf<Byte>* value);
+
+        GetDate(
+            [in] Int32 key,
+            [out] IDate** date);
+
+//        public TimedText getTimedText(final int key);
+    }
+
+    interface IMetadataHelper {
+        // @return the last available system metadata id. Ids are
+        // 1-indexed.
+        LastSytemId(
+            [out] Int32* id);
+
+        // @return the first available cutom metadata id.
+        FirstCustomId(
+            [out] Int32* id);
+
+        // @return the last value of known type. Types are 1-indexed.
+        LastType(
+            [out] Int32* type);
     }
 }

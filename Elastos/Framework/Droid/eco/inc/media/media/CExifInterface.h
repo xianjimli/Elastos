@@ -35,7 +35,7 @@ public:
         /* [out, callee] */ ArrayOf<Byte> ** ppData);
 
     CARAPI GetLatLong(
-        /* [in] */ const ArrayOf<Float> & output,
+        /* [out] */ ArrayOf<Float>* output,
         /* [out] */ Boolean * pAvailable);
 
     CARAPI GetAltitude(

@@ -19,6 +19,10 @@ public:
         /* [in] */ const String& mimeType,
         /* [out] */ IUri ** ppUri);
 
+    CARAPI ExtractAlbumArt(
+        /* [in] */ IFileDescriptor* fd,
+        /* [out, callee] */ ArrayOf<Byte>** albumArt);
+
     CARAPI constructor(
         /* [in] */ IContext * pC);
 

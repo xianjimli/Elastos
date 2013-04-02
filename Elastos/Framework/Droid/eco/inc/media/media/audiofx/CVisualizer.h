@@ -97,7 +97,7 @@ public:
      * Releases the native Visualizer resources. It is a good practice to release the
      * visualization engine when not in use.
      */
-    CARAPI ReleaseIt();
+    CARAPI ReleaseResources();
 
     /**
      * Enable or disable the visualization engine.
@@ -174,7 +174,7 @@ public:
      * @throws IllegalStateException
      */
     CARAPI GetWaveForm(
-        /* [in] */ const ArrayOf<Byte>& waveform,
+        /* [out] */ ArrayOf<Byte>* waveform,
         /* [out] */ Int32* result);
 
     /**
@@ -222,7 +222,7 @@ public:
      * @throws IllegalStateException
      */
     CARAPI GetFft(
-        /* [in] */ const ArrayOf<Byte>& fft,
+        /* [out] */ ArrayOf<Byte>* fft,
         /* [out] */ Int32* result);
 
     /**
@@ -241,8 +241,8 @@ public:
     CARAPI SetDataCaptureListener(
         /* [in] */ IVisualizerOnDataCaptureListener* listener,
         /* [in] */ Int32 rate,
-        /* [out] */ Boolean* waveform,
-        /* [out] */ Boolean* fft,
+        /* [in] */ Boolean waveform,
+        /* [in] */ Boolean fft,
         /* [out] */ Int32* result);
 protected:
     CARAPI_(void) Finalize();

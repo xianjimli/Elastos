@@ -8,7 +8,7 @@
 CarClass(CAudioRecord), public AudioRecord
 {
 public:
-    CARAPI ReleaseEx();
+    CARAPI ReleaseResources();
 
     CARAPI GetSampleRate(
         /* [out] */ Int32 * pRate);
@@ -48,23 +48,28 @@ public:
     CARAPI Stop();
 
     CARAPI Read(
-        /* [in] */ const ArrayOf<Byte> & audioData,
+        /* [out] */ ArrayOf<Byte>* audioData,
         /* [in] */ Int32 offsetInBytes,
         /* [in] */ Int32 sizeInBytes,
         /* [out] */ Int32 * pNum);
 
     CARAPI ReadEx(
-        /* [in] */ const ArrayOf<Int16> & audioData,
+        /* [out] */ ArrayOf<Int16>* audioData,
         /* [in] */ Int32 offsetInShorts,
         /* [in] */ Int32 sizeInShorts,
         /* [out] */ Int32 * pNum);
+
+    CARAPI ReadEx2(
+        /* [in] */ IByteBuffer* audioBuffer,
+        /* [in] */ Int32 sizeInBytes,
+        /* [out] */ Int32* num);
 
     CARAPI SetRecordPositionUpdateListener(
         /* [in] */ IOnRecordPositionUpdateListener * pListener);
 
     CARAPI SetRecordPositionUpdateListenerEx(
         /* [in] */ IOnRecordPositionUpdateListener * pListener,
-        /* [in] */ IHandler * pHandler);
+        /* [in] */ IApartment * pHandler);
 
     CARAPI SetNotificationMarkerPosition(
         /* [in] */ Int32 markerInFrames,

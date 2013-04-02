@@ -124,11 +124,11 @@ const Int32 AudioSystem::FOR_MEDIA;
 const Int32 AudioSystem::FOR_RECORD;
 const Int32 AudioSystem::FOR_DOCK;
 
-AutoPtr<IErrorCallback> AudioSystem::mErrorCallback;
+AutoPtr<IAudioSystemErrorCallback> AudioSystem::mErrorCallback;
 
-Int32 AudioSystem::GetNumStreamTypes() 
-{ 
-    return NUM_STREAM_TYPES; 
+Int32 AudioSystem::GetNumStreamTypes()
+{
+    return NUM_STREAM_TYPES;
 }
 
 /*
@@ -173,10 +173,10 @@ Int32 AudioSystem::SetMode(
  *
  * return      the current audio mode (NORMAL, RINGTONE, or IN_CALL).
  *              Returns the current current audio state from the HAL.
- *              
+ *
  */
 /** @deprecated Do not use. */
-Int32 AudioSystem::GetMode() 
+Int32 AudioSystem::GetMode()
 {
     return MODE_INVALID;
 }
@@ -193,8 +193,8 @@ Int32 AudioSystem::GetMode()
  */
 /** @deprecated use {@link #setDeviceConnectionState(Int32,Int32,String)} */
 Int32 AudioSystem::SetRouting(
-    /* [in] */ Int32 mode, 
-    /* [in] */ Int32 routes, 
+    /* [in] */ Int32 mode,
+    /* [in] */ Int32 routes,
     /* [in] */ Int32 mask)
 {
     return AUDIO_STATUS_ERROR;
@@ -257,7 +257,7 @@ String AudioSystem::GetParameters(
  * param cb the callback to run
  */
 void AudioSystem::SetErrorCallback(
-    /* [in] */ IErrorCallback* cb)
+    /* [in] */ IAudioSystemErrorCallback* cb)
 {
     mErrorCallback = cb;
 }
@@ -271,15 +271,15 @@ void AudioSystem::ErrorCallbackFromNative(
 }
 
 Int32 AudioSystem::SetDeviceConnectionState(
-    /* [in] */ Int32 device, 
-    /* [in] */ Int32 state, 
+    /* [in] */ Int32 device,
+    /* [in] */ Int32 state,
     /* [in] */ String device_address)
 {
     return 0;
 }
 
 Int32 AudioSystem::GetDeviceConnectionState(
-    /* [in] */ Int32 device, 
+    /* [in] */ Int32 device,
     /* [in] */ String device_address)
 {
     return 0;
@@ -292,14 +292,14 @@ Int32 AudioSystem::SetPhoneState(
 }
 
 Int32 AudioSystem::SetRingerMode(
-    /* [in] */ Int32 mode, 
+    /* [in] */ Int32 mode,
     /* [in] */ Int32 mask)
 {
     return 0;
 }
 
 Int32 AudioSystem::SetForceUse(
-    /* [in] */ Int32 usage, 
+    /* [in] */ Int32 usage,
     /* [in] */ Int32 config)
 {
     return 0;
@@ -312,15 +312,15 @@ Int32 AudioSystem::GetForceUse(
 }
 
 Int32 AudioSystem::InitStreamVolume(
-    /* [in] */ Int32 stream, 
-    /* [in] */ Int32 indexMin, 
+    /* [in] */ Int32 stream,
+    /* [in] */ Int32 indexMin,
     /* [in] */ Int32 indexMax)
 {
     return 0;
 }
 
 Int32 AudioSystem::SetStreamVolumeIndex(
-    /* [in] */ Int32 stream, 
+    /* [in] */ Int32 stream,
     /* [in] */ Int32 index)
 {
     return 0;

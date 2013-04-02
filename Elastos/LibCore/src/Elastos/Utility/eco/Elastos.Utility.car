@@ -16,6 +16,7 @@ module
     merge("../../../../car/Elastos/Utility/ITimerTask.car");
     merge("../../../../car/Elastos/Utility/ITimer.car");
     merge("../../../../car/Elastos/Utility/ICurrency.car");
+    merge("../../../../car/Elastos/Utility/IUUID.car");
 
 
     class CObjectContainer {

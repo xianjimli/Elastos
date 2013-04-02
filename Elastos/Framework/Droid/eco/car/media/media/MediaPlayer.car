@@ -7,8 +7,7 @@ module
      * Interface definition for a callback to be invoked when the media
      * source is ready for playback.
      */
-    interface IOnPreparedListener
-    {
+    interface IMediaPlayerOnPreparedListener {
         /**
          * Called when the media file is ready for playback.
          *
@@ -22,8 +21,7 @@ module
      * Interface definition for a callback to be invoked when playback of
      * a media source has completed.
      */
-    interface IOnCompletionListener
-    {
+    interface IMediaPlayerOnCompletionListener {
         /**
          * Called when the end of a media source is reached during playback.
          *
@@ -37,8 +35,7 @@ module
      * Interface definition of a callback to be invoked indicating buffering
      * status of a media resource being streamed over the network.
      */
-    interface IOnBufferingUpdateListener
-    {
+    interface IMediaPlayerOnBufferingUpdateListener {
         /**
          * Called to update status in buffering a media stream.
          *
@@ -55,8 +52,7 @@ module
      * Interface definition of a callback to be invoked indicating
      * the completion of a seek operation.
      */
-    interface IOnSeekCompleteListener
-    {
+    interface IMediaPlayerOnSeekCompleteListener {
         /**
          * Called to indicate the completion of a seek operation.
          *
@@ -70,8 +66,7 @@ module
      * Interface definition of a callback to be invoked when the
      * video size is first known or updated
      */
-    interface IOnVideoSizeChangedListener
-    {
+    interface IMediaPlayerOnVideoSizeChangedListener {
         /**
          * Called to indicate the video size
          *
@@ -90,8 +85,7 @@ module
      * has been an error during an asynchronous operation (other errors
      * will throw exceptions at method call time).
      */
-    interface IOnErrorListener
-    {
+    interface IMediaPlayerOnErrorListener {
         /**
          * Called to indicate an error.
          *
@@ -111,15 +105,14 @@ module
             [in] IMediaPlayer* mp,
             [in] Int32 what,
             [in] Int32 extra,
-            [out] Boolean* res);
+            [out] Boolean* result);
     }
 
     /**
      * Interface definition of a callback to be invoked to communicate some
      * info and/or warning about the media or its playback.
      */
-    interface IOnInfoListener
-    {
+    interface IMediaPlayerOnInfoListener {
         /**
          * Called to indicate an info or a warning.
          *
@@ -142,11 +135,10 @@ module
             [in] IMediaPlayer* mp,
             [in] Int32 what,
             [in] Int32 extra,
-            [out] Boolean* res);
+            [out] Boolean* result);
     }
 
-    interface IMediaPlayer
-    {
+    interface IMediaPlayer {
         /**
          * Create a request parcel which can be routed to the native media
          * player using {@link #invoke(Parcel, Parcel)}. The Parcel
@@ -180,7 +172,7 @@ module
         Invoke(
             [in] IParcel* request,
             [in] IParcel* reply,
-            [out] Int32* status);
+            [out] Int32* result);
 
         /**
          * Sets the SurfaceHolder to use for displaying the video portion of the media.
@@ -191,57 +183,6 @@ module
          */
         SetDisplay(
             [in] ISurfaceHolder* sh);
-
-        /**
-         * Convenience method to create a MediaPlayer for a given Uri.
-         * On success, {@link #prepare()} will already have been called and must not be called again.
-         * <p>When done with the MediaPlayer, you should call  {@link #release()},
-         * to free the resources. If not released, too many MediaPlayer instances will
-         * result in an exception.</p>
-         *
-         * @param context the Context to use
-         * @param uri the Uri from which to get the datasource
-         * @return a MediaPlayer object, or NULL if creation failed
-         */
-        Create(
-            [in] IContext* context,
-            [in] IUri* uri,
-            [out] IMediaPlayer** player);
-
-        /**
-         * Convenience method to create a MediaPlayer for a given Uri.
-         * On success, {@link #prepare()} will already have been called and must not be called again.
-         * <p>When done with the MediaPlayer, you should call  {@link #release()},
-         * to free the resources. If not released, too many MediaPlayer instances will
-         * result in an exception.</p>
-         *
-         * @param context the Context to use
-         * @param uri the Uri from which to get the datasource
-         * @param holder the SurfaceHolder to use for displaying the video
-         * @return a MediaPlayer object, or NULL if creation failed
-         */
-        CreateEx(
-            [in] IContext* context,
-            [in] IUri* uri,
-            [in] ISurfaceHolder* holder,
-            [out] IMediaPlayer** player);
-
-        /**
-         * Convenience method to create a MediaPlayer for a given resource id.
-         * On success, {@link #prepare()} will already have been called and must not be called again.
-         * <p>When done with the MediaPlayer, you should call  {@link #release()},
-         * to free the resources. If not released, too many MediaPlayer instances will
-         * result in an exception.</p>
-         *
-         * @param context the Context to use
-         * @param resid the raw resource id (<var>R.raw.&lt;something></var>) for
-         *              the resource to use as the datasource
-         * @return a MediaPlayer object, or NULL if creation failed
-         */
-        CreateEx2(
-            [in] IContext* context,
-            [in] Int32 resid,
-            [out] IMediaPlayer** player);
 
         /**
          * Sets the data source as a content Uri.
@@ -263,10 +204,31 @@ module
          * @throws IllegalStateException if it is called in an invalid state
          * @hide pending API council
          */
-        /*SetDataSourceEx(
+        SetDataSourceEx(
             [in] IContext* context,
             [in] IUri* uri,
-            [in] Map<String, String> headers);*/
+            [in] IObjectStringMap* headers);
+
+        /**
+         * Sets the data source (file-path or http/rtsp URL) to use.
+         *
+         * @param path the path of the file, or the http/rtsp URL of the stream you want to play
+         * @throws IllegalStateException if it is called in an invalid state
+         */
+        SetDataSourceEx2(
+            [in] String path);
+
+        /**
+         * Sets the data source (file-path or http/rtsp URL) to use.
+         *
+         * @param path the path of the file, or the http/rtsp URL of the stream you want to play
+         * @param headers the headers associated with the http request for the stream you want to play
+         * @throws IllegalStateException if it is called in an invalid state
+         * @hide pending API council
+         */
+        SetDataSourceEx3(
+            [in] String path,
+            [in] IObjectStringMap* headers);
 
         /**
          * Sets the data source (FileDescriptor) to use. It is the caller's responsibility
@@ -275,8 +237,46 @@ module
          * @param fd the FileDescriptor for the file you want to play
          * @throws IllegalStateException if it is called in an invalid state
          */
-        SetDataSourceEx2(
+        SetDataSourceEx4(
             [in] IFileDescriptor* fd);
+
+        /**
+         * Sets the data source (FileDescriptor) to use.  The FileDescriptor must be
+         * seekable (N.B. a LocalSocket is not seekable). It is the caller's responsibility
+         * to close the file descriptor. It is safe to do so as soon as this call returns.
+         *
+         * @param fd the FileDescriptor for the file you want to play
+         * @param offset the offset into the file where the data to be played starts, in bytes
+         * @param length the length in bytes of the data to be played
+         * @throws IllegalStateException if it is called in an invalid state
+         */
+        SetDataSourceEx5(
+            [in] IFileDescriptor* fd,
+            [in] Int64 offset,
+            [in] Int64 length);
+
+        /**
+         * Prepares the player for playback, synchronously.
+         *
+         * After setting the datasource and the display surface, you need to either
+         * call prepare() or prepareAsync(). For files, it is OK to call prepare(),
+         * which blocks until MediaPlayer is ready for playback.
+         *
+         * @throws IllegalStateException if it is called in an invalid state
+         */
+        Prepare();
+
+        /**
+         * Prepares the player for playback, asynchronously.
+         *
+         * After setting the datasource and the display surface, you need to either
+         * call prepare() or prepareAsync(). For streams, you should call prepareAsync(),
+         * which returns immediately, rather than blocking until enough data has been
+         * buffered.
+         *
+         * @throws IllegalStateException if it is called in an invalid state
+         */
+        PrepareAsync();
 
         /**
          * Starts or resumes playback. If playback had previously been paused,
@@ -339,6 +339,64 @@ module
             [in] Boolean screenOn);
 
         /**
+         * Returns the width of the video.
+         *
+         * @return the width of the video, or 0 if there is no video,
+         * no display surface was set, or the width has not been determined
+         * yet. The OnVideoSizeChangedListener can be registered via
+         * {@link #setOnVideoSizeChangedListener(OnVideoSizeChangedListener)}
+         * to provide a notification when the width is available.
+         */
+        GetVideoWidth(
+            [out] Int32* width);
+
+        /**
+         * Returns the height of the video.
+         *
+         * @return the height of the video, or 0 if there is no video,
+         * no display surface was set, or the height has not been determined
+         * yet. The OnVideoSizeChangedListener can be registered via
+         * {@link #setOnVideoSizeChangedListener(OnVideoSizeChangedListener)}
+         * to provide a notification when the height is available.
+         */
+        GetVideoHeight(
+            [out] Int32* height);
+
+        /**
+         * Checks whether the MediaPlayer is playing.
+         *
+         * @return true if currently playing, false otherwise
+         */
+        IsPlaying(
+            [out] Boolean* isPlaying);
+
+        /**
+         * Seeks to specified time position.
+         *
+         * @param msec the offset in milliseconds from the start to seek to
+         * @throws IllegalStateException if the internal player engine has not been
+         * initialized
+         */
+        SeekTo(
+            [in] Int32 msec);
+
+        /**
+         * Gets the current playback position.
+         *
+         * @return the current position in milliseconds
+         */
+        GetCurrentPosition(
+            [out] Int32* position);
+
+        /**
+         * Gets the duration of the file.
+         *
+         * @return the duration in milliseconds
+         */
+        GetDuration(
+            [out] Int32* duration);
+
+        /**
          * Gets the media metadata.
          *
          * @param update_only controls whether the full set of available
@@ -378,17 +436,17 @@ module
          // FIXME: unhide.
          * {@hide}
          */
-        /*SetMetadataFilter(
-            [in] Set<Integer> allow,
-            [in] Set<Integer> block,
-            [out] Int32* status);*/
+        SetMetadataFilter(
+            [in] IObjectContainer* allow,
+            [in] IObjectContainer* block,
+            [out] Int32* result);
 
         /**
          * Releases resources associated with this MediaPlayer object.
          * It is considered good practice to call this method when you're
          * done using the MediaPlayer.
          */
-        ReleaseEx();
+        ReleaseResources();
 
         /**
          * Resets the MediaPlayer to its uninitialized state. After calling
@@ -408,7 +466,7 @@ module
          * @hide
          */
         Suspend(
-            [out] Boolean* res);
+            [out] Boolean* result);
 
         /**
          * Resumes the MediaPlayer. Only to be called after a previous (successful)
@@ -418,7 +476,120 @@ module
          * @hide
          */
         Resume(
-            [out] Boolean* res);
+            [out] Boolean* result);
+
+        /**
+         * Sets the audio stream type for this MediaPlayer. See {@link AudioManager}
+         * for a list of stream types. Must call this method before prepare() or
+         * prepareAsync() in order for the target stream type to become effective
+         * thereafter.
+         *
+         * @param streamtype the audio stream type
+         * @see android.media.AudioManager
+         */
+        SetAudioStreamType(
+            [in] Int32 streamtype);
+
+        /**
+         * Sets the player to be looping or non-looping.
+         *
+         * @param looping whether to loop or not
+         */
+        SetLooping(
+            [in] Boolean looping);
+
+        /**
+         * Checks whether the MediaPlayer is looping or non-looping.
+         *
+         * @return true if the MediaPlayer is currently looping, false otherwise
+         */
+        IsLooping(
+            [out] Boolean* isLooping);
+
+        /**
+         * Sets the volume on this player.
+         * This API is recommended for balancing the output of audio streams
+         * within an application. Unless you are writing an application to
+         * control user settings, this API should be used in preference to
+         * {@link AudioManager#setStreamVolume(int, int, int)} which sets the volume of ALL streams of
+         * a particular type. Note that the passed volume values are raw scalars.
+         * UI controls should be scaled logarithmically.
+         *
+         * @param leftVolume left volume scalar
+         * @param rightVolume right volume scalar
+         */
+        SetVolume(
+            [in] Float leftVolume,
+            [in] Float rightVolume);
+
+        /**
+         * Currently not implemented, returns null.
+         * @deprecated
+         * @hide
+         */
+        GetFrameAt(
+            [in] Int32 msec,
+            [out] IBitmap** frame);
+
+        /**
+         * Sets the audio session ID.
+         *
+         * @param sessionId the audio session ID.
+         * The audio session ID is a system wide unique identifier for the audio stream played by
+         * this MediaPlayer instance.
+         * The primary use of the audio session ID  is to associate audio effects to a particular
+         * instance of MediaPlayer: if an audio session ID is provided when creating an audio effect,
+         * this effect will be applied only to the audio content of media players within the same
+         * audio session and not to the output mix.
+         * When created, a MediaPlayer instance automatically generates its own audio session ID.
+         * However, it is possible to force this player to be part of an already existing audio session
+         * by calling this method.
+         * This method must be called before one of the overloaded <code> setDataSource </code> methods.
+         * @throws IllegalStateException if it is called in an invalid state
+         */
+        SetAudioSessionId(
+            [in] Int32 sessionId);
+
+        /**
+         * Returns the audio session ID.
+         *
+         * @return the audio session ID. {@see #setAudioSessionId(int)}
+         * Note that the audio session ID is 0 only if a problem occured when the MediaPlayer was contructed.
+         */
+        GetAudioSessionId(
+            [out] Int32* sessionID);
+
+        /**
+         * Attaches an auxiliary effect to the player. A typical auxiliary effect is a reverberation
+         * effect which can be applied on any sound source that directs a certain amount of its
+         * energy to this effect. This amount is defined by setAuxEffectSendLevel().
+         * {@see #setAuxEffectSendLevel(float)}.
+         * <p>After creating an auxiliary effect (e.g.
+         * {@link android.media.audiofx.EnvironmentalReverb}), retrieve its ID with
+         * {@link android.media.audiofx.AudioEffect#getId()} and use it when calling this method
+         * to attach the player to the effect.
+         * <p>To detach the effect from the player, call this method with a null effect id.
+         * <p>This method must be called after one of the overloaded <code> setDataSource </code>
+         * methods.
+         * @param effectId system wide unique id of the effect to attach
+         */
+        AttachAuxEffect(
+            [in] Int32 effectId);
+
+        /**
+         * Sets the send level of the player to the attached auxiliary effect
+         * {@see #attachAuxEffect(int)}. The level value range is 0 to 1.0.
+         * <p>By default the send level is 0, so even if an effect is attached to the player
+         * this method must be called for the effect to be applied.
+         * <p>Note that the passed level value is a raw scalar. UI controls should be scaled
+         * logarithmically: the gain applied by audio framework ranges from -72dB to 0dB,
+         * so an appropriate conversion from linear UI input x to level is:
+         * x == 0 -> level = 0
+         * 0 < x <= R -> level = 10^(72*(x-R)/20/R)
+         * @param level send level scalar
+         */
+        SetAuxEffectSendLevel(
+            [in] Float level);
 
         /**
          * Register a callback to be invoked when the media source is ready
@@ -427,8 +598,7 @@ module
          * @param listener the callback that will be run
          */
         SetOnPreparedListener(
-            [in] IOnPreparedListener* listener);
-
+            [in] IMediaPlayerOnPreparedListener* listener);
 
         /**
          * Register a callback to be invoked when the end of a media source
@@ -437,7 +607,7 @@ module
          * @param listener the callback that will be run
          */
         SetOnCompletionListener(
-            [in] IOnCompletionListener* listener);
+            [in] IMediaPlayerOnCompletionListener* listener);
 
         /**
          * Register a callback to be invoked when the status of a network
@@ -446,7 +616,7 @@ module
          * @param listener the callback that will be run.
          */
         SetOnBufferingUpdateListener(
-            [in] IOnBufferingUpdateListener* listener);
+            [in] IMediaPlayerOnBufferingUpdateListener* listener);
 
         /**
          * Register a callback to be invoked when a seek operation has been
@@ -455,7 +625,7 @@ module
          * @param listener the callback that will be run
          */
         SetOnSeekCompleteListener(
-            [in] IOnSeekCompleteListener* listener);
+            [in] IMediaPlayerOnSeekCompleteListener* listener);
 
         /**
          * Register a callback to be invoked when the video size is
@@ -464,7 +634,7 @@ module
          * @param listener the callback that will be run
          */
         SetOnVideoSizeChangedListener(
-            [in] IOnVideoSizeChangedListener* listener);
+            [in] IMediaPlayerOnVideoSizeChangedListener* listener);
 
         /**
          * Register a callback to be invoked when an error has happened
@@ -473,7 +643,7 @@ module
          * @param listener the callback that will be run
          */
         SetOnErrorListener(
-            [in] IOnErrorListener* listener);
+            [in] IMediaPlayerOnErrorListener* listener);
 
         /**
          * Register a callback to be invoked when an info/warning is available.
@@ -481,6 +651,59 @@ module
          * @param listener the callback that will be run
          */
         SetOnInfoListener(
-            [in] IOnInfoListener* listener);
+            [in] IMediaPlayerOnInfoListener* listener);
+    }
+
+    interface IMediaPlayerHelper {
+        /**
+         * Convenience method to create a MediaPlayer for a given Uri.
+         * On success, {@link #prepare()} will already have been called and must not be called again.
+         * <p>When done with the MediaPlayer, you should call  {@link #release()},
+         * to free the resources. If not released, too many MediaPlayer instances will
+         * result in an exception.</p>
+         *
+         * @param context the Context to use
+         * @param uri the Uri from which to get the datasource
+         * @return a MediaPlayer object, or NULL if creation failed
+         */
+        Create(
+            [in] IContext* context,
+            [in] IUri* uri,
+            [out] IMediaPlayer** player);
+
+        /**
+         * Convenience method to create a MediaPlayer for a given Uri.
+         * On success, {@link #prepare()} will already have been called and must not be called again.
+         * <p>When done with the MediaPlayer, you should call  {@link #release()},
+         * to free the resources. If not released, too many MediaPlayer instances will
+         * result in an exception.</p>
+         *
+         * @param context the Context to use
+         * @param uri the Uri from which to get the datasource
+         * @param holder the SurfaceHolder to use for displaying the video
+         * @return a MediaPlayer object, or NULL if creation failed
+         */
+        CreateEx(
+            [in] IContext* context,
+            [in] IUri* uri,
+            [in] ISurfaceHolder* holder,
+            [out] IMediaPlayer** player);
+
+        /**
+         * Convenience method to create a MediaPlayer for a given resource id.
+         * On success, {@link #prepare()} will already have been called and must not be called again.
+         * <p>When done with the MediaPlayer, you should call  {@link #release()},
+         * to free the resources. If not released, too many MediaPlayer instances will
+         * result in an exception.</p>
+         *
+         * @param context the Context to use
+         * @param resid the raw resource id (<var>R.raw.&lt;something></var>) for
+         *              the resource to use as the datasource
+         * @return a MediaPlayer object, or NULL if creation failed
+         */
+        CreateEx2(
+            [in] IContext* context,
+            [in] Int32 resid,
+            [out] IMediaPlayer** player);
     }
 }

@@ -1,33 +1,76 @@
 
 module
 {
-    interface IMediaMetadataRetriever
-    {
+    interface IMediaMetadataRetriever {
+        /**
+         * Sets the data source (file pathname) to use. Call this
+         * method before the rest of the methods in this class. This method may be
+         * time-consuming.
+         *
+         * @param path The path of the input media file.
+         * @throws IllegalArgumentException If the path is invalid.
+         */
+        SetDataSource(
+            [in] String path);
+
         /**
          * Sets the data source (FileDescriptor) to use. It is the caller's
          * responsibility to close the file descriptor. It is safe to do so as soon
          * as this call returns. Call this method before the rest of the methods in
          * this class. This method may be time-consuming.
-         * 
+         *
          * @param fd the FileDescriptor for the file you want to play
          * @throws IllegalArgumentException if the FileDescriptor is invalid
          */
-        SetDataSource(
+        SetDataSourceEx(
             [in] IFileDescriptor* fd);
 
         /**
-         * Sets the data source as a content Uri. Call this method before 
+         * Sets the data source (FileDescriptor) to use.  It is the caller's
+         * responsibility to close the file descriptor. It is safe to do so as soon
+         * as this call returns. Call this method before the rest of the methods in
+         * this class. This method may be time-consuming.
+         *
+         * @param fd the FileDescriptor for the file you want to play
+         * @param offset the offset into the file where the data to be played starts,
+         * in bytes. It must be non-negative
+         * @param length the length in bytes of the data to be played. It must be
+         * non-negative.
+         * @throws IllegalArgumentException if the arguments are invalid
+         */
+        SetDataSourceEx2(
+            [in] IFileDescriptor* fd,
+            [in] Int64 offset,
+            [in] Int64 length);
+
+        /**
+         * Sets the data source as a content Uri. Call this method before
          * the rest of the methods in this class. This method may be time-consuming.
-         * 
+         *
          * @param context the Context to use when resolving the Uri
          * @param uri the Content URI of the data you want to play
          * @throws IllegalArgumentException if the Uri is invalid
          * @throws SecurityException if the Uri cannot be used due to lack of
          * permission.
          */
-        SetDataSourceEx(
-            [in] IContext* context, 
+        SetDataSourceEx3(
+            [in] IContext* context,
             [in] IUri* uri);
+
+        /**
+         * Call this method after setDataSource(). This method retrieves the
+         * meta data value associated with the keyCode.
+         *
+         * The keyCode currently supported is listed below as METADATA_XXX
+         * constants. With any other value, it returns a null pointer.
+         *
+         * @param keyCode One of the constants listed below at the end of the class.
+         * @return The meta data value associate with the given keyCode on success;
+         * null on failure.
+         */
+        ExtractMetadata(
+            [in] Int32 keyCode,
+            [out] String* value);
 
         /**
          * Call this method after setDataSource(). This method finds a
@@ -55,11 +98,11 @@ module
          * {@link #OPTION_CLOSEST} often has larger performance overhead compared
          * to the other options if there is no sync frame located at timeUs.
          *
-         * @return A Bitmap containing a representative video frame, which 
+         * @return A Bitmap containing a representative video frame, which
          *         can be NULL, if such a frame cannot be retrieved.
          */
         GetFrameAtTime(
-            [in] Int64 timeUs, 
+            [in] Int64 timeUs,
             [in] Int32 option,
             [out] IBitmap** bitmap);
 
@@ -103,16 +146,15 @@ module
          */
         GetFrameAtTimeEx2(
             [out] IBitmap** bitmap);
-        
+
         /**
          * Call this method after setDataSource(). This method finds the optional
          * graphic or album art associated associated with the data source. If
          * there are more than one pictures, (any) one of them is returned.
-         * 
+         *
          * @return NULL if no such graphic is found.
          */
         GetEmbeddedPicture(
             [out, callee] ArrayOf<Byte>* graphic);
-
     }
 }

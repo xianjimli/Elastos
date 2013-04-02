@@ -12,6 +12,12 @@ public:
         /* [in] */ IParcel * pParcel,
         /* [out] */ Boolean * pRes);
 
+    /**
+     * @return The set of metadata ID found.
+     */
+    CARAPI KeySet(
+        /* [out] */ IObjectContainer** set);
+
     CARAPI Has(
         /* [in] */ Int32 metadataId,
         /* [out] */ Boolean * pPresent);
@@ -39,6 +45,10 @@ public:
     CARAPI GetByteArray(
         /* [in] */ Int32 key,
         /* [out, callee] */ ArrayOf<Byte> ** ppResult);
+
+    CARAPI GetDate(
+        /* [in] */ Int32 key,
+        /* [out] */ IDate** date);
 
     CARAPI constructor();
 

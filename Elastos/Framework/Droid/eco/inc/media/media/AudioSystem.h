@@ -45,7 +45,7 @@ public:
      */
     static const Int32 NUM_STREAMS = 5;
 
-    
+
     static CARAPI_(Int32) GetNumStreamTypes();
 
     /*
@@ -75,7 +75,7 @@ public:
      *
      * return      the current audio mode (NORMAL, RINGTONE, or IN_CALL).
      *              Returns the current current audio state from the HAL.
-     *              
+     *
      */
     /** @deprecated Do not use. */
     static CARAPI_(Int32) GetMode();
@@ -124,8 +124,8 @@ public:
      */
     /** @deprecated use {@link #setDeviceConnectionState(Int32,Int32,String)} */
     static CARAPI_(Int32) SetRouting(
-        /* [in] */ Int32 mode, 
-        /* [in] */ Int32 routes, 
+        /* [in] */ Int32 mode,
+        /* [in] */ Int32 routes,
         /* [in] */ Int32 mask);
 
     /*
@@ -162,7 +162,7 @@ public:
      * param cb the callback to run
      */
     static CARAPI_(void) SetErrorCallback(
-        /* [in] */ IErrorCallback* cb);
+        /* [in] */ IAudioSystemErrorCallback* cb);
 
     /*
      * AudioPolicyService methods
@@ -222,7 +222,7 @@ private:
     // Expose only the getter method publicly so we can change it in the future
     static const Int32 NUM_STREAM_TYPES = 10;
 
-    static AutoPtr<IErrorCallback> mErrorCallback;
+    static AutoPtr<IAudioSystemErrorCallback> mErrorCallback;
 
     static CARAPI_(void) ErrorCallbackFromNative(
         /* [in] */ Int32 error);
@@ -266,35 +266,35 @@ public:
         /* [in] */ String keys);
 
     static CARAPI_(Int32) SetDeviceConnectionState(
-        /* [in] */ Int32 device, 
-        /* [in] */ Int32 state, 
+        /* [in] */ Int32 device,
+        /* [in] */ Int32 state,
         /* [in] */ String device_address);
 
     static CARAPI_(Int32) GetDeviceConnectionState(
-        /* [in] */ Int32 device, 
+        /* [in] */ Int32 device,
         /* [in] */ String device_address);
 
     static CARAPI_(Int32) SetPhoneState(
         /* [in] */ Int32 state);
 
     static CARAPI_(Int32) SetRingerMode(
-        /* [in] */ Int32 mode, 
+        /* [in] */ Int32 mode,
         /* [in] */ Int32 mask);
 
     static CARAPI_(Int32) SetForceUse(
-        /* [in] */ Int32 usage, 
+        /* [in] */ Int32 usage,
         /* [in] */ Int32 config);
 
     static CARAPI_(Int32) GetForceUse(
         /* [in] */ Int32 usage);
 
     static CARAPI_(Int32) InitStreamVolume(
-        /* [in] */ Int32 stream, 
-        /* [in] */ Int32 indexMin, 
+        /* [in] */ Int32 stream,
+        /* [in] */ Int32 indexMin,
         /* [in] */ Int32 indexMax);
 
     static CARAPI_(Int32) SetStreamVolumeIndex(
-        /* [in] */ Int32 stream, 
+        /* [in] */ Int32 stream,
         /* [in] */ Int32 index);
 
     static CARAPI_(Int32) GetStreamVolumeIndex(

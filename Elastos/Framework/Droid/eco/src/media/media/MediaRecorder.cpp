@@ -30,10 +30,10 @@ MediaRecorder::MediaRecorder()
  *
  * @param c the Camera to use for recording
  */
-void MediaRecorder::SetCamera(
+ECode MediaRecorder::SetCamera(
     /* [in] */ ICamera* c)
 {
-
+    return E_NOT_IMPLEMENTED;
 }
 
 /**
@@ -59,7 +59,7 @@ ECode MediaRecorder::SetPreviewDisplay(
 /* Do not change these values without updating their counterparts
  * in include/media/mediarecorder.h!
  */
-MediaRecorder::AudioSource::AudioSource() 
+MediaRecorder::AudioSource::AudioSource()
 {}
 
 
@@ -127,7 +127,7 @@ void MediaRecorder::SetAudioSource(
  * @see android.media.MediaRecorder.AudioSource
  */
 Int32 MediaRecorder::GetAudioSourceMax()
-{ 
+{
     return AudioSource::VOICE_RECOGNITION;
 }
 
@@ -230,7 +230,7 @@ void MediaRecorder::SetOutputFormat(
  * prepare() or before setOutputFormat()
  */
 void MediaRecorder::SetVideoSize(
-    /* [in] */ Int32 width, 
+    /* [in] */ Int32 width,
     /* [in] */ Int32 height)
 {
 
@@ -441,8 +441,8 @@ ECode MediaRecorder::SetOutputFile(
 
 // native implementation
 void MediaRecorder::_setOutputFile(
-    /* [in] */ IFileDescriptor* fd, 
-    /* [in] */ Int64 offset, 
+    /* [in] */ IFileDescriptor* fd,
+    /* [in] */ Int64 offset,
     /* [in] */ Int64 length)
 {
 
@@ -545,7 +545,7 @@ Int32 MediaRecorder::GetMaxAmplitude()
  * @param l the callback that will be run
  */
 ECode MediaRecorder::SetOnErrorListener(
-    /* [in] */ IOnErrorListener* l)
+    /* [in] */ IMediaRecorderOnErrorListener* l)
 {
     mOnErrorListener = l;
 
@@ -559,7 +559,7 @@ ECode MediaRecorder::SetOnErrorListener(
  * @param listener the callback that will be run
  */
 ECode MediaRecorder::SetOnInfoListener(
-    /* [in] */ IOnInfoListener* listener)
+    /* [in] */ IMediaRecorderOnInfoListener* listener)
 {
     mOnInfoListener = listener;
 
@@ -567,15 +567,15 @@ ECode MediaRecorder::SetOnInfoListener(
 }
 
 //MediaRecorder::EventHandler::EventHandler(
-//    /* [in] */ MediaRecorder* mr, 
-//    /* [in] */ Looper looper) 
+//    /* [in] */ MediaRecorder* mr,
+//    /* [in] */ Looper looper)
 //{
 //    super(looper);
 //    mMediaRecorder = mr;
 //}
 
 ECode MediaRecorder::EventHandler::HandleMessage(
-    /* [in] */ IMessage* msg) 
+    /* [in] */ IMessage* msg)
 {
     if (mMediaRecorder->mNativeContext == 0) {
         //Log.w(TAG, "mediarecorder went away with unhandled events");
@@ -636,9 +636,9 @@ ECode MediaRecorder::EventHandler::GetInterfaceID(
  */
 void MediaRecorder::PostEventFromNative(
     /* [in] */ IInterface* mediarecorder_ref,
-    /* [in] */ Int32 what, 
-    /* [in] */ Int32 arg1, 
-    /* [in] */ Int32 arg2, 
+    /* [in] */ Int32 what,
+    /* [in] */ Int32 arg1,
+    /* [in] */ Int32 arg2,
     /* [in] */ IInterface* obj)
 {
     /*MediaRecorder mr = (MediaRecorder)((WeakReference)mediarecorder_ref).get();
@@ -684,7 +684,7 @@ void MediaRecorder::SetParameter(
 
 }
 
-void MediaRecorder::Finalize() 
-{ 
-    native_finalize(); 
+void MediaRecorder::Finalize()
+{
+    native_finalize();
 }

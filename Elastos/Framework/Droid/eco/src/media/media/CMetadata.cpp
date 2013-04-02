@@ -9,6 +9,13 @@ ECode CMetadata::Parse(
     return E_NOT_IMPLEMENTED;
 }
 
+ECode CMetadata::KeySet(
+    /* [out] */ IObjectContainer** set)
+{
+    // TODO: Add your code here
+    return E_NOT_IMPLEMENTED;
+}
+
 ECode CMetadata::Has(
     /* [in] */ Int32 metadataId,
     /* [out] */ Boolean * pPresent)
@@ -60,6 +67,14 @@ ECode CMetadata::GetDouble(
 ECode CMetadata::GetByteArray(
     /* [in] */ Int32 key,
     /* [out, callee] */ ArrayOf<Byte> ** ppResult)
+{
+    // TODO: Add your code here
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CMetadata::GetDate(
+    /* [in] */ Int32 key,
+    /* [out] */ IDate** date)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;

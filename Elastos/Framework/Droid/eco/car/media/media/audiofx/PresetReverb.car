@@ -71,8 +71,7 @@ module
             [in] Int16 result);
     }
 
-    interface IPresetReverb /* extends IAudioEffect */ {
-
+    interface IPresetReverb extends IAudioEffect {
         /**
          *  Enables a preset on the reverb.
          *  <p>The reverb PRESET_NONE disables any reverb from the current output but does not free the
@@ -101,7 +100,7 @@ module
          * Registers an OnParameterChangeListener interface.
          * @param listener OnParameterChangeListener interface registered
          */
-        SetParameterListenerEx4(
+        SetParameterListenerEx(
             [in] IPresetReverbOnParameterChangeListener* listener);
 
         /**

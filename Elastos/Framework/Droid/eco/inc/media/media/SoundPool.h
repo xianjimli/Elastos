@@ -24,10 +24,10 @@
  * SoundPool will automatically stop a previously playing stream based first
  * on priority and then by age within that priority. Limiting the maximum
  * number of streams helps to cap CPU loading and reducing the likelihood that
- * audio mixing will impact visuals or UI performance.</p> 
+ * audio mixing will impact visuals or UI performance.</p>
  *
  * <p>Sounds can be looped by setting a non-zero loop value. A value of -1
- * causes the sound to loop forever. In this case, the application must 
+ * causes the sound to loop forever. In this case, the application must
  * explicitly call the stop() function to stop the sound. Any other non-zero
  * value will cause the sound to repeat the specified number of times, e.g.
  * a value of 3 causes the sound to play a total of 4 times.</p>
@@ -89,7 +89,7 @@ public:
      *
      * @param maxStreams the maximum number of simultaneous streams for this
      *                   SoundPool object
-     * @param streamType the audio stream type as described in AudioManager 
+     * @param streamType the audio stream type as described in AudioManager
      *                   For example, game applications will normally use
      *                   {@link AudioManager#STREAM_MUSIC}.
      * @param srcQuality the sample-rate converter quality. Currently has no
@@ -97,8 +97,8 @@ public:
      * @return a SoundPool object, or NULL if creation failed
      */
     SoundPool(
-        /* [in] */ Int32 maxStreams, 
-        /* [in] */ Int32 streamType, 
+        /* [in] */ Int32 maxStreams,
+        /* [in] */ Int32 streamType,
         /* [in] */ Int32 srcQuality);
 
     /**
@@ -110,7 +110,7 @@ public:
      * @return a sound ID. This value can be used to play or unload the sound.
      */
     virtual CARAPI_(Int32) Load(
-        /* [in] */ String path, 
+        /* [in] */ String path,
         /* [in] */ Int32 priority);
 
     /**
@@ -121,7 +121,7 @@ public:
      * "R.raw.explosion" as the resource ID. Note that this means you cannot
      * have both an "explosion.wav" and an "explosion.mp3" in the res/raw
      * directory.
-     * 
+     *
      * @param context the application context
      * @param resId the resource ID
      * @param priority the priority of the sound. Currently has no effect. Use
@@ -129,8 +129,8 @@ public:
      * @return a sound ID. This value can be used to play or unload the sound.
      */
     virtual CARAPI_(Int32) Load(
-        /* [in] */ IContext* context, 
-        /* [in] */ Int32 resId, 
+        /* [in] */ IContext* context,
+        /* [in] */ Int32 resId,
         /* [in] */ Int32 priority);
 
     /**
@@ -142,7 +142,7 @@ public:
      * @return a sound ID. This value can be used to play or unload the sound.
      */
     virtual CARAPI_(Int32) Load(
-        /* [in] */ IAssetFileDescriptor* afd, 
+        /* [in] */ IAssetFileDescriptor* afd,
         /* [in] */ Int32 priority);
 
     /**
@@ -160,9 +160,9 @@ public:
      * @return a sound ID. This value can be used to play or unload the sound.
      */
     virtual CARAPI_(Int32) Load(
-        /* [in] */ IFileDescriptor* fd, 
-        /* [in] */ Int64 offset, 
-        /* [in] */ Int64 length, 
+        /* [in] */ IFileDescriptor* fd,
+        /* [in] */ Int64 offset,
+        /* [in] */ Int64 length,
         /* [in] */ Int32 priority);
 
     /**
@@ -181,7 +181,7 @@ public:
     /**
      * Play a sound from a sound ID.
      *
-     * Play the sound specified by the soundID. This is the value 
+     * Play the sound specified by the soundID. This is the value
      * returned by the load() function. Returns a non-zero streamID
      * if successful, zero if it fails. The streamID can be used to
      * further control playback. Note that calling play() may cause
@@ -203,11 +203,11 @@ public:
      * @return non-zero streamID if successful, zero if failed
      */
     virtual CARAPI_(Int32) Play(
-        /* [in] */ Int32 soundID, 
-        /* [in] */ Float leftVolume, 
+        /* [in] */ Int32 soundID,
+        /* [in] */ Float leftVolume,
         /* [in] */ Float rightVolume,
-        /* [in] */ Int32 priority, 
-        /* [in] */ Int32 loop, 
+        /* [in] */ Int32 priority,
+        /* [in] */ Int32 loop,
         /* [in] */ Float rate);
 
     /**
@@ -221,7 +221,7 @@ public:
      *
      * @param streamID a streamID returned by the play() function
      */
-    virtual CARAPI_(void) Pause(
+    virtual CARAPI Pause(
         /* [in] */ Int32 streamID);
 
     /**
@@ -234,7 +234,7 @@ public:
      *
      * @param streamID a streamID returned by the play() function
      */
-    virtual CARAPI_(void) Resume(
+    virtual CARAPI Resume(
         /* [in] */ Int32 streamID);
 
     /**
@@ -245,7 +245,7 @@ public:
      * are playing. It also sets a flag so that any streams that
      * are playing can be resumed by calling autoResume().
      */
-    virtual CARAPI_(void) AutoPause();
+    virtual CARAPI AutoPause();
 
     /**
      * Resume all previously active streams.
@@ -253,7 +253,7 @@ public:
      * Automatically resumes all streams that were paused in previous
      * calls to autoPause().
      */
-    virtual CARAPI_(void) AutoResume();
+    virtual CARAPI AutoResume();
 
     /**
      * Stop a playback stream.
@@ -266,7 +266,7 @@ public:
      *
      * @param streamID a streamID returned by the play() function
      */
-    virtual CARAPI_(void) Stop(
+    virtual CARAPI Stop(
         /* [in] */ Int32 streamID);
 
     /**
@@ -281,9 +281,9 @@ public:
      * @param leftVolume left volume value (range = 0.0 to 1.0)
      * @param rightVolume right volume value (range = 0.0 to 1.0)
      */
-    virtual CARAPI_(void) SetVolume(
+    virtual CARAPI SetVolume(
         /* [in] */ Int32 streamID,
-        /* [in] */ Float leftVolume, 
+        /* [in] */ Float leftVolume,
         /* [in] */ Float rightVolume);
 
     /**
@@ -296,8 +296,8 @@ public:
      *
      * @param streamID a streamID returned by the play() function
      */
-    virtual CARAPI_(void) SetPriority(
-        /* [in] */ Int32 streamID, 
+    virtual CARAPI SetPriority(
+        /* [in] */ Int32 streamID,
         /* [in] */ Int32 priority);
 
     /**
@@ -311,8 +311,8 @@ public:
      * @param streamID a streamID returned by the play() function
      * @param loop loop mode (0 = no loop, -1 = loop forever)
      */
-    virtual CARAPI_(void) SetLoop(
-        /* [in] */ Int32 streamID, 
+    virtual CARAPI SetLoop(
+        /* [in] */ Int32 streamID,
         /* [in] */ Int32 loop);
 
     /**
@@ -327,8 +327,8 @@ public:
      * @param streamID a streamID returned by the play() function
      * @param rate playback rate (1.0 = normal playback, range 0.5 to 2.0)
      */
-    virtual CARAPI_(void) SetRate(
-        /* [in] */ Int32 streamID, 
+    virtual CARAPI SetRate(
+        /* [in] */ Int32 streamID,
         /* [in] */ Float rate);
 
     /**
@@ -375,26 +375,26 @@ private:
 
     // post event from native code to message handler
     static CARAPI_(void) PostEventFromNative(
-        /* [in] */ IInterface* weakRef, 
-        /* [in] */ Int32 msg, 
-        /* [in] */ Int32 arg1, 
-        /* [in] */ Int32 arg2, 
+        /* [in] */ IInterface* weakRef,
+        /* [in] */ Int32 msg,
+        /* [in] */ Int32 arg1,
+        /* [in] */ Int32 arg2,
         /* [in] */ IInterface* obj);
 
     CARAPI_(Int32) _load(
-        /* [in] */ String uri, 
+        /* [in] */ String uri,
         /* [in] */ Int32 priority);
 
     CARAPI_(Int32) _load(
-        /* [in] */ IFileDescriptor* fd, 
-        /* [in] */ Int64 offset, 
-        /* [in] */ Int64 length, 
+        /* [in] */ IFileDescriptor* fd,
+        /* [in] */ Int64 offset,
+        /* [in] */ Int64 length,
         /* [in] */ Int32 priority);
 
     CARAPI_(Int32) native_setup(
-        /* [in] */ IInterface* weakRef, 
-        /* [in] */ Int32 maxStreams, 
-        /* [in] */ Int32 streamType, 
+        /* [in] */ IInterface* weakRef,
+        /* [in] */ Int32 maxStreams,
+        /* [in] */ Int32 streamType,
         /* [in] */ Int32 srcQuality);
 
     //static { System.loadLibrary("soundpool"); }

@@ -126,7 +126,7 @@ ECode CVirtualizer::BaseParameterListener::OnParameterChange(
     return NOERROR;
 }
 
-ECode CVirtualizer::SetParameterListenerEx5(
+ECode CVirtualizer::SetParameterListenerEx(
     /* [in] */ IVirtualizerOnParameterChangeListener* listener)
 {
     Mutex::Autolock lock(mParamListenerLock);
@@ -223,3 +223,243 @@ ECode CVirtualizer::SetProperties(
 }
 
 const CString CVirtualizer::TAG = "Virtualizer";
+
+// IAudioEffect
+ECode CVirtualizer::ReleaseResources()
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CVirtualizer::GetDescriptor(
+    /* [out] */ IAudioEffectDescriptor** descriptor)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CVirtualizer::SetEnabled(
+    /* [in]  */ Boolean enabled,
+    /* [out] */ Int32* result)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CVirtualizer::SetParameter(
+    /* [in] */ const ArrayOf<Byte>& param,
+    /* [in] */ const ArrayOf<Byte>& value,
+    /* [out] */ Int32* result)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CVirtualizer::SetParameterEx(
+    /* [in] */ Int32 param,
+    /* [in] */ Int32 value,
+    /* [out] */ Int32* result)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CVirtualizer::SetParameterEx2(
+    /* [in] */ Int32 param,
+    /* [in] */ Int16 value,
+    /* [out] */ Int32* result)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CVirtualizer::SetParameterEx3(
+    /* [in] */ Int32 param,
+    /* [in] */ const ArrayOf<Byte>& value,
+    /* [out] */ Int32* result)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CVirtualizer::SetParameterEx4(
+    /* [in] */ const ArrayOf<Int32>& param,
+    /* [in] */ const ArrayOf<Int32>& value,
+    /* [out] */ Int32* result)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CVirtualizer::SetParameterEx5(
+    /* [in] */ const ArrayOf<Int32>& param,
+    /* [in] */ const ArrayOf<Int16>& value,
+    /* [out] */ Int32* result)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CVirtualizer::SetParameterEx6(
+    /* [in] */ const ArrayOf<Int32>& param,
+    /* [in] */ const ArrayOf<Byte>& value,
+    /* [out] */ Int32* result)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CVirtualizer::GetParameter(
+    /* [in] */ const ArrayOf<Byte>& param,
+    /* [out] */ ArrayOf<Byte>* value,
+    /* [out] */  Int32* status)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CVirtualizer::GetParameterEx(
+    /* [in] */ Int32 param,
+    /* [out] */ ArrayOf<Byte>* value,
+    /* [out] */ Int32* status)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CVirtualizer::GetParameterEx2(
+    /* [in] */ Int32 param,
+    /* [out] */ ArrayOf<Int32>* value,
+    /* [out] */ Int32* status)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CVirtualizer::GetParameterEx3(
+    /* [in] */ Int32 param,
+    /* [out] */ ArrayOf<Int16>* value,
+    /* [out] */ Int32* status)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CVirtualizer::GetParameterEx4(
+    /* [in] */ const ArrayOf<Int32>& param,
+    /* [out] */ ArrayOf<Int32>* value,
+    /* [out] */ Int32* status)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CVirtualizer::GetParameterEx5(
+    /* [in] */ const ArrayOf<Int32>& param,
+    /* [out] */ ArrayOf<Int16>* value,
+    /* [out] */ Int32* status)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CVirtualizer::GetParameterEx6(
+    /* [in] */ const ArrayOf<Int32>& param,
+    /* [in] */ const ArrayOf<Byte>& value,
+    /* [out] */ Int32* status)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CVirtualizer::Command(
+    /* [in] */ Int32 cmdCode,
+    /* [in] */ const ArrayOf<Byte>& command,
+    /* [out] */ ArrayOf<Byte>* reply,
+    /* [out] */ Int32* result)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CVirtualizer::GetId(
+    /* [out] */ Int32* Id)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CVirtualizer::GetEnabled(
+    /* [out] */ Boolean* getenable)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CVirtualizer::HasControl(
+    /* [out] */ Boolean* control)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CVirtualizer::SetEnableStatusListener(
+    /* [in] */ IAudioEffectOnEnableStatusChangeListener* listener)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CVirtualizer::SetControlStatusListener(
+    /* [in] */ IAudioEffectOnControlStatusChangeListener* listener)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CVirtualizer::SetParameterListener(
+    /* [in] */ IAudioEffectOnParameterChangeListener* listener)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CVirtualizer::CheckState(
+    /* [in] */ CString methodName)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CVirtualizer::CheckStatus(
+    /* [in] */ Int32 status)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CVirtualizer::ByteArrayToInt32(
+    /* [in] */ const ArrayOf<Byte>& valueBuf,
+    /* [out] */ Int32* result)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CVirtualizer::ByteArrayToInt32Ex(
+    /* [in] */ const ArrayOf<Byte>& valueBuf,
+    /* [in] */ Int32 offset,
+    /* [out] */ Int32* result)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CVirtualizer::Int32ToByteArray(
+    /* [in] */ Int32 value,
+    /* [out, callee] */ ArrayOf<Byte>** result)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CVirtualizer::ByteArrayToInt16(
+    /* [in] */ const ArrayOf<Byte>& valueBuf,
+    /* [out] */ Int16* result)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CVirtualizer::ByteArrayToInt16Ex(
+    /* [in] */ const ArrayOf<Byte>& valueBuf,
+    /* [in] */ Int32 offset,
+    /* [out] */ Int16* result)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CVirtualizer::Int16ToByteArray(
+    /* [in] */ Int16 value,
+    /* [out, callee] */ ArrayOf<Byte>** result)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CVirtualizer::ConcatArrays(
+    /* [in] */ const ArrayOf<Byte>& array1,
+    /* [in] */ const ArrayOf<Byte>& array2,
+    /* [out, callee] */ ArrayOf<Byte>** result)
+{
+    return E_NOT_IMPLEMENTED;
+}

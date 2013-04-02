@@ -1,8 +1,7 @@
 
 module
 {
-    interface IExifInterface
-    {
+    interface IExifInterface {
         /**
          * Returns the value of the specified tag or {@code NULL} if there
          * is no such tag in the JPEG file.
@@ -22,7 +21,7 @@ module
          * @param defaultValue the value to return if the tag is not available.
          */
         GetAttributeInt32(
-            [in] String tag, 
+            [in] String tag,
             [in] Int32 defaultValue,
             [out] Int32* value);
 
@@ -35,7 +34,7 @@ module
          * @param defaultValue the value to return if the tag is not available.
          */
         GetAttributeDouble(
-            [in] String tag, 
+            [in] String tag,
             [in] Double defaultValue,
             [out] Double* value);
 
@@ -46,7 +45,7 @@ module
          * @param value the value of the tag.
          */
         SetAttribute(
-            [in] String tag, 
+            [in] String tag,
             [in] String value);
 
         /**
@@ -78,7 +77,7 @@ module
          * Exif tags are not available.
          */
         GetLatLong(
-            [in] ArrayOf<Float> output,
+            [out] ArrayOf<Float> output,
             [out] Boolean* available);
 
         /**
@@ -106,6 +105,5 @@ module
          */
         GetGpsDateTime(
             [out] Int64* dataTime);
-
     }
 }

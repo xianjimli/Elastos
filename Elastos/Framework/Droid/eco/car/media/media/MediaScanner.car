@@ -1,16 +1,19 @@
 
 module
 {
-    interface IMediaScanner
-    {
+    interface IMediaScanner {
         ScanDirectories(
-            [in] ArrayOf<String> directories, 
+            [in] ArrayOf<String> directories,
             [in] String volumeName);
 
         ScanSingleFile(
-            [in] String path, 
-            [in] String volumeName, 
+            [in] String path,
+            [in] String volumeName,
             [in] String mimeType,
-            [out] IUri** uri);    
+            [out] IUri** uri);
+
+        ExtractAlbumArt(
+            [in] IFileDescriptor* fd,
+            [out, callee] ArrayOf<Byte>* albumArt);
     }
 }

@@ -19,6 +19,14 @@ ECode CMediaScanner::ScanSingleFile(
     return E_NOT_IMPLEMENTED;
 }
 
+ECode CMediaScanner::ExtractAlbumArt(
+    /* [in] */ IFileDescriptor* fd,
+    /* [out, callee] */ ArrayOf<Byte>** albumArt)
+{
+    // TODO: Add your code here
+    return E_NOT_IMPLEMENTED;
+}
+
 ECode CMediaScanner::constructor(
     /* [in] */ IContext * pC)
 {

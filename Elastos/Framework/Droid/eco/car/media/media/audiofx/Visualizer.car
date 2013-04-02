@@ -86,7 +86,7 @@ module
          * Releases the native Visualizer resources. It is a good practice to release the
          * visualization engine when not in use.
          */
-        ReleaseIt();
+        ReleaseResources();
 
         /**
          * Enable or disable the visualization engine.
@@ -105,23 +105,6 @@ module
          */
         GetEnabled(
             [out] Boolean* enabled);
-
-        /**
-         * Returns the capture size range.
-         * @return the mininum capture size is returned in first array element and the maximum in second
-         * array element.
-         */
-        GetCaptureSizeRange(
-            [out] ArrayOf<Int32> captureSizeRange);
-
-        /**
-         * Returns the maximum capture rate for the callback capture method. This is the maximum value
-         * for the rate parameter of the
-         * {@link #setDataCaptureListener(OnDataCaptureListener, int, boolean, boolean)} method.
-         * @return the maximum capture rate expressed in milliHertz
-         */
-        GetMaxCaptureRate(
-            [out] Int32* captureRate);
 
         /**
          * Sets the capture size, i.e. the number of bytes returned by {@link #getWaveForm(byte[])} and
@@ -163,7 +146,7 @@ module
          * @throws IllegalStateException
          */
         GetWaveForm(
-            [in] ArrayOf<Byte> waveform,
+            [out] ArrayOf<Byte> waveform,
             [out] Int32* result);
 
         /**
@@ -211,7 +194,7 @@ module
          * @throws IllegalStateException
          */
         GetFft(
-            [in] ArrayOf<Byte> fft,
+            [out] ArrayOf<Byte> fft,
             [out] Int32* result);
 
         /**
@@ -230,8 +213,27 @@ module
         SetDataCaptureListener(
             [in] IVisualizerOnDataCaptureListener* listener,
             [in] Int32 rate,
-            [out] Boolean* waveform,
-            [out] Boolean* fft,
+            [in] Boolean waveform,
+            [in] Boolean fft,
             [out] Int32* result);
+    }
+
+    interface IVisualizerHelper {
+        /**
+         * Returns the capture size range.
+         * @return the mininum capture size is returned in first array element and the maximum in second
+         * array element.
+         */
+        GetCaptureSizeRange(
+            [out, callee] ArrayOf<Int32>* captureSizeRange);
+
+        /**
+         * Returns the maximum capture rate for the callback capture method. This is the maximum value
+         * for the rate parameter of the
+         * {@link #setDataCaptureListener(OnDataCaptureListener, int, boolean, boolean)} method.
+         * @return the maximum capture rate expressed in milliHertz
+         */
+        GetMaxCaptureRate(
+            [out] Int32* captureRate);
     }
 }

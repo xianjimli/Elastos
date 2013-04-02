@@ -185,7 +185,7 @@ public:
      * release the effect engine when not in use as control can be returned to
      * other applications or the native resources released.
      */
-    CARAPI ReleaseIt();
+    CARAPI ReleaseResources();
 
     /**
      * Get the effect descriptor.
@@ -251,7 +251,7 @@ public:
      *
      * @see #setParameter(byte[], byte[])
      * @hide
-     */        
+     */
     CARAPI SetParameterEx(
         /* [in] */ Int32 param,
         /* [in] */ Int32 value,
@@ -312,7 +312,7 @@ public:
      * @see #setParameter(byte[], byte[])
      * @hide
      */
-    SetParameterEx6(
+    CARAPI SetParameterEx6(
         /* [in] */ const ArrayOf<Int32>& param,
         /* [in] */ const ArrayOf<Byte>& value,
         /* [out] */ Int32* result);
@@ -348,7 +348,7 @@ public:
      */
     CARAPI GetParameterEx(
         /* [in] */ Int32 param,
-        /* [in] */ const ArrayOf<Byte>& value,
+        /* [out] */ ArrayOf<Byte>* value,
         /* [out] */ Int32* status);
 
     /**
@@ -518,7 +518,7 @@ public:
      */
     CARAPI Int32ToByteArray(
         /* [in] */ Int32 value,
-        /* [out] */ ArrayOf<Byte>* result);
+        /* [out, callee] */ ArrayOf<Byte>** result);
 
     /**
      * @hide
@@ -540,7 +540,7 @@ public:
      */
     CARAPI Int16ToByteArray(
         /* [in] */ Int16 value,
-        /* [out] */ ArrayOf<Byte>* result);
+        /* [out, callee] */ ArrayOf<Byte>** result);
 
     /**
      * @hide
@@ -621,7 +621,7 @@ public:
      * Lock to protect listeners updates against event notifications
      * @hide
      */
-     
+
     Mutex mListenerLock;
 
     /**

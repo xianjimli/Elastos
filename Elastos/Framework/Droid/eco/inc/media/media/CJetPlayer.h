@@ -12,7 +12,7 @@ public:
     CARAPI Clone(
         /* [out] */ IInterface ** ppJetPlayer);
 
-    CARAPI ReleaseEx();
+    CARAPI ReleaseResources();
 
     CARAPI GetMaxTracks(
         /* [out] */ Int32 * pTracks);
@@ -80,7 +80,7 @@ public:
 
     CARAPI SetEventListenerEx(
         /* [in] */ IOnJetEventListener * pListener,
-        /* [in] */ IHandler * pHandler);
+        /* [in] */ IApartment * pHandler);
 
     CARAPI constructor();
 

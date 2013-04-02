@@ -41,7 +41,7 @@ module
             [in] Int16 result);
     }
 
-    interface IBassBoost /* extends IAudioEffect */ {
+    interface IBassBoost extends IAudioEffect {
         /**
          * Indicates whether setting strength is supported. If this method returns false, only one
          * strength is supported and the setStrength() method always rounds to that value.

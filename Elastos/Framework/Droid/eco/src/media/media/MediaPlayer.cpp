@@ -10,7 +10,7 @@
  * to free the resources. If not released, too many MediaPlayer instances may
  * result in an exception.</p>
  */
-MediaPlayer::MediaPlayer() 
+MediaPlayer::MediaPlayer()
 {
 
     //Looper looper;
@@ -71,8 +71,8 @@ AutoPtr<IParcel> MediaPlayer::NewRequest()
  * {@hide}
  */
 Int32 MediaPlayer::Invoke(
-    /* [in] */ IParcel* request, 
-    /* [in] */ IParcel* reply) 
+    /* [in] */ IParcel* request,
+    /* [in] */ IParcel* reply)
 {
     Int32 retcode = Native_invoke(request, reply);
     //reply->SetDataPosition(0);
@@ -113,7 +113,7 @@ ECode MediaPlayer::SetDisplay(
  * @return a MediaPlayer object, or NULL if creation failed
  */
 AutoPtr<IMediaPlayer> MediaPlayer::Create(
-    /* [in] */ IContext* context, 
+    /* [in] */ IContext* context,
     /* [in] */ IUri* uri)
 {
     return Create(context, uri, NULL);
@@ -132,8 +132,8 @@ AutoPtr<IMediaPlayer> MediaPlayer::Create(
  * @return a MediaPlayer object, or NULL if creation failed
  */
 AutoPtr<IMediaPlayer> MediaPlayer::Create(
-    /* [in] */ IContext* context, 
-    /* [in] */ IUri* uri, 
+    /* [in] */ IContext* context,
+    /* [in] */ IUri* uri,
     /* [in] */ ISurfaceHolder* holder)
 {
     //try {
@@ -143,7 +143,7 @@ AutoPtr<IMediaPlayer> MediaPlayer::Create(
         if (holder != NULL) {
             mp->SetDisplay(holder);
         }
-        ((CMediaPlayer*)mp.Get())->Prepare();
+        mp->Prepare();
         return mp;
     //} catch (IOException ex) {
     //    Log.d(TAG, "create failed:", ex);
@@ -172,7 +172,7 @@ AutoPtr<IMediaPlayer> MediaPlayer::Create(
  * @return a MediaPlayer object, or NULL if creation failed
  */
 AutoPtr<IMediaPlayer> MediaPlayer::Create(
-    /* [in] */ IContext* context, 
+    /* [in] */ IContext* context,
     /* [in] */ Int32 resid)
 {
     //try {
@@ -205,7 +205,7 @@ AutoPtr<IMediaPlayer> MediaPlayer::Create(
  * @throws IllegalStateException if it is called in an invalid state
  */
 ECode MediaPlayer::SetDataSource(
-    /* [in] */ IContext* context, 
+    /* [in] */ IContext* context,
     /* [in] */ IUri* uri)
 {
     return SetDataSource(context, uri, NULL);
@@ -221,8 +221,8 @@ ECode MediaPlayer::SetDataSource(
  * @hide pending API council
  */
 ECode MediaPlayer::SetDataSource(
-    /* [in] */ IContext* context, 
-    /* [in] */ IUri* uri, 
+    /* [in] */ IContext* context,
+    /* [in] */ IUri* uri,
     /* [in] */ Map<String, String>* headers)
 {
     //String scheme = uri.getScheme();
@@ -280,7 +280,7 @@ void MediaPlayer::SetDataSource(
  * @hide pending API council
  */
 void MediaPlayer::SetDataSource(
-    /* [in] */ String path,  
+    /* [in] */ String path,
     /* [in] */ Map<String, String>* headers)
 {
 
@@ -313,8 +313,8 @@ ECode MediaPlayer::SetDataSource(
  * @throws IllegalStateException if it is called in an invalid state
  */
 void MediaPlayer::SetDataSource(
-    /* [in] */ IFileDescriptor* fd, 
-    /* [in] */ Int64 offset, 
+    /* [in] */ IFileDescriptor* fd,
+    /* [in] */ Int64 offset,
     /* [in] */ Int64 length)
 {
 
@@ -426,7 +426,7 @@ void MediaPlayer::_pause()
  * @see android.os.PowerManager
  */
 ECode MediaPlayer::SetWakeMode(
-    /* [in] */ IContext* context, 
+    /* [in] */ IContext* context,
     /* [in] */ Int32 mode)
 {
     Boolean washeld = FALSE;
@@ -621,7 +621,7 @@ AutoPtr<IMetadata> MediaPlayer::GetMetadata(
  * {@hide}
  */
 Int32 MediaPlayer::SetMetadataFilter(
-    /* [in] */ Set<Int32>* allow, 
+    /* [in] */ Set<Int32>* allow,
     /* [in] */ Set<Int32>* block)
 {
     // Do our serialization manually instead of calling
@@ -802,10 +802,10 @@ Boolean MediaPlayer::IsLooping()
  * @param rightVolume right volume scalar
  */
 void MediaPlayer::SetVolume(
-    /* [in] */ Float leftVolume, 
+    /* [in] */ Float leftVolume,
     /* [in] */ Float rightVolume)
 {
-    
+
 }
 
 /**
@@ -898,7 +898,7 @@ void MediaPlayer::SetAuxEffectSendLevel(
  * @return The status code.
  */
 Int32 MediaPlayer::Native_invoke(
-    /* [in] */ IParcel* request, 
+    /* [in] */ IParcel* request,
     /* [in] */ IParcel* reply)
 {
     return 0;
@@ -956,13 +956,13 @@ void MediaPlayer::Native_finalize()
 }
 
 void MediaPlayer::Finalize()
-{ 
-    Native_finalize(); 
+{
+    Native_finalize();
 }
 
 
 //MediaPlayer::EventHandler::EventHandler(
-//    /* [in] */ IMediaPlayer* mp, 
+//    /* [in] */ IMediaPlayer* mp,
 //    /* [in] */ Looper looper)
 //{
 //    super(looper);
@@ -1075,9 +1075,9 @@ ECode MediaPlayer::EventHandler::GetInterfaceID(
  */
 void MediaPlayer::PostEventFromNative(
     /* [in] */ IInterface* mediaplayer_ref,
-    /* [in] */ Int32 what, 
-    /* [in] */ Int32 arg1, 
-    /* [in] */ Int32 arg2, 
+    /* [in] */ Int32 what,
+    /* [in] */ Int32 arg1,
+    /* [in] */ Int32 arg2,
     /* [in] */ IInterface* obj)
 {
     /*MediaPlayer mp = (MediaPlayer)((WeakReference)mediaplayer_ref).get();
@@ -1098,7 +1098,7 @@ void MediaPlayer::PostEventFromNative(
  * @param listener the callback that will be run
  */
 ECode MediaPlayer::SetOnPreparedListener(
-    /* [in] */ IOnPreparedListener* listener)
+    /* [in] */ IMediaPlayerOnPreparedListener* listener)
 {
     mOnPreparedListener = listener;
 
@@ -1112,7 +1112,7 @@ ECode MediaPlayer::SetOnPreparedListener(
  * @param listener the callback that will be run
  */
 ECode MediaPlayer::SetOnCompletionListener(
-    /* [in] */ IOnCompletionListener* listener)
+    /* [in] */ IMediaPlayerOnCompletionListener* listener)
 {
     mOnCompletionListener = listener;
 
@@ -1126,7 +1126,7 @@ ECode MediaPlayer::SetOnCompletionListener(
  * @param listener the callback that will be run.
  */
 ECode MediaPlayer::SetOnBufferingUpdateListener(
-    /* [in] */ IOnBufferingUpdateListener* listener)
+    /* [in] */ IMediaPlayerOnBufferingUpdateListener* listener)
 {
     mOnBufferingUpdateListener = listener;
 
@@ -1140,7 +1140,7 @@ ECode MediaPlayer::SetOnBufferingUpdateListener(
  * @param listener the callback that will be run
  */
 ECode MediaPlayer::SetOnSeekCompleteListener(
-    /* [in] */ IOnSeekCompleteListener* listener)
+    /* [in] */ IMediaPlayerOnSeekCompleteListener* listener)
 {
     mOnSeekCompleteListener = listener;
 
@@ -1154,7 +1154,7 @@ ECode MediaPlayer::SetOnSeekCompleteListener(
  * @param listener the callback that will be run
  */
 ECode MediaPlayer::SetOnVideoSizeChangedListener(
-    /* [in] */ IOnVideoSizeChangedListener* listener)
+    /* [in] */ IMediaPlayerOnVideoSizeChangedListener* listener)
 {
     mOnVideoSizeChangedListener = listener;
 
@@ -1168,7 +1168,7 @@ ECode MediaPlayer::SetOnVideoSizeChangedListener(
  * @param listener the callback that will be run
  */
 ECode MediaPlayer::SetOnErrorListener(
-    /* [in] */ IOnErrorListener* listener)
+    /* [in] */ IMediaPlayerOnErrorListener* listener)
 {
     mOnErrorListener = listener;
 
@@ -1181,7 +1181,7 @@ ECode MediaPlayer::SetOnErrorListener(
  * @param listener the callback that will be run
  */
 ECode MediaPlayer::SetOnInfoListener(
-    /* [in] */ IOnInfoListener* listener)
+    /* [in] */ IMediaPlayerOnInfoListener* listener)
 {
     mOnInfoListener = listener;
 

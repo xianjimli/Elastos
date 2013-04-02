@@ -114,7 +114,7 @@ ECode CPresetReverb::BaseParameterListener::OnParameterChange(
     return NOERROR;
 }
 
-ECode CPresetReverb::SetParameterListenerEx4(
+ECode CPresetReverb::SetParameterListenerEx(
         /* [in] */ IPresetReverbOnParameterChangeListener* listener)
 {
     Mutex::Autolock lock(mParamListenerLock);
@@ -211,3 +211,243 @@ ECode CPresetReverb::SetProperties(
 }
 
 const CString CPresetReverb::TAG = "PresetReverb";
+
+// IAudioEffect
+ECode CPresetReverb::ReleaseResources()
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CPresetReverb::GetDescriptor(
+    /* [out] */ IAudioEffectDescriptor** descriptor)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CPresetReverb::SetEnabled(
+    /* [in]  */ Boolean enabled,
+    /* [out] */ Int32* result)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CPresetReverb::SetParameter(
+    /* [in] */ const ArrayOf<Byte>& param,
+    /* [in] */ const ArrayOf<Byte>& value,
+    /* [out] */ Int32* result)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CPresetReverb::SetParameterEx(
+    /* [in] */ Int32 param,
+    /* [in] */ Int32 value,
+    /* [out] */ Int32* result)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CPresetReverb::SetParameterEx2(
+    /* [in] */ Int32 param,
+    /* [in] */ Int16 value,
+    /* [out] */ Int32* result)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CPresetReverb::SetParameterEx3(
+    /* [in] */ Int32 param,
+    /* [in] */ const ArrayOf<Byte>& value,
+    /* [out] */ Int32* result)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CPresetReverb::SetParameterEx4(
+    /* [in] */ const ArrayOf<Int32>& param,
+    /* [in] */ const ArrayOf<Int32>& value,
+    /* [out] */ Int32* result)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CPresetReverb::SetParameterEx5(
+    /* [in] */ const ArrayOf<Int32>& param,
+    /* [in] */ const ArrayOf<Int16>& value,
+    /* [out] */ Int32* result)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CPresetReverb::SetParameterEx6(
+    /* [in] */ const ArrayOf<Int32>& param,
+    /* [in] */ const ArrayOf<Byte>& value,
+    /* [out] */ Int32* result)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CPresetReverb::GetParameter(
+    /* [in] */ const ArrayOf<Byte>& param,
+    /* [out] */ ArrayOf<Byte>* value,
+    /* [out] */  Int32* status)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CPresetReverb::GetParameterEx(
+    /* [in] */ Int32 param,
+    /* [out] */ ArrayOf<Byte>* value,
+    /* [out] */ Int32* status)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CPresetReverb::GetParameterEx2(
+    /* [in] */ Int32 param,
+    /* [out] */ ArrayOf<Int32>* value,
+    /* [out] */ Int32* status)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CPresetReverb::GetParameterEx3(
+    /* [in] */ Int32 param,
+    /* [out] */ ArrayOf<Int16>* value,
+    /* [out] */ Int32* status)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CPresetReverb::GetParameterEx4(
+    /* [in] */ const ArrayOf<Int32>& param,
+    /* [out] */ ArrayOf<Int32>* value,
+    /* [out] */ Int32* status)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CPresetReverb::GetParameterEx5(
+    /* [in] */ const ArrayOf<Int32>& param,
+    /* [out] */ ArrayOf<Int16>* value,
+    /* [out] */ Int32* status)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CPresetReverb::GetParameterEx6(
+    /* [in] */ const ArrayOf<Int32>& param,
+    /* [in] */ const ArrayOf<Byte>& value,
+    /* [out] */ Int32* status)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CPresetReverb::Command(
+    /* [in] */ Int32 cmdCode,
+    /* [in] */ const ArrayOf<Byte>& command,
+    /* [out] */ ArrayOf<Byte>* reply,
+    /* [out] */ Int32* result)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CPresetReverb::GetId(
+    /* [out] */ Int32* Id)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CPresetReverb::GetEnabled(
+    /* [out] */ Boolean* getenable)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CPresetReverb::HasControl(
+    /* [out] */ Boolean* control)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CPresetReverb::SetEnableStatusListener(
+    /* [in] */ IAudioEffectOnEnableStatusChangeListener* listener)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CPresetReverb::SetControlStatusListener(
+    /* [in] */ IAudioEffectOnControlStatusChangeListener* listener)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CPresetReverb::SetParameterListener(
+    /* [in] */ IAudioEffectOnParameterChangeListener* listener)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CPresetReverb::CheckState(
+    /* [in] */ CString methodName)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CPresetReverb::CheckStatus(
+    /* [in] */ Int32 status)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CPresetReverb::ByteArrayToInt32(
+    /* [in] */ const ArrayOf<Byte>& valueBuf,
+    /* [out] */ Int32* result)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CPresetReverb::ByteArrayToInt32Ex(
+    /* [in] */ const ArrayOf<Byte>& valueBuf,
+    /* [in] */ Int32 offset,
+    /* [out] */ Int32* result)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CPresetReverb::Int32ToByteArray(
+    /* [in] */ Int32 value,
+    /* [out, callee] */ ArrayOf<Byte>** result)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CPresetReverb::ByteArrayToInt16(
+    /* [in] */ const ArrayOf<Byte>& valueBuf,
+    /* [out] */ Int16* result)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CPresetReverb::ByteArrayToInt16Ex(
+    /* [in] */ const ArrayOf<Byte>& valueBuf,
+    /* [in] */ Int32 offset,
+    /* [out] */ Int16* result)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CPresetReverb::Int16ToByteArray(
+    /* [in] */ Int16 value,
+    /* [out, callee] */ ArrayOf<Byte>** result)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CPresetReverb::ConcatArrays(
+    /* [in] */ const ArrayOf<Byte>& array1,
+    /* [in] */ const ArrayOf<Byte>& array2,
+    /* [out, callee] */ ArrayOf<Byte>** result)
+{
+    return E_NOT_IMPLEMENTED;
+}

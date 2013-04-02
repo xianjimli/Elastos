@@ -1,8 +1,7 @@
 
 module
 {
-    interface IRingtoneManager
-    {
+    interface IRingtoneManager {
         /**
          * Sets which type(s) of ringtones will be listed by this.
          *
@@ -100,7 +99,7 @@ module
          * @return A {@link Uri} pointing to the ringtone.
          */
         GetRingtoneUri(
-            [in]Int32 position,
+            [in] Int32 position,
             [out] IUri** uri);
 
         /**
@@ -112,7 +111,9 @@ module
         GetRingtonePosition(
             [in] IUri* ringtoneUri,
             [out] Int32* pos);
+    }
 
+    interface IRingtoneManagerHelper {
         /**
          * Returns a valid ringtone URI. No guarantees on which it returns. If it
          * cannot find one, returns NULL.
@@ -123,6 +124,22 @@ module
         GetValidRingtoneUri(
             [in] IContext* context,
             [out] IUri** uri);
+
+        /**
+         * Returns a {@link Ringtone} for a given sound URI.
+         * <p>
+         * If the given URI cannot be opened for any reason, this method will
+         * attempt to fallback on another sound. If it cannot find any, it will
+         * return null.
+         *
+         * @param context A context used to query.
+         * @param ringtoneUri The {@link Uri} of a sound or ringtone.
+         * @return A {@link Ringtone} for the given URI, or null.
+         */
+        GetRingtone(
+            [in] IContext* context,
+            [in] IUri* ringtoneUri,
+            [out] IRingtone** ringtone);
 
         /**
          * Gets the current default sound's {@link Uri}. This will give the actual

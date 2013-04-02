@@ -222,4 +222,242 @@ ECode CBassBoost::SetProperties(
 
 const CString CBassBoost::TAG = "BassBoost";
 
+// IAudioEffect
+ECode CBassBoost::ReleaseResources()
+{
+    return E_NOT_IMPLEMENTED;
+}
 
+ECode CBassBoost::GetDescriptor(
+    /* [out] */ IAudioEffectDescriptor** descriptor)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CBassBoost::SetEnabled(
+    /* [in]  */ Boolean enabled,
+    /* [out] */ Int32* result)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CBassBoost::SetParameter(
+    /* [in] */ const ArrayOf<Byte>& param,
+    /* [in] */ const ArrayOf<Byte>& value,
+    /* [out] */ Int32* result)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CBassBoost::SetParameterEx(
+    /* [in] */ Int32 param,
+    /* [in] */ Int32 value,
+    /* [out] */ Int32* result)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CBassBoost::SetParameterEx2(
+    /* [in] */ Int32 param,
+    /* [in] */ Int16 value,
+    /* [out] */ Int32* result)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CBassBoost::SetParameterEx3(
+    /* [in] */ Int32 param,
+    /* [in] */ const ArrayOf<Byte>& value,
+    /* [out] */ Int32* result)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CBassBoost::SetParameterEx4(
+    /* [in] */ const ArrayOf<Int32>& param,
+    /* [in] */ const ArrayOf<Int32>& value,
+    /* [out] */ Int32* result)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CBassBoost::SetParameterEx5(
+    /* [in] */ const ArrayOf<Int32>& param,
+    /* [in] */ const ArrayOf<Int16>& value,
+    /* [out] */ Int32* result)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CBassBoost::SetParameterEx6(
+    /* [in] */ const ArrayOf<Int32>& param,
+    /* [in] */ const ArrayOf<Byte>& value,
+    /* [out] */ Int32* result)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CBassBoost::GetParameter(
+    /* [in] */ const ArrayOf<Byte>& param,
+    /* [out] */ ArrayOf<Byte>* value,
+    /* [out] */  Int32* status)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CBassBoost::GetParameterEx(
+    /* [in] */ Int32 param,
+    /* [out] */ ArrayOf<Byte>* value,
+    /* [out] */ Int32* status)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CBassBoost::GetParameterEx2(
+    /* [in] */ Int32 param,
+    /* [out] */ ArrayOf<Int32>* value,
+    /* [out] */ Int32* status)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CBassBoost::GetParameterEx3(
+    /* [in] */ Int32 param,
+    /* [out] */ ArrayOf<Int16>* value,
+    /* [out] */ Int32* status)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CBassBoost::GetParameterEx4(
+    /* [in] */ const ArrayOf<Int32>& param,
+    /* [out] */ ArrayOf<Int32>* value,
+    /* [out] */ Int32* status)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CBassBoost::GetParameterEx5(
+    /* [in] */ const ArrayOf<Int32>& param,
+    /* [out] */ ArrayOf<Int16>* value,
+    /* [out] */ Int32* status)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CBassBoost::GetParameterEx6(
+    /* [in] */ const ArrayOf<Int32>& param,
+    /* [in] */ const ArrayOf<Byte>& value,
+    /* [out] */ Int32* status)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CBassBoost::Command(
+    /* [in] */ Int32 cmdCode,
+    /* [in] */ const ArrayOf<Byte>& command,
+    /* [out] */ ArrayOf<Byte>* reply,
+    /* [out] */ Int32* result)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CBassBoost::GetId(
+    /* [out] */ Int32* Id)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CBassBoost::GetEnabled(
+    /* [out] */ Boolean* getenable)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CBassBoost::HasControl(
+    /* [out] */ Boolean* control)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CBassBoost::SetEnableStatusListener(
+    /* [in] */ IAudioEffectOnEnableStatusChangeListener* listener)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CBassBoost::SetControlStatusListener(
+    /* [in] */ IAudioEffectOnControlStatusChangeListener* listener)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CBassBoost::SetParameterListener(
+    /* [in] */ IAudioEffectOnParameterChangeListener* listener)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CBassBoost::CheckState(
+    /* [in] */ CString methodName)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CBassBoost::CheckStatus(
+    /* [in] */ Int32 status)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CBassBoost::ByteArrayToInt32(
+    /* [in] */ const ArrayOf<Byte>& valueBuf,
+    /* [out] */ Int32* result)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CBassBoost::ByteArrayToInt32Ex(
+    /* [in] */ const ArrayOf<Byte>& valueBuf,
+    /* [in] */ Int32 offset,
+    /* [out] */ Int32* result)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CBassBoost::Int32ToByteArray(
+    /* [in] */ Int32 value,
+    /* [out, callee] */ ArrayOf<Byte>** result)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CBassBoost::ByteArrayToInt16(
+    /* [in] */ const ArrayOf<Byte>& valueBuf,
+    /* [out] */ Int16* result)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CBassBoost::ByteArrayToInt16Ex(
+    /* [in] */ const ArrayOf<Byte>& valueBuf,
+    /* [in] */ Int32 offset,
+    /* [out] */ Int16* result)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CBassBoost::Int16ToByteArray(
+    /* [in] */ Int16 value,
+    /* [out, callee] */ ArrayOf<Byte>** result)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CBassBoost::ConcatArrays(
+    /* [in] */ const ArrayOf<Byte>& array1,
+    /* [in] */ const ArrayOf<Byte>& array2,
+    /* [out, callee] */ ArrayOf<Byte>** result)
+{
+    return E_NOT_IMPLEMENTED;
+}

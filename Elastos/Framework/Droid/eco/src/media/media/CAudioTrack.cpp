@@ -1,7 +1,7 @@
 
 #include "media/CAudioTrack.h"
 
-ECode CAudioTrack::ReleaseEx()
+ECode CAudioTrack::ReleaseResources()
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -132,7 +132,7 @@ ECode CAudioTrack::SetPlaybackPositionUpdateListener(
 
 ECode CAudioTrack::SetPlaybackPositionUpdateListenerEx(
     /* [in] */ IOnPlaybackPositionUpdateListener * pListener,
-    /* [in] */ IHandler * pHandler)
+    /* [in] */ IApartment * pHandler)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;

@@ -299,7 +299,8 @@ ECode CAudioManager::UnregisterAudioFocusListener(
 ECode CAudioManager::RequestAudioFocus(
     /* [in] */ IOnAudioFocusChangeListener * pL,
     /* [in] */ Int32 streamType,
-    /* [in] */ Int32 durationHint)
+    /* [in] */ Int32 durationHint,
+    /* [out] */ Int32* result)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;

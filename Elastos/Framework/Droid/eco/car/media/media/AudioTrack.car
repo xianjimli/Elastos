@@ -1,14 +1,33 @@
 
 module
 {
-    interface IOnPlaybackPositionUpdateListener;
+    interface IAudioTrack;
 
-    interface IAudioTrack
-    {
+    /**
+     * Interface definition for a callback to be invoked when the playback head position of
+     * an AudioTrack has reached a notification marker or has increased by a certain period.
+     */
+    interface IOnPlaybackPositionUpdateListener {
+        /**
+         * Called on the listener to notify it that the previously set marker has been reached
+         * by the playback head.
+         */
+        OnMarkerReached(
+            [in] IAudioTrack* track);
+
+        /**
+         * Called on the listener to periodically notify it that the playback head has reached
+         * a multiple of the notification period.
+         */
+        OnPeriodicNotification(
+            [in] IAudioTrack* track);
+    }
+
+    interface IAudioTrack {
         /**
          * Releases the native AudioTrack resources.
          */
-        ReleaseEx();
+        ReleaseResources();
 
         /**
          * Returns the minimum valid volume value. Volume values set under this one will
@@ -109,36 +128,6 @@ module
             [out] Int32* position);
 
         /**
-         *  Returns the hardware output sample rate
-         */
-        GetNativeOutputSampleRate(
-            [in] Int32 streamType,
-            [out] Int32* rate);
-
-        /**
-         * Returns the minimum buffer size required for the successful creation of an AudioTrack
-         * object to be created in the {@link #MODE_STREAM} mode. Note that this size doesn't
-         * guarantee a smooth playback under load, and higher values should be chosen according to
-         * the expected frequency at which the buffer will be refilled with additional data to play.
-         * @param sampleRateInHz the sample rate expressed in Hertz.
-         * @param channelConfig describes the configuration of the audio channels.
-         *   See {@link AudioFormat#CHANNEL_OUT_MONO} and
-         *   {@link AudioFormat#CHANNEL_OUT_STEREO}
-         * @param audioFormat the format in which the audio data is represented.
-         *   See {@link AudioFormat#ENCODING_PCM_16BIT} and
-         *   {@link AudioFormat#ENCODING_PCM_8BIT}
-         * @return {@link #ERROR_BAD_VALUE} if an invalid parameter was passed,
-         *   or {@link #ERROR} if the implementation was unable to query the hardware for its output
-         *     properties,
-         *   or the minimum buffer size expressed in bytes.
-         */
-        GetMinBufferSize(
-            [in] Int32 sampleRateInHz,
-            [in] Int32 channelConfig,
-            [in] Int32 audioFormat,
-            [out] Int32* size);
-
-        /**
          * Returns the audio session ID.
          *
          * @return the ID of the audio session this AudioTrack belongs to.
@@ -166,7 +155,7 @@ module
          */
         SetPlaybackPositionUpdateListenerEx(
             [in] IOnPlaybackPositionUpdateListener* listener,
-            [in] IHandler* handler);
+            [in] IApartment* handler);
 
         /**
          * Sets the specified left/right output volume values on the AudioTrack. Values are clamped
@@ -180,7 +169,7 @@ module
         SetStereoVolume(
             [in] Float leftVolume,
             [in] Float rightVolume,
-            [out] Int32* code);
+            [out] Int32* result);
 
         /**
          * Sets the playback sample rate for this track. This sets the sampling rate at which
@@ -195,7 +184,7 @@ module
          */
         SetPlaybackRate(
             [in] Int32 sampleRateInHz,
-            [out] Int32* rate);
+            [out] Int32* result);
 
         /**
          * Sets the position of the notification marker.
@@ -205,7 +194,7 @@ module
          */
         SetNotificationMarkerPosition(
             [in] Int32 markerInFrames,
-            [out] Int32* code);
+            [out] Int32* result);
 
         /**
          * Sets the period for the periodic notification event.
@@ -214,7 +203,7 @@ module
          */
         SetPositionNotificationPeriod(
             [in] Int32 periodInFrames,
-            [out] Int32* code);
+            [out] Int32* result);
 
         /**
          * Sets the playback head position. The track must be stopped for the position to be changed.
@@ -224,7 +213,7 @@ module
          */
         SetPlaybackHeadPosition(
             [in] Int32 positionInFrames,
-            [out] Int32* code);
+            [out] Int32* result);
 
         /**
          * Sets the loop points and the loop count. The loop can be infinite.
@@ -239,7 +228,7 @@ module
             [in] Int32 startInFrames,
             [in] Int32 endInFrames,
             [in] Int32 loopCount,
-            [out] Int32* code);
+            [out] Int32* result);
 
         /**
          * Starts playing an AudioTrack.
@@ -262,7 +251,6 @@ module
         /**
          * Flushes the audio data currently queued for playback.
          */
-
         Flush();
 
         /**
@@ -305,7 +293,7 @@ module
          *  {@link #ERROR_INVALID_OPERATION}
          */
         ReloadStaticData(
-            [out] Int32* code);
+            [out] Int32* result);
 
         /**
          * Attaches an auxiliary effect to the audio track. A typical auxiliary
@@ -326,7 +314,7 @@ module
          */
         AttachAuxEffect(
             [in] Int32 effectId,
-            [out] Int32* code);
+            [out] Int32* result);
 
         /**
          * Sets the send level of the audio track to the attached auxiliary effect
@@ -345,28 +333,38 @@ module
          */
         SetAuxEffectSendLevel(
             [in] Float level,
-            [out] Int32* code);
+            [out] Int32* result);
     }
 
-    /**
-     * Interface definition for a callback to be invoked when the playback head position of
-     * an AudioTrack has reached a notification marker or has increased by a certain period.
-     */
-    interface IOnPlaybackPositionUpdateListener
-    {
+    interface IAudioTrackHelper {
         /**
-         * Called on the listener to notify it that the previously set marker has been reached
-         * by the playback head.
+         *  Returns the hardware output sample rate
          */
-        OnMarkerReached(
-            [in] IAudioTrack* track);
+        GetNativeOutputSampleRate(
+            [in] Int32 streamType,
+            [out] Int32* rate);
 
         /**
-         * Called on the listener to periodically notify it that the playback head has reached
-         * a multiple of the notification period.
+         * Returns the minimum buffer size required for the successful creation of an AudioTrack
+         * object to be created in the {@link #MODE_STREAM} mode. Note that this size doesn't
+         * guarantee a smooth playback under load, and higher values should be chosen according to
+         * the expected frequency at which the buffer will be refilled with additional data to play.
+         * @param sampleRateInHz the sample rate expressed in Hertz.
+         * @param channelConfig describes the configuration of the audio channels.
+         *   See {@link AudioFormat#CHANNEL_OUT_MONO} and
+         *   {@link AudioFormat#CHANNEL_OUT_STEREO}
+         * @param audioFormat the format in which the audio data is represented.
+         *   See {@link AudioFormat#ENCODING_PCM_16BIT} and
+         *   {@link AudioFormat#ENCODING_PCM_8BIT}
+         * @return {@link #ERROR_BAD_VALUE} if an invalid parameter was passed,
+         *   or {@link #ERROR} if the implementation was unable to query the hardware for its output
+         *     properties,
+         *   or the minimum buffer size expressed in bytes.
          */
-        OnPeriodicNotification(
-            [in] IAudioTrack* track);
+        GetMinBufferSize(
+            [in] Int32 sampleRateInHz,
+            [in] Int32 channelConfig,
+            [in] Int32 audioFormat,
+            [out] Int32* size);
     }
-
 }

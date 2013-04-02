@@ -444,7 +444,7 @@ public:
      * not overwrite that token, i.e it can only append data to the
      * Parcel.
      *
-     * @return A parcel suitable to hold a request for the  native 
+     * @return A parcel suitable to hold a request for the  native
      * player.
      * {@hide}
      */
@@ -467,7 +467,7 @@ public:
      * {@hide}
      */
     virtual CARAPI_(Int32) Invoke(
-        /* [in] */ IParcel* request, 
+        /* [in] */ IParcel* request,
         /* [in] */ IParcel* reply);
 
     /**
@@ -492,7 +492,7 @@ public:
      * @return a MediaPlayer object, or NULL if creation failed
      */
     static CARAPI_(AutoPtr<IMediaPlayer>) Create(
-        /* [in] */ IContext* context, 
+        /* [in] */ IContext* context,
         /* [in] */ IUri* uri);
 
     /**
@@ -508,8 +508,8 @@ public:
      * @return a MediaPlayer object, or NULL if creation failed
      */
     static CARAPI_(AutoPtr<IMediaPlayer>) Create(
-        /* [in] */ IContext* context, 
-        /* [in] */ IUri* uri, 
+        /* [in] */ IContext* context,
+        /* [in] */ IUri* uri,
         /* [in] */ ISurfaceHolder* holder);
 
     /**
@@ -525,7 +525,7 @@ public:
      * @return a MediaPlayer object, or NULL if creation failed
      */
     static CARAPI_(AutoPtr<IMediaPlayer>) Create(
-        /* [in] */ IContext* context, 
+        /* [in] */ IContext* context,
         /* [in] */ Int32 resid);
 
     /**
@@ -536,7 +536,7 @@ public:
      * @throws IllegalStateException if it is called in an invalid state
      */
     virtual CARAPI SetDataSource(
-        /* [in] */ IContext* context, 
+        /* [in] */ IContext* context,
         /* [in] */ IUri* uri);
 
     /**
@@ -549,8 +549,8 @@ public:
      * @hide pending API council
      */
     virtual CARAPI SetDataSource(
-        /* [in] */ IContext* context, 
-        /* [in] */ IUri* uri, 
+        /* [in] */ IContext* context,
+        /* [in] */ IUri* uri,
         /* [in] */ Map<String, String>* headers);
 
     /**
@@ -571,7 +571,7 @@ public:
      * @hide pending API council
      */
     /* native */ CARAPI_(void) SetDataSource(
-        /* [in] */ String path,  
+        /* [in] */ String path,
         /* [in] */ Map<String, String>* headers);
 
     /**
@@ -595,8 +595,8 @@ public:
      * @throws IllegalStateException if it is called in an invalid state
      */
     /* native */ CARAPI_(void) SetDataSource(
-        /* [in] */ IFileDescriptor* fd, 
-        /* [in] */ Int64 offset, 
+        /* [in] */ IFileDescriptor* fd,
+        /* [in] */ Int64 offset,
         /* [in] */ Int64 length);
 
     /**
@@ -666,7 +666,7 @@ public:
      * @see android.os.PowerManager
      */
     virtual CARAPI SetWakeMode(
-        /* [in] */ IContext* context, 
+        /* [in] */ IContext* context,
         /* [in] */ Int32 mode);
 
     /**
@@ -775,7 +775,7 @@ public:
      * {@hide}
      */
     virtual CARAPI_(Int32) SetMetadataFilter(
-        /* [in] */ Set<Int32>* allow, 
+        /* [in] */ Set<Int32>* allow,
         /* [in] */ Set<Int32>* block);
 
     /**
@@ -832,7 +832,7 @@ public:
      * @param rightVolume right volume scalar
      */
     /* native */ CARAPI_(void) SetVolume(
-        /* [in] */ Float leftVolume, 
+        /* [in] */ Float leftVolume,
         /* [in] */ Float rightVolume);
 
     /**
@@ -909,7 +909,7 @@ public:
      * @param listener the callback that will be run
      */
     virtual CARAPI SetOnPreparedListener(
-        /* [in] */ IOnPreparedListener* listener);
+        /* [in] */ IMediaPlayerOnPreparedListener* listener);
 
     /**
      * Register a callback to be invoked when the end of a media source
@@ -918,7 +918,7 @@ public:
      * @param listener the callback that will be run
      */
     virtual CARAPI SetOnCompletionListener(
-        /* [in] */ IOnCompletionListener* listener);
+        /* [in] */ IMediaPlayerOnCompletionListener* listener);
 
     /**
      * Register a callback to be invoked when the status of a network
@@ -927,7 +927,7 @@ public:
      * @param listener the callback that will be run.
      */
     virtual CARAPI SetOnBufferingUpdateListener(
-        /* [in] */ IOnBufferingUpdateListener* listener);
+        /* [in] */ IMediaPlayerOnBufferingUpdateListener* listener);
 
     /**
      * Register a callback to be invoked when a seek operation has been
@@ -936,7 +936,7 @@ public:
      * @param listener the callback that will be run
      */
     virtual CARAPI SetOnSeekCompleteListener(
-        /* [in] */ IOnSeekCompleteListener* listener);
+        /* [in] */ IMediaPlayerOnSeekCompleteListener* listener);
 
     /**
      * Register a callback to be invoked when the video size is
@@ -945,7 +945,7 @@ public:
      * @param listener the callback that will be run
      */
     virtual CARAPI SetOnVideoSizeChangedListener(
-        /* [in] */ IOnVideoSizeChangedListener* listener);
+        /* [in] */ IMediaPlayerOnVideoSizeChangedListener* listener);
 
     /**
      * Register a callback to be invoked when an info/warning is available.
@@ -953,7 +953,7 @@ public:
      * @param listener the callback that will be run
      */
     virtual CARAPI SetOnInfoListener(
-        /* [in] */ IOnInfoListener* listener);
+        /* [in] */ IMediaPlayerOnInfoListener* listener);
 
     /**
      * Register a callback to be invoked when an error has happened
@@ -962,7 +962,7 @@ public:
      * @param listener the callback that will be run
      */
     virtual CARAPI SetOnErrorListener(
-        /* [in] */ IOnErrorListener* listener);
+        /* [in] */ IMediaPlayerOnErrorListener* listener);
 
 
     /**
@@ -1013,7 +1013,7 @@ private:
 
     /* native */ CARAPI_(void) _reset();
 
-    
+
     /**
      * @hide
      */
@@ -1028,7 +1028,7 @@ private:
      * @return The status code.
      */
     /* native */ CARAPI_(Int32) Native_invoke(
-        /* [in] */ IParcel* request, 
+        /* [in] */ IParcel* request,
         /* [in] */ IParcel* reply);
 
 
@@ -1064,7 +1064,7 @@ private:
 
     /* native */ CARAPI_(void) Native_setup(
         /* [in] */ IInterface* mediaplayer_this);
-    
+
     /* native */ CARAPI_(void) Native_finalize();
 
 
@@ -1078,9 +1078,9 @@ private:
      */
     static CARAPI_(void) PostEventFromNative(
         /* [in] */ IInterface* mediaplayer_ref,
-        /* [in] */ Int32 what, 
-        /* [in] */ Int32 arg1, 
-        /* [in] */ Int32 arg2, 
+        /* [in] */ Int32 what,
+        /* [in] */ Int32 arg1,
+        /* [in] */ Int32 arg2,
         /* [in] */ IInterface* obj);
 
 public:
@@ -1198,7 +1198,7 @@ private:
 
     public:
         //EventHandler(
-        //    /* [in] */ IMediaPlayer* mp, 
+        //    /* [in] */ IMediaPlayer* mp,
         //    /* [in] */ ILooper* looper);
 
         //virtual CARAPI HandleMessage(
@@ -1216,19 +1216,19 @@ private:
             /* [out] */ InterfaceID *pIID);
     };
 
-    AutoPtr<IOnPreparedListener> mOnPreparedListener;
+    AutoPtr<IMediaPlayerOnPreparedListener> mOnPreparedListener;
 
-    AutoPtr<IOnCompletionListener> mOnCompletionListener;
+    AutoPtr<IMediaPlayerOnCompletionListener> mOnCompletionListener;
 
-    AutoPtr<IOnBufferingUpdateListener> mOnBufferingUpdateListener;
+    AutoPtr<IMediaPlayerOnBufferingUpdateListener> mOnBufferingUpdateListener;
 
-    AutoPtr<IOnSeekCompleteListener> mOnSeekCompleteListener;
+    AutoPtr<IMediaPlayerOnSeekCompleteListener> mOnSeekCompleteListener;
 
-    AutoPtr<IOnVideoSizeChangedListener> mOnVideoSizeChangedListener;
+    AutoPtr<IMediaPlayerOnVideoSizeChangedListener> mOnVideoSizeChangedListener;
 
-    AutoPtr<IOnErrorListener> mOnErrorListener;
+    AutoPtr<IMediaPlayerOnErrorListener> mOnErrorListener;
 
-    AutoPtr<IOnInfoListener> mOnInfoListener;
+    AutoPtr<IMediaPlayerOnInfoListener> mOnInfoListener;
 
     /*static {
         System.loadLibrary("media_jni");

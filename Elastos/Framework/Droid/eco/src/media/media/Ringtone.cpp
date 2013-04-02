@@ -16,14 +16,14 @@ Ringtone::Ringtone(
 
 /**
  * Sets the stream type where this ringtone will be played.
- * 
+ *
  * @param streamType The stream, see {@link AudioManager}.
  */
 ECode Ringtone::SetStreamType(
     /* [in] */ Int32 streamType)
 {
     mStreamType = streamType;
-    
+
     if (mAudio != NULL) {
         /*
          * The stream type has to be set before the media player is
@@ -41,7 +41,7 @@ ECode Ringtone::SetStreamType(
 
 /**
  * Gets the stream type where this ringtone will be played.
- * 
+ *
  * @return The stream type, see {@link AudioManager}.
  */
 Int32 Ringtone::GetStreamType()
@@ -52,8 +52,8 @@ Int32 Ringtone::GetStreamType()
 /**
  * Returns a human-presentable title for ringtone. Looks in media and DRM
  * content providers. If not in either, uses the filename
- * 
- * @param context A context used for querying. 
+ *
+ * @param context A context used for querying.
  */
 String Ringtone::GetTitle(
     /* [in] */ IContext* context)
@@ -63,14 +63,14 @@ String Ringtone::GetTitle(
 }
 
 String Ringtone::GetTitle(
-    /* [in] */ IContext* context, 
-    /* [in] */ IUri* uri, 
+    /* [in] */ IContext* context,
+    /* [in] */ IUri* uri,
     /* [in] */ Boolean followSettingsUri)
 {
     AutoPtr<ICursor> cursor = NULL;
     AutoPtr<IContentResolver> res;
     context->GetContentResolver((IContentResolver**)&res);
-    
+
     String title;// = NULL;
 
     /*if (uri != NULL) {
@@ -87,13 +87,13 @@ String Ringtone::GetTitle(
                                 actualTitle);
             }
         } else {
-            
+
             if (DrmStore.AUTHORITY.equals(authority)) {
                 cursor = res.query(uri, DRM_COLUMNS, NULL, NULL, NULL);
             } else if (MediaStore.AUTHORITY.equals(authority)) {
                 cursor = res.query(uri, MEDIA_COLUMNS, NULL, NULL, NULL);
             }
-            
+
             try {
                 if (cursor != NULL && cursor.getCount() == 1) {
                     cursor.moveToFirst();
@@ -111,16 +111,16 @@ String Ringtone::GetTitle(
 
     if (title == NULL) {
         title = context.getString(com.android.internal.R.string.ringtone_unknown);
-        
+
         if (title == NULL) {
             title = "";
         }
     }*/
-    
+
     return title;
 }
 
-void Ringtone::OpenMediaPlayer() 
+void Ringtone::OpenMediaPlayer()
 {
     CMediaPlayer::New((IMediaPlayer**)&mAudio);
     if (mUri != NULL) {
@@ -208,16 +208,16 @@ ECode Ringtone::Stop()
 
 /**
  * Whether this ringtone is currently playing.
- * 
+ *
  * @return True if playing, FALSE otherwise.
  */
 Boolean Ringtone::IsPlaying()
 {
-    return mAudio != NULL && ((CMediaPlayer*)mAudio.Get())->IsPlaying();
+    return mAudio != NULL/* && mAudio->IsPlaying()*/;
 }
 
 void Ringtone::SetTitle(
-    /* [in] */ String title) 
+    /* [in] */ String title)
 {
     mTitle = title;
 }

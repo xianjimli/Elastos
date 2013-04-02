@@ -1,16 +1,7 @@
 
 module
 {
-    interface IAudioService extends IIAudioService
-    {
-        IsStreamAffectedByRingerMode(
-            [in] Int32 streamType,
-            [out] Boolean* mode);
-
-        IsStreamAffectedByMute(
-            [in] Int32 streamType,
-            [out] Boolean* mute);
-
+    interface IVolumeStreamState {
         SetVolumeIndexSettingName(
             [in] String settingName);
 
@@ -18,7 +9,7 @@ module
             [in] Int32 deltaIndex);
 
         SetIndex(
-            [in] Int32 index, 
+            [in] Int32 index,
             [in] Boolean lastAudible);
 
         SetLastAudibleIndex(
@@ -31,7 +22,17 @@ module
             [out] Int32* index);
 
         Mute(
-            [in] IBinder* cb, 
+            [in] IBinder* cb,
             [in] Boolean state);
+    }
+
+    interface ILocalAudioService extends IAudioService {
+        IsStreamAffectedByRingerMode(
+            [in] Int32 streamType,
+            [out] Boolean* result);
+
+        IsStreamAffectedByMute(
+            [in] Int32 streamType,
+            [out] Boolean* result);
     }
 }

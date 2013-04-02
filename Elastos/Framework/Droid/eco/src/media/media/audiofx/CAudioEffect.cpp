@@ -126,7 +126,7 @@ ECode CAudioEffect::constructor(
     return NOERROR;
 }
 
-ECode CAudioEffect::ReleaseIt()
+ECode CAudioEffect::ReleaseResources()
 {
     Mutex::Autolock lock(mStateLock);
     Native_Release();
@@ -193,9 +193,9 @@ ECode CAudioEffect::SetParameterEx(
     VALIDATE_NOT_NULL(result);
 
     ArrayOf<Byte>* p = NULL;
-    Int32ToByteArray(param, p);
+    // Int32ToByteArray(param, p);
     ArrayOf<Byte>* v = NULL;
-    Int32ToByteArray(value, v);
+    // Int32ToByteArray(value, v);
     SetParameter(*p, *v, result);
     return NOERROR;
 }
@@ -208,9 +208,9 @@ ECode CAudioEffect::SetParameterEx2(
     VALIDATE_NOT_NULL(result);
 
     ArrayOf<Byte>* p = NULL;
-    Int32ToByteArray(param, p);
+    // Int32ToByteArray(param, p);
     ArrayOf<Byte>* v = NULL;
-    Int16ToByteArray(value, v);
+    // Int16ToByteArray(value, v);
     SetParameter(*p, *v, result);
     return NOERROR;
 }
@@ -223,7 +223,7 @@ ECode CAudioEffect::SetParameterEx3(
     VALIDATE_NOT_NULL(result);
 
     ArrayOf<Byte>* p = NULL;
-    Int32ToByteArray(param, p);
+    // Int32ToByteArray(param, p);
     SetParameter(*p, value, result);
     return NOERROR;
 }
@@ -239,19 +239,19 @@ ECode CAudioEffect::SetParameterEx4(
         return AudioEffect_ERROR_BAD_VALUE;
     }
     ArrayOf<Byte>* p = NULL;
-    Int32ToByteArray(param[0],p);
+    // Int32ToByteArray(param[0],p);
     if (param.GetLength() > 1) {
         ArrayOf<Byte>* p2 = NULL;
-        Int32ToByteArray(param[1],p2);
+        // Int32ToByteArray(param[1],p2);
         ArrayOf<Byte>* tempArrayByte;
         ConcatArrays(*p, *p2, &tempArrayByte);
         p = tempArrayByte;
     }
     ArrayOf<Byte>* v = NULL;
-    Int32ToByteArray(value[0],v);
+    // Int32ToByteArray(value[0],v);
     if (value.GetLength() > 1) {
         ArrayOf<Byte>* v2 = NULL;
-        Int32ToByteArray(value[1],v2);
+        // Int32ToByteArray(value[1],v2);
         ArrayOf<Byte>* tempArrayByte;
         ConcatArrays(*v, *v2, &tempArrayByte);
         v = tempArrayByte;
@@ -271,19 +271,19 @@ ECode CAudioEffect::SetParameterEx5(
         return AudioEffect_ERROR_BAD_VALUE;
     }
     ArrayOf<Byte>* p = NULL;
-    Int32ToByteArray(param[0],p);
+    // Int32ToByteArray(param[0],p);
     if (param.GetLength() > 1) {
         ArrayOf<Byte>* p2 = NULL;
-        Int32ToByteArray(param[1],p2);
+        // Int32ToByteArray(param[1],p2);
         ArrayOf<Byte>* tempArrayByte = NULL;
         ConcatArrays(*p, *p2, &tempArrayByte);
         p = tempArrayByte;
     }
     ArrayOf<Byte>* v = NULL;
-    Int16ToByteArray(value[0],v);
+    // Int16ToByteArray(value[0],v);
     if (value.GetLength() > 1) {
         ArrayOf<Byte>* v2 = NULL;
-        Int16ToByteArray(value[1],v2);
+        // Int16ToByteArray(value[1],v2);
         ArrayOf<Byte>* tempArrayByte;
         ConcatArrays(*v, *v2, &tempArrayByte);
         v = tempArrayByte;
@@ -302,10 +302,10 @@ ECode CAudioEffect::SetParameterEx6(
         return AudioEffect_ERROR_BAD_VALUE;
     }
     ArrayOf<Byte>* p = NULL;
-    Int32ToByteArray(param[0],p);
+    // Int32ToByteArray(param[0],p);
     if (param.GetLength() > 1) {
         ArrayOf<Byte>* p2 = NULL;
-        Int32ToByteArray(param[1],p2);
+        // Int32ToByteArray(param[1],p2);
         ArrayOf<Byte>* tempArrayByte = NULL;
         ConcatArrays(*p, *p2, &tempArrayByte);
         p = tempArrayByte;
@@ -339,15 +339,14 @@ ECode CAudioEffect::GetParameter(
 
 ECode CAudioEffect::GetParameterEx(
     /* [in] */ const Int32 param,
-    /* [in] */ const ArrayOf<Byte>& value,
+    /* [out] */ ArrayOf<Byte>* value,
     /* [out] */ Int32* status)
 {
     VALIDATE_NOT_NULL(status);
 
     ArrayOf<Byte>* p = NULL;
-    Int32ToByteArray(param,p);
-    ArrayOf<Byte>* tempResult1 = value.Clone();
-    GetParameter(*p, tempResult1, status);
+    // Int32ToByteArray(param,p);
+    GetParameter(*p, value, status);
     return NOERROR;
 }
 
@@ -364,7 +363,7 @@ ECode CAudioEffect::GetParameterEx2(
     }
 
     ArrayOf<Byte>* p = NULL;
-    Int32ToByteArray(param,p);
+    // Int32ToByteArray(param,p);
 
     ArrayOf<Byte>* v = ArrayOf<Byte>::Alloc((*value).GetLength() * 4);
 
@@ -394,7 +393,7 @@ ECode CAudioEffect::GetParameterEx3(
     }
 
     ArrayOf<Byte>* p = NULL;
-    Int32ToByteArray(param,p);
+    // Int32ToByteArray(param,p);
 
     ArrayOf<Byte>* v = ArrayOf<Byte>::Alloc((*value).GetLength() * 2);
 
@@ -422,10 +421,10 @@ ECode CAudioEffect::GetParameterEx4(
         return AudioEffect_ERROR_BAD_VALUE;
     }
     ArrayOf<Byte>* p = NULL;
-    Int32ToByteArray(param[0],p);
+    // Int32ToByteArray(param[0],p);
     if (param.GetLength() > 1) {
         ArrayOf<Byte>* p2 = NULL;
-        Int32ToByteArray(param[1],p2);
+        // Int32ToByteArray(param[1],p2);
         ArrayOf<Byte>* tempArrayByte = NULL;
         ConcatArrays(*p, *p2, &tempArrayByte);
         p = tempArrayByte;
@@ -457,10 +456,10 @@ ECode CAudioEffect::GetParameterEx5(
         return AudioEffect_ERROR_BAD_VALUE;
     }
     ArrayOf<Byte>* p = NULL;
-    Int32ToByteArray(param[0],p);
+    // Int32ToByteArray(param[0],p);
     if (param.GetLength() > 1) {
         ArrayOf<Byte>* p2 = NULL;
-        Int32ToByteArray(param[1],p2);
+        // Int32ToByteArray(param[1],p2);
         ArrayOf<Byte>* tempArrayByte = NULL;
         ConcatArrays(*p, *p2, &tempArrayByte);
         p = tempArrayByte;
@@ -491,10 +490,10 @@ ECode CAudioEffect::GetParameterEx6(
         return AudioEffect_ERROR_BAD_VALUE;
     }
     ArrayOf<Byte>* p = NULL;
-    Int32ToByteArray(param[0],p);
+    // Int32ToByteArray(param[0],p);
     if (param.GetLength() > 1) {
         ArrayOf<Byte>* p2 = NULL;
-        Int32ToByteArray(param[1],p2);
+        // Int32ToByteArray(param[1], p2);
         ArrayOf<Byte>* tempArrayByte = NULL;
         ConcatArrays(*p, *p2, &tempArrayByte);
         p = tempArrayByte;
@@ -1181,7 +1180,7 @@ ECode CAudioEffect::ByteArrayToInt32Ex(
 
 ECode CAudioEffect::Int32ToByteArray(
     /* [in] */ Int32 value,
-    /* [out] */ ArrayOf<Byte>* result)
+    /* [out, callee] */ ArrayOf<Byte>** result)
 {
     VALIDATE_NOT_NULL(result);
 
@@ -1220,7 +1219,7 @@ ECode CAudioEffect::ByteArrayToInt16Ex(
 
 ECode CAudioEffect::Int16ToByteArray(
     /* [in] */ Int16 value,
-    /* [out] */ ArrayOf<Byte>* result)
+    /* [out, callee] */ ArrayOf<Byte>** result)
 {
     VALIDATE_NOT_NULL(result);
 

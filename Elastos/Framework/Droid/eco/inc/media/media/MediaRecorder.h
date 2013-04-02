@@ -39,7 +39,7 @@ public:
         System.loadLibrary("media_jni");
         native_init();
     }*/
-    
+
 
     /**
      * Default constructor.
@@ -53,7 +53,7 @@ public:
      *
      * @param c the Camera to use for recording
      */
-    virtual CARAPI_(void) SetCamera(
+    virtual CARAPI SetCamera(
         /* [in] */ ICamera* c);
 
     /**
@@ -122,7 +122,7 @@ public:
 
         /** Camera video source */
         static const Int32 CAMERA = 1;
-    
+
     private:
         /* Do not change these values without updating their counterparts
          * in include/media/mediarecorder.h!
@@ -153,13 +153,13 @@ public:
 
         /** AMR NB file format */
         static const Int32 AMR_NB = 3;
-        
+
         /** AMR WB file format */
         static const Int32 AMR_WB = 4;
 
         /** @hide AAC ADIF file format */
         static const Int32 AAC_ADIF = 5;
-        
+
         /** @hide AAC ADTS file format */
         static const Int32 AAC_ADTS = 6;
 
@@ -168,7 +168,7 @@ public:
 
         /** @hide H.264/AAC data encapsulated in MPEG2/TS */
         static const Int32 OUTPUT_FORMAT_MPEG2TS = 8;
-    
+
     private:
         /* Do not change these values without updating their counterparts
          * in include/media/mediarecorder.h!
@@ -180,7 +180,7 @@ public:
      * Defines the audio encoding. These constants are used with
      * {@link MediaRecorder#setAudioEncoder(Int32)}.
      */
-    class AudioEncoder 
+    class AudioEncoder
     {
     public:
         static const Int32 DEFAULT = 0;
@@ -211,7 +211,7 @@ public:
      * Defines the video encoding. These constants are used with
      * {@link MediaRecorder#setVideoEncoder(Int32)}.
      */
-    class VideoEncoder 
+    class VideoEncoder
     {
     public:
         static const Int32 DEFAULT = 0;
@@ -314,7 +314,7 @@ public:
      * prepare() or before setOutputFormat()
      */
     CARAPI_(void) SetVideoSize(
-        /* [in] */ Int32 width, 
+        /* [in] */ Int32 width,
         /* [in] */ Int32 height);
 
     /**
@@ -464,8 +464,8 @@ public:
 
     // native implementation
     CARAPI_(void) _setOutputFile(
-        /* [in] */ IFileDescriptor* fd, 
-        /* [in] */ Int64 offset, 
+        /* [in] */ IFileDescriptor* fd,
+        /* [in] */ Int64 offset,
         /* [in] */ Int64 length);
 
     CARAPI_(void) _prepare();
@@ -525,7 +525,7 @@ public:
      * @param l the callback that will be run
      */
     virtual CARAPI SetOnErrorListener(
-        /* [in] */ IOnErrorListener* l);
+        /* [in] */ IMediaRecorderOnErrorListener* l);
 
     /**
      * Register a callback to be invoked when an informational event occurs while
@@ -534,13 +534,13 @@ public:
      * @param listener the callback that will be run
      */
     virtual CARAPI SetOnInfoListener(
-        /* [in] */ IOnInfoListener* listener);
+        /* [in] */ IMediaRecorderOnInfoListener* listener);
 
     class EventHandler : public IHandler, public ElRefBase
     {
     public:
         //EventHandler(
-        //    /* [in] */ MediaRecorder* mr, 
+        //    /* [in] */ MediaRecorder* mr,
         //    /* [in] */ ILooper* looper);
 
         virtual CARAPI HandleMessage(
@@ -576,9 +576,9 @@ public:
      */
     static CARAPI_(void) PostEventFromNative(
         /* [in] */ IInterface* mediarecorder_ref,
-        /* [in] */ Int32 what, 
-        /* [in] */ Int32 arg1, 
-        /* [in] */ Int32 arg2, 
+        /* [in] */ Int32 what,
+        /* [in] */ Int32 arg1,
+        /* [in] */ Int32 arg2,
         /* [in] */ IInterface* obj);
 
     /**
@@ -638,8 +638,8 @@ private:
     String mPath;
     AutoPtr<IFileDescriptor> mFd;
     AutoPtr<EventHandler> mEventHandler;
-    AutoPtr<IOnErrorListener> mOnErrorListener;
-    AutoPtr<IOnInfoListener> mOnInfoListener;
+    AutoPtr<IMediaRecorderOnErrorListener> mOnErrorListener;
+    AutoPtr<IMediaRecorderOnInfoListener> mOnInfoListener;
 };
 
 #endif

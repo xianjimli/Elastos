@@ -5,8 +5,7 @@ module
      * Interface definition for a callback to be invoked when the audio focus of the system is
      * updated.
      */
-    interface IOnAudioFocusChangeListener
-    {
+    interface IOnAudioFocusChangeListener {
         /**
          * Called on the listener to notify it the audio focus for this listener has been changed.
          * The focusChange value indicates whether the focus was gained,
@@ -29,8 +28,7 @@ module
      * Use <code>Context.getSystemService(Context.AUDIO_SERVICE)</code> to get
      * an instance of this class.
      */
-    interface IAudioManager
-    {
+    interface IAudioManager {
         /**
          * Adjusts the volume of a particular stream by one step in a direction.
          * <p>
@@ -48,11 +46,10 @@ module
          * @see #setStreamVolume(Int32, Int32, Int32)
          */
         AdjustStreamVolume(
-            [in] Int32 streamType, 
-            [in] Int32 direction, 
+            [in] Int32 streamType,
+            [in] Int32 direction,
             [in] Int32 flags);
-    
-    
+
         /**
          * Adjusts the volume of the most relevant stream. For example, if a call is
          * active, it will have the highest priority regardless of if the in-call
@@ -71,9 +68,9 @@ module
          * @see #setStreamVolume(Int32, Int32, Int32)
          */
         AdjustVolume(
-            [in] Int32 direction, 
-            [in] Int32 flags);    
-    
+            [in] Int32 direction,
+            [in] Int32 flags);
+
         /**
          * Adjusts the volume of the most relevant stream, or the given fallback
          * stream.
@@ -92,8 +89,8 @@ module
          * @see #setStreamVolume(Int32, Int32, Int32)
          */
         AdjustSuggestedStreamVolume(
-            [in] Int32 direction, 
-            [in] Int32 suggestedStreamType, 
+            [in] Int32 direction,
+            [in] Int32 suggestedStreamType,
             [in] Int32 flags);
 
         /**
@@ -154,8 +151,8 @@ module
          * @see #getStreamVolume(Int32)
          */
         SetStreamVolume(
-            [in] Int32 streamType, 
-            [in] Int32 index, 
+            [in] Int32 streamType,
+            [in] Int32 index,
             [in] Int32 flags);
 
         /**
@@ -176,7 +173,7 @@ module
          * @param state The required solo state: TRUE for solo ON, FALSE for solo OFF
          */
         SetStreamSolo(
-            [in] Int32 streamType, 
+            [in] Int32 streamType,
             [in] Boolean state);
 
         /**
@@ -200,7 +197,7 @@ module
          * @param state The required mute state: TRUE for mute ON, FALSE for mute OFF
          */
         SetStreamMute(
-            [in] Int32 streamType, 
+            [in] Int32 streamType,
             [in] Boolean state);
 
         /**
@@ -260,7 +257,7 @@ module
          * @see #shouldVibrate(Int32)
          */
         SetVibrateSetting(
-            [in] Int32 vibrateType, 
+            [in] Int32 vibrateType,
             [in] Int32 vibrateSetting);
 
         /**
@@ -281,8 +278,8 @@ module
          * @return TRUE if speakerphone is on, FALSE if it's off
          */
         IsSpeakerphoneOn(
-            [out] Boolean* on);    
-        
+            [out] Boolean* on);
+
         /**
          * Indicates if current platform supports use of SCO for off call use cases.
          * Application wanted to use bluetooth SCO audio when the phone is not in call
@@ -441,8 +438,8 @@ module
          *              Returns the current current audio state from the HAL.
          */
         GetMode(
-            [out] Int32* mode);   
-        
+            [out] Int32* mode);
+
         /**
          * Sets the audio routing for a specified mode
          *
@@ -456,8 +453,8 @@ module
          * setBluetoothScoOn() methods instead.
          */
         SetRouting(
-            [in] Int32 mode, 
-            [in] Int32 routes, 
+            [in] Int32 mode,
+            [in] Int32 routes,
             [in] Int32 mask);
 
         /**
@@ -497,7 +494,7 @@ module
          * @deprecated Use {@link #setPrameters(String)} instead
          */
         SetParameter(
-            [in] String key, 
+            [in] String key,
             [in] String value);
 
         /**
@@ -519,8 +516,8 @@ module
          */
         GetParameters(
             [in] String keys,
-            [out] String* parameters);    
-        
+            [out] String* parameters);
+
         /**
          * Plays a sound effect (Key clicks, lid open/close...)
          * @param effectType The type of sound effect. One of
@@ -536,8 +533,8 @@ module
          * NOTE: This version uses the UI settings to determine
          * whether sounds are heard or not.
          */
-         PlaySoundEffect(
-             [in] Int32 effectType);
+        PlaySoundEffect(
+            [in] Int32 effectType);
 
         /**
          * Plays a sound effect (Key clicks, lid open/close...)
@@ -557,10 +554,10 @@ module
          * NOTE: This version is for applications that have their own
          * settings panel for enabling and controlling volume.
          */
-         PlaySoundEffectEx(
-             [in] Int32 effectType, 
-             [in] Float volume);
-        
+        PlaySoundEffectEx(
+            [in] Int32 effectType,
+            [in] Float volume);
+
         /**
          *  Load Sound effects.
          *  This method must be called when sound effects are enabled.
@@ -573,7 +570,7 @@ module
          *  sound effects are disabled.
          */
         UnloadSoundEffects();
-        
+
         /**
          * @hide
          * Registers a listener to be called when audio focus changes. Calling this method is optional
@@ -590,8 +587,8 @@ module
          * @param l the listener to unregister.
          */
         UnregisterAudioFocusListener(
-            [in] IOnAudioFocusChangeListener* l);    
-        
+            [in] IOnAudioFocusChangeListener* l);
+
         /**
          *  Request audio focus.
          *  Send a request to obtain the audio focus
@@ -607,9 +604,10 @@ module
          *  @return {@link #AUDIOFOCUS_REQUEST_FAILED} or {@link #AUDIOFOCUS_REQUEST_GRANTED}
          */
         RequestAudioFocus(
-            [in] IOnAudioFocusChangeListener* l, 
-            [in] Int32 streamType, 
-            [in] Int32 durationHint);
+            [in] IOnAudioFocusChangeListener* l,
+            [in] Int32 streamType,
+            [in] Int32 durationHint,
+            [out] Int32* result);
 
 
         /**
@@ -619,7 +617,7 @@ module
          */
         AbandonAudioFocus(
             [in] IOnAudioFocusChangeListener* l,
-            [out] Int32* focus);
+            [out] Int32* result);
 
         //====================================================================
         // Remote Control

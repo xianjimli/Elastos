@@ -134,7 +134,7 @@ public:
      * @throws UnsupportedOperationException
      */
     CARAPI GetBandLevelRange(
-        /* [out] */ ArrayOf<Int16>* bandLevelRange);
+        /* [out, callee] */ ArrayOf<Int16>** bandLevelRange);
 
     /**
      * Sets the given equalizer band to the given gain value.
@@ -189,7 +189,7 @@ public:
          */
     CARAPI GetBandFreqRange(
         /* [in] */ Int16 band,
-        /* [out] */ ArrayOf<Int32>* bandFreqRange);
+        /* [out, callee] */ ArrayOf<Int32>** bandFreqRange);
 
 
         /**
@@ -253,7 +253,7 @@ public:
          * Registers an OnParameterChangeListener interface.
          * @param listener OnParameterChangeListener interface registered
          */
-    CARAPI SetParameterListenerEx3(
+    CARAPI SetParameterListenerEx(
         /* [in] */ IEqualizerOnParameterChangeListener* listener);
 
         /**
@@ -277,6 +277,148 @@ public:
          */
     CARAPI SetProperties(
         /* [in] */ IEqualizerSettings* settings);
+
+    // IAudioEffect
+    CARAPI ReleaseResources();
+
+    CARAPI GetDescriptor(
+        /* [out] */ IAudioEffectDescriptor** descriptor);
+
+    CARAPI SetEnabled(
+        /* [in]  */ Boolean enabled,
+        /* [out] */ Int32* result);
+
+    CARAPI SetParameter(
+        /* [in] */ const ArrayOf<Byte>& param,
+        /* [in] */ const ArrayOf<Byte>& value,
+        /* [out] */ Int32* result);
+
+    CARAPI SetParameterEx(
+        /* [in] */ Int32 param,
+        /* [in] */ Int32 value,
+        /* [out] */ Int32* result);
+
+    CARAPI SetParameterEx2(
+        /* [in] */ Int32 param,
+        /* [in] */ Int16 value,
+        /* [out] */ Int32* result);
+
+    CARAPI SetParameterEx3(
+        /* [in] */ Int32 param,
+        /* [in] */ const ArrayOf<Byte>& value,
+        /* [out] */ Int32* result);
+
+    CARAPI SetParameterEx4(
+        /* [in] */ const ArrayOf<Int32>& param,
+        /* [in] */ const ArrayOf<Int32>& value,
+        /* [out] */ Int32* result);
+
+    CARAPI SetParameterEx5(
+        /* [in] */ const ArrayOf<Int32>& param,
+        /* [in] */ const ArrayOf<Int16>& value,
+        /* [out] */ Int32* result);
+
+    CARAPI SetParameterEx6(
+        /* [in] */ const ArrayOf<Int32>& param,
+        /* [in] */ const ArrayOf<Byte>& value,
+        /* [out] */ Int32* result);
+
+    CARAPI GetParameter(
+        /* [in] */ const ArrayOf<Byte>& param,
+        /* [out] */ ArrayOf<Byte>* value,
+        /* [out] */  Int32* status);
+
+    CARAPI GetParameterEx(
+        /* [in] */ Int32 param,
+        /* [out] */ ArrayOf<Byte>* value,
+        /* [out] */ Int32* status);
+
+    CARAPI GetParameterEx2(
+        /* [in] */ Int32 param,
+        /* [out] */ ArrayOf<Int32>* value,
+        /* [out] */ Int32* status);
+
+    CARAPI GetParameterEx3(
+        /* [in] */ Int32 param,
+        /* [out] */ ArrayOf<Int16>* value,
+        /* [out] */ Int32* status);
+
+    CARAPI GetParameterEx4(
+        /* [in] */ const ArrayOf<Int32>& param,
+        /* [out] */ ArrayOf<Int32>* value,
+        /* [out] */ Int32* status);
+
+    CARAPI GetParameterEx5(
+        /* [in] */ const ArrayOf<Int32>& param,
+        /* [out] */ ArrayOf<Int16>* value,
+        /* [out] */ Int32* status);
+
+    CARAPI GetParameterEx6(
+        /* [in] */ const ArrayOf<Int32>& param,
+        /* [in] */ const ArrayOf<Byte>& value,
+        /* [out] */ Int32* status);
+
+    CARAPI Command(
+        /* [in] */ Int32 cmdCode,
+        /* [in] */ const ArrayOf<Byte>& command,
+        /* [out] */ ArrayOf<Byte>* reply,
+        /* [out] */ Int32* result);
+
+    CARAPI GetId(
+        /* [out] */ Int32* Id);
+
+    CARAPI GetEnabled(
+        /* [out] */ Boolean* getenable);
+
+    CARAPI HasControl(
+        /* [out] */ Boolean* control);
+
+    CARAPI SetEnableStatusListener(
+        /* [in] */ IAudioEffectOnEnableStatusChangeListener* listener);
+
+    CARAPI SetControlStatusListener(
+        /* [in] */ IAudioEffectOnControlStatusChangeListener* listener);
+
+    CARAPI SetParameterListener(
+        /* [in] */ IAudioEffectOnParameterChangeListener* listener);
+
+    CARAPI CheckState(
+        /* [in] */ CString methodName);
+
+    CARAPI CheckStatus(
+        /* [in] */ Int32 status);
+
+    CARAPI ByteArrayToInt32(
+        /* [in] */ const ArrayOf<Byte>& valueBuf,
+        /* [out] */ Int32* result);
+
+    CARAPI ByteArrayToInt32Ex(
+        /* [in] */ const ArrayOf<Byte>& valueBuf,
+        /* [in] */ Int32 offset,
+        /* [out] */ Int32* result);
+
+    CARAPI Int32ToByteArray(
+        /* [in] */ Int32 value,
+        /* [out, callee] */ ArrayOf<Byte>** result);
+
+    CARAPI ByteArrayToInt16(
+        /* [in] */ const ArrayOf<Byte>& valueBuf,
+        /* [out] */ Int16* result);
+
+    CARAPI ByteArrayToInt16Ex(
+        /* [in] */ const ArrayOf<Byte>& valueBuf,
+        /* [in] */ Int32 offset,
+        /* [out] */ Int16* result);
+
+    CARAPI Int16ToByteArray(
+        /* [in] */ Int16 value,
+        /* [out, callee] */ ArrayOf<Byte>** result);
+
+    CARAPI ConcatArrays(
+        /* [in] */ const ArrayOf<Byte>& array1,
+        /* [in] */ const ArrayOf<Byte>& array2,
+        /* [out, callee] */ ArrayOf<Byte>** result);
+
 private:
     static const CString TAG;
 

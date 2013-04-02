@@ -6,12 +6,9 @@ module
      *
      * {@hide}
      */
-    interface IAudioFocusDispatcher
-    {
-
+    /* oneway */ interface IAudioFocusDispatcher {
         DispatchAudioFocusChange(
             [in] Int32 focusChange,
             [in] String clientId);
-
     }
 }

@@ -8,7 +8,7 @@
 CarClass(CAudioTrack), public AudioTrack
 {
 public:
-    CARAPI ReleaseEx();
+    CARAPI ReleaseResources();
 
     CARAPI GetMinVolume(
         /* [out] */ Float * pMinVolume);
@@ -67,7 +67,7 @@ public:
 
     CARAPI SetPlaybackPositionUpdateListenerEx(
         /* [in] */ IOnPlaybackPositionUpdateListener * pListener,
-        /* [in] */ IHandler * pHandler);
+        /* [in] */ IApartment * pHandler);
 
     CARAPI SetStereoVolume(
         /* [in] */ Float leftVolume,

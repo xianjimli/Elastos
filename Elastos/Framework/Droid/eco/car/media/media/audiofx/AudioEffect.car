@@ -280,7 +280,6 @@ module
      * enumeration.
      */
     interface IAudioEffectDescriptor {
-
     }
 
     // ---------------------------------------------------------
@@ -290,8 +289,7 @@ module
      * The OnEnableStatusChangeListener interface defines a method called by the AudioEffect
      * when a the enabled state of the effect engine was changed by the controlling application.
      */
-    interface IAudioEffectOnEnableStatusChangeListener
-    {
+    interface IAudioEffectOnEnableStatusChangeListener {
         /**
         * Called on the listener to notify it that the effect engine has been
         * enabled or disabled.
@@ -346,7 +344,7 @@ module
          * release the effect engine when not in use as control can be returned to
          * other applications or the native resources released.
          */
-        ReleaseIt();
+        ReleaseResources();
 
         /**
          * Get the effect descriptor.
@@ -356,20 +354,6 @@ module
          */
         GetDescriptor(
             [out] IAudioEffectDescriptor** descriptor);
-
-        // --------------------------------------------------------------------------
-        // Effects Enumeration
-        // --------------------
-
-        /**
-         * Query all effects available on the platform. Returns an array of
-         * {@link android.media.audiofx.AudioEffect.Descriptor} objects
-         *
-         * @throws IllegalStateException
-         */
-
-        QueryEffects(
-            [out,callee] ArrayOf<IAudioEffectDescriptor>* descriptor);
 
         // --------------------------------------------------------------------------
         // Control methods
@@ -516,7 +500,7 @@ module
          */
         GetParameterEx(
             [in] Int32 param,
-            [in] ArrayOf<Byte> value,
+            [out] ArrayOf<Byte> value,
             [out] Int32* status);
 
         /**
@@ -687,7 +671,7 @@ module
          */
         Int32ToByteArray(
             [in] Int32 value,
-            [out] ArrayOf<Byte> result);
+            [out, callee] ArrayOf<Byte>* result);
 
         /**
          * @hide
@@ -709,7 +693,7 @@ module
          */
         Int16ToByteArray(
             [in] Int16 value,
-            [out] ArrayOf<Byte> result);
+            [out, callee] ArrayOf<Byte>* result);
 
         /**
          * @hide
@@ -718,5 +702,20 @@ module
             [in] ArrayOf<Byte> array1,
             [in] ArrayOf<Byte> array2,
             [out, callee] ArrayOf<Byte>* result);
+    }
+
+    interface IAudioEffectHelper {
+        // --------------------------------------------------------------------------
+        // Effects Enumeration
+        // --------------------
+
+        /**
+         * Query all effects available on the platform. Returns an array of
+         * {@link android.media.audiofx.AudioEffect.Descriptor} objects
+         *
+         * @throws IllegalStateException
+         */
+        QueryEffects(
+            [out, callee] ArrayOf<IAudioEffectDescriptor>* descriptors);
     }
 }
