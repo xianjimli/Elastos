@@ -3,9 +3,9 @@
 #define __CPATHPERMISSION_H__
 
 #include "_CPathPermission.h"
-#include "os/_PatternMatcher.h"
+#include "os/PatternMatcher.h"
 
-CarClass(CPathPermission), public _PatternMatcher
+CarClass(CPathPermission), public PatternMatcher
 {
 public:
     CARAPI GetPath(
@@ -19,7 +19,7 @@ public:
         /* [out] */ Boolean* isMatch);
 
     CARAPI GetDescription(
-        /* [out] */ String* des);
+    /* [out] */ String* description);
 
     CARAPI DescribeContents(
         /* [out] */ Int32* count);

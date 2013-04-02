@@ -5,27 +5,24 @@
 ECode CPathPermission::GetPath(
     /* [out] */ String* path)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return PatternMatcher::GetPath(path);
 }
 
 ECode CPathPermission::GetType(
     /* [out] */ Int32* path)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return PatternMatcher::GetType(path);
 }
 
 ECode CPathPermission::Match(
     /* [in] */ const String& str,
     /* [out] */ Boolean* isMatch)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return PatternMatcher::Match(str, isMatch);
 }
 
 ECode CPathPermission::GetDescription(
-    /* [out] */ String* des)
+    /* [out] */ String* description)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -34,8 +31,7 @@ ECode CPathPermission::GetDescription(
 ECode CPathPermission::DescribeContents(
     /* [out] */ Int32* count)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return PatternMatcher::DescribeContents(count);
 }
 
 ECode CPathPermission::GetReadPermission(
@@ -57,13 +53,17 @@ ECode CPathPermission::GetWritePermission(
 ECode CPathPermission::ReadFromParcel(
     /* [in] */ IParcel *source)
 {
+    //TODO:
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CPathPermission::WriteToParcel(
     /* [in] */ IParcel *dest)
 {
-    return E_NOT_IMPLEMENTED;
+    PatternMatcher::WriteToParcel(dest);
+    dest->WriteString(mReadPermission);
+    dest->WriteString(mWritePermission);
+    return NOERROR;
 }
 
 ECode CPathPermission::constructor(
@@ -72,11 +72,17 @@ ECode CPathPermission::constructor(
     /* [in] */ const String& readPermission,
     /* [in] */ const String& writePermission)
 {
+    PatternMatcher::constructor(pattern, type);
+    mReadPermission = readPermission;
+    mWritePermission = writePermission;
     return NOERROR;
 }
 
 ECode CPathPermission::constructor(
     /* [in] */ IParcel* src)
 {
-    return E_NOT_IMPLEMENTED;
+    PatternMatcher::constructor(src);
+    src->ReadString(&mReadPermission);
+    src->ReadString(&mWritePermission);
+    return NOERROR;
 }

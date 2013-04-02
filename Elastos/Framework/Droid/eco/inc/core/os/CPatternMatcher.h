@@ -3,9 +3,9 @@
 #define __CPATTERNMATCHER_H__
 
 #include "_CPatternMatcher.h"
-#include "os/_PatternMatcher.h"
+#include "os/PatternMatcher.h"
 
-CarClass(CPatternMatcher), public _PatternMatcher
+CarClass(CPatternMatcher), public PatternMatcher
 {
 public:
     CARAPI ReadFromParcel(
