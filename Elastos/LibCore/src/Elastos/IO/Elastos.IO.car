@@ -43,6 +43,7 @@ module
     merge("../../../car/Elastos/IO/IInputStreamReader.car");
     merge("../../../car/Elastos/IO/IOutputStreamWriter.car");
     merge("../../../car/Elastos/IO/IPrintWriter.car");
+    merge("../../../car/Elastos/IO/IPrintStream.car");
     merge("../../../car/Elastos/IO/IStringReader.car");
     merge("../../../car/Elastos/IO/IStringWriter.car");
     merge("../../../car/Elastos/IO/ICloseable.car");

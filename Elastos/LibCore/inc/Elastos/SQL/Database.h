@@ -237,7 +237,6 @@ public:
         /** [in] **/const String &sql, 
         /** [in] **/Int32 maxrows,
         /** [out] **/ITableResult** result);
-
     
     /**
      * Convenience method to retrieve an entire result
@@ -722,7 +721,7 @@ private:
      * @param vm Vm object
      */
     //native
-    CARAPI vm_compile(
+    CARAPI Vm_compile(
         /** [in] **/String sql, 
         /** [in] **/IVm* vm);
 
@@ -733,7 +732,7 @@ private:
      * @param vm Vm object
      */
     //native
-    CARAPI vm_compile_args(
+    CARAPI Vm_compile_args(
         /** [in] **/String sql, 
         /** [in] **/IVm* vm, 
         /** [in] **/ArrayOf<String>* args);
@@ -744,7 +743,7 @@ private:
      * @param stmt Stmt object
      */
     //native
-    CARAPI stmt_prepare(
+    CARAPI Stmt_prepare(
         /** [in] **/String sql, 
         /** [in] **/IStmt* stmt);
 

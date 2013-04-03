@@ -1,6 +1,11 @@
 #include "Database.h"
 #include "cmdef.h"
 #include <sqlite3.h>
+#include "CTableResult.h"
+//#include "TableResult.h"
+#include "CVm.h"
+#include "CStmt.h"
+#include "CBlob2.h"
 
 Database::Database()
     :mHandle(0)
@@ -295,35 +300,48 @@ ECode Database::Get_table(
     /** [in] **/const String &sql, 
     /** [in] **/Int32 maxrows,
     /** [out] **/ITableResult** result)
-{/*
-    TableResult ret = new TableResult(maxrows);
-    if (!is3()) {
-        try {
-        exec(sql, ret);
-        } catch (SQLite.Exception e) {
-        if (maxrows <= 0 || !ret.atmaxrows) {
-            throw e;
-        }
+{
+    //TableResult ret = new TableResult(maxrows);
+    AutoPtr<ITableResult> ret;
+    CTableResult::New(maxrows, (ITableResult**)&ret);
+    TableResult* tr = (TableResult *)ret->Probe(EIID_ITableResult);
+
+    Boolean res;
+    Is3(&res);
+    if (!res) {
+        if(NOERROR != Exec(sql, (ICallback*)ret))
+        {
+            if (maxrows <= 0 || !tr->mAtmaxrows) {
+                return E_SQL_EXCEPTION;
+            }
         }
     } else {
-        synchronized(this) {
+  //      synchronized(this) {
         // only one statement !!! 
-        Vm vm = compile(sql);
-        set_last_error(vm.error_code);
-        if (ret.maxrows > 0) {
-            while (ret.nrows < ret.maxrows && vm.step(ret)) {
-            set_last_error(vm.error_code);
+        AutoPtr<IVm> vm;
+        Compile(sql, (IVm**)&vm);
+        Vm* cvm = (Vm *)vm->Probe(EIID_IVm);
+        Set_last_error(cvm->mError_code);
+        if (tr->mMaxrows > 0) {
+            Boolean result;
+            cvm->Step((ICallback*)ret, &result);
+            while (tr->mNrows < tr->mMaxrows && result) {
+                Set_last_error(cvm->mError_code);
+                cvm->Step((ICallback*)ret, &result);
             }
         } else {
-            while (vm.step(ret)) {
-            set_last_error(vm.error_code);
+            Boolean result;
+            cvm->Step((ICallback*)ret, &result);
+            while (result) {
+                Set_last_error(cvm->mError_code);
+                cvm->Step((ICallback*)ret, &result);
             }
         }
-        vm.finalize();
-        }
+        cvm->Finalize();
+      //  }
     }
-    return ret;*/
-    return E_NOT_IMPLEMENTED;
+    *result = ret;
+    return NOERROR;
 }
 
 ECode Database::Get_tableEx(
@@ -338,35 +356,51 @@ ECode Database::Get_tableEx2(
     /** [in] **/Int32 maxrows, 
     /** [in] **/ArrayOf<String>* args,
     /** [out] **/ITableResult** result)
-{/*
-    TableResult ret = new TableResult(maxrows);
-    if (!is3()) {
-        try {
-        exec(sql, ret, args);
-        } catch (SQLite.Exception e) {
-        if (maxrows <= 0 || !ret.atmaxrows) {
-            throw e;
+{
+    //TableResult ret = new TableResult(maxrows);
+    AutoPtr<ITableResult> ret;
+    CTableResult::New(maxrows, (ITableResult**)&ret);
+    TableResult* tr = (TableResult *)ret->Probe(EIID_ITableResult);
+
+    Boolean res;
+    Is3(&res);
+    if (!res) {
+        if(NOERROR != ExecEx(sql, (ICallback*)ret, args)){
+            if (tr->mMaxrows <= 0 || !tr->mAtmaxrows) {
+                //throw e;
+                return E_SQL_EXCEPTION;
+            }
         }
-        }
+ 
     } else {
-        synchronized(this) {
+      //  synchronized(this) {
         // only one statement !!! 
-        Vm vm = compile(sql, args);
-        set_last_error(vm.error_code);
-        if (ret.maxrows > 0) {
-            while (ret.nrows < ret.maxrows && vm.step(ret)) {
-            set_last_error(vm.error_code);
+        //Vm vm = compile(sql, args);
+        AutoPtr<IVm> vm;
+        CompileEx(sql, args, (IVm**)&vm);
+        Vm* cvm = (Vm *)vm->Probe(EIID_IVm);
+
+        Set_last_error(cvm->mError_code);
+        if (tr->mMaxrows > 0) {
+            Boolean result;
+            cvm->Step((ICallback*)ret, &result);
+            while (tr->mNrows < tr->mMaxrows && result) {
+                Set_last_error(cvm->mError_code);
+                cvm->Step((ICallback*)ret, &result);
             }
         } else {
-            while (vm.step(ret)) {
-            set_last_error(vm.error_code);
+            Boolean result;
+            cvm->Step((ICallback*)ret, &result);
+            while (result) {
+                Set_last_error(cvm->mError_code);
+                cvm->Step((ICallback*)ret, &result);
             }
         }
-        vm.finalize();
-        }
+        cvm->Finalize();
+     //   }
     }
-    return ret;*/
-    return E_NOT_IMPLEMENTED;
+    *result = ret;
+    return NOERROR;
 }
 
 ECode Database::Get_tableEx3(
@@ -381,33 +415,43 @@ ECode Database::Get_tableEx4(
     /** [in] **/const String &sql, 
     /** [in] **/ArrayOf<String>* args, 
     /** [in] **/ITableResult* tbl)
-{/*
-    tbl.clear();
-    if (!is3()) {
-        try {
-        exec(sql, tbl, args);
-        } catch (SQLite.Exception e) {
-        if (tbl.maxrows <= 0 || !tbl.atmaxrows) {
-            throw e;
-        }
+{
+    TableResult* tr = (TableResult *)tbl->Probe(EIID_ITableResult);
+    tr->Clear();
+    Boolean res;
+    Is3(&res);
+    if (!res) {
+        if(NOERROR != ExecEx(sql, tbl, args)){
+            if (tr->mMaxrows <= 0 || !tr->mAtmaxrows) {
+                return E_SQL_EXCEPTION;
+            }
         }
     } else {
-        synchronized(this) {
+     //   synchronized(this) {
         // only one statement !!! 
-        Vm vm = compile(sql, args);
-        if (tbl.maxrows > 0) {
-            while (tbl.nrows < tbl.maxrows && vm.step(tbl)) {
-            set_last_error(vm.error_code);
+        //Vm vm = compile(sql, args);
+        AutoPtr<IVm> vm;
+        CompileEx(sql, args, (IVm**)&vm);
+        Vm* cvm = (Vm *)vm->Probe(EIID_IVm);
+        if (tr->mMaxrows > 0) {
+            Boolean result;
+            cvm->Step((ICallback*)tbl, &result);
+            while (tr->mNrows < tr->mMaxrows && result) {
+                Set_last_error(cvm->mError_code);
+                cvm->Step((ICallback*)tbl, &result);
             }
         } else {
-            while (vm.step(tbl)) {
-            set_last_error(vm.error_code);
+            Boolean result;
+            cvm->Step((ICallback*)tbl, &result);
+            while (result) {
+                Set_last_error(cvm->mError_code);
+                cvm->Step((ICallback*)tbl, &result);
             }
         }
-        vm.finalize();
-        }
-    }*/
-    return E_NOT_IMPLEMENTED;
+        vm->Finalize();
+     //   }
+    }
+    return NOERROR;
 }
 
 ECode Database::Complete(
@@ -432,12 +476,43 @@ ECode Database::CompleteLocked(
 ECode Database::Version(
     /** [out] **/String* str)
 {
-    return E_NOT_IMPLEMENTED;
+        /* CHECK THIS */
+#if HAVE_BOTH_SQLITE
+    *str = String(sqlite_libversion());
+    return NOERROR;
+#else
+#if HAVE_SQLITE2
+    *str = String(sqlite_libversion());
+    return NOERROR;
+#else
+    *str = String(sqlite3_libversion());
+    return NOERROR;
+#endif
+#endif
+    return NOERROR;
 }
 
 ECode Database::Dbversion(
     /** [out] **/String* str)
-{
+{/*
+    handle *h = gethandle(env, obj);
+
+    if (h && h->sqlite) {
+#if HAVE_BOTH_SQLITE
+    if (h->is3) {
+        return (*env)->NewStringUTF(env, sqlite3_libversion());
+    } else {
+        return (*env)->NewStringUTF(env, sqlite_libversion());
+    }
+#else
+#if HAVE_SQLITE2
+    return (*env)->NewStringUTF(env, sqlite_libversion());
+#else
+    return (*env)->NewStringUTF(env, sqlite3_libversion());
+#endif
+#endif
+    }
+    return (*env)->NewStringUTF(env, "unknown");*/
     return E_NOT_IMPLEMENTED;
 }
 
@@ -586,10 +661,11 @@ ECode Database::Compile(
 ECode Database::CompileLocked(
     /** [in] **/const String &sql,
     /** [out] **/IVm** vm)
-{/*
-    Vm vm = new Vm();
-    vm_compile(sql, vm);
-    return vm;*/
+{
+    AutoPtr<IVm> mvm;
+    CVm::New((IVm**)&mvm);
+    Vm_compile(sql, mvm);
+    *vm = (IVm*)mvm;
     return NOERROR;
 }
 
@@ -608,10 +684,11 @@ ECode Database::CompileExLocked(
     /** [in] **/const String &sql, 
     /** [in] **/ArrayOf<String>* args,
     /** [out] **/IVm** vm)
-{/*
-     vm = new Vm();
-    vm_compile_args(sql, vm, args);
-    return vm;*/
+{
+    AutoPtr<IVm> mvm;
+    CVm::New((IVm**)&mvm);
+    Vm_compile_args(sql, mvm, args);
+    *vm = (IVm*)mvm;
     return NOERROR;
 }
 
@@ -628,10 +705,11 @@ ECode Database::Prepare(
 ECode Database::PrepareLocked(
     /** [in] **/const String &sql,
     /** [out] **/IStmt** tmt)
-{/*
-    Stmt stmt = new Stmt();
-    stmt_prepare(sql, stmt);
-    return stmt;*/
+{
+    AutoPtr<IStmt> stmt;
+    CStmt::New((IStmt**)&stmt);
+    Stmt_prepare(sql, stmt);
+    *tmt = (IStmt*)stmt;
     return NOERROR;
 }
 
@@ -656,10 +734,11 @@ ECode Database::Open_blobLocked(
     /** [in] **/Int64 row, 
     /** [in] **/Boolean rw,
     /** [out] **/IBlob2** blob)
-{/*
-    Blob2 blob = new Blob();
-    _open_blob(db, table, column, row, rw, blob);
-    return blob;*/
+{
+    AutoPtr<IBlob2> blob2;
+    CBlob2::New((IBlob2**)&blob2);
+    _open_blob(db, table, column, row, rw, blob2);
+    *blob = (IBlob2*)blob2;
     return NOERROR;
 }
 
@@ -728,16 +807,17 @@ ECode Database::KeyEx(
 
 ECode Database::KeyExLocked(
     /** [in] **/const String &skey)
-{/*
-    byte ekey[] = null;
-    if (skey != null && skey.length() > 0) {
-    ekey = new byte[skey.length()];
-    for (int i = 0; i< skey.length(); i++) {
-        char c = skey.charAt(i);
-        ekey[i] = (byte) ((c & 0xff) ^ (c >> 8));
+{
+    ArrayOf<Byte> *ekey;
+    if (!skey.IsNull() && skey.GetLength() > 0) {
+    ekey = ArrayOf<Byte>::Alloc(skey.GetLength());
+    for (Int32 i = 0; i< skey.GetLength(); i++) {
+        Char8 c = skey.GetChar(i);
+        (*ekey)[i] = (Byte) ((c & 0xff) ^ (c >> 8));
     }
     }
-    _key(ekey);*/
+    _key(ekey);
+    ArrayOf<Byte>::Free(ekey);
     return NOERROR;
 }
 
@@ -767,16 +847,17 @@ ECode Database::RekeyEx(
 
 ECode Database::RekeyExLocked(
     /** [in] **/const String &skey)
-{/*
-    byte ekey[] = null;
-    if (skey != null && skey.length() > 0) {
-    ekey = new byte[skey.length()];
-    for (int i = 0; i< skey.length(); i++) {
-        char c = skey.charAt(i);
-        ekey[i] = (byte) ((c & 0xff) ^ (c >> 8));
+{
+    ArrayOf<Byte> *ekey = NULL;
+    if (!skey.IsNull()  && skey.GetLength() > 0) {
+        ekey = ArrayOf<Byte>::Alloc(skey.GetLength());
+        for (Int32 i = 0; i< skey.GetLength(); i++) {
+            Char8 c = skey.GetChar(i);
+            (*ekey)[i] = (Byte) ((c & 0xff) ^ (c >> 8));
+        }
     }
-    }
-    _rekey(ekey);*/
+    _rekey(ekey);
+    ArrayOf<Byte>::Free(ekey);
     return NOERROR;
 }
 
@@ -794,15 +875,10 @@ ECode Database::Long_from_julian(
 ECode Database::Long_from_julianEx(
     /** [in] **/const String &s,
     /** [out] **/Int64* result)
-{/*
-    try {
-        double d = Double.parseDouble(s); // android-changed: performance
-        return long_from_julian(d);
-    } catch (java.lang.Exception ee) {
-        throw new SQLite.Exception("not a julian date");
-    }
-*/
-    return E_NOT_IMPLEMENTED;
+{
+    Double d = s.ToDouble();
+    Long_from_julian(d, result);
+    return NOERROR;
 }
 
 ECode Database::Julian_from_long(
@@ -820,7 +896,7 @@ ECode Database::_open(
     /** [in] **/String filename, 
     /** [in] **/Int32 mode)
 {
-    //Java_SQLite_Database__1open4(env, obj, file, mode, 0, 0);
+    _open4(filename, mode, String(NULL), FALSE);
     return E_NOT_IMPLEMENTED;
 }
 
@@ -828,7 +904,7 @@ ECode Database::_open4(
     /** [in] **/String filename, 
     /** [in] **/Int32 mode, 
     /** [in] **/String vfs,
-	/** [in] **/Boolean ver2)
+    /** [in] **/Boolean ver2)
 {/*
     handle *h = gethandle(env, obj);
     jthrowable exc;
@@ -1765,7 +1841,7 @@ ECode Database::_trace(
     return E_NOT_IMPLEMENTED;
 }
 
-ECode Database::vm_compile(
+ECode Database::Vm_compile(
     /** [in] **/String sql, 
     /** [in] **/IVm* vm)
 {/*
@@ -1924,7 +2000,7 @@ ECode Database::vm_compile(
     return E_NOT_IMPLEMENTED;
 }
 
-ECode Database::vm_compile_args(
+ECode Database::Vm_compile_args(
     /** [in] **/String sql, 
     /** [in] **/IVm* vm, 
     /** [in] **/ArrayOf<String>* args)
@@ -2145,7 +2221,7 @@ ECode Database::vm_compile_args(
     return E_NOT_IMPLEMENTED;
 }
 
-ECode Database::stmt_prepare(
+ECode Database::Stmt_prepare(
     /** [in] **/String sql, 
     /** [in] **/IStmt* stmt)
 {/*
@@ -2252,7 +2328,7 @@ ECode Database::_open_blob(
     /** [in] **/String db, 
     /** [in] **/String table, 
     /** [in] **/String column,
-	/** [in] **/Int64 row, 
+    /** [in] **/Int64 row, 
     /** [in] **/Boolean rw, 
     /** [in] **/IBlob2* blob)
 {/*

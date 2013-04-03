@@ -84,7 +84,13 @@ module
     }
 
     class CShell {
-        constructor();
+        constructor(
+            [in] IPrintWriter* pw,
+            [in] IPrintWriter* err);
+
+        constructor(
+            [in] IPrintStream* pw,
+            [in] IPrintStream* err);
 
         interface IShell;
     }

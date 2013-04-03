@@ -9,6 +9,7 @@ using namespace Elastos;
 
 class Vm
 {
+    friend class Database;
 private:
     /**
      * Internal handle for the compiled SQLite VM.

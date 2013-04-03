@@ -1,9 +1,18 @@
 #include "cmdef.h"
 #include "CShell.h"
 
-ECode CShell::constructor()
+ECode CShell::constructor(
+    /* [in] */ IPrintWriter* pw,
+    /* [in] */ IPrintWriter* err)
 {
-    return NOERROR;
+    return Shell::Init(pw, err);
+}
+
+ECode CShell::constructor(
+    /* [in] */ IPrintStream* pw,
+    /* [in] */ IPrintStream* err)
+{
+    return Shell::Init(pw, err);
 }
 
 ECode CShell::Clone(
