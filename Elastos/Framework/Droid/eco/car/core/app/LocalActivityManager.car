@@ -1,0 +1,42 @@
+module
+{
+    interface ILocalActivityManager {
+        StartActivity(
+            [in] String id,
+            [in] IIntent* intent,
+            [out] IWindow** window);
+
+        DestroyActivity(
+            [in] String id,
+            [in] Boolean finish,
+            [out] IWindow** window);
+
+        GetCurrentActivity(
+            [out] IActivity** activity);
+
+        GetCurrentId(
+            [out] String* id);
+
+        GetActivity(
+            [in] String id,
+            [out] IActivity** activity);
+
+        DispatchCreate(
+            [in] IBundle* st);
+
+        SaveInstanceState(
+            [out] IBundle** st);
+
+        DispatchResume();
+
+        DispatchPause(
+            [in] Boolean finishing);
+
+        DispatchStop();
+
+        RemoveAllActivities();
+
+        DispatchDestroy(
+              [in] Boolean finishing);
+    }
+}
