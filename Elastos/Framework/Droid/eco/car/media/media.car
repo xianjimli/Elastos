@@ -37,6 +37,7 @@ module
     merge("media/MediaMetadataRetriever.car");
     merge("media/AmrInputStream.car");
     merge("media/AsyncPlayer.car");
+    merge("media/FaceDetector.car");
 
     class CAudioEffect {
         constructor(
@@ -293,5 +294,20 @@ module
             [in] String tag);
 
         interface IAsyncPlayer;
+    }
+
+    class CFaceDetectorFace {
+        constructor();
+
+        interface IFaceDetectorFace;
+    }
+
+    class CFaceDetector {
+        constructor(
+            [in] Int32 width,
+            [in] Int32 height,
+            [in] Int32 maxFaces);
+
+        interface IFaceDetector;
     }
 }

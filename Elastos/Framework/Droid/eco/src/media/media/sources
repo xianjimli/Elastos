@@ -54,4 +54,10 @@ SOURCES += AmrInputStream.cpp
 SOURCES += CAmrInputStream.cpp
 SOURCES += AsyncPlayer.cpp
 SOURCES += CAsyncPlayer.cpp
+SOURCES += CameraProfile.cpp
+SOURCES += DecoderCapabilities.cpp
+SOURCES += EncoderCapabilities.cpp
+SOURCES += FaceDetector.cpp
+SOURCES += CFaceDetectorFace.cpp
+SOURCES += CFaceDetector.cpp
 
