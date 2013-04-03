@@ -2,5 +2,58 @@
 module
 {
     interface IAppWidgetProviderInfo {
+        SetProvider(
+            [in] IComponentName* name);
+
+    	GetProvider(
+            [out] IComponentName** name);
+
+        SetMinWidth(
+            [in] Int32 width);
+
+        GetMinWidth(
+            [out] Int32* width);
+
+        SetMinHeight(
+            [in] Int32 height);
+
+        GetMinHeight(
+            [out] Int32* height);
+
+        SetUpdatePeriodMillis(
+            [in] Int32 period);
+
+        GetUpdatePeriodMillis(
+            [out] Int32* period);
+
+        SetInitialLayout(
+            [in] Int32 layout);
+
+        GetInitialLayout(
+            [out] Int32* layout);
+
+        SetConfigure(
+            [in] IComponentName* name);
+
+        GetConfigure(
+            [out] IComponentName** name);
+
+        SetLabel(
+            [in] String label);
+
+        GetLabel(
+            [out] String* label);
+
+        SetIcon(
+            [in] Int32 icon);
+
+        GetIcon(
+            [out] Int32* icon);
+
+        SetPreviousName(
+            [in] String name);
+
+        GetPreviousName(
+            [out] String* name);
     }
 }

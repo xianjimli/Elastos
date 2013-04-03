@@ -22,3 +22,4 @@ DIRS += provider
 DIRS += webkit
 DIRS += gesture
 DIRS += accessibilityservice
+DIRS += appwidget

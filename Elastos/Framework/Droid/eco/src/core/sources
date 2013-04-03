@@ -43,6 +43,7 @@ INCLUDES += $(MAKEDIR)/../../inc/core/provider
 INCLUDES += $(MAKEDIR)/../../inc/core/webkit/
 INCLUDES += $(MAKEDIR)/../../inc/core/gesture
 INCLUDES += $(MAKEDIR)/../../inc/core/accessibilityservice
+INCLUDES += $(MAKEDIR)/../../inc/core/appwidget
 
 ifeq "$(XDK_TARGET_PLATFORM)" "linux"
 INCLUDES += $(PREBUILD_INC)/skia/utils
@@ -84,6 +85,7 @@ LIBRARIES += webkit/webkit.lib
 LIBRARIES += webkit/webkit.lib
 LIBRARIES += gesture/gesture.lib
 LIBRARIES += accessibilityservice/accessibilityservice.lib
+LIBRARIES += appwidget/appwidget.lib
 
 LIBRARIES += $(XDK_USER_LIB)/Elastos.Utility.Logging.lib
 ifeq "$(XDK_TARGET_PLATFORM)" "win32"

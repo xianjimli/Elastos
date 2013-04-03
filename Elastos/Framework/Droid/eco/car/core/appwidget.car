@@ -5,4 +5,17 @@ module
     merge("appwidget/IAppWidgetHost.car");
     merge("appwidget/AppWidgetProviderInfo.car");
     merge("appwidget/AppWidgetManager.car");
+
+    class CAppWidgetProviderInfo {
+        constructor();
+
+        /**
+         * Unflatten the AppWidgetProviderInfo from a parcel.
+         */
+        constructor(
+            [in] IParcel* source);
+
+        interface IAppWidgetProviderInfo;
+        interface IParcelable;
+    }
 }
