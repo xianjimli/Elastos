@@ -2,7 +2,6 @@
 #define __USE_MALLOC
 
 #include <elastos.h>
-#include <elastos/Algorithm.h>
 #include <elastos/Stack.h>
 #include <elastos/List.h>
 #include <stdio.h>
