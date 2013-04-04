@@ -10,93 +10,93 @@ struct TrueType {};
 struct FalseType {};
 
 template <typename T>
-struct TypeTraits 
+struct TypeTraits
 {
     typedef TrueType    ThisDummyMemberMustBeFirst;
     typedef FalseType   HasTrivialDefaultConstructor;
     typedef FalseType   HasTrivialCopyConstructor;
     typedef FalseType   HasTrivialAssignmentOperator;
     typedef FalseType   HasTrivialDestructor;
-    typedef FalseType   IsPOD;
+    typedef FalseType   IsPODType;
 };
 
 template <>
-struct TypeTraits<Boolean> 
+struct TypeTraits<Boolean>
 {
     typedef TrueType    HasTrivialDefaultConstructor;
     typedef TrueType    HasTrivialCopyConstructor;
     typedef TrueType    HasTrivialAssignmentOperator;
     typedef TrueType    HasTrivialDestructor;
-    typedef TrueType    IsPOD;    
+    typedef TrueType    IsPODType;
 };
 
 template <>
-struct TypeTraits<Char8> 
+struct TypeTraits<Char8>
 {
     typedef TrueType    HasTrivialDefaultConstructor;
     typedef TrueType    HasTrivialCopyConstructor;
     typedef TrueType    HasTrivialAssignmentOperator;
     typedef TrueType    HasTrivialDestructor;
-    typedef TrueType    IsPOD;    
+    typedef TrueType    IsPODType;
 };
 
 template <>
-struct TypeTraits<Int32> 
+struct TypeTraits<Int32>
 {
     typedef TrueType    HasTrivialDefaultConstructor;
     typedef TrueType    HasTrivialCopyConstructor;
     typedef TrueType    HasTrivialAssignmentOperator;
     typedef TrueType    HasTrivialDestructor;
-    typedef TrueType    IsPOD;    
+    typedef TrueType    IsPODType;
 };
 
 template <>
-struct TypeTraits<Float> 
+struct TypeTraits<Float>
 {
     typedef TrueType    HasTrivialDefaultConstructor;
     typedef TrueType    HasTrivialCopyConstructor;
     typedef TrueType    HasTrivialAssignmentOperator;
     typedef TrueType    HasTrivialDestructor;
-    typedef TrueType    IsPOD;    
+    typedef TrueType    IsPODType;
 };
 
 template <>
-struct TypeTraits<Double> 
+struct TypeTraits<Double>
 {
     typedef TrueType    HasTrivialDefaultConstructor;
     typedef TrueType    HasTrivialCopyConstructor;
     typedef TrueType    HasTrivialAssignmentOperator;
     typedef TrueType    HasTrivialDestructor;
-    typedef TrueType    IsPOD;    
+    typedef TrueType    IsPODType;
 };
 
 template <typename T>
-struct TypeTraits<T*> 
+struct TypeTraits<T*>
 {
     typedef TrueType    HasTrivialDefaultConstructor;
     typedef TrueType    HasTrivialCopyConstructor;
     typedef TrueType    HasTrivialAssignmentOperator;
     typedef TrueType    HasTrivialDestructor;
-    typedef TrueType    IsPOD;    
+    typedef TrueType    IsPODType;
 };
 
 // The following could be written in terms of numeric_limits.
 // We're doing it separately to reduce the number of dependencies.
 
-template <typename T> 
+template <typename T>
 struct IsInteger
 {
     typedef FalseType Integral;
 };
 
-template<> 
-struct IsInteger<bool> 
+template<>
+struct IsInteger<bool>
 {
     typedef TrueType Integral;
 };
 
 template<>
-struct IsInteger<char> 
+struct IsInteger<char>
 {
     typedef TrueType Integral;
 };
@@ -113,56 +113,56 @@ struct IsInteger<unsigned char>
     typedef TrueType Integral;
 };
 
-template<> 
-struct IsInteger<short> 
-{
-    typedef TrueType Integral;
-};
-
-template<> 
-struct IsInteger<unsigned short> 
-{
-    typedef TrueType Integral;
-};
-
-template<> 
-struct IsInteger<int> 
+template<>
+struct IsInteger<short>
 {
     typedef TrueType Integral;
 };
 
 template<>
-struct IsInteger<unsigned int> 
+struct IsInteger<unsigned short>
 {
     typedef TrueType Integral;
 };
 
-template<> 
-struct IsInteger<long> 
+template<>
+struct IsInteger<int>
 {
     typedef TrueType Integral;
 };
 
-template<> 
-struct IsInteger<unsigned long> 
+template<>
+struct IsInteger<unsigned int>
 {
     typedef TrueType Integral;
 };
 
-template<> 
-struct IsInteger<long long> 
+template<>
+struct IsInteger<long>
 {
     typedef TrueType Integral;
 };
 
-template<> 
-struct IsInteger<unsigned long long> 
+template<>
+struct IsInteger<unsigned long>
 {
     typedef TrueType Integral;
 };
 
-template<typename T> 
-struct IsNormalIterator 
+template<>
+struct IsInteger<long long>
+{
+    typedef TrueType Integral;
+};
+
+template<>
+struct IsInteger<unsigned long long>
+{
+    typedef TrueType Integral;
+};
+
+template<typename T>
+struct IsNormalIterator
 {
     typedef FalseType Normal;
 };
@@ -171,7 +171,7 @@ struct IsNormalIterator
 template<typename Iterator, typename Container> class NormalIterator;
 
 template<typename Iterator, typename Container>
-struct IsNormalIterator<NormalIterator<Iterator, Container> > 
+struct IsNormalIterator<NormalIterator<Iterator, Container> >
 {
     typedef TrueType Normal;
 };

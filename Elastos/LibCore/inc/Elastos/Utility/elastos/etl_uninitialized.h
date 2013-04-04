@@ -36,7 +36,7 @@ inline ForwardIterator UninitializedCopy(
         InputIterator first, InputIterator last, ForwardIterator result)
 {
     typedef typename IteratorTraits<InputIterator>::ValueType ValueType;
-    typedef typename TypeTraits<ValueType>::IsPOD IsPOD;
+    typedef typename TypeTraits<ValueType>::IsPODType IsPOD;
     return UninitializedCopyAux(first, last, result, IsPOD());
 }
 
@@ -75,8 +75,8 @@ inline void UninitializedFill(
         ForwardIterator first, ForwardIterator last, const T& x)
 {
     typedef typename IteratorTraits<ForwardIterator>::ValueType ValueType;
-    typedef typename TypeTraits<ValueType>::IsPOD IsPOD;
-    UninitializedFillAux(first, last, IsPOD());
+    typedef typename TypeTraits<ValueType>::IsPODType IsPOD;
+    UninitializedFillAux(first, last, x, IsPOD());
 }
 
 template <typename ForwardIterator, typename Size, typename T>
@@ -108,13 +108,13 @@ inline ForwardIterator UninitializedFillN(
         ForwardIterator first, Size n, const T& x)
 {
     typedef typename IteratorTraits<ForwardIterator>::ValueType ValueType;
-    typedef typename TypeTraits<ValueType>::IsPOD IsPOD;
+    typedef typename TypeTraits<ValueType>::IsPODType IsPOD;
     return UninitializedFillNAux(first, n, x, IsPOD());
 }
 
 template <typename InputIterator1, typename InputIterator2, typename ForwardIterator>
 inline ForwardIterator UninitializedCopyCopy(
-        InputIterator1 first1, InputIterator1 last1, 
+        InputIterator1 first1, InputIterator1 last1,
         InputIterator2 first2, InputIterator2 last2, ForwardIterator result)
 {
     ForwardIterator middle = UninitializedCopy(first1, last1, result);
