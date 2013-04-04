@@ -1,0 +1,35 @@
+
+#define __USE_MALLOC
+
+#include <elastos.h>
+// #include <elastos/Algorithm.h>
+#include <elastos/Stack.h>
+#include <stdio.h>
+
+using namespace Elastos;
+
+void testStack()
+{
+    Stack<Int32> istack;
+    istack.Push(1);
+    istack.Push(3);
+    istack.Push(5);
+    istack.Push(7);
+
+    printf("size: %d, top: %d\n", istack.GetSize(), istack.GetTop());
+
+    istack.Pop();
+    printf("top: %d\n", istack.GetTop());
+    istack.Pop();
+    printf("top: %d\n", istack.GetTop());
+    istack.Pop();
+    printf("top: %d\n", istack.GetTop());
+    printf("size: %d\n", istack.GetSize());
+}
+
+int main(int argc, char *argv[])
+{
+    testStack();
+
+    return 0;
+}
