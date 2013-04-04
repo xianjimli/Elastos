@@ -203,17 +203,17 @@ public:
         /* [in] */ AppWidgetId* id,
         /* [in] */ Int32 callingUid);
 
-    CARAPI_(CAppWidgetService::AppWidgetId*) LookupAppWidgetIdLocked(
+    CARAPI_(AppWidgetId*) LookupAppWidgetIdLocked(
         /* [in] */ Int32 appWidgetId);
 
     CARAPI_(Provider*) LookupProviderLocked(
         /* [in] */ IComponentName* provider);
 
-    CARAPI_(CAppWidgetService::Host*) LookupHostLocked(
+    CARAPI_(Host*) LookupHostLocked(
         /* [in] */ Int32 uid,
         /* [in] */ Int32 hostId);
 
-    CARAPI_(CAppWidgetService::Host*) LookupOrAddHostLocked(
+    CARAPI_(Host*) LookupOrAddHostLocked(
         /* [in] */ Int32 uid,
         /* [in] */ const String& capsuleName,
         /* [in] */ Int32 hostId);
@@ -255,6 +255,8 @@ public:
     CARAPI EnforceCallingUid(
         /* [in] */ const String& capsuleName,
         /* [out] */ Int32* uid);
+
+    CARAPI_(void) SendInitialBroadcasts();
 
     // only call from initialization -- it assumes that the data structures are all empty
     CARAPI_(void) LoadStateLocked();
