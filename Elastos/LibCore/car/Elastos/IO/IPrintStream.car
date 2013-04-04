@@ -1,0 +1,8 @@
+
+module
+{
+    interface IFilterOutputStream;
+
+    interface IPrintStream extends IFilterOutputStream {
+    }
+}

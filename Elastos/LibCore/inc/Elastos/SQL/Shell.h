@@ -29,19 +29,19 @@ class Shell// : public ICallback
 
     String mDestTable;
 
-    AutoPtr<IPrintWriter> pw;
+    AutoPtr<IPrintWriter> mPw;
 
-    AutoPtr<IPrintWriter> err;
+    AutoPtr<IPrintWriter> mErr;
 public:
     Shell();
 
-    Shell(
+    CARAPI Init(
         /* [in] */IPrintWriter* pw, 
         /* [in] */IPrintWriter* err);
 
-//    CARAPI Shell(            //IPrintStream  in io not IMPLEMENTED
-//        /* [in] */IPrintStream* ps, 
-//        /* [in] */IPrintStream* errs);
+    CARAPI Init(
+        /* [in] */IPrintStream* ps,
+        /* [in] */IPrintStream* errs);
 
     CARAPI Sql_quote_dbl(
         /* [in] */String str,
@@ -102,11 +102,11 @@ protected:
 
 class DBDump// : public ICallback 
 {
-  //  AutoPtr<Shell> ms;
+    AutoPtr<IShell> ms;
 
 public:
     DBDump(
- //       /* [in] */AutoPtr<Shell> s, 
+        /* [in] */ IShell* s, 
         /* [in] */const ArrayOf<String>& tables);
 
     CARAPI Columns(

@@ -7,7 +7,13 @@
 CarClass(CShell), public Shell
 {
 public:
-    CARAPI constructor();
+    CARAPI constructor(
+        /* [in] */ IPrintWriter* pw,
+        /* [in] */ IPrintWriter* err);
+
+    CARAPI constructor(
+        /* [in] */ IPrintStream* pw,
+        /* [in] */ IPrintStream* err);
 
     CARAPI Clone(
         /* [out] */IInterface** obj);
