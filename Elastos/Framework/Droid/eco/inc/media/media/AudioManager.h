@@ -14,7 +14,7 @@ using namespace Elastos::Core;
  * Use <code>Context.getSystemService(Context.AUDIO_SERVICE)</code> to get
  * an instance of this class.
  */
-class AudioManager 
+class AudioManager
 {
 public:
     AudioManager();
@@ -42,8 +42,8 @@ public:
      * @see #setStreamVolume(Int32, Int32, Int32)
      */
     virtual CARAPI AdjustStreamVolume(
-        /* [in] */ Int32 streamType, 
-        /* [in] */ Int32 direction, 
+        /* [in] */ Int32 streamType,
+        /* [in] */ Int32 direction,
         /* [in] */ Int32 flags);
 
     /**
@@ -64,7 +64,7 @@ public:
      * @see #setStreamVolume(Int32, Int32, Int32)
      */
     virtual CARAPI AdjustVolume(
-        /* [in] */ Int32 direction, 
+        /* [in] */ Int32 direction,
         /* [in] */ Int32 flags);
 
     /**
@@ -85,8 +85,8 @@ public:
      * @see #setStreamVolume(Int32, Int32, Int32)
      */
     virtual CARAPI AdjustSuggestedStreamVolume(
-        /* [in] */ Int32 direction, 
-        /* [in] */ Int32 suggestedStreamType, 
+        /* [in] */ Int32 direction,
+        /* [in] */ Int32 suggestedStreamType,
         /* [in] */ Int32 flags);
 
     /**
@@ -144,8 +144,8 @@ public:
      * @see #getStreamVolume(Int32)
      */
     virtual CARAPI SetStreamVolume(
-        /* [in] */ Int32 streamType, 
-        /* [in] */ Int32 index, 
+        /* [in] */ Int32 streamType,
+        /* [in] */ Int32 index,
         /* [in] */ Int32 flags);
 
     /**
@@ -166,7 +166,7 @@ public:
      * @param state The required solo state: TRUE for solo ON, FALSE for solo OFF
      */
     virtual CARAPI SetStreamSolo(
-        /* [in] */ Int32 streamType, 
+        /* [in] */ Int32 streamType,
         /* [in] */ Boolean state);
 
     /**
@@ -190,7 +190,7 @@ public:
      * @param state The required mute state: TRUE for mute ON, FALSE for mute OFF
      */
     virtual CARAPI SetStreamMute(
-        /* [in] */ Int32 streamType, 
+        /* [in] */ Int32 streamType,
         /* [in] */ Boolean state);
 
     /**
@@ -248,7 +248,7 @@ public:
      * @see #shouldVibrate(Int32)
      */
     virtual CARAPI SetVibrateSetting(
-        /* [in] */ Int32 vibrateType, 
+        /* [in] */ Int32 vibrateType,
         /* [in] */ Int32 vibrateSetting);
 
     /**
@@ -560,8 +560,8 @@ public:
      * setBluetoothScoOn() methods instead.
      */
     virtual CARAPI SetRouting(
-        /* [in] */ Int32 mode, 
-        /* [in] */ Int32 routes, 
+        /* [in] */ Int32 mode,
+        /* [in] */ Int32 routes,
         /* [in] */ Int32 mask);
 
     /**
@@ -599,7 +599,7 @@ public:
      * @deprecated Use {@link #setPrameters(String)} instead
      */
     virtual CARAPI SetParameter(
-        /* [in] */ String key, 
+        /* [in] */ String key,
         /* [in] */ String value);
 
     /**
@@ -719,7 +719,7 @@ public:
      * settings panel for enabling and controlling volume.
      */
     virtual CARAPI PlaySoundEffect(
-        /* [in] */ Int32 effectType, 
+        /* [in] */ Int32 effectType,
         /* [in] */ Float volume);
 
 
@@ -742,7 +742,7 @@ public:
      * @see #requestAudioFocus(OnAudioFocusChangeListener, Int32, Int32)
      */
     static const Int32 AUDIOFOCUS_GAIN = 1;
-    
+
     /**
      * Used to indicate a temporary gain or request of audio focus, anticipated to last a short
      * amount of time. Examples of temporary changes are the playback of driving directions, or an
@@ -751,7 +751,7 @@ public:
      * @see #requestAudioFocus(OnAudioFocusChangeListener, Int32, Int32)
      */
     static const Int32 AUDIOFOCUS_GAIN_TRANSIENT = 2;
-    
+
     /**
      * Used to indicate a temporary request of audio focus, anticipated to last a short
      * amount of time, and where it is acceptable for other audio applications to keep playing
@@ -762,19 +762,19 @@ public:
      * @see #requestAudioFocus(OnAudioFocusChangeListener, Int32, Int32)
      */
     static const Int32 AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK = 3;
-    
+
     /**
      * Used to indicate a loss of audio focus of unknown duration.
      * @see OnAudioFocusChangeListener#onAudioFocusChange(Int32)
      */
     static const Int32 AUDIOFOCUS_LOSS = -1 * AUDIOFOCUS_GAIN;
-    
+
     /**
      * Used to indicate a transient loss of audio focus.
      * @see OnAudioFocusChangeListener#onAudioFocusChange(Int32)
      */
     static const Int32 AUDIOFOCUS_LOSS_TRANSIENT = -1 * AUDIOFOCUS_GAIN_TRANSIENT;
-    
+
     /**
      * Used to indicate a transient loss of audio focus where the loser of the audio focus can
      * lower its output volume if it wants to continue playing (also referred to as "ducking"), as
@@ -803,7 +803,7 @@ private:
     /**
      * Helper class to handle the forwarding of audio focus events to the appropriate listener
      */
-    class FocusEventHandlerDelegate 
+    class FocusEventHandlerDelegate
     {
     public:
         FocusEventHandlerDelegate();
@@ -878,8 +878,8 @@ public:
      *  @return {@link #AUDIOFOCUS_REQUEST_FAILED} or {@link #AUDIOFOCUS_REQUEST_GRANTED}
      */
     virtual CARAPI_(Int32) RequestAudioFocus(
-        /* [in] */ IOnAudioFocusChangeListener* l, 
-        /* [in] */ Int32 streamType, 
+        /* [in] */ IOnAudioFocusChangeListener* l,
+        /* [in] */ Int32 streamType,
         /* [in] */ Int32 durationHint);
 
 
@@ -918,7 +918,7 @@ public:
      *  to read and apply restored settings.
      */
     virtual CARAPI ReloadAudioSettings();
-    
+
 private:
     static CARAPI_(AutoPtr<IAudioService>) GetService();
 
@@ -1057,7 +1057,7 @@ public:
 
     /** @hide The audio stream for text to speech (TTS) */
     static const Int32 STREAM_TTS = AudioSystem::STREAM_TTS;
-    
+
     /** Number of audio streams */
     /**
      * @deprecated Use AudioSystem::getNumStreamTypes() instead
@@ -1067,18 +1067,6 @@ public:
 
     /**  @hide Default volume index values for audio streams */
     static const Int32 DEFAULT_STREAM_VOLUME[];
-    //=  {
-    //    4,  // STREAM_VOICE_CALL
-    //    7,  // STREAM_SYSTEM
-    //    5,  // STREAM_RING
-    //    11, // STREAM_MUSIC
-    //    6,  // STREAM_ALARM
-    //    5,  // STREAM_NOTIFICATION
-    //    7,  // STREAM_BLUETOOTH_SCO
-    //    7,  // STREAM_SYSTEM_ENFORCED
-    //    11, // STREAM_DTMF
-    //    11  // STREAM_TTS
-    //};
 
     /**
      * Increase the ringer volume.
