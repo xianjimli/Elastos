@@ -21,6 +21,22 @@ const String AudioManager::ACTION_AUDIO_BECOMING_NOISY/* = "android.media.AUDIO_
 const String AudioManager::EXTRA_PREV_VOLUME_STREAM_VALUE/* =
     "android.media.EXTRA_PREV_VOLUME_STREAM_VALUE"*/;
 
+const Int32 AudioManager::RINGER_MODE_SILENT;
+const Int32 AudioManager::RINGER_MODE_VIBRATE;
+
+const Int32 AudioManager::DEFAULT_STREAM_VOLUME[] = {
+    4,  // STREAM_VOICE_CALL
+    7,  // STREAM_SYSTEM
+    5,  // STREAM_RING
+    11, // STREAM_MUSIC
+    6,  // STREAM_ALARM
+    5,  // STREAM_NOTIFICATION
+    7,  // STREAM_BLUETOOTH_SCO
+    7,  // STREAM_SYSTEM_ENFORCED
+    11, // STREAM_DTMF
+    11  // STREAM_TTS
+};
+
 AutoPtr<IAudioService> AudioManager::sService;
 
 static const Int32 R_Bool_Config_bluetooth_sco_off_call=0x010d0011;
@@ -67,8 +83,8 @@ AutoPtr<IAudioService> AudioManager::GetService()
  * @see #setStreamVolume(Int32, Int32, Int32)
  */
 ECode AudioManager::AdjustStreamVolume(
-    /* [in] */ Int32 streamType, 
-    /* [in] */ Int32 direction, 
+    /* [in] */ Int32 streamType,
+    /* [in] */ Int32 direction,
     /* [in] */ Int32 flags)
 {
     AutoPtr<IAudioService> service = GetService();
@@ -99,8 +115,8 @@ ECode AudioManager::AdjustStreamVolume(
  * @see #setStreamVolume(Int32, Int32, Int32)
  */
 ECode AudioManager::AdjustVolume(
-    /* [in] */ Int32 direction, 
-    /* [in] */ Int32 flags) 
+    /* [in] */ Int32 direction,
+    /* [in] */ Int32 flags)
 {
     AutoPtr<IAudioService> service = GetService();
     //try {
@@ -130,8 +146,8 @@ ECode AudioManager::AdjustVolume(
  * @see #setStreamVolume(Int32, Int32, Int32)
  */
 ECode AudioManager::AdjustSuggestedStreamVolume(
-    /* [in] */ Int32 direction, 
-    /* [in] */ Int32 suggestedStreamType, 
+    /* [in] */ Int32 direction,
+    /* [in] */ Int32 suggestedStreamType,
     /* [in] */ Int32 flags)
 {
     AutoPtr<IAudioService> service = GetService();
@@ -243,8 +259,8 @@ ECode AudioManager::SetRingerMode(
  * @see #getStreamVolume(Int32)
  */
 ECode AudioManager::SetStreamVolume(
-    /* [in] */ Int32 streamType, 
-    /* [in] */ Int32 index, 
+    /* [in] */ Int32 streamType,
+    /* [in] */ Int32 index,
     /* [in] */ Int32 flags)
 {
     AutoPtr<IAudioService> service = GetService();
@@ -275,7 +291,7 @@ ECode AudioManager::SetStreamVolume(
  * @param state The required solo state: TRUE for solo ON, FALSE for solo OFF
  */
 ECode AudioManager::SetStreamSolo(
-    /* [in] */ Int32 streamType, 
+    /* [in] */ Int32 streamType,
     /* [in] */ Boolean state)
 {
     AutoPtr<IAudioService> service = GetService();
@@ -309,7 +325,7 @@ ECode AudioManager::SetStreamSolo(
  * @param state The required mute state: TRUE for mute ON, FALSE for mute OFF
  */
 ECode AudioManager::SetStreamMute(
-    /* [in] */ Int32 streamType, 
+    /* [in] */ Int32 streamType,
     /* [in] */ Boolean state)
 {
     AutoPtr<IAudioService> service = GetService();
@@ -400,8 +416,8 @@ Int32 AudioManager::GetVibrateSetting(
  * @see #shouldVibrate(Int32)
  */
 ECode AudioManager::SetVibrateSetting(
-    /* [in] */ Int32 vibrateType, 
-    /* [in] */ Int32 vibrateSetting) 
+    /* [in] */ Int32 vibrateType,
+    /* [in] */ Int32 vibrateSetting)
 {
     AutoPtr<IAudioService> service = GetService();
     //try {
@@ -564,7 +580,7 @@ ECode AudioManager::SetBluetoothScoOn(
  * @return TRUE if SCO is used for communications;
  *         FALSE if otherwise
  */
-Boolean AudioManager::IsBluetoothScoOn() 
+Boolean AudioManager::IsBluetoothScoOn()
 {
     AutoPtr<IAudioService> service = GetService();
     //try {
@@ -623,7 +639,7 @@ ECode AudioManager::SetWiredHeadsetOn(
  * @return TRUE if audio is being routed to/from wired headset;
  *         FALSE if otherwise
  */
-Boolean AudioManager::IsWiredHeadsetOn() 
+Boolean AudioManager::IsWiredHeadsetOn()
 {
     if (AudioSystem::GetDeviceConnectionState(AudioSystem::DEVICE_OUT_WIRED_HEADSET,String(""))
         == AudioSystem::DEVICE_STATE_UNAVAILABLE &&
@@ -657,7 +673,7 @@ ECode AudioManager::SetMicrophoneMute(
  *
  * @return TRUE if microphone is muted, FALSE if it's not
  */
-Boolean AudioManager::IsMicrophoneMute() 
+Boolean AudioManager::IsMicrophoneMute()
 {
     return AudioSystem::IsMicrophoneMuted();
 }
@@ -721,8 +737,8 @@ Int32 AudioManager::GetMode()
  * setBluetoothScoOn() methods instead.
  */
 ECode AudioManager::SetRouting(
-    /* [in] */ Int32 mode, 
-    /* [in] */ Int32 routes, 
+    /* [in] */ Int32 mode,
+    /* [in] */ Int32 routes,
     /* [in] */ Int32 mask)
 {
     return NOERROR;
@@ -769,7 +785,7 @@ Boolean AudioManager::IsMusicActive()
  * @deprecated Use {@link #setPrameters(String)} instead
  */
 ECode AudioManager::SetParameter(
-    /* [in] */ String key, 
+    /* [in] */ String key,
     /* [in] */ String value)
 {
     SetParameters(key+"="+value);
@@ -821,7 +837,7 @@ String AudioManager::GetParameters(
  * whether sounds are heard or not.
  */
 ECode AudioManager::PlaySoundEffect(
-    /* [in] */ Int32 effectType) 
+    /* [in] */ Int32 effectType)
 {
     if (effectType < 0 || effectType >= NUM_SOUND_EFFECTS) {
         return E_INVALID_ARGUMENT;
@@ -860,7 +876,7 @@ ECode AudioManager::PlaySoundEffect(
  * settings panel for enabling and controlling volume.
  */
 ECode AudioManager::PlaySoundEffect(
-    /* [in] */ Int32 effectType, 
+    /* [in] */ Int32 effectType,
     /* [in] */ Float volume)
 {
     if (effectType < 0 || effectType >= NUM_SOUND_EFFECTS) {
@@ -892,7 +908,7 @@ Boolean AudioManager::QuerySoundEffectsEnabled()
  *  Load Sound effects.
  *  This method must be called when sound effects are enabled.
  */
-ECode AudioManager::LoadSoundEffects() 
+ECode AudioManager::LoadSoundEffects()
 {
     AutoPtr<IAudioService> service = GetService();
     //try {
@@ -965,7 +981,7 @@ AutoPtr<IHandler> AudioManager::FocusEventHandlerDelegate::GetHandler()
 }
 
 String AudioManager::GetIdForAudioFocusListener(
-    /* [in] */ IOnAudioFocusChangeListener* l) 
+    /* [in] */ IOnAudioFocusChangeListener* l)
 {
     /*if (l == NULL) {
         return new String(this.toString());
@@ -1027,8 +1043,8 @@ ECode AudioManager::UnregisterAudioFocusListener(
  *  @return {@link #AUDIOFOCUS_REQUEST_FAILED} or {@link #AUDIOFOCUS_REQUEST_GRANTED}
  */
 Int32 AudioManager::RequestAudioFocus(
-    /* [in] */ IOnAudioFocusChangeListener* l, 
-    /* [in] */ Int32 streamType, 
+    /* [in] */ IOnAudioFocusChangeListener* l,
+    /* [in] */ Int32 streamType,
     /* [in] */ Int32 durationHint)
 {
     Int32 status = AUDIOFOCUS_REQUEST_FAILED;
@@ -1099,7 +1115,7 @@ ECode AudioManager::RegisterMediaButtonEventReceiver(
  *      that was registered with {@link #registerMediaButtonEventReceiver(ComponentName)}.
  */
 ECode AudioManager::UnregisterMediaButtonEventReceiver(
-    /* [in] */ IComponentName* eventReceiver) 
+    /* [in] */ IComponentName* eventReceiver)
 {
     AutoPtr<IAudioService> service = GetService();
     //try {
