@@ -24,6 +24,8 @@ module
     merge("app/ITransientNotification.car");
     merge("app/ResultInfo.car");
     merge("app/RunningAppProcessInfo.car");
+    merge("app/ActivityGroup.car");
+    merge("app/LocalActivityManager.car");
 
     class CContentProviderHolder {
         interface IContentProviderHolder;
@@ -265,5 +267,22 @@ module
 
     singleton class CProgressDialogHelper {
         interface IProgressDialogHelper;
+    }
+
+    class CActivityGroup {
+        constructor();
+
+        constructor(
+            [in] Boolean singleActivityMode);
+
+        interface IActivityGroup;
+    }
+
+    class CLocalActivityManager {
+        constructor(
+            [in] IActivity* parent,
+            [in] Boolean singleMode);
+
+        interface ILocalActivityManager;
     }
 }

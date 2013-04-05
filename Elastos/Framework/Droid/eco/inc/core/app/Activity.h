@@ -126,6 +126,12 @@ public:
     CARAPI OnConfigurationChanged(
         /* [in] */ IConfiguration* newConfig);
 
+    CARAPI GetLastNonConfigurationChildInstances(
+        /* [out] */ IObjectStringMap** data);
+
+    CARAPI OnRetainNonConfigurationInstance(
+        /* [out] */ IInterface** object);
+
     CARAPI OnLowMemory();
 
     CARAPI DispatchNewIntent(
@@ -621,6 +627,15 @@ public:
     CARAPI RemoveDialog(
         /* [in] */ Int32 id);
 
+    virtual CARAPI OnSaveInstanceState(
+        /* [in] */ IBundle* outState);
+
+    virtual CARAPI OnActivityResult(
+        /* [in] */ Int32 requestCode,
+        /* [in] */ Int32 resultCode,
+        /* [in] */ IIntent *data);
+
+
 protected:
     CARAPI Finish();
 
@@ -648,11 +663,6 @@ protected:
     virtual CARAPI OnStop();
 
     virtual CARAPI OnDestroy();
-
-    virtual CARAPI OnActivityResult(
-        /* [in] */ Int32 requestCode,
-        /* [in] */ Int32 resultCode,
-        /* [in] */ IIntent *data);
 
     virtual CARAPI OnNewIntent(
         /* [in] */ IIntent *intent);
@@ -716,6 +726,12 @@ protected:
     AutoPtr<IBinder> mToken;
 
 private:
+    static const String WINDOW_HIERARCHY_TAG;
+    static const String SAVED_DIALOG_IDS_KEY;
+    static const String SAVED_DIALOGS_TAG;
+    static const String SAVED_DIALOG_KEY_PREFIX;
+    static const String SAVED_DIALOG_ARGS_KEY_PREFIX;
+
     HashMap<Int32, ManagedDialog*>* mManagedDialogs;
 
     // set by the thread after the constructor and before onCreate(Bundle savedInstanceState) is called.
@@ -725,6 +741,8 @@ private:
     AutoPtr<IIntent> mIntent;
     AutoPtr<IComponentName> mComponent;
     AutoPtr<IApplicationApartment> mApartment;
+    /*package*/
+    AutoPtr<IObjectStringMap> mLastNonConfigurationChildInstances;
     AutoPtr<IActivity> mParent;
     Boolean mCalled;
     Boolean mResumed;

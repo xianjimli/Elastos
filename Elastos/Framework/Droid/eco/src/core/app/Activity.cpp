@@ -14,6 +14,12 @@
 #include <elastos/Thread.h>
 
 
+const String Activity::WINDOW_HIERARCHY_TAG = String("android:viewHierarchyState");
+const String Activity::SAVED_DIALOG_IDS_KEY = String("android:savedDialogIds");
+const String Activity::SAVED_DIALOGS_TAG = String("android:savedDialogs");
+const String Activity::SAVED_DIALOG_KEY_PREFIX = String("android:dialog_");
+const String Activity::SAVED_DIALOG_ARGS_KEY_PREFIX = String("android:dialog_args_");
+
 Activity::Activity()
     : mManagedDialogs(NULL)
     , mWindowAdded(FALSE)
@@ -746,6 +752,22 @@ ECode Activity::OnConfigurationChanged(
     }
 }
 
+ECode Activity::GetLastNonConfigurationChildInstances(
+    /* [out] */ IObjectStringMap** data)
+{
+    if (data == NULL) return E_INVALID_ARGUMENT;
+    *data = mLastNonConfigurationChildInstances;
+    return NOERROR;
+}
+
+ECode Activity::OnRetainNonConfigurationInstance(
+    /* [out] */ IInterface** object)
+{
+    if (object == NULL) return E_INVALID_ARGUMENT;
+    *object = NULL;
+    return NOERROR;
+}
+
 ECode Activity::OnLowMemory()
 {
     mCalled = TRUE;
@@ -1343,6 +1365,61 @@ ECode Activity::PerformSaveInstanceState(
 //    saveManagedDialogs(outState);
     return NOERROR;
 }
+
+/**
+ * Called to retrieve per-instance state from an activity before being killed
+ * so that the state can be restored in {@link #onCreate} or
+ * {@link #onRestoreInstanceState} (the {@link Bundle} populated by this method
+ * will be passed to both).
+ *
+ * <p>This method is called before an activity may be killed so that when it
+ * comes back some time in the future it can restore its state.  For example,
+ * if activity B is launched in front of activity A, and at some point activity
+ * A is killed to reclaim resources, activity A will have a chance to save the
+ * current state of its user interface via this method so that when the user
+ * returns to activity A, the state of the user interface can be restored
+ * via {@link #onCreate} or {@link #onRestoreInstanceState}.
+ *
+ * <p>Do not confuse this method with activity lifecycle callbacks such as
+ * {@link #onPause}, which is always called when an activity is being placed
+ * in the background or on its way to destruction, or {@link #onStop} which
+ * is called before destruction.  One example of when {@link #onPause} and
+ * {@link #onStop} is called and not this method is when a user navigates back
+ * from activity B to activity A: there is no need to call {@link #onSaveInstanceState}
+ * on B because that particular instance will never be restored, so the
+ * system avoids calling it.  An example when {@link #onPause} is called and
+ * not {@link #onSaveInstanceState} is when activity B is launched in front of activity A:
+ * the system may avoid calling {@link #onSaveInstanceState} on activity A if it isn't
+ * killed during the lifetime of B since the state of the user interface of
+ * A will stay intact.
+ *
+ * <p>The default implementation takes care of most of the UI per-instance
+ * state for you by calling {@link android.view.View#onSaveInstanceState()} on each
+ * view in the hierarchy that has an id, and by saving the id of the currently
+ * focused view (all of which is restored by the default implementation of
+ * {@link #onRestoreInstanceState}).  If you override this method to save additional
+ * information not captured by each individual view, you will likely want to
+ * call through to the default implementation, otherwise be prepared to save
+ * all of the state of each view yourself.
+ *
+ * <p>If called, this method will occur before {@link #onStop}.  There are
+ * no guarantees about whether it will occur before or after {@link #onPause}.
+ * 
+ * @param outState Bundle in which to place your saved state.
+ * 
+ * @see #onCreate
+ * @see #onRestoreInstanceState
+ * @see #onPause
+ */
+ECode Activity::OnSaveInstanceState(
+    /* [in] */ IBundle* outState)
+{
+    AutoPtr<IBundle> bundle;
+    mWindow->SaveHierarchyState((IBundle**)&bundle);
+    outState->PutBundle(WINDOW_HIERARCHY_TAG, bundle);
+    return NOERROR;
+}
+
 
 void Activity::OnUserInteraction()
 {

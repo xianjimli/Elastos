@@ -52,6 +52,8 @@ SOURCES += CProgressDialog.cpp
 SOURCES += CProgressDialogHelper.cpp
 SOURCES += CPendingIntentHelper.cpp
 SOURCES += CFinishedDispatcher.cpp
+SOURCES += CActivityGroup.cpp
+SOURCES += CLocalActivityManager.cpp
 
 LIBRARIES += backup/backup.lib
 
