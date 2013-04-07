@@ -1,6 +1,6 @@
 
 #include "media/CAudioService.h"
-#include "media/AudioSystem.h"
+#include "media/ElAudioSystem.h"
 #include "media/CAudioManager.h"
 #include "media/CSoundPool.h"
 #include "os/SystemProperties.h"
@@ -99,7 +99,7 @@ void CAudioService::VolumeStreamState::VolumeDeathHandler::Mute(
     //            if (muteCount() == 0) {
     //                // If the stream is not muted any more, restore it's volume if
     //                // ringer mode allows it
-    //                if (!isStreamAffectedByRingerMode(mStreamType) || mRingerMode == AudioManager::RINGER_MODE_NORMAL) {
+    //                if (!isStreamAffectedByRingerMode(mStreamType) || mRingerMode == AudioManager_RINGER_MODE_NORMAL) {
     //                    setIndex(mLastAudibleIndex, FALSE);
     //                    sendMsg(mAudioHandler, MSG_SET_SYSTEM_VOLUME, mStreamType, SENDMSG_NOOP, 0, 0,
     //                            VolumeStreamState.this, 0);
@@ -138,10 +138,10 @@ CAudioService::VolumeStreamState::VolumeStreamState(
     //mIndexMax = (*MAX_STREAM_VOLUME)[streamType];
     /*mIndex = Settings.System.getInt(cr,
                                     mVolumeIndexSettingName,
-                                    AudioManager::DEFAULT_STREAM_VOLUME[streamType]);
+                                    AudioManager_DEFAULT_STREAM_VOLUME[streamType]);
     mLastAudibleIndex = Settings.System.getInt(cr,
                                                mLastAudibleVolumeIndexSettingName,
-                                               (mIndex > 0) ? mIndex : AudioManager::DEFAULT_STREAM_VOLUME[streamType]);*/
+                                               (mIndex > 0) ? mIndex : AudioManager_DEFAULT_STREAM_VOLUME[streamType]);*/
     AudioSystem::InitStreamVolume(streamType, 0, mIndexMax);
     mIndexMax *= 10;
     mIndex = GetValidIndex(10 * mIndex);
@@ -321,7 +321,8 @@ ECode CAudioService::SetModeDeathHandler::BinderDied()
 
     //Log.w(TAG, "setMode() client died");
     List< AutoPtr<SetModeDeathHandler> >::Iterator it =
-            Find(mHost->mSetModeDeathHandlers.Begin(), mHost->mSetModeDeathHandlers.End(), this);
+            Find(mHost->mSetModeDeathHandlers.Begin(), mHost->mSetModeDeathHandlers.End(),
+            AutoPtr<SetModeDeathHandler>(this));
     if (it == mHost->mSetModeDeathHandlers.End()) {
         //Log.w(TAG, "unregistered setMode() client died");
     }
@@ -1110,18 +1111,18 @@ ECode CAudioService::AudioServiceBroadcastReceiver::OnReceive(
     //        if (!mScoClients.isEmpty()) {
     //            switch (state) {
     //            case BluetoothHeadset.AUDIO_STATE_CONNECTED:
-    //                state = AudioManager::SCO_AUDIO_STATE_CONNECTED;
+    //                state = AudioManager_SCO_AUDIO_STATE_CONNECTED;
     //                break;
     //            case BluetoothHeadset.AUDIO_STATE_DISCONNECTED:
-    //                state = AudioManager::SCO_AUDIO_STATE_DISCONNECTED;
+    //                state = AudioManager_SCO_AUDIO_STATE_DISCONNECTED;
     //                break;
     //            default:
-    //                state = AudioManager::SCO_AUDIO_STATE_ERROR;
+    //                state = AudioManager_SCO_AUDIO_STATE_ERROR;
     //                break;
     //            }
-    //            if (state != AudioManager::SCO_AUDIO_STATE_ERROR) {
-    //                Intent newIntent = new Intent(AudioManager::ACTION_SCO_AUDIO_STATE_CHANGED);
-    //                newIntent.putExtra(AudioManager::EXTRA_SCO_AUDIO_STATE, state);
+    //            if (state != AudioManager_SCO_AUDIO_STATE_ERROR) {
+    //                Intent newIntent = new Intent(AudioManager_ACTION_SCO_AUDIO_STATE_CHANGED);
+    //                newIntent.putExtra(AudioManager_EXTRA_SCO_AUDIO_STATE, state);
     //                mContext.sendStickyBroadcast(newIntent);
     //            }
     //        }
@@ -1583,7 +1584,7 @@ void CAudioService::ReadPersistedSettings()
     AutoPtr<ISettingsSystem> system;
     CSettingsSystem::AcquireSingleton((ISettingsSystem**)&system);
 
-    system->GetInt32(cr, String(SettingsSystem_MODE_RINGER), AudioManager::RINGER_MODE_NORMAL, &mRingerMode);
+    system->GetInt32(cr, String(SettingsSystem_MODE_RINGER), AudioManager_RINGER_MODE_NORMAL, &mRingerMode);
 
     system->GetInt32(cr, String(SettingsSystem_VIBRATE_ON), 0, &mVibrateSetting);
 
@@ -1610,8 +1611,8 @@ void CAudioService::ReadPersistedSettings()
     BroadcastRingerMode();
 
     // Broadcast vibrate settings
-    BroadcastVibrateSetting(AudioManager::VIBRATE_TYPE_RINGER);
-    BroadcastVibrateSetting(AudioManager::VIBRATE_TYPE_NOTIFICATION);
+    BroadcastVibrateSetting(AudioManager_VIBRATE_TYPE_RINGER);
+    BroadcastVibrateSetting(AudioManager_VIBRATE_TYPE_NOTIFICATION);
 }
 
 void CAudioService::SetStreamVolumeIndex(
@@ -1640,7 +1641,7 @@ ECode CAudioService::AdjustVolume(
     /* [in] */ Int32 direction,
     /* [in] */ Int32 flags)
 {
-    return AdjustSuggestedStreamVolume(direction, AudioManager::USE_DEFAULT_STREAM_TYPE, flags);
+    return AdjustSuggestedStreamVolume(direction, AudioManager_USE_DEFAULT_STREAM_TYPE, flags);
 }
 
 /** @see AudioManager#adjustVolume(Int32, Int32, Int32) */
@@ -1652,8 +1653,8 @@ ECode CAudioService::AdjustSuggestedStreamVolume(
     Int32 streamType = GetActiveStreamType(suggestedStreamType);
 
     // Don't play sound on other streams
-    if (streamType != AudioSystem::STREAM_RING && (flags & AudioManager::FLAG_PLAY_SOUND) != 0) {
-        flags &= ~AudioManager::FLAG_PLAY_SOUND;
+    if (streamType != AudioSystem::STREAM_RING && (flags & AudioManager_FLAG_PLAY_SOUND) != 0) {
+        flags &= ~AudioManager_FLAG_PLAY_SOUND;
     }
 
     return AdjustStreamVolume(streamType, direction, flags);
@@ -1674,7 +1675,7 @@ ECode CAudioService::AdjustStreamVolume(
 
     // If either the client forces allowing ringer modes for this adjustment,
     // or the stream type is one that is affected by ringer modes
-    if ((flags & AudioManager::FLAG_ALLOW_RINGER_MODES) != 0
+    if ((flags & AudioManager_FLAG_ALLOW_RINGER_MODES) != 0
             || streamType == AudioSystem::STREAM_RING) {
         // Check if the ringer mode changes with this volume adjustment. If
         // it does, it will handle adjusting the volume, so we won't below
@@ -1742,10 +1743,10 @@ void CAudioService::SendVolumeUpdate(
     index = (index + 5) / 10;
 
     AutoPtr<IIntent> intent;
-    CIntent::New(AudioManager::VOLUME_CHANGED_ACTION, (IIntent**)&intent);
-    intent->PutInt32Extra(AudioManager::EXTRA_VOLUME_STREAM_TYPE, streamType);
-    intent->PutInt32Extra(AudioManager::EXTRA_VOLUME_STREAM_VALUE, index);
-    intent->PutInt32Extra(AudioManager::EXTRA_PREV_VOLUME_STREAM_VALUE, oldIndex);
+    CIntent::New(String(AudioManager_VOLUME_CHANGED_ACTION), (IIntent**)&intent);
+    intent->PutInt32Extra(String(AudioManager_EXTRA_VOLUME_STREAM_TYPE), streamType);
+    intent->PutInt32Extra(String(AudioManager_EXTRA_VOLUME_STREAM_VALUE), index);
+    intent->PutInt32Extra(String(AudioManager_EXTRA_PREV_VOLUME_STREAM_VALUE), oldIndex);
 
     mContext->SendBroadcast(intent);
 }
@@ -1881,14 +1882,14 @@ void CAudioService::SetRingerModeInt(
         Boolean result;
         if (IsStreamMutedByRingerMode(streamType)) {
             if ((IsStreamAffectedByRingerMode(streamType, &result), !result) ||
-                mRingerMode == AudioManager::RINGER_MODE_NORMAL) {
+                mRingerMode == AudioManager_RINGER_MODE_NORMAL) {
                 (*mStreamStates)[streamType]->Mute(NULL, FALSE);
                 mRingerModeMutedStreams &= ~(1 << streamType);
             }
         }
         else {
             if ((IsStreamAffectedByRingerMode(streamType, &result), result) &&
-                mRingerMode != AudioManager::RINGER_MODE_NORMAL) {
+                mRingerMode != AudioManager_RINGER_MODE_NORMAL) {
                (*mStreamStates)[streamType]->Mute(NULL, TRUE);
                mRingerModeMutedStreams |= (1 << streamType);
            }
@@ -1912,15 +1913,15 @@ ECode CAudioService::ShouldVibrate(
     Int32 setting;
     GetVibrateSetting(vibrateType, &setting);
     switch (setting) {
-        case AudioManager::VIBRATE_SETTING_ON:
-            *result = mRingerMode != AudioManager::RINGER_MODE_SILENT;
+        case AudioManager_VIBRATE_SETTING_ON:
+            *result = mRingerMode != AudioManager_RINGER_MODE_SILENT;
             return NOERROR;
 
-        case AudioManager::VIBRATE_SETTING_ONLY_SILENT:
-            *result = mRingerMode == AudioManager::RINGER_MODE_VIBRATE;
+        case AudioManager_VIBRATE_SETTING_ONLY_SILENT:
+            *result = mRingerMode == AudioManager_RINGER_MODE_VIBRATE;
             return NOERROR;
 
-        case AudioManager::VIBRATE_SETTING_OFF:
+        case AudioManager_VIBRATE_SETTING_OFF:
             // return FALSE, even for incoming calls
             *result = FALSE;
             return NOERROR;
@@ -2036,7 +2037,7 @@ ECode CAudioService::SetMode(
             }
         }
     }
-    Int32 streamType = GetActiveStreamType(AudioManager::USE_DEFAULT_STREAM_TYPE);
+    Int32 streamType = GetActiveStreamType(AudioManager_USE_DEFAULT_STREAM_TYPE);
     Int32 index = (*mStreamStates)[STREAM_VOLUME_ALIAS[streamType]]->mIndex;
     SetStreamVolumeInt(STREAM_VOLUME_ALIAS[streamType], index, TRUE, FALSE);
 
@@ -2110,7 +2111,7 @@ ECode CAudioService::LoadSoundEffects(
         * If load succeeds, value in SOUND_EFFECT_FILES_MAP[effect][1] is > 0:
         * this indicates we have a valid sample loaded for this effect.
         */
-        for (Int32 effect = 0; effect < AudioManager::NUM_SOUND_EFFECTS; effect++) {
+        for (Int32 effect = 0; effect < AudioManager_NUM_SOUND_EFFECTS; effect++) {
             // Do not load sample if this effect uses the MediaPlayer
             if (SOUND_EFFECT_FILES_MAP[effect][1] == 0) {
                 continue;
@@ -2152,7 +2153,7 @@ ECode CAudioService::UnloadSoundEffects()
         poolId[fileIdx] = 0;
     }
 
-    for (Int32 effect = 0; effect < AudioManager::NUM_SOUND_EFFECTS; effect++) {
+    for (Int32 effect = 0; effect < AudioManager_NUM_SOUND_EFFECTS; effect++) {
         if (SOUND_EFFECT_FILES_MAP[effect][1] <= 0) {
             continue;
         }
@@ -2375,9 +2376,9 @@ Boolean CAudioService::CheckForRingerModeChange(
     Boolean adjustVolumeIndex = TRUE;
     Int32 newRingerMode = mRingerMode;
 
-    if (mRingerMode == AudioManager::RINGER_MODE_NORMAL) {
+    if (mRingerMode == AudioManager_RINGER_MODE_NORMAL) {
         // audible mode, at the bottom of the scale
-        if (direction == AudioManager::ADJUST_LOWER
+        if (direction == AudioManager_ADJUST_LOWER
                 && (oldIndex + 5) / 10 == 1) {
             // "silent mode", but which one?
             AutoPtr<ISettingsSystem> system;
@@ -2385,14 +2386,14 @@ Boolean CAudioService::CheckForRingerModeChange(
             Int32 value;
             system->GetInt32(mContentResolver, String(SettingsSystem_VIBRATE_IN_SILENT), 1, &value);
             newRingerMode = value == 1
-                ? AudioManager::RINGER_MODE_VIBRATE
-                : AudioManager::RINGER_MODE_SILENT;
+                ? AudioManager_RINGER_MODE_VIBRATE
+                : AudioManager_RINGER_MODE_SILENT;
         }
     }
     else {
-        if (direction == AudioManager::ADJUST_RAISE) {
+        if (direction == AudioManager_ADJUST_RAISE) {
             // exiting silent mode
-            newRingerMode = AudioManager::RINGER_MODE_NORMAL;
+            newRingerMode = AudioManager_RINGER_MODE_NORMAL;
         }
         else {
             // prevent last audible index to reach 0
@@ -2443,7 +2444,7 @@ ECode CAudioService::IsStreamAffectedByMute(
 ECode CAudioService::EnsureValidDirection(
     /* [in] */ Int32 direction)
 {
-    if (direction < AudioManager::ADJUST_LOWER || direction > AudioManager::ADJUST_RAISE) {
+    if (direction < AudioManager_ADJUST_LOWER || direction > AudioManager_ADJUST_RAISE) {
         //throw new IllegalArgumentException("Bad direction " + direction);
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
@@ -2483,7 +2484,7 @@ Int32 CAudioService::GetActiveStreamType(
         // Log.v(TAG, "getActiveStreamType: Forcing STREAM_MUSIC...");
         return AudioSystem::STREAM_MUSIC;
     }
-    else if (suggestedStreamType == AudioManager::USE_DEFAULT_STREAM_TYPE) {
+    else if (suggestedStreamType == AudioManager_USE_DEFAULT_STREAM_TYPE) {
         // Log.v(TAG, "getActiveStreamType: Forcing STREAM_RING...");
         return AudioSystem::STREAM_RING;
     }
@@ -2496,8 +2497,8 @@ Int32 CAudioService::GetActiveStreamType(
 void CAudioService::BroadcastRingerMode()
 {
     // Send sticky broadcast
-    /*Intent broadcast = new Intent(AudioManager::RINGER_MODE_CHANGED_ACTION);
-    broadcast.putExtra(AudioManager::EXTRA_RINGER_MODE, mRingerMode);
+    /*Intent broadcast = new Intent(AudioManager_RINGER_MODE_CHANGED_ACTION);
+    broadcast.putExtra(AudioManager_EXTRA_RINGER_MODE, mRingerMode);
     broadcast.addFlags(Intent.FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT
             | Intent.FLAG_RECEIVER_REPLACE_PENDING);
     long origCallerIdentityToken = Binder.clearCallingIdentity();
@@ -2510,9 +2511,9 @@ void CAudioService::BroadcastVibrateSetting(
 {
     // Send broadcast
     /*if (ActivityManagerNative.isSystemReady()) {
-        Intent broadcast = new Intent(AudioManager::VIBRATE_SETTING_CHANGED_ACTION);
-        broadcast.putExtra(AudioManager::EXTRA_VIBRATE_TYPE, vibrateType);
-        broadcast.putExtra(AudioManager::EXTRA_VIBRATE_SETTING, getVibrateSetting(vibrateType));
+        Intent broadcast = new Intent(AudioManager_VIBRATE_SETTING_CHANGED_ACTION);
+        broadcast.putExtra(AudioManager_EXTRA_VIBRATE_TYPE, vibrateType);
+        broadcast.putExtra(AudioManager_EXTRA_VIBRATE_SETTING, getVibrateSetting(vibrateType));
         mContext.sendBroadcast(broadcast);
     }*/
 }
@@ -2584,7 +2585,7 @@ void CAudioService::MakeA2dpDeviceUnavailableNow(
     /* [in] */ const String& address)
 {
     AutoPtr<IIntent> noisyIntent;
-    CIntent::New(AudioManager::ACTION_AUDIO_BECOMING_NOISY, (IIntent**)&noisyIntent);
+    CIntent::New(String(AudioManager_ACTION_AUDIO_BECOMING_NOISY), (IIntent**)&noisyIntent);
     mContext->SendBroadcast(noisyIntent);
     AudioSystem::SetDeviceConnectionState(AudioSystem::DEVICE_OUT_BLUETOOTH_A2DP,
             AudioSystem::DEVICE_STATE_UNAVAILABLE,
@@ -2623,7 +2624,7 @@ void CAudioService::NotifyTopOfAudioFocusStack()
     //     if (canReassignAudioFocus()) {
     //         try {
     //             mFocusStack.peek().mFocusDispatcher.dispatchAudioFocusChange(
-    //                     AudioManager::AUDIOFOCUS_GAIN, mFocusStack.peek().mClientId);
+    //                     AudioManager_AUDIOFOCUS_GAIN, mFocusStack.peek().mClientId);
     //         } catch (RemoteException e) {
     //             Log.e(TAG, "Failure to signal gain of audio control focus due to "+ e);
     //             e.printStackTrace();
@@ -2742,19 +2743,19 @@ ECode CAudioService::RequestAudioFocus(
     //// state listener
     //if (!IN_VOICE_COMM_FOCUS_ID.equals(clientId) && ((cb == NULL) || !cb.pingBinder())) {
     //    Log.i(TAG, " AudioFocus  DOA client for requestAudioFocus(), exiting");
-    //    return AudioManager::AUDIOFOCUS_REQUEST_FAILED;
+    //    return AudioManager_AUDIOFOCUS_REQUEST_FAILED;
     //}
 
     //synchronized(mAudioFocusLock) {
     //    if (!canReassignAudioFocus()) {
-    //        return AudioManager::AUDIOFOCUS_REQUEST_FAILED;
+    //        return AudioManager_AUDIOFOCUS_REQUEST_FAILED;
     //    }
 
     //    if (!mFocusStack.empty() && mFocusStack.peek().mClientId.equals(clientId)) {
     //        // if focus is already owned by this client and the reason for acquiring the focus
     //        // hasn't changed, don't do anything
     //        if (mFocusStack.peek().mFocusChangeType == focusChangeHint) {
-    //            return AudioManager::AUDIOFOCUS_REQUEST_GRANTED;
+    //            return AudioManager_AUDIOFOCUS_REQUEST_GRANTED;
     //        }
     //        // the reason for the audio focus request has changed: remove the current top of
     //        // stack and respond as if we had a new focus owner
@@ -2795,7 +2796,7 @@ ECode CAudioService::RequestAudioFocus(
     //    }
     //}
 
-    return AudioManager::AUDIOFOCUS_REQUEST_GRANTED;
+    return AudioManager_AUDIOFOCUS_REQUEST_GRANTED;
 }
 
 /** @see AudioManager#abandonAudioFocus(IAudioFocusDispatcher) */
@@ -2818,7 +2819,7 @@ ECode CAudioService::AbandonAudioFocus(
     //    cme.printStackTrace();
     //}
 
-    return AudioManager::AUDIOFOCUS_REQUEST_GRANTED;
+    return AudioManager_AUDIOFOCUS_REQUEST_GRANTED;
 }
 
 ECode CAudioService::UnregisterAudioFocusClient(
@@ -2888,7 +2889,7 @@ void CAudioService::RemoveMediaButtonReceiver(
 }
 
 
-/** see AudioManager::registerMediaButtonEventReceiver(ComponentName eventReceiver) */
+/** see AudioManager_registerMediaButtonEventReceiver(ComponentName eventReceiver) */
 ECode CAudioService::RegisterMediaButtonEventReceiver(
     /* [in] */ IComponentName* eventReceiver)
 {
@@ -2901,7 +2902,7 @@ ECode CAudioService::RegisterMediaButtonEventReceiver(
         return NOERROR;
 }
 
-/** see AudioManager::unregisterMediaButtonEventReceiver(ComponentName eventReceiver) */
+/** see AudioManager_unregisterMediaButtonEventReceiver(ComponentName eventReceiver) */
 ECode CAudioService::UnregisterMediaButtonEventReceiver(
     /* [in] */ IComponentName* eventReceiver)
 {

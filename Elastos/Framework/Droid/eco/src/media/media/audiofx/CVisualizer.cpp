@@ -7,7 +7,6 @@
 #include <media/EffectApi.h>
 using namespace Elastos::Core;
 using namespace Elastos::Utility::Logging;
-using namespace android;
 const CString CVisualizer::TAG = "Visualizer-JAVA";
 const Int32 Visualizer_NATIVE_EVENT_PCM_CAPTURE = 0;
 const Int32 Visualizer_NATIVE_EVENT_FFT_CAPTURE = 1;
@@ -103,8 +102,8 @@ ECode CVisualizer::GetCaptureSizeRange(
 {
     ArrayOf_<Int32,2> jRange;
     ArrayOf_<Int32,2>* nRange;
-    (*nRange)[0] = Visualizer::getMinCaptureSize();
-    (*nRange)[1] = Visualizer::getMaxCaptureSize();
+    (*nRange)[0] = android::Visualizer::getMinCaptureSize();
+    (*nRange)[1] = android::Visualizer::getMaxCaptureSize();
     captureSizeRange = &jRange;
     return NOERROR;
 }
@@ -112,7 +111,7 @@ ECode CVisualizer::GetCaptureSizeRange(
 ECode CVisualizer::GetMaxCaptureRate(
     /* [out] */ Int32* captureRate)
 {
-    *captureRate = Visualizer::getMaxCaptureRate();
+    *captureRate = android::Visualizer::getMaxCaptureRate();
     return NOERROR;
 }
 
@@ -343,19 +342,19 @@ class visualizerJniStorage {
 
 static Int32 translateError(Int32 code) {
     switch(code) {
-    case NO_ERROR:
+    case android::NO_ERROR:
         return VISUALIZER_SUCCESS;
-    case ALREADY_EXISTS:
+    case android::ALREADY_EXISTS:
         return VISUALIZER_ERROR_ALREADY_EXISTS;
-    case NO_INIT:
+    case android::NO_INIT:
         return VISUALIZER_ERROR_NO_INIT;
-    case BAD_VALUE:
+    case android::BAD_VALUE:
         return VISUALIZER_ERROR_BAD_VALUE;
-    case INVALID_OPERATION:
+    case android::INVALID_OPERATION:
         return VISUALIZER_ERROR_INVALID_OPERATION;
-    case NO_MEMORY:
+    case android::NO_MEMORY:
         return VISUALIZER_ERROR_NO_MEMORY;
-    case DEAD_OBJECT:
+    case android::DEAD_OBJECT:
         return VISUALIZER_ERROR_DEAD_OBJECT;
     default:
         return VISUALIZER_ERROR;
@@ -374,7 +373,7 @@ Int32 CVisualizer::Native_Setup(
 {
     visualizerJniStorage* lpJniStorage = NULL;
     Int32 lStatus = VISUALIZER_ERROR_NO_MEMORY;
-    Visualizer* lpVisualizer = NULL;
+    android::Visualizer* lpVisualizer = NULL;
     Int32* nId = NULL;
 
     lpJniStorage = new visualizerJniStorage();
@@ -417,7 +416,7 @@ Int32 CVisualizer::Native_Setup(
 void CVisualizer::Native_Finalize()
 {
     // delete the Visualizer object
-    Visualizer* lpVisualizer = NULL;
+    android::Visualizer* lpVisualizer = NULL;
     if (lpVisualizer) {
         delete lpVisualizer;
     }
@@ -438,7 +437,7 @@ void CVisualizer::Native_Release()
 Int32 CVisualizer::Native_SetEnabled(
     /* [in] */ Boolean enabled)
 {
-    Visualizer* lpVisualizer = NULL;
+    android::Visualizer* lpVisualizer = NULL;
     if (lpVisualizer == NULL) {
         return VISUALIZER_ERROR_NO_INIT;
     }
@@ -448,7 +447,7 @@ Int32 CVisualizer::Native_SetEnabled(
 
 Boolean CVisualizer::Native_GetEnabled()
 {
-    Visualizer* lpVisualizer = NULL;
+    android::Visualizer* lpVisualizer = NULL;
     if (lpVisualizer == NULL) {
         return FALSE;
     }
@@ -459,7 +458,7 @@ Boolean CVisualizer::Native_GetEnabled()
 Int32 CVisualizer::Native_SetCaptureSize(
     /* [in] */ Int32 size)
 {
-    Visualizer* lpVisualizer = NULL;
+    android::Visualizer* lpVisualizer = NULL;
     if (lpVisualizer == NULL) {
         return VISUALIZER_ERROR_NO_INIT;
     }
@@ -469,7 +468,7 @@ Int32 CVisualizer::Native_SetCaptureSize(
 
 Int32 CVisualizer::Native_GetCaptureSize()
 {
-    Visualizer* lpVisualizer = NULL;
+    android::Visualizer* lpVisualizer = NULL;
     if (lpVisualizer == NULL) {
         return -1;
     }
@@ -478,7 +477,7 @@ Int32 CVisualizer::Native_GetCaptureSize()
 
 Int32 CVisualizer::Native_GetSamplingRate()
 {
-    Visualizer* lpVisualizer = NULL;
+    android::Visualizer* lpVisualizer = NULL;
     if (lpVisualizer == NULL) {
         return -1;
     }
@@ -488,7 +487,7 @@ Int32 CVisualizer::Native_GetSamplingRate()
 Int32 CVisualizer::Native_GetWaveForm(
     /* [in] */ ArrayOf<Byte>* waveform)
 {
-    Visualizer* lpVisualizer = NULL;
+    android::Visualizer* lpVisualizer = NULL;
     if (lpVisualizer == NULL) {
         return VISUALIZER_ERROR_NO_INIT;
     }
@@ -505,7 +504,7 @@ Int32 CVisualizer::Native_GetWaveForm(
 Int32 CVisualizer::Native_GetFft(
     /* [in] */ ArrayOf<Byte>* fft)
 {
-    Visualizer* lpVisualizer = NULL;
+    android::Visualizer* lpVisualizer = NULL;
     if (lpVisualizer == NULL) {
         return VISUALIZER_ERROR_NO_INIT;
     }
@@ -524,7 +523,7 @@ Int32 CVisualizer::Native_SetPeriodicCapture(
     /* [in] */ Boolean waveForm,
     /* [in] */ Boolean fft)
 {
-    Visualizer* lpVisualizer = NULL;
+    android::Visualizer* lpVisualizer = NULL;
     if (lpVisualizer == NULL) {
         return VISUALIZER_ERROR_NO_INIT;
     }
@@ -533,10 +532,10 @@ Int32 CVisualizer::Native_SetPeriodicCapture(
         return VISUALIZER_ERROR_NO_INIT;
     }
 
-    Int32 flags = Visualizer::CAPTURE_CALL_JAVA;
-    if (waveForm) flags |= Visualizer::CAPTURE_WAVEFORM;
-    if (fft) flags |= Visualizer::CAPTURE_FFT;
-    Visualizer::capture_cbk_t cbk = NULL;
+    Int32 flags = android::Visualizer::CAPTURE_CALL_JAVA;
+    if (waveForm) flags |= android::Visualizer::CAPTURE_WAVEFORM;
+    if (fft) flags |= android::Visualizer::CAPTURE_FFT;
+    android::Visualizer::capture_cbk_t cbk = NULL;
     if (!waveForm && !fft) cbk = NULL;
 
     return translateError(/*lpVisualizer->setCaptureCallBack(cbk,

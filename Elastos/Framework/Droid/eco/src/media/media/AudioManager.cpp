@@ -1,28 +1,8 @@
 
+#include "media/ElAudioSystem.h"
 #include "media/AudioManager.h"
 #include "os/ServiceManager.h"
 
-const String AudioManager::VOLUME_CHANGED_ACTION/* = "android.media.VOLUME_CHANGED_ACTION"*/;
-
-const String AudioManager::EXTRA_VIBRATE_SETTING/* = "android.media.EXTRA_VIBRATE_SETTING"*/;
-
-const String AudioManager::EXTRA_VIBRATE_TYPE/* = "android.media.EXTRA_VIBRATE_TYPE"*/;
-
-const String AudioManager::EXTRA_VOLUME_STREAM_TYPE/* = "android.media.EXTRA_VOLUME_STREAM_TYPE"*/;
-
-const String AudioManager::EXTRA_VOLUME_STREAM_VALUE/* =
-    "android.media.EXTRA_VOLUME_STREAM_VALUE"*/;
-
-const String AudioManager::ACTION_AUDIO_BECOMING_NOISY/* = "android.media.AUDIO_BECOMING_NOISY"*/;
-
-/**
- * @hide The previous volume associated with the stream for the volume changed intent.
- */
-const String AudioManager::EXTRA_PREV_VOLUME_STREAM_VALUE/* =
-    "android.media.EXTRA_PREV_VOLUME_STREAM_VALUE"*/;
-
-const Int32 AudioManager::RINGER_MODE_SILENT;
-const Int32 AudioManager::RINGER_MODE_VIBRATE;
 
 const Int32 AudioManager::DEFAULT_STREAM_VOLUME[] = {
     4,  // STREAM_VOICE_CALL
@@ -766,7 +746,7 @@ Int32 AudioManager::GetRouting(
  */
 Boolean AudioManager::IsMusicActive()
 {
-    return AudioSystem::IsStreamActive(STREAM_MUSIC);
+    return AudioSystem::IsStreamActive(AudioManager_STREAM_MUSIC);
 }
 
 /*
@@ -839,7 +819,7 @@ String AudioManager::GetParameters(
 ECode AudioManager::PlaySoundEffect(
     /* [in] */ Int32 effectType)
 {
-    if (effectType < 0 || effectType >= NUM_SOUND_EFFECTS) {
+    if (effectType < 0 || effectType >= AudioManager_NUM_SOUND_EFFECTS) {
         return E_INVALID_ARGUMENT;
     }
 
@@ -879,7 +859,7 @@ ECode AudioManager::PlaySoundEffect(
     /* [in] */ Int32 effectType,
     /* [in] */ Float volume)
 {
-    if (effectType < 0 || effectType >= NUM_SOUND_EFFECTS) {
+    if (effectType < 0 || effectType >= AudioManager_NUM_SOUND_EFFECTS) {
         return E_INVALID_ARGUMENT;
     }
 
@@ -1047,8 +1027,8 @@ Int32 AudioManager::RequestAudioFocus(
     /* [in] */ Int32 streamType,
     /* [in] */ Int32 durationHint)
 {
-    Int32 status = AUDIOFOCUS_REQUEST_FAILED;
-    if ((durationHint < AUDIOFOCUS_GAIN) || (durationHint > AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK))
+    Int32 status = AudioManager_AUDIOFOCUS_REQUEST_FAILED;
+    if ((durationHint < AudioManager_AUDIOFOCUS_GAIN) || (durationHint > AudioManager_AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK))
     {
         //Log.e(TAG, "Invalid duration hint, audio focus request denied");
         return status;
@@ -1074,7 +1054,7 @@ Int32 AudioManager::RequestAudioFocus(
 Int32 AudioManager::AbandonAudioFocus(
     /* [in] */ IOnAudioFocusChangeListener* l)
 {
-    Int32 status = AUDIOFOCUS_REQUEST_FAILED;
+    Int32 status = AudioManager_AUDIOFOCUS_REQUEST_FAILED;
     UnregisterAudioFocusListener(l);
     AutoPtr<IAudioService> service = GetService();
     //try {
