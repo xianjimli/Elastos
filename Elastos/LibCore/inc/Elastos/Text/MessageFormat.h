@@ -12,6 +12,12 @@
 #include "CFieldPosition.h"
 #include "NumberFormat.h"
 #include "DateFormat.h"
+#include "CAttributedString.h"
+#include "CDecimalFormatSymbols.h"
+#include "CDecimalFormat.h"
+#include "CSimpleDateFormat.h"
+#include "CChoiceFormat.h"
+
 
 using namespace Elastos;
 
@@ -25,7 +31,7 @@ public:
      * There is no public constructor in this class, the only instances are the
      * constants defined here.
      */
-    /* static */ class MessageFormat_Field : public IFormatField {
+    /* static */ class MessageFormatField : public Format::Field {
         protected:
         /**
          * Constructs a new instance of {@code MessageFormat.Field} with the
@@ -34,7 +40,7 @@ public:
          * @param fieldName
          *            the field name.
          */
-        MessageFormat_Field(
+        MessageFormatField(
             /* [in] */ String fieldName);
         //{
         //    super(fieldName);
@@ -57,7 +63,7 @@ public:
          * This constant stands for the message argument.
          */
         //public static final Field ARGUMENT = new Field("message argument field");
-        const static AutoPtr<IMessageFormat_Field> ARGUMENT;
+        const static AutoPtr<IMessageFormatField> ARGUMENT;
 
         //private:
         //const static Int64 serialVersionUID = 7899943957617360810L;
@@ -78,7 +84,7 @@ private:
             /* [in] */ IAttributedCharacterIteratorAttribute* attribute,
             /* [in] */ IInterface* value);
 
-    protected:
+    public:
 
         Int32 mStart, mEnd;
 
@@ -220,7 +226,7 @@ public:
      *            of the alignment field in the formatted text.
      * @return the string buffer.
      */
-    CARAPI formatEx2(
+    CARAPI FormatObjects(
         /* [in] */ ArrayOf< IInterface* >* objects,
         /* [in] */ const String& buffer,
         /* [in] */ IFieldPosition* field,
@@ -584,9 +590,6 @@ private:
     }*/
 
 private:
-
-//    const static Int64 serialVersionUID = 6479157306784022952L;
-
     AutoPtr<ILocale> mLocale;
 
     mutable ArrayOf<String>* mStrings;
