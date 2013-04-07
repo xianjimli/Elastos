@@ -1,5 +1,6 @@
 
-#include "media/AudioSystem.h"
+#include "media/ElAudioSystem.h"
+#include <media/AudioSystem.h>
 
 /* The audio stream for phone calls */
 const Int32 AudioSystem::STREAM_VOICE_CALL;
@@ -35,7 +36,6 @@ const Int32 AudioSystem::MODE_IN_CALL;
 const Int32 AudioSystem::MODE_IN_COMMUNICATION;
 const Int32 AudioSystem::NUM_MODES;
 
-
 /* Routing bits for setRouting/getRouting API */
 /** @deprecated */
 const Int32 AudioSystem::ROUTE_EARPIECE;
@@ -58,8 +58,6 @@ const Int32 AudioSystem::ROUTE_BLUETOOTH_A2DP;
 /** @deprecated */
 const Int32 AudioSystem::ROUTE_ALL;
 
-
-
 // These match the enum in libs/android_runtime/android_media_AudioSystem.cpp
 /* Command sucessful or Media server restarted. see ErrorCallback */
 const Int32 AudioSystem::AUDIO_STATUS_OK;
@@ -69,10 +67,6 @@ const Int32 AudioSystem::AUDIO_STATUS_ERROR;
 
 /* Media server died. see ErrorCallback */
 const Int32 AudioSystem::AUDIO_STATUS_SERVER_DIED;
-
-/*
- * AudioPolicyService methods
- */
 
 // output devices
 const Int32 AudioSystem::DEVICE_OUT_EARPIECE;
@@ -124,11 +118,29 @@ const Int32 AudioSystem::FOR_MEDIA;
 const Int32 AudioSystem::FOR_RECORD;
 const Int32 AudioSystem::FOR_DOCK;
 
+const Int32 AudioSystem::NUM_STREAM_TYPES;
 AutoPtr<IAudioSystemErrorCallback> AudioSystem::mErrorCallback;
+
 
 Int32 AudioSystem::GetNumStreamTypes()
 {
     return NUM_STREAM_TYPES;
+}
+
+enum AudioError {
+    kAudioStatusOk = 0,
+    kAudioStatusError = 1,
+    kAudioStatusMediaServerDied = 100
+};
+
+static Int32 check_AudioSystem_Command(android::status_t status)
+{
+    if (status == android::NO_ERROR) {
+        return kAudioStatusOk;
+    }
+    else {
+        return kAudioStatusError;
+    }
 }
 
 /*
@@ -141,7 +153,7 @@ Int32 AudioSystem::GetNumStreamTypes()
 Int32 AudioSystem::MuteMicrophone(
     /* [in] */ Boolean on)
 {
-    return 0;
+    return check_AudioSystem_Command(android::AudioSystem::muteMicrophone(on));
 }
 
 /*
@@ -151,7 +163,9 @@ Int32 AudioSystem::MuteMicrophone(
  */
 Boolean AudioSystem::IsMicrophoneMuted()
 {
-    return FALSE;
+    bool state = false;
+    android::AudioSystem::isMicrophoneMuted(&state);
+    return (Boolean)state;
 }
 
 /*
@@ -222,7 +236,9 @@ Int32 AudioSystem::GetRouting(
 Boolean AudioSystem::IsStreamActive(
     /* [in] */ Int32 stream)
 {
-    return FALSE;
+    bool state = false;
+    android::AudioSystem::isStreamActive(stream, &state);
+    return (Boolean)state;
 }
 
 /*
@@ -233,9 +249,11 @@ Boolean AudioSystem::IsStreamActive(
  *    key1=value1;key2=value2;...
  */
 Int32 AudioSystem::SetParameters(
-    /* [in] */ String keyValuePairs)
+    /* [in] */ const String& keyValuePairs)
 {
-    return 0;
+    android::String8 c_keyValuePairs8(keyValuePairs.string());
+    int status = check_AudioSystem_Command(android::AudioSystem::setParameters(0, c_keyValuePairs8));
+    return status;
 }
 
 /*
@@ -247,9 +265,11 @@ Int32 AudioSystem::SetParameters(
  *    key1=value1;key2=value2;...
  */
 String AudioSystem::GetParameters(
-    /* [in] */ String keys)
+    /* [in] */ const String& keys)
 {
-    return String("");
+    android::String8 c_keys8(keys.string());
+
+    return String(android::AudioSystem::getParameters(0, c_keys8).string());
 }
 
 /*
@@ -273,42 +293,52 @@ void AudioSystem::ErrorCallbackFromNative(
 Int32 AudioSystem::SetDeviceConnectionState(
     /* [in] */ Int32 device,
     /* [in] */ Int32 state,
-    /* [in] */ String device_address)
+    /* [in] */ const String& device_address)
 {
-    return 0;
+    const char *c_address = device_address.string();
+    int status = check_AudioSystem_Command(
+            android::AudioSystem::setDeviceConnectionState(static_cast<android::AudioSystem::audio_devices>(device),
+                    static_cast<android::AudioSystem::device_connection_state>(state), c_address));
+    return status;
 }
 
 Int32 AudioSystem::GetDeviceConnectionState(
     /* [in] */ Int32 device,
-    /* [in] */ String device_address)
+    /* [in] */ const String& device_address)
 {
-    return 0;
+    const char *c_address = device_address.string();
+    int state = static_cast<int>(android::AudioSystem::getDeviceConnectionState(
+            static_cast<android::AudioSystem::audio_devices>(device), c_address));
+    return state;
 }
 
 Int32 AudioSystem::SetPhoneState(
     /* [in] */ Int32 state)
 {
-    return 0;
+    return check_AudioSystem_Command(android::AudioSystem::setPhoneState(state));
 }
 
 Int32 AudioSystem::SetRingerMode(
     /* [in] */ Int32 mode,
     /* [in] */ Int32 mask)
 {
-    return 0;
+    return check_AudioSystem_Command(android::AudioSystem::setRingerMode(mode, mask));
 }
 
 Int32 AudioSystem::SetForceUse(
     /* [in] */ Int32 usage,
     /* [in] */ Int32 config)
 {
-    return 0;
+    return check_AudioSystem_Command(android::AudioSystem::setForceUse(
+            static_cast<android::AudioSystem::force_use>(usage),
+            static_cast<android::AudioSystem::forced_config>(config)));
 }
 
 Int32 AudioSystem::GetForceUse(
     /* [in] */ Int32 usage)
 {
-    return 0;
+    return static_cast<int>(android::AudioSystem::getForceUse(
+            static_cast<android::AudioSystem::force_use>(usage)));
 }
 
 Int32 AudioSystem::InitStreamVolume(
@@ -316,19 +346,25 @@ Int32 AudioSystem::InitStreamVolume(
     /* [in] */ Int32 indexMin,
     /* [in] */ Int32 indexMax)
 {
-    return 0;
+    return check_AudioSystem_Command(android::AudioSystem::initStreamVolume(
+            static_cast<android::AudioSystem::stream_type>(stream), indexMin, indexMax));
 }
 
 Int32 AudioSystem::SetStreamVolumeIndex(
     /* [in] */ Int32 stream,
     /* [in] */ Int32 index)
 {
-    return 0;
+    return check_AudioSystem_Command(android::AudioSystem::setStreamVolumeIndex(
+            static_cast<android::AudioSystem::stream_type>(stream), index));
 }
 
 Int32 AudioSystem::GetStreamVolumeIndex(
     /* [in] */ Int32 stream)
 {
-    return 0;
+    int index;
+    if (android::AudioSystem::getStreamVolumeIndex(
+            static_cast<android::AudioSystem::stream_type>(stream), &index) != android::NO_ERROR) {
+        index = -1;
+    }
+    return index;
 }
-

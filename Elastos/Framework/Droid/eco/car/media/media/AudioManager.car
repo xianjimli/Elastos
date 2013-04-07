@@ -2,6 +2,521 @@
 module
 {
     /**
+     * Broadcast intent, a hint for applications that audio is about to become
+     * 'noisy' due to a change in audio outputs. For example, this intent may
+     * be sent when a wired headset is unplugged, or when an A2DP audio
+     * sink is disconnected, and the audio system is about to automatically
+     * switch audio route to the speaker. Applications that are controlling
+     * audio streams may consider pausing, reducing volume or some other action
+     * on receipt of this intent so as not to surprise the user with audio
+     * from the speaker.
+     */
+    const AudioManager_ACTION_AUDIO_BECOMING_NOISY = "android.media.AUDIO_BECOMING_NOISY";
+
+    /**
+     * Sticky broadcast intent action indicating that the ringer mode has
+     * changed. Includes the new ringer mode.
+     *
+     * @see #EXTRA_RINGER_MODE
+     */
+    const AudioManager_RINGER_MODE_CHANGED_ACTION = "android.media.RINGER_MODE_CHANGED";
+
+    /**
+     * The new ringer mode.
+     *
+     * @see #RINGER_MODE_CHANGED_ACTION
+     * @see #RINGER_MODE_NORMAL
+     * @see #RINGER_MODE_SILENT
+     * @see #RINGER_MODE_VIBRATE
+     */
+    const AudioManager_EXTRA_RINGER_MODE = "android.media.EXTRA_RINGER_MODE";
+
+    /**
+     * Broadcast intent action indicating that the vibrate setting has
+     * changed. Includes the vibrate type and its new setting.
+     *
+     * @see #EXTRA_VIBRATE_TYPE
+     * @see #EXTRA_VIBRATE_SETTING
+     */
+    const AudioManager_VIBRATE_SETTING_CHANGED_ACTION = "android.media.VIBRATE_SETTING_CHANGED";
+
+    /**
+     * @hide Broadcast intent when the volume for a particular stream type changes.
+     * Includes the stream, the new volume and previous volumes
+     *
+     * @see #EXTRA_VOLUME_STREAM_TYPE
+     * @see #EXTRA_VOLUME_STREAM_VALUE
+     * @see #EXTRA_PREV_VOLUME_STREAM_VALUE
+     */
+    const AudioManager_VOLUME_CHANGED_ACTION = "android.media.VOLUME_CHANGED_ACTION";
+
+    /**
+     * The new vibrate setting for a particular type.
+     *
+     * @see #VIBRATE_SETTING_CHANGED_ACTION
+     * @see #EXTRA_VIBRATE_TYPE
+     * @see #VIBRATE_SETTING_ON
+     * @see #VIBRATE_SETTING_OFF
+     * @see #VIBRATE_SETTING_ONLY_SILENT
+     */
+    const AudioManager_EXTRA_VIBRATE_SETTING = "android.media.EXTRA_VIBRATE_SETTING";
+
+    /**
+     * The vibrate type whose setting has changed.
+     *
+     * @see #VIBRATE_SETTING_CHANGED_ACTION
+     * @see #VIBRATE_TYPE_NOTIFICATION
+     * @see #VIBRATE_TYPE_RINGER
+     */
+    const AudioManager_EXTRA_VIBRATE_TYPE = "android.media.EXTRA_VIBRATE_TYPE";
+
+    /**
+     * @hide The stream type for the volume changed intent.
+     */
+    const AudioManager_EXTRA_VOLUME_STREAM_TYPE = "android.media.EXTRA_VOLUME_STREAM_TYPE";
+
+    /**
+     * @hide The volume associated with the stream for the volume changed intent.
+     */
+    const AudioManager_EXTRA_VOLUME_STREAM_VALUE = "android.media.EXTRA_VOLUME_STREAM_VALUE";
+
+    /**
+     * @hide The previous volume associated with the stream for the volume changed intent.
+     */
+    const AudioManager_EXTRA_PREV_VOLUME_STREAM_VALUE = "android.media.EXTRA_PREV_VOLUME_STREAM_VALUE";
+
+    /** The audio stream for phone calls */
+    const AudioManager_STREAM_VOICE_CALL = 0; //AudioSystem::STREAM_VOICE_CALL;
+
+    /** The audio stream for system sounds */
+    const AudioManager_STREAM_SYSTEM = 1; //AudioSystem::STREAM_SYSTEM;
+
+    /** The audio stream for the phone ring */
+    const AudioManager_STREAM_RING = 2; //AudioSystem::STREAM_RING;
+
+    /** The audio stream for music playback */
+    const AudioManager_STREAM_MUSIC = 3; //AudioSystem::STREAM_MUSIC;
+
+    /** The audio stream for alarms */
+    const AudioManager_STREAM_ALARM = 4; //AudioSystem::STREAM_ALARM;
+
+    /** The audio stream for notifications */
+    const AudioManager_STREAM_NOTIFICATION = 5; //AudioSystem::STREAM_NOTIFICATION;
+
+    /** @hide The audio stream for phone calls when connected to bluetooth */
+    const AudioManager_STREAM_BLUETOOTH_SCO = 6; //AudioSystem::STREAM_BLUETOOTH_SCO;
+
+    /** @hide The audio stream for enforced system sounds in certain countries (e.g camera in Japan) */
+    const AudioManager_STREAM_SYSTEM_ENFORCED = 7; //AudioSystem::STREAM_SYSTEM_ENFORCED;
+
+    /** The audio stream for DTMF Tones */
+    const AudioManager_STREAM_DTMF = 8; //AudioSystem::STREAM_DTMF;
+
+    /** @hide The audio stream for text to speech (TTS) */
+    const AudioManager_STREAM_TTS = 9; //AudioSystem::STREAM_TTS;
+
+    /** Number of audio streams */
+    /**
+     * @deprecated Use AudioSystem::getNumStreamTypes() instead
+     */
+    const AudioManager_NUM_STREAMS = 5; //AudioSystem::NUM_STREAMS;
+
+    /**  @hide Default volume index values for audio streams */
+//    const AudioManager_DEFAULT_STREAM_VOLUME[];
+
+    /**
+     * Increase the ringer volume.
+     *
+     * @see #adjustVolume(Int32, Int32)
+     * @see #adjustStreamVolume(Int32, Int32, Int32)
+     */
+    const AudioManager_ADJUST_RAISE = 1;
+
+    /**
+     * Decrease the ringer volume.
+     *
+     * @see #adjustVolume(Int32, Int32)
+     * @see #adjustStreamVolume(Int32, Int32, Int32)
+     */
+    const AudioManager_ADJUST_LOWER = -1;
+
+    /**
+     * Maintain the previous ringer volume. This may be useful when needing to
+     * show the volume toast without actually modifying the volume.
+     *
+     * @see #adjustVolume(Int32, Int32)
+     * @see #adjustStreamVolume(Int32, Int32, Int32)
+     */
+    const AudioManager_ADJUST_SAME = 0;
+
+    // Flags should be powers of 2!
+
+    /**
+     * Show a toast containing the current volume.
+     *
+     * @see #adjustStreamVolume(Int32, Int32, Int32)
+     * @see #adjustVolume(Int32, Int32)
+     * @see #setStreamVolume(Int32, Int32, Int32)
+     * @see #setRingerMode(Int32)
+     */
+    const AudioManager_FLAG_SHOW_UI = 1; //1 << 0;
+
+    /**
+     * Whether to include ringer modes as possible options when changing volume.
+     * For example, if TRUE and volume level is 0 and the volume is adjusted
+     * with {@link #ADJUST_LOWER}, then the ringer mode may switch the silent or
+     * vibrate mode.
+     * <p>
+     * By default this is on for the ring stream. If this flag is included,
+     * this behavior will be present regardless of the stream type being
+     * affected by the ringer mode.
+     *
+     * @see #adjustVolume(Int32, Int32)
+     * @see #adjustStreamVolume(Int32, Int32, Int32)
+     */
+    const AudioManager_FLAG_ALLOW_RINGER_MODES = 2; //1 << 1;
+
+    /**
+     * Whether to play a sound when changing the volume.
+     * <p>
+     * If this is given to {@link #adjustVolume(Int32, Int32)} or
+     * {@link #adjustSuggestedStreamVolume(Int32, Int32, Int32)}, it may be ignored
+     * in some cases (for example, the decided stream type is not
+     * {@link AudioManager#STREAM_RING}, or the volume is being adjusted
+     * downward).
+     *
+     * @see #adjustStreamVolume(Int32, Int32, Int32)
+     * @see #adjustVolume(Int32, Int32)
+     * @see #setStreamVolume(Int32, Int32, Int32)
+     */
+    const AudioManager_FLAG_PLAY_SOUND = 4; //1 << 2;
+
+    /**
+     * Removes any sounds/vibrate that may be in the queue, or are playing (related to
+     * changing volume).
+     */
+    const AudioManager_FLAG_REMOVE_SOUND_AND_VIBRATE = 8; //1 << 3;
+
+    /**
+     * Whether to vibrate if going into the vibrate ringer mode.
+     */
+    const AudioManager_FLAG_VIBRATE = 16; //1 << 4;
+
+    /**
+     * Ringer mode that will be silent and will not vibrate. (This overrides the
+     * vibrate setting.)
+     *
+     * @see #setRingerMode(Int32)
+     * @see #getRingerMode()
+     */
+    const AudioManager_RINGER_MODE_SILENT = 0;
+
+    /**
+     * Ringer mode that will be silent and will vibrate. (This will cause the
+     * phone ringer to always vibrate, but the notification vibrate to only
+     * vibrate if set.)
+     *
+     * @see #setRingerMode(Int32)
+     * @see #getRingerMode()
+     */
+    const AudioManager_RINGER_MODE_VIBRATE = 1;
+
+    /**
+     * Ringer mode that may be audible and may vibrate. It will be audible if
+     * the volume before changing out of this mode was audible. It will vibrate
+     * if the vibrate setting is on.
+     *
+     * @see #setRingerMode(Int32)
+     * @see #getRingerMode()
+     */
+    const AudioManager_RINGER_MODE_NORMAL = 2;
+
+    /**
+     * Vibrate type that corresponds to the ringer.
+     *
+     * @see #setVibrateSetting(Int32, Int32)
+     * @see #getVibrateSetting(Int32)
+     * @see #shouldVibrate(Int32)
+     */
+    const AudioManager_VIBRATE_TYPE_RINGER = 0;
+
+    /**
+     * Vibrate type that corresponds to notifications.
+     *
+     * @see #setVibrateSetting(Int32, Int32)
+     * @see #getVibrateSetting(Int32)
+     * @see #shouldVibrate(Int32)
+     */
+    const AudioManager_VIBRATE_TYPE_NOTIFICATION = 1;
+
+    /**
+     * Vibrate setting that suggests to never vibrate.
+     *
+     * @see #setVibrateSetting(Int32, Int32)
+     * @see #getVibrateSetting(Int32)
+     */
+    const AudioManager_VIBRATE_SETTING_OFF = 0;
+
+    /**
+     * Vibrate setting that suggests to vibrate when possible.
+     *
+     * @see #setVibrateSetting(Int32, Int32)
+     * @see #getVibrateSetting(Int32)
+     */
+    const AudioManager_VIBRATE_SETTING_ON = 1;
+
+    /**
+     * Vibrate setting that suggests to only vibrate when in the vibrate ringer
+     * mode.
+     *
+     * @see #setVibrateSetting(Int32, Int32)
+     * @see #getVibrateSetting(Int32)
+     */
+    const AudioManager_VIBRATE_SETTING_ONLY_SILENT = 2;
+
+    /**
+     * Suggests using the default stream type. This may not be used in all
+     * places a stream type is needed.
+     */
+    const AudioManager_USE_DEFAULT_STREAM_TYPE = 0x80000000;//Math::INT32_MIN_VALUE;
+
+    /**
+     * Sticky broadcast intent action indicating that the bluetoooth SCO audio
+     * connection state has changed. The intent contains on extra {@link #EXTRA_SCO_AUDIO_STATE}
+     * indicating the new state which is either {@link #SCO_AUDIO_STATE_DISCONNECTED}
+     * or {@link #SCO_AUDIO_STATE_CONNECTED}
+     *
+     * @see #startBluetoothSco()
+     */
+    const AudioManager_ACTION_SCO_AUDIO_STATE_CHANGED = "android.media.SCO_AUDIO_STATE_CHANGED";
+
+    /**
+     * Extra for intent {@link #ACTION_SCO_AUDIO_STATE_CHANGED} containing the new
+     * bluetooth SCO connection state.
+     */
+    const AudioManager_EXTRA_SCO_AUDIO_STATE = "android.media.extra.SCO_AUDIO_STATE";
+
+    /**
+     * Value for extra {@link #EXTRA_SCO_AUDIO_STATE} indicating that the
+     * SCO audio channel is not established
+     */
+    const AudioManager_SCO_AUDIO_STATE_DISCONNECTED = 0;
+
+    /**
+     * Value for extra {@link #EXTRA_SCO_AUDIO_STATE} indicating that the
+     * SCO audio channel is established
+     */
+    const AudioManager_SCO_AUDIO_STATE_CONNECTED = 1;
+
+    /**
+     * Value for extra {@link #EXTRA_SCO_AUDIO_STATE} indicating that
+     * there was an error trying to obtain the state
+     */
+    const AudioManager_SCO_AUDIO_STATE_ERROR = -1;
+
+    /* modes for setMode/getMode/setRoute/getRoute */
+    /**
+     * Audio harware modes.
+     */
+    /**
+     * Invalid audio mode.
+     */
+    const AudioManager_MODE_INVALID            = -2; //AudioSystem::MODE_INVALID;
+
+    /**
+     * Current audio mode. Used to apply audio routing to current mode.
+     */
+    const AudioManager_MODE_CURRENT            = -1; //AudioSystem::MODE_CURRENT;
+
+    /**
+     * Normal audio mode: not ringing and no call established.
+     */
+    const AudioManager_MODE_NORMAL             = 0; //AudioSystem::MODE_NORMAL;
+
+    /**
+     * Ringing audio mode. An incoming is being signaled.
+     */
+    const AudioManager_MODE_RINGTONE           = 1; //AudioSystem::MODE_RINGTONE;
+
+    /**
+     * In call audio mode. A telephony call is established.
+     */
+    const AudioManager_MODE_IN_CALL            = 2; //AudioSystem::MODE_IN_CALL;
+
+    /**
+     * @hide
+     * In communication audio mode. An audio/video chat or VoIP call is established.
+     */
+    const AudioManager_MODE_IN_COMMUNICATION   = 3; //AudioSystem::MODE_IN_COMMUNICATION;
+
+    /* Routing bits for setRouting/getRouting API */
+    /**
+     * Routing audio output to earpiece
+     * @deprecated   Do not set audio routing directly, use setSpeakerphoneOn(),
+     * setBluetoothScoOn() methods instead.
+     */
+    const AudioManager_ROUTE_EARPIECE          = 1; //AudioSystem::ROUTE_EARPIECE;
+
+    /**
+     * Routing audio output to speaker
+     * @deprecated   Do not set audio routing directly, use setSpeakerphoneOn(),
+     * setBluetoothScoOn() methods instead.
+     */
+    const AudioManager_ROUTE_SPEAKER           = 2; //AudioSystem::ROUTE_SPEAKER;
+
+    /**
+     * @deprecated use {@link #ROUTE_BLUETOOTH_SCO}
+     * @deprecated   Do not set audio routing directly, use setSpeakerphoneOn(),
+     * setBluetoothScoOn() methods instead.
+     */
+    const AudioManager_ROUTE_BLUETOOTH = 4; //AudioSystem::ROUTE_BLUETOOTH_SCO;
+
+    /**
+     * Routing audio output to bluetooth SCO
+     * @deprecated   Do not set audio routing directly, use setSpeakerphoneOn(),
+     * setBluetoothScoOn() methods instead.
+     */
+    const AudioManager_ROUTE_BLUETOOTH_SCO     = 4; //AudioSystem::ROUTE_BLUETOOTH_SCO;
+
+    /**
+     * Routing audio output to headset
+     * @deprecated   Do not set audio routing directly, use setSpeakerphoneOn(),
+     * setBluetoothScoOn() methods instead.
+     */
+    const AudioManager_ROUTE_HEADSET           = 8; //AudioSystem::ROUTE_HEADSET;
+
+    /**
+     * Routing audio output to bluetooth A2DP
+     * @deprecated   Do not set audio routing directly, use setSpeakerphoneOn(),
+     * setBluetoothScoOn() methods instead.
+     */
+    const AudioManager_ROUTE_BLUETOOTH_A2DP    = 16; //AudioSystem::ROUTE_BLUETOOTH_A2DP;
+
+    /**
+     * Used for mask parameter of {@link #setRouting(Int32,Int32,Int32)}.
+     * @deprecated   Do not set audio routing directly, use setSpeakerphoneOn(),
+     * setBluetoothScoOn() methods instead.
+     */
+    const AudioManager_ROUTE_ALL               = 0xFFFFFFFF; //AudioSystem::ROUTE_ALL;
+
+    /* Sound effect identifiers */
+    /**
+     * Keyboard and direction pad click sound
+     * @see #playSoundEffect(Int32)
+     */
+    const AudioManager_FX_KEY_CLICK = 0;
+
+    /**
+     * Focus has moved up
+     * @see #playSoundEffect(Int32)
+     */
+    const AudioManager_FX_FOCUS_NAVIGATION_UP = 1;
+
+    /**
+     * Focus has moved down
+     * @see #playSoundEffect(Int32)
+     */
+    const AudioManager_FX_FOCUS_NAVIGATION_DOWN = 2;
+
+    /**
+     * Focus has moved left
+     * @see #playSoundEffect(Int32)
+     */
+    const AudioManager_FX_FOCUS_NAVIGATION_LEFT = 3;
+
+    /**
+     * Focus has moved right
+     * @see #playSoundEffect(Int32)
+     */
+    const AudioManager_FX_FOCUS_NAVIGATION_RIGHT = 4;
+
+    /**
+     * IME standard keypress sound
+     * @see #playSoundEffect(Int32)
+     */
+    const AudioManager_FX_KEYPRESS_STANDARD = 5;
+
+    /**
+     * IME spacebar keypress sound
+     * @see #playSoundEffect(Int32)
+     */
+    const AudioManager_FX_KEYPRESS_SPACEBAR = 6;
+
+    /**
+     * IME delete keypress sound
+     * @see #playSoundEffect(Int32)
+     */
+    const AudioManager_FX_KEYPRESS_DELETE = 7;
+
+    /**
+     * IME return_keypress sound
+     * @see #playSoundEffect(Int32)
+     */
+    const AudioManager_FX_KEYPRESS_RETURN = 8;
+
+    /**
+     * @hide Number of sound effects
+     */
+    const AudioManager_NUM_SOUND_EFFECTS = 9;
+
+    /**
+     * Used to indicate a gain of audio focus, or a request of audio focus, of unknown duration.
+     * @see OnAudioFocusChangeListener#onAudioFocusChange(Int32)
+     * @see #requestAudioFocus(OnAudioFocusChangeListener, Int32, Int32)
+     */
+    const AudioManager_AUDIOFOCUS_GAIN = 1;
+
+    /**
+     * Used to indicate a temporary gain or request of audio focus, anticipated to last a short
+     * amount of time. Examples of temporary changes are the playback of driving directions, or an
+     * event notification.
+     * @see OnAudioFocusChangeListener#onAudioFocusChange(Int32)
+     * @see #requestAudioFocus(OnAudioFocusChangeListener, Int32, Int32)
+     */
+    const AudioManager_AUDIOFOCUS_GAIN_TRANSIENT = 2;
+
+    /**
+     * Used to indicate a temporary request of audio focus, anticipated to last a short
+     * amount of time, and where it is acceptable for other audio applications to keep playing
+     * after having lowered their output level (also referred to as "ducking").
+     * Examples of temporary changes are the playback of driving directions where playback of music
+     * in the background is acceptable.
+     * @see OnAudioFocusChangeListener#onAudioFocusChange(Int32)
+     * @see #requestAudioFocus(OnAudioFocusChangeListener, Int32, Int32)
+     */
+    const AudioManager_AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK = 3;
+
+    /**
+     * Used to indicate a loss of audio focus of unknown duration.
+     * @see OnAudioFocusChangeListener#onAudioFocusChange(Int32)
+     */
+    const AudioManager_AUDIOFOCUS_LOSS = -1; //-1 * AUDIOFOCUS_GAIN;
+
+    /**
+     * Used to indicate a transient loss of audio focus.
+     * @see OnAudioFocusChangeListener#onAudioFocusChange(Int32)
+     */
+    const AudioManager_AUDIOFOCUS_LOSS_TRANSIENT = -2; //-1 * AUDIOFOCUS_GAIN_TRANSIENT;
+
+    /**
+     * Used to indicate a transient loss of audio focus where the loser of the audio focus can
+     * lower its output volume if it wants to continue playing (also referred to as "ducking"), as
+     * the new focus owner doesn't require others to be silent.
+     * @see OnAudioFocusChangeListener#onAudioFocusChange(Int32)
+     */
+    const AudioManager_AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK = -3; //-1 * AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK;
+
+    /**
+     * A failed focus change request.
+     */
+    const AudioManager_AUDIOFOCUS_REQUEST_FAILED = 0;
+
+    /**
+     * A successful focus change request.
+     */
+    const AudioManager_AUDIOFOCUS_REQUEST_GRANTED = 1;
+
+    /**
      * Interface definition for a callback to be invoked when the audio focus of the system is
      * updated.
      */

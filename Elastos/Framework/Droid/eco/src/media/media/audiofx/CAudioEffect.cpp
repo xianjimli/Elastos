@@ -4,9 +4,9 @@
 #include <StringBuffer.h>
 #include <media/AudioEffect.h>
 #include <media/EffectApi.h>
+
 using namespace Elastos::Core;
 using namespace Elastos::Utility::Logging;
-using namespace android;
 const CString CAudioEffect::TAG = "AudioEffect-JAVA";
 
 ECode CAudioEffect::Descriptor::constructor(
@@ -769,19 +769,19 @@ class AudioEffectJniStorage {
 
 static Int32 translateError(Int32 code) {
     switch(code) {
-    case NO_ERROR:
+    case android::NO_ERROR:
         return AUDIOEFFECT_SUCCESS;
-    case ALREADY_EXISTS:
+    case android::ALREADY_EXISTS:
         return AUDIOEFFECT_ERROR_ALREADY_EXISTS;
-    case NO_INIT:
+    case android::NO_INIT:
         return AUDIOEFFECT_ERROR_NO_INIT;
-    case BAD_VALUE:
+    case android::BAD_VALUE:
         return AUDIOEFFECT_ERROR_BAD_VALUE;
-    case INVALID_OPERATION:
+    case android::INVALID_OPERATION:
         return AUDIOEFFECT_ERROR_INVALID_OPERATION;
-    case NO_MEMORY:
+    case android::NO_MEMORY:
         return AUDIOEFFECT_ERROR_NO_MEMORY;
-    case DEAD_OBJECT:
+    case android::DEAD_OBJECT:
         return AUDIOEFFECT_ERROR_DEAD_OBJECT;
     default:
         return AUDIOEFFECT_ERROR;
@@ -804,7 +804,7 @@ Int32 CAudioEffect::Native_Setup(
 {
     AudioEffectJniStorage* lpJniStorage;
     Int32 lStatus = AUDIOEFFECT_ERROR_NO_MEMORY;
-    AudioEffect* lpAudioEffect = NULL;
+    android::AudioEffect* lpAudioEffect = NULL;
     Int32* nId = NULL;
     const char *typeStr = NULL;
     const char *uuidStr = NULL;
@@ -890,7 +890,7 @@ Int32 CAudioEffect::Native_Setup(
 void CAudioEffect::Native_Finalize()
 {
     // delete the AudioEffect object
-    AudioEffect* lpAudioEffect = NULL;
+    android::AudioEffect* lpAudioEffect = NULL;
     if (lpAudioEffect) {
         delete lpAudioEffect;
     }
@@ -912,7 +912,7 @@ Int32 CAudioEffect::Native_SetEnabled(
     /* [in] */ Boolean enabled)
 {
     // retrieve the AudioEffect object
-    AudioEffect* lpAudioEffect = NULL;
+    android::AudioEffect* lpAudioEffect = NULL;
 
     if (lpAudioEffect == NULL) {
         return AUDIOEFFECT_ERROR_NO_INIT;
@@ -924,7 +924,7 @@ Int32 CAudioEffect::Native_SetEnabled(
 Boolean CAudioEffect::Native_GetEnabled()
 {
     // retrieve the AudioEffect object
-    AudioEffect* lpAudioEffect = NULL;
+    android::AudioEffect* lpAudioEffect = NULL;
     if (lpAudioEffect == NULL) {
         return FALSE;
     }
@@ -934,7 +934,7 @@ Boolean CAudioEffect::Native_GetEnabled()
 Boolean CAudioEffect::Native_HasControl()
 {
     // retrieve the AudioEffect object
-    AudioEffect* lpAudioEffect = NULL;
+    android::AudioEffect* lpAudioEffect = NULL;
 
     if (lpAudioEffect == NULL) {
         return FALSE;
@@ -955,7 +955,7 @@ Int32 CAudioEffect::Native_SetParameter(
     effect_param_t *p;
     Int32 voffset;
 
-    AudioEffect* lpAudioEffect = NULL;
+    android::AudioEffect* lpAudioEffect = NULL;
 
     if (lpAudioEffect == NULL) {
         return AUDIOEFFECT_ERROR_NO_INIT;
@@ -981,7 +981,7 @@ Int32 CAudioEffect::Native_SetParameter(
     p->vsize = vsize;
 
     lStatus = lpAudioEffect->setParameter(p);
-    if (lStatus == NO_ERROR) {
+    if (lStatus == android::NO_ERROR) {
         lStatus = p->status;
     }
 
@@ -1005,7 +1005,7 @@ Int32 CAudioEffect::Native_GetParameter(
     effect_param_t *p;
     int voffset;
 
-    AudioEffect* lpAudioEffect = NULL;
+    android::AudioEffect* lpAudioEffect = NULL;
 
     if (lpAudioEffect == NULL) {
         return AUDIOEFFECT_ERROR_NO_INIT;
@@ -1034,9 +1034,9 @@ Int32 CAudioEffect::Native_GetParameter(
     p->psize = psize;
     p->vsize = lpValueSize[0];
 
-    if (lStatus == NO_ERROR) {
+    if (lStatus == android::NO_ERROR) {
         lStatus = p->status;
-        if (lStatus == NO_ERROR) {
+        if (lStatus == android::NO_ERROR) {
             memcpy(lpValue, p->data + voffset, p->vsize);
             lpValueSize[0] = p->vsize;
         }
@@ -1061,7 +1061,7 @@ Int32 CAudioEffect::Native_Command(
     Int32 lStatus = AUDIOEFFECT_ERROR_BAD_VALUE;
 
     // retrieve the AudioEffect object
-    AudioEffect* lpAudioEffect = NULL;
+    android::AudioEffect* lpAudioEffect = NULL;
 
     if (lpAudioEffect == NULL) {
         return AUDIOEFFECT_ERROR_NO_INIT;
