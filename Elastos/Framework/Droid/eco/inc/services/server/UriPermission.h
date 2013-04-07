@@ -18,6 +18,15 @@ public:
         /* [in] */ Int32 uid,
         /* [in] */ IUri* uri);
 
+    CARAPI_(void) ClearModes(
+        /* [in] */ Int32 modeFlagsToClear);
+
+    CARAPI_(String) ToString();
+
+    CARAPI_(void) Dump(
+        /* [in] */ IPrintWriter* pw,
+        /* [in] */ String prefix);
+
 public:
     Int32 mUid;
     AutoPtr<IUri> mUri;
@@ -25,6 +34,7 @@ public:
     Int32 mGlobalModeFlags;
     Set<UriPermissionOwner*> mReadOwners;
     Set<UriPermissionOwner*> mWriteOwners;
+    String mStringName;
 };
 
 #endif //__URIPERMISSION_H__

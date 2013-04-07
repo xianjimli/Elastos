@@ -67,24 +67,12 @@ public:
     //native private static void nativeClassInit();
     //static { nativeClassInit(); }
 
-    //public static native void getPixelFormatInfo(int format, PixelFormat info);
+    static CARAPI GetPixelFormatInfo(
+        /* [in] */ Int32 format,
+        /* [in] */ ElPixelFormat* info);
 
     static Boolean FormatHasAlpha(
-        /* [in] */ Int32 format)
-    {
-        switch (format) {
-            case A_8:
-            case LA_88:
-            case RGBA_4444:
-            case RGBA_5551:
-            case RGBA_8888:
-            case TRANSLUCENT:
-            case TRANSPARENT:
-                return TRUE;
-        }
-
-        return FALSE;
-    }
+        /* [in] */ Int32 format);
 
     Int32 mBytesPerPixel;
     Int32 mBitsPerPixel;
