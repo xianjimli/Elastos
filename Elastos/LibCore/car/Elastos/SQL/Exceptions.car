@@ -25,4 +25,5 @@ module
     const E_SQL_TRANSIENT_EXCEPTION                         = 0xA80F0000;
     const E_SQL_TIMEOUT_EXCEPTION                           = 0xA8100000;
     const E_SQL_WARNING                                     = 0xA8110000;
+    const E_SQLITE_EXCEPTION                                 = 0xA8120000;
 }
