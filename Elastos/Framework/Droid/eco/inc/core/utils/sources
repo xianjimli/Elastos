@@ -1,2 +1,3 @@
 
 EXPORT_HEADERS += Xml.h
+EXPORT_HEADERS += SparseInt32Array.h

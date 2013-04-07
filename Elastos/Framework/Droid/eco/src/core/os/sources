@@ -39,6 +39,7 @@ SOURCES += ElObject.cpp
 SOURCES += ResultReceiver.cpp
 SOURCES += CResultReceiver.cpp
 SOURCES += CRemoteCallbackList.cpp
+SOURCES += HandlerThread.cpp
 
 ifeq "$(XDK_TARGET_CPU)" "arm"
 ifneq "$(XDK_COMPILER)" "gnu"

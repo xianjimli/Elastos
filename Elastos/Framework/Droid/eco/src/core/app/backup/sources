@@ -21,3 +21,6 @@ SOURCES += CBackupDataInputStream.cpp
 SOURCES += CBackupDataOutput.cpp
 SOURCES += FileBackupHelperBase.cpp
 SOURCES += FileBackupHelper.cpp
+SOURCES += SharedPreferencesBackupHelper.cpp
+SOURCES += AbsoluteFileBackupHelper.cpp
+SOURCES += BackupManager.cpp

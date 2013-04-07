@@ -59,7 +59,7 @@ module
 
     class CInputMethodManagerService {
         constructor(
-            [in] IContext* context,
+            [in] IContext* ctx,
             [in] IStatusBarService* statusBar);
 
         interface IInputMethodManagerService;
@@ -109,5 +109,12 @@ module
             [in] IContext* context);
 
         interface IAppWidgetService;
+    }
+
+    class CBackupManagerService {
+        constructor(
+            [in] IContext* ctx);
+
+        interface IBackupManager;
     }
 }

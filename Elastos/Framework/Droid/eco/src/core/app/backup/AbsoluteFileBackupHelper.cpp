@@ -1,29 +1,23 @@
 
-#include "app/backup/FileBackupHelper.h"
-
-CString FileBackupHelper::TAG = "FileBackupHelper";
-const Boolean FileBackupHelper::DEBUG;
+#include "app/backup/AbsoluteFileBackupHelper.h"
 
 
-FileBackupHelper::FileBackupHelper(
+CString AbsoluteFileBackupHelper::TAG = "AbsoluteFileBackupHelper";
+const Boolean AbsoluteFileBackupHelper::DEBUG;
+
+AbsoluteFileBackupHelper::AbsoluteFileBackupHelper(
 	/* [in] */ IContext* context,
 	/* [in] */ ArrayOf<String>* files)
 	: FileBackupHelperBase(context)
 	, mContext(context)
 	, mFiles(NULL)
 {
-	assert(context != NULL);
-
-	//TODO: has no member named 'GetFilesDir'
-	assert(0);
-    //context->GetFilesDir((IFile**) &mFilesDir);
-
     if (files != NULL) {
     	mFiles = files->Clone();
     }
 }
 
-FileBackupHelper::~FileBackupHelper()
+AbsoluteFileBackupHelper::~AbsoluteFileBackupHelper()
 {
 	if (mFiles != NULL) {
 		ArrayOf<String>::Free(mFiles);
@@ -31,17 +25,17 @@ FileBackupHelper::~FileBackupHelper()
 	}
 }
 
-UInt32 FileBackupHelper::AddRef()
+UInt32 AbsoluteFileBackupHelper::AddRef()
 {
     return ElRefBase::AddRef();
 }
 
-UInt32 FileBackupHelper::Release()
+UInt32 AbsoluteFileBackupHelper::Release()
 {
     return ElRefBase::Release();
 }
 
-PInterface FileBackupHelper::Probe(
+PInterface AbsoluteFileBackupHelper::Probe(
    /* [in] */ REIID riid)
 {
    if (riid == EIID_IBackupHelper) {
@@ -51,7 +45,7 @@ PInterface FileBackupHelper::Probe(
    return NULL;
 }
 
-ECode FileBackupHelper::GetInterfaceID(
+ECode AbsoluteFileBackupHelper::GetInterfaceID(
    /* [in] */ IInterface *pObject,
    /* [out] */ InterfaceID *pIID)
 {
@@ -67,52 +61,37 @@ ECode FileBackupHelper::GetInterfaceID(
    return NOERROR;
 }
 
-ECode FileBackupHelper::PerformBackup(
+ECode AbsoluteFileBackupHelper::PerformBackup(
     /* [in] */ IParcelFileDescriptor* oldState,
     /* [in] */ IBackupDataOutput* data,
     /* [in] */ IParcelFileDescriptor* newState)
 {
-    AutoPtr<IFile> base;
-
-	//TODO: has no member named 'GetFilesDir'
-	assert(0);
-    //mContext->GetFilesDir((IFile**) &base);
-
-    const Int32 N = mFiles->GetLength();
-    ArrayOf<String>* fullPaths = ArrayOf<String>::Alloc(N);
-
-    AutoPtr<IFile> tmp;
-    for (Int32 i=0; i<N; i++) {
-    	CFile::New(base, (*mFiles)[i], (IFile**) &tmp);
-    	assert(tmp != NULL);
-
-    	tmp->GetAbsolutePath(&((*fullPaths)[i]));
-    }
-
-    // go
-    PerformBackup_checked(oldState, data, newState, fullPaths, mFiles);
+    // use the file paths as the keys, too
+    PerformBackup_checked(oldState, data, newState, mFiles, mFiles);
 
     return NOERROR;
 }
 
-ECode FileBackupHelper::RestoreEntity(
+ECode AbsoluteFileBackupHelper::RestoreEntity(
     /* [in] */ IBackupDataInputStream* data)
 {
     //if (DEBUG) Log.d(TAG, "got entity '" + data.getKey() + "' size=" + data.size());
     assert(data != NULL);
     String key;
     data->GetKey(&key);
+
     if (IsKeyInList(key, mFiles)) {
         AutoPtr<IFile> f;
-        CFile::New(mFilesDir, key, (IFile**) &f);
+        CFile::New(key, (IFile**) &f);
         WriteFile(f, data);
     }
 
     return NOERROR;
 }
 
-ECode FileBackupHelper::WriteNewStateDescription(
+ECode AbsoluteFileBackupHelper::WriteNewStateDescription(
     /* [in] */ IParcelFileDescriptor* newState)
 {
     return NOERROR;
 }
+

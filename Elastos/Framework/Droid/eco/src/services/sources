@@ -48,6 +48,7 @@ C_DEFINES += -D_FRAMEWORK_SERVER
 SOURCES = Elastos.Framework.Server.car
 SOURCES += utils.cpp
 SOURCES += Process.cpp
+SOURCES += HandlerThread.cpp
 SOURCES += SystemClock.cpp
 SOURCES += Runnable.cpp
 SOURCES += SystemProperties.cpp
@@ -76,6 +77,7 @@ SOURCES += BroadcastReceiver.cpp
 SOURCES += ArrayUtils.cpp
 SOURCES += TextUtils.cpp
 SOURCES += Binder.cpp
+SOURCES += SparseInt32Array.cpp
 
 LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.lib
 LIBRARIES += $(XDK_USER_LIB)/Elastos.Utility.lib

@@ -56,6 +56,7 @@ SOURCES += CInputMethodManagerServiceMethodCallback.cpp
 SOURCES += CAccessibilityManagerService.cpp
 SOURCES += CAccessibilityServiceConnection.cpp
 SOURCES += CAppWidgetService.cpp
+SOURCES += CBackupManagerService.cpp
 
 LIBRARIES += location/location.lib
 #LIBRARIES += usb/usb.lib

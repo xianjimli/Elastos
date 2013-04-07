@@ -1,5 +1,6 @@
 
 DIRS += inc/core/app
+DIRS += inc/core/app/backup
 DIRS += inc/core/content
 DIRS += inc/core/net
 DIRS += inc/core/inputmethodservice
