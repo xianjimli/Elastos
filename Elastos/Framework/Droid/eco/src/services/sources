@@ -3,7 +3,7 @@ TARGET_TYPE= eco
 
 IMPORTS += Elastos.Utility.Zip.eco
 
-VPATH := $(MAKEDIR)/../core/os:$(MAKEDIR)/../core/ext:$(MAKEDIR)/../core/view:$(MAKEDIR)/../core/view/animation:$(MAKEDIR)/../core/location:$(MAKEDIR)/../core/net:$(MAKEDIR)/../core/content:$(MAKEDIR)/../core/content/cm:$(MAKEDIR)/../core/app:$(MAKEDIR)/../core/capsule:$(MAKEDIR)/../core/utils:$(MAKEDIR)/../core/location:$(MAKEDIR)/../core/text:$(MAKEDIR)/../core/provider
+VPATH := $(MAKEDIR)/../core/os:$(MAKEDIR)/../core/ext:$(MAKEDIR)/../core/view:$(MAKEDIR)/../core/view/animation:$(MAKEDIR)/../core/location:$(MAKEDIR)/../core/net:$(MAKEDIR)/../core/content:$(MAKEDIR)/../core/content/cm:$(MAKEDIR)/../core/app:$(MAKEDIR)/../core/capsule:$(MAKEDIR)/../core/utils:$(MAKEDIR)/../core/location:$(MAKEDIR)/../core/text:$(MAKEDIR)/../core/provider:$(MAKEDIR)/../core/graphics
 
 include $(MAKEDIR)/../../../sources.inc
 
@@ -78,6 +78,7 @@ SOURCES += ArrayUtils.cpp
 SOURCES += TextUtils.cpp
 SOURCES += Binder.cpp
 SOURCES += SparseInt32Array.cpp
+SOURCES += ElPixelFormat.cpp
 
 LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.lib
 LIBRARIES += $(XDK_USER_LIB)/Elastos.Utility.lib

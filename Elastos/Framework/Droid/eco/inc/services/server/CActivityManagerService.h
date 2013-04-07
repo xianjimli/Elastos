@@ -906,6 +906,9 @@ public:
     CARAPI SetDidDexOpt(
         /* [in] */ Boolean dexopt);
 
+	CARAPI_(void) RemoveUriPermissionIfNeededLocked(
+	/* [in] */ UriPermission* perm);
+
 private:
     CARAPI_(void) UpdateCpuStats();
 
@@ -1120,9 +1123,6 @@ private:
         /* [in] */ const String& targetCap,
         /* [in] */ IIntent* intent,
         /* [in] */ UriPermissionOwner* owner);
-
-    CARAPI_(void) RemoveUriPermissionIfNeededLocked(
-        /* [in] */ UriPermission* perm);
 
     CARAPI_(void) RevokeUriPermissionLocked(
         /* [in] */ Int32 callingUid,
