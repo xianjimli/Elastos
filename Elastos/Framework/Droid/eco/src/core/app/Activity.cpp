@@ -885,6 +885,17 @@ ECode Activity::StartActivity(
     return StartActivityForResult(intent, -1);
 }
 
+ECode Activity::StartIntentSender(
+    /* [in] */ IIntentSender* intent,
+    /* [in] */ IIntent* fillInIntent,
+    /* [in] */ Int32 flagsMask,
+    /* [in] */ Int32 flagsValues,
+    /* [in] */ Int32 extraFlags)
+{
+    // TODO: ALEX need startIntentSenderForResult
+    return E_NOT_IMPLEMENTED;
+}
+
 /**
  * Launch an activity for which you would like a result when it finished.
  * When this activity exits, your
@@ -1404,9 +1415,9 @@ ECode Activity::PerformSaveInstanceState(
  *
  * <p>If called, this method will occur before {@link #onStop}.  There are
  * no guarantees about whether it will occur before or after {@link #onPause}.
- * 
+ *
  * @param outState Bundle in which to place your saved state.
- * 
+ *
  * @see #onCreate
  * @see #onRestoreInstanceState
  * @see #onPause

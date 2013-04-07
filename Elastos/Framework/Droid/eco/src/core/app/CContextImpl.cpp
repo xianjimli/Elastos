@@ -1978,6 +1978,44 @@ ECode CContextImpl::StartActivity(
     return NOERROR;
 }
 
+ECode CContextImpl::StartIntentSender(
+    /* [in] */ IIntentSender* intent,
+    /* [in] */ IIntent* fillInIntent,
+    /* [in] */ Int32 flagsMask,
+    /* [in] */ Int32 flagsValues,
+    /* [in] */ Int32 extraFlags)
+{
+    // try {
+        String resolvedType;
+        if (fillInIntent != NULL) {
+            AutoPtr<IContentResolver> contentResolver;
+            FAIL_RETURN(GetContentResolver(
+                (IContentResolver**)&contentResolver));
+            FAIL_RETURN(fillInIntent->ResolveTypeIfNeeded(
+                contentResolver, &resolvedType));
+        }
+
+        AutoPtr<IActivityManager> activityManager;
+        FAIL_RETURN(ActivityManagerNative::GetDefault(
+            (IActivityManager**)&activityManager));
+
+        // TODO: ALEX need IActivityManager::StartActivityIntentSender
+        return E_NOT_IMPLEMENTED;
+        /*
+        Int32 result;
+        FAIL_RETURN(activityManager->StartActivityIntentSender(
+            mMainThread.getApplicationThread(), intent,
+                fillInIntent, resolvedType, null, null,
+                0, flagsMask, flagsValues, &result));
+        if (result == IActivityManager_START_CANCELED) {
+            throw new IntentSender.SendIntentException();
+        }
+        Instrumentation.checkStartActivityResult(result, null);
+        */
+    // } catch (RemoteException e) {
+    // }
+}
+
 ECode CContextImpl::SendBroadcast(
     /* [in] */ IIntent *intent)
 {

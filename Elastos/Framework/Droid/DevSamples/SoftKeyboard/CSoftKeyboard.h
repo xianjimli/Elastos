@@ -101,6 +101,13 @@ public:
     CARAPI StartActivity(
         /* [in] */ IIntent* intent);
 
+    CARAPI StartIntentSender(
+        /* [in] */ IIntentSender* intent,
+        /* [in] */ IIntent* fillInIntent,
+        /* [in] */ Int32 flagsMask,
+        /* [in] */ Int32 flagsValues,
+        /* [in] */ Int32 extraFlags);
+
     CARAPI SendBroadcast(
         /* [in] */ IIntent* intent);
 

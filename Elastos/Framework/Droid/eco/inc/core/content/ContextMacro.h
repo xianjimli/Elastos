@@ -83,6 +83,13 @@
     CARAPI StartActivity(                                                   \
         /* [in] */ IIntent *intent);                                        \
                                                                             \
+    CARAPI StartIntentSender(                                               \
+        /* [in] */ IIntentSender* intent,                                   \
+        /* [in] */ IIntent* fillInIntent,                                   \
+        /* [in] */ Int32 flagsMask,                                         \
+        /* [in] */ Int32 flagsValues,                                       \
+        /* [in] */ Int32 extraFlags);                                       \
+                                                                            \
     CARAPI SendBroadcast(                                                   \
         /* [in] */ IIntent *pIntent);                                       \
                                                                             \
@@ -313,6 +320,17 @@ ECode className::StartActivity(                                             \
     /* [in] */ IIntent* intent)                                             \
 {                                                                           \
     return superClass::StartActivity(intent);                               \
+}                                                                           \
+                                                                            \
+ECode className::StartIntentSender(                                         \
+    /* [in] */ IIntentSender* intent,                                       \
+    /* [in] */ IIntent* fillInIntent,                                       \
+    /* [in] */ Int32 flagsMask,                                             \
+    /* [in] */ Int32 flagsValues,                                           \
+    /* [in] */ Int32 extraFlags)                                            \
+{                                                                           \
+    return superClass::StartIntentSender(intent, fillInIntent, flagsMask,   \
+        flagsValues, extraFlags);                                           \
 }                                                                           \
                                                                             \
 ECode className::StartService(                                              \

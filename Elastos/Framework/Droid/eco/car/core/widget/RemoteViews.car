@@ -1,6 +1,391 @@
 
 module
 {
+    /**
+     * Base class for all actions that can be performed on an
+     * inflated view.
+     *
+     *  SUBCLASSES MUST BE IMMUTABLE SO CLONE WORKS!!!!!
+     */
+    interface IRemoteViewsAction {
+        Apply(
+            [in] IView* root);
+    }
+
+    interface ICharSequence;
+    interface IUri;
+    interface IBundle;
+
+    /**
+     * A class that describes a view hierarchy that can be displayed in
+     * another process. The hierarchy is inflated from a layout resource
+     * file, and this class provides some basic operations for modifying
+     * the content of the inflated hierarchy.
+     */
     interface IRemoteViews {
+        Clone(
+            [out] IRemoteViews** result);
+
+        GetPackage(
+            [out] String* package);
+
+        GetLayoutId(
+            [out] Int32 * pLayoutId);
+
+        /**
+         * Equivalent to calling {@link ViewGroup#addView(View)} after inflating the
+         * given {@link RemoteViews}. This allows users to build "nested"
+         * {@link RemoteViews}. In cases where consumers of {@link RemoteViews} may
+         * recycle layouts, use {@link #removeAllViews(int)} to clear any existing
+         * children.
+         *
+         * @param viewId The id of the parent {@link ViewGroup} to add child into.
+         * @param nestedView {@link RemoteViews} that describes the child.
+         */
+        AddView(
+            [in] Int32 viewId,
+            [in] IRemoteViews* nestedView);
+
+        /**
+         * Equivalent to calling {@link ViewGroup#removeAllViews()}.
+         *
+         * @param viewId The id of the parent {@link ViewGroup} to remove all
+         *            children from.
+         */
+        RemoveAllViews(
+            [in] Int32 viewId);
+
+        /**
+         * Equivalent to calling View.setVisibility
+         *
+         * @param viewId The id of the view whose visibility should change
+         * @param visibility The new visibility for the view
+         */
+        SetViewVisibility(
+            [in] Int32 viewId,
+            [in] Int32 visibility);
+
+        /**
+         * Equivalent to calling TextView.setText
+         *
+         * @param viewId The id of the view whose text should change
+         * @param text The new text for the view
+         */
+        SetTextViewText(
+            [in] Int32 viewId,
+            [in] ICharSequence* text);
+
+        /**
+         * Equivalent to calling ImageView.setImageResource
+         *
+         * @param viewId The id of the view whose drawable should change
+         * @param srcId The new resource id for the drawable
+         */
+        SetImageViewResource(
+            [in] Int32 viewId,
+            [in] Int32 srcId);
+
+        /**
+         * Equivalent to calling ImageView.setImageURI
+         *
+         * @param viewId The id of the view whose drawable should change
+         * @param uri The Uri for the image
+         */
+        SetImageViewUri(
+            [in] Int32 viewId,
+            [in] IUri* uri);
+
+        /**
+         * Equivalent to calling ImageView.setImageBitmap
+         *
+         * @param viewId The id of the view whose drawable should change
+         * @param bitmap The new Bitmap for the drawable
+         */
+        SetImageViewBitmap(
+            [in] Int32 viewId,
+            [in] IBitmap* bitmap);
+
+        /**
+         * Equivalent to calling {@link Chronometer#setBase Chronometer.setBase},
+         * {@link Chronometer#setFormat Chronometer.setFormat},
+         * and {@link Chronometer#start Chronometer.start()} or
+         * {@link Chronometer#stop Chronometer.stop()}.
+         *
+         * @param viewId The id of the view whose text should change
+         * @param base The time at which the timer would have read 0:00.  This
+         *             time should be based off of
+         *             {@link android.os.SystemClock#elapsedRealtime SystemClock.elapsedRealtime()}.
+         * @param format The Chronometer format string, or null to
+         *               simply display the timer value.
+         * @param started True if you want the clock to be started, false if not.
+         */
+        SetChronometer(
+            [in] Int32 viewId,
+            [in] Int64 base,
+            [in] String format,
+            [in] Boolean started);
+
+        /**
+         * Equivalent to calling {@link ProgressBar#setMax ProgressBar.setMax},
+         * {@link ProgressBar#setProgress ProgressBar.setProgress}, and
+         * {@link ProgressBar#setIndeterminate ProgressBar.setIndeterminate}
+         *
+         * If indeterminate is true, then the values for max and progress are ignored.
+         *
+         * @param viewId The id of the view whose text should change
+         * @param max The 100% value for the progress bar
+         * @param progress The current value of the progress bar.
+         * @param indeterminate True if the progress bar is indeterminate,
+         *                false if not.
+         */
+        SetProgressBar(
+            [in] Int32 viewId,
+            [in] Int32 max,
+            [in] Int32 progress,
+            [in] Boolean indeterminate);
+
+        /**
+         * Equivalent to calling
+         * {@link android.view.View#setOnClickListener(android.view.View.OnClickListener)}
+         * to launch the provided {@link PendingIntent}.
+         *
+         * @param viewId The id of the view that will trigger the {@link PendingIntent} when clicked
+         * @param pendingIntent The {@link PendingIntent} to send when user clicks
+         */
+        SetOnClickPendingIntent(
+            [in] Int32 viewId,
+            [in] IPendingIntent* pendingIntent);
+
+        /**
+         * @hide
+         * Equivalent to calling a combination of {@link Drawable#setAlpha(int)},
+         * {@link Drawable#setColorFilter(int, android.graphics.PorterDuff.Mode)},
+         * and/or {@link Drawable#setLevel(int)} on the {@link Drawable} of a given
+         * view.
+         * <p>
+         * You can omit specific calls by marking their values with null or -1.
+         *
+         * @param viewId The id of the view that contains the target
+         *            {@link Drawable}
+         * @param targetBackground If true, apply these parameters to the
+         *            {@link Drawable} returned by
+         *            {@link android.view.View#getBackground()}. Otherwise, assume
+         *            the target view is an {@link ImageView} and apply them to
+         *            {@link ImageView#getDrawable()}.
+         * @param alpha Specify an alpha value for the drawable, or -1 to leave
+         *            unchanged.
+         * @param colorFilter Specify a color for a
+         *            {@link android.graphics.ColorFilter} for this drawable, or -1
+         *            to leave unchanged.
+         * @param mode Specify a PorterDuff mode for this drawable, or null to leave
+         *            unchanged.
+         * @param level Specify the level for the drawable, or -1 to leave
+         *            unchanged.
+         */
+        SetDrawableParameters(
+            [in] Int32 viewId,
+            [in] Boolean targetBackground,
+            [in] Int32 alpha,
+            [in] Int32 colorFilter,
+            [in] PorterDuffMode mode,
+            [in] Int32 level);
+
+        /**
+         * Equivalent to calling {@link android.widget.TextView#setTextColor(int)}.
+         *
+         * @param viewId The id of the view whose text should change
+         * @param color Sets the text color for all the states (normal, selected,
+         *            focused) to be this color.
+         */
+        SetTextColor(
+            [in] Int32 viewId,
+            [in] Int32 color);
+
+        /**
+         * Call a method taking one boolean on a view in the layout for this RemoteViews.
+         *
+         * @param viewId The id of the view whose text should change
+         * @param methodName The name of the method to call.
+         * @param value The value to pass to the method.
+         */
+        SetBoolean(
+            [in] Int32 viewId,
+            [in] String methodName,
+            [in] Boolean value);
+
+        /**
+         * Call a method taking one byte on a view in the layout for this RemoteViews.
+         *
+         * @param viewId The id of the view whose text should change
+         * @param methodName The name of the method to call.
+         * @param value The value to pass to the method.
+         */
+        SetByte(
+            [in] Int32 viewId,
+            [in] String methodName,
+            [in] Byte value);
+
+        /**
+         * Call a method taking one short on a view in the layout for this RemoteViews.
+         *
+         * @param viewId The id of the view whose text should change
+         * @param methodName The name of the method to call.
+         * @param value The value to pass to the method.
+         */
+        SetInt16(
+            [in] Int32 viewId,
+            [in] String methodName,
+            [in] Int16 value);
+
+        /**
+         * Call a method taking one int on a view in the layout for this RemoteViews.
+         *
+         * @param viewId The id of the view whose text should change
+         * @param methodName The name of the method to call.
+         * @param value The value to pass to the method.
+         */
+        SetInt32(
+            [in] Int32 viewId,
+            [in] String methodName,
+            [in] Int32 value);
+
+        /**
+         * Call a method taking one long on a view in the layout for this RemoteViews.
+         *
+         * @param viewId The id of the view whose text should change
+         * @param methodName The name of the method to call.
+         * @param value The value to pass to the method.
+         */
+        SetInt64(
+            [in] Int32 viewId,
+            [in] String methodName,
+            [in] Int64 value);
+
+        /**
+         * Call a method taking one float on a view in the layout for this RemoteViews.
+         *
+         * @param viewId The id of the view whose text should change
+         * @param methodName The name of the method to call.
+         * @param value The value to pass to the method.
+         */
+        SetFloat(
+            [in] Int32 viewId,
+            [in] String methodName,
+            [in] Float value);
+
+        /**
+         * Call a method taking one double on a view in the layout for this RemoteViews.
+         *
+         * @param viewId The id of the view whose text should change
+         * @param methodName The name of the method to call.
+         * @param value The value to pass to the method.
+         */
+        SetDouble(
+            [in] Int32 viewId,
+            [in] String methodName,
+            [in] Double value);
+
+        /**
+         * Call a method taking one char on a view in the layout for this RemoteViews.
+         *
+         * @param viewId The id of the view whose text should change
+         * @param methodName The name of the method to call.
+         * @param value The value to pass to the method.
+         */
+        SetChar16(
+            [in] Int32 viewId,
+            [in] String methodName,
+            [in] Char16 value);
+
+        /**
+         * Call a method taking one String on a view in the layout for this RemoteViews.
+         *
+         * @param viewId The id of the view whose text should change
+         * @param methodName The name of the method to call.
+         * @param value The value to pass to the method.
+         */
+        SetString(
+            [in] Int32 viewId,
+            [in] String methodName,
+            [in] String value);
+
+        /**
+         * Call a method taking one CharSequence on a view in the layout for this RemoteViews.
+         *
+         * @param viewId The id of the view whose text should change
+         * @param methodName The name of the method to call.
+         * @param value The value to pass to the method.
+         */
+        SetCharSequence(
+            [in] Int32 viewId,
+            [in] String methodName,
+            [in] ICharSequence* value);
+
+        /**
+         * Call a method taking one Uri on a view in the layout for this RemoteViews.
+         *
+         * @param viewId The id of the view whose text should change
+         * @param methodName The name of the method to call.
+         * @param value The value to pass to the method.
+         */
+        SetUri(
+            [in] Int32 viewId,
+            [in] String methodName,
+            [in] IUri* value);
+
+        /**
+         * Call a method taking one Bitmap on a view in the layout for this RemoteViews.
+         * @more
+         * <p class="note">The bitmap will be flattened into the parcel if this object is
+         * sent across processes, so it may end up using a lot of memory, and may be fairly slow.</p>
+         *
+         * @param viewId The id of the view whose text should change
+         * @param methodName The name of the method to call.
+         * @param value The value to pass to the method.
+         */
+        SetBitmap(
+            [in] Int32 viewId,
+            [in] String methodName,
+            [in] IBitmap* value);
+
+        /**
+         * Call a method taking one Bundle on a view in the layout for this RemoteViews.
+         *
+         * @param viewId The id of the view whose text should change
+         * @param methodName The name of the method to call.
+         * @param value The value to pass to the method.
+         */
+        SetBundle(
+            [in] Int32 viewId,
+            [in] String methodName,
+            [in] IBundle* value);
+
+        /**
+         * Inflates the view hierarchy represented by this object and applies
+         * all of the actions.
+         *
+         * <p><strong>Caller beware: this may throw</strong>
+         *
+         * @param context Default context to use
+         * @param parent Parent that the resulting view hierarchy will be attached to. This method
+         * does <strong>not</strong> attach the hierarchy. The caller should do so when appropriate.
+         * @return The inflated view hierarchy
+         */
+        Apply(
+            [in] IContext* context,
+            [in] IViewGroup* parent,
+            [out] IView** view);
+
+        /**
+         * Applies all of the actions to the provided view.
+         *
+         * <p><strong>Caller beware: this may throw</strong>
+         *
+         * @param v The view to apply the actions to.  This should be the result of
+         * the {@link #apply(Context,ViewGroup)} call.
+         */
+        Reapply(
+            [in] IContext* context,
+            [in] IView* v);
     }
 }

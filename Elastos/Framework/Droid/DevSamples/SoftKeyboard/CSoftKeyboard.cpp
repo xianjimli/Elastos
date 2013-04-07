@@ -208,6 +208,17 @@ ECode CSoftKeyboard::StartActivity(
     return InputMethodService::StartActivity(intent);
 }
 
+ECode CSoftKeyboard::StartIntentSender(
+    /* [in] */ IIntentSender* intent,
+    /* [in] */ IIntent* fillInIntent,
+    /* [in] */ Int32 flagsMask,
+    /* [in] */ Int32 flagsValues,
+    /* [in] */ Int32 extraFlags)
+{
+    return InputMethodService::StartIntentSender(intent, fillInIntent,
+        flagsMask, flagsValues, extraFlags);
+}
+
 ECode CSoftKeyboard::SendBroadcast(
     /* [in] */ IIntent* intent)
 {

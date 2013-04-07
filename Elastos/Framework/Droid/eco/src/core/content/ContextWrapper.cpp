@@ -114,6 +114,21 @@ ECode ContextWrapper::StartActivity(
     return mBase->StartActivity(intent);
 }
 
+ECode ContextWrapper::StartIntentSender(
+    /* [in] */ IIntentSender* intent,
+    /* [in] */ IIntent* fillInIntent,
+    /* [in] */ Int32 flagsMask,
+    /* [in] */ Int32 flagsValues,
+    /* [in] */ Int32 extraFlags)
+{
+    return mBase->StartIntentSender(
+        intent,
+        fillInIntent,
+        flagsMask,
+        flagsValues,
+        extraFlags);
+}
+
 ECode ContextWrapper::StartService(
     /* [in] */ IIntent* service,
     /* [out] */ IComponentName** name)

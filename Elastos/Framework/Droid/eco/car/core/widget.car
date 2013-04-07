@@ -1402,11 +1402,78 @@ module
         constructor(
             [in] IContext* context);
 
-        interface IToast;    
+        interface IToast;
     }
 
     singleton class CToastHelper {
         interface IToastHelper;
+    }
+
+    class CSetOnClickPendingIntent {
+        constructor(
+            [in] Int32 id,
+            [in] IPendingIntent* pendingIntent);
+
+        constructor(
+            [in] IParcel* parcel);
+
+        interface IRemoteViewsAction;
+        interface IParcelable;
+    }
+
+    class CSetDrawableParameters {
+        constructor(
+            [in] Int32 id,
+            [in] Boolean targetBackground,
+            [in] Int32 alpha,
+            [in] Int32 colorFilter,
+            [in] PorterDuffMode mode,
+            [in] Int32 level);
+
+        constructor(
+            [in] IParcel* parcel);
+
+        interface IRemoteViewsAction;
+        interface IParcelable;
+    }
+
+    class CReflectionAction {
+        constructor(
+            [in] Int32 viewId,
+            [in] String methodName,
+            [in] Int32 type,
+            [in] IInterface* value);
+
+        constructor(
+            [in] IParcel* parcel);
+
+        interface IRemoteViewsAction;
+        interface IParcelable;
+    }
+
+    class CViewGroupAction {
+        constructor(
+            [in] Int32 viewId,
+            [in] IRemoteViews* nestedViews);
+
+        constructor(
+            [in] IParcel* parcel);
+
+        interface IRemoteViewsAction;
+        interface IParcelable;
+    }
+
+    class CRemoteViews {
+        constructor(
+            [in] String packageName,
+            [in] Int32 layoutId);
+
+        constructor(
+            [in] IParcel* parcel);
+
+        interface IRemoteViews;
+        interface ILayoutInflaterFilter;
+        interface IParcelable;
     }
 }
 

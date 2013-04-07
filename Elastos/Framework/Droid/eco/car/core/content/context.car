@@ -731,6 +731,30 @@ module
         StartActivity(
             [in] IIntent* intent);
 
+        /**
+         * Like {@link #startActivity(Intent)}, but taking a IntentSender
+         * to start.  If the IntentSender is for an activity, that activity will be started
+         * as if you had called the regular {@link #startActivity(Intent)}
+         * here; otherwise, its associated action will be executed (such as
+         * sending a broadcast) as if you had called
+         * {@link IntentSender#sendIntent IntentSender.sendIntent} on it.
+         *
+         * @param intent The IntentSender to launch.
+         * @param fillInIntent If non-null, this will be provided as the
+         * intent parameter to {@link IntentSender#sendIntent}.
+         * @param flagsMask Intent flags in the original IntentSender that you
+         * would like to change.
+         * @param flagsValues Desired values for any bits set in
+         * <var>flagsMask</var>
+         * @param extraFlags Always set to 0.
+         */
+        StartIntentSender(
+            [in] IIntentSender* intent,
+            [in] IIntent* fillInIntent,
+            [in] Int32 flagsMask,
+            [in] Int32 flagsValues,
+            [in] Int32 extraFlags);
+
         SendBroadcast(
             [in] IIntent* intent);
 
