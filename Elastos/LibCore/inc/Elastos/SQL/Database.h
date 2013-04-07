@@ -1,7 +1,6 @@
 #ifndef __DATABASE_H__
 #define __DATABASE_H__
 
-#include <elastos.h>
 #include <Elastos.SQL_server.h>
 #include <elastos/Mutex.h>
 
@@ -20,7 +19,7 @@ protected:
     /**
      * Internal handle for the native SQLite API.
      */
-    Int64 mHandle;// = 0;
+    Int32 mHandle;// = 0;
 
     /**
      * Internal last error code for exec() methods.
@@ -63,11 +62,11 @@ public:
      * @param mode open mode (e.g. SQLITE_OPEN_READONLY)
      */
     CARAPI Open(
-        /** [in] **/const String &filename, 
+        /** [in] **/const String &filename,
         /** [in] **/Int32 mode);
-    
+
     CARAPI OpenLocked(
-        /** [in] **/const String &filename, 
+        /** [in] **/const String &filename,
         /** [in] **/Int32 mode);
 
     /**
@@ -78,13 +77,13 @@ public:
      * @param vfs VFS name (for SQLite >= 3.5)
      */
     CARAPI OpenEx(
-        /** [in] **/const String &filename, 
-        /** [in] **/Int32 mode, 
+        /** [in] **/const String &filename,
+        /** [in] **/Int32 mode,
         /** [in] **/const String &vfs);
 
     CARAPI OpenExLocked(
-    /** [in] **/const String &filename, 
-    /** [in] **/Int32 mode, 
+    /** [in] **/const String &filename,
+    /** [in] **/Int32 mode,
     /** [in] **/const String &vfs);
 
     /**
@@ -96,15 +95,15 @@ public:
      * @param ver2 flag to force version on create (false = SQLite3, true = SQLite2)
      */
     CARAPI OpenEx2(
-        /** [in] **/const String &filename, 
-        /** [in] **/Int32 mode, 
-        /** [in] **/const String &vfs, 
+        /** [in] **/const String &filename,
+        /** [in] **/Int32 mode,
+        /** [in] **/const String &vfs,
         /** [in] **/Boolean ver2);
 
     CARAPI OpenEx2Locked(
-        /** [in] **/const String &filename, 
-        /** [in] **/Int32 mode, 
-        /** [in] **/const String &vfs, 
+        /** [in] **/const String &filename,
+        /** [in] **/Int32 mode,
+        /** [in] **/const String &vfs,
         /** [in] **/Boolean ver2);
 
     /**
@@ -138,11 +137,11 @@ public:
      * @param cb the object implementing the callback methods
      */
     CARAPI Exec(
-        /** [in] **/const String &sql, 
+        /** [in] **/const String &sql,
         /** [in] **/ICallback* cb);
 
     CARAPI ExecLocked(
-        /** [in] **/const String &sql, 
+        /** [in] **/const String &sql,
         /** [in] **/ICallback* cb);
 
     /**
@@ -169,12 +168,12 @@ public:
      */
 
     CARAPI ExecEx(
-        /** [in] **/const String &sql, 
+        /** [in] **/const String &sql,
         /** [in] **/ICallback* cb,
         /** [in] **/ArrayOf<String>* args);
 
     CARAPI ExecExLocked(
-        /** [in] **/const String &sql, 
+        /** [in] **/const String &sql,
         /** [in] **/ICallback* cb,
         /** [in] **/ArrayOf<String>* args);
 
@@ -234,10 +233,10 @@ public:
      */
 
     CARAPI Get_table(
-        /** [in] **/const String &sql, 
+        /** [in] **/const String &sql,
         /** [in] **/Int32 maxrows,
         /** [out] **/ITableResult** result);
-    
+
     /**
      * Convenience method to retrieve an entire result
      * set into memory.
@@ -259,8 +258,8 @@ public:
      * @return result set
      */
     CARAPI Get_tableEx2(
-        /** [in] **/const String &sql, 
-        /** [in] **/Int32 maxrows, 
+        /** [in] **/const String &sql,
+        /** [in] **/Int32 maxrows,
         /** [in] **/ArrayOf<String>* args,
         /** [out] **/ITableResult** result);
 
@@ -273,7 +272,7 @@ public:
      * @return result set
      */
     CARAPI Get_tableEx3(
-        /** [in] **/const String &sql, 
+        /** [in] **/const String &sql,
         /** [in] **/ArrayOf<String>* args,
         /** [out] **/ITableResult** result);
 
@@ -287,8 +286,8 @@ public:
      * @return result set
      */
     CARAPI Get_tableEx4(
-        /** [in] **/const String &sql, 
-        /** [in] **/ArrayOf<String>* args, 
+        /** [in] **/const String &sql,
+        /** [in] **/ArrayOf<String>* args,
         /** [in] **/ITableResult* tbl);
 
     /**
@@ -316,7 +315,7 @@ public:
     CARAPI Version(
         /** [out] **/String* str);
 
-    
+
     /**
      * Return SQLite version number as string.
      * If the database is not open, <tt>unknown</tt> is returned.
@@ -333,13 +332,13 @@ public:
      * @param f interface of function
      */
     CARAPI Create_function(
-        /** [in] **/const String &name, 
-        /** [in] **/Int32 nargs, 
+        /** [in] **/const String &name,
+        /** [in] **/Int32 nargs,
         /** [in] **/IFunction* f);
 
     CARAPI Create_functionLocked(
-        /** [in] **/const String &name, 
-        /** [in] **/Int32 nargs, 
+        /** [in] **/const String &name,
+        /** [in] **/Int32 nargs,
         /** [in] **/IFunction* f);
 
     /**
@@ -350,13 +349,13 @@ public:
      * @param f interface of function
      */
     CARAPI Create_aggregate(
-        /** [in] **/const String &name, 
-        /** [in] **/Int32 nargs, 
+        /** [in] **/const String &name,
+        /** [in] **/Int32 nargs,
         /** [in] **/IFunction* f);
 
     CARAPI Create_aggregateLocked(
-        /** [in] **/const String &name, 
-        /** [in] **/Int32 nargs, 
+        /** [in] **/const String &name,
+        /** [in] **/Int32 nargs,
         /** [in] **/IFunction* f);
 
     /**
@@ -367,11 +366,11 @@ public:
      * @param type return type code, e.g. SQLite.Constants.SQLITE_NUMERIC
      */
     CARAPI Function_type(
-        /** [in] **/const String &name, 
+        /** [in] **/const String &name,
         /** [in] **/Int32 type);
 
     CARAPI Function_typeLocked(
-        /** [in] **/const String &name, 
+        /** [in] **/const String &name,
         /** [in] **/Int32 type);
     /**
      * Return the code of the last error occured in
@@ -413,7 +412,7 @@ public:
      */
     CARAPI Set_encoding(
         /** [in] **/const String &enc);
-    
+
     CARAPI Set_encodingLocked(
         /** [in] **/const String &enc);
 
@@ -425,7 +424,7 @@ public:
      */
     CARAPI Set_authorizer(
         /** [in] **/IAuthorizer* auth);
-    
+
     CARAPI Set_authorizerLocked(
         /** [in] **/IAuthorizer* auth);
 
@@ -465,12 +464,12 @@ public:
      * @return a Vm object
      */
     CARAPI CompileEx(
-        /** [in] **/const String &sql, 
+        /** [in] **/const String &sql,
         /** [in] **/ArrayOf<String>* args,
         /** [out] **/IVm** vm);
 
     CARAPI CompileExLocked(
-        /** [in] **/const String &sql, 
+        /** [in] **/const String &sql,
         /** [in] **/ArrayOf<String>* args,
         /** [out] **/IVm** vm);
 
@@ -484,7 +483,7 @@ public:
     CARAPI Prepare(
         /** [in] **/const String &sql,
         /** [out] **/IStmt** tmt);
-    
+
     CARAPI PrepareLocked(
         /** [in] **/const String &sql,
         /** [out] **/IStmt** tmt);
@@ -499,18 +498,18 @@ public:
      * @return a Blob object
      */
     CARAPI Open_blob(
-        /** [in] **/const String &db, 
-        /** [in] **/const String &table, 
+        /** [in] **/const String &db,
+        /** [in] **/const String &table,
         /** [in] **/const String &column,
-        /** [in] **/Int64 row, 
+        /** [in] **/Int64 row,
         /** [in] **/Boolean rw,
         /** [out] **/IBlob2** blob);
 
     CARAPI Open_blobLocked(
-        /** [in] **/const String &db, 
-        /** [in] **/const String &table, 
+        /** [in] **/const String &db,
+        /** [in] **/const String &table,
         /** [in] **/const String &column,
-        /** [in] **/Int64 row, 
+        /** [in] **/Int64 row,
         /** [in] **/Boolean rw,
         /** [out] **/IBlob2** blob);
 
@@ -530,11 +529,11 @@ public:
      * @param p the object implementing the progress callback method
      */
     CARAPI Progress_handler(
-        /** [in] **/Int32 n, 
+        /** [in] **/Int32 n,
         /** [in] **/IProgressHandler* p);
 
     CARAPI Progress_handlerLocked(
-        /** [in] **/Int32 n, 
+        /** [in] **/Int32 n,
         /** [in] **/IProgressHandler* p);
 
     /**
@@ -624,18 +623,18 @@ private:
      */
     //native
     CARAPI _open(
-        /** [in] **/String filename, 
-        /** [in] **/Int32 mode);
+        /* [in] */ const String& filename,
+        /* [in] */ const Int32 mode);
 
     /*
      * Newer full interface
      */
     //native
     CARAPI _open4(
-        /** [in] **/String filename, 
-        /** [in] **/Int32 mode, 
-        /** [in] **/String vfs,
-		/** [in] **/Boolean ver2);
+        /* [in] */ const String& filename,
+        /* [in] */ Int32 mode,
+        /* [in] */ const String& vfs,
+        /* [in] */ Boolean ver2);
 
     //native
     CARAPI _open_aux_file(String filename);;
@@ -648,13 +647,13 @@ private:
 
     //native
     CARAPI _exec(
-        /** [in] **/String sql, 
+        /** [in] **/String sql,
         /** [in] **/ICallback* cb);
 
     //native
     CARAPI _execEx(
-        /** [in] **/String sql, 
-        /** [in] **/ICallback* cb, 
+        /** [in] **/String sql,
+        /** [in] **/ICallback* cb,
         /** [in] **/ArrayOf<String>* args);
 
     /**
@@ -677,31 +676,31 @@ private:
     //native
     CARAPI _busy_timeout(
         /** [in] **/Int32 ms);
-    
+
     //native
     CARAPI_(Boolean) _complete(
         /** [in] **/String sql);
-    
+
     //native
     CARAPI _create_function(
-        /** [in] **/String name, 
-        /** [in] **/Int32 nargs, 
+        /** [in] **/String name,
+        /** [in] **/Int32 nargs,
         /** [in] **/IFunction* f);
-    
+
     //native
     CARAPI _create_aggregate(
-        /** [in] **/String name, 
-        /** [in] **/Int32 nargs, 
+        /** [in] **/String name,
+        /** [in] **/Int32 nargs,
         /** [in] **/IFunction* f);
 
     //native
     CARAPI _function_type(
-        /** [in] **/String name, 
+        /** [in] **/String name,
         /** [in] **/Int32 type);
 
     //native
     CARAPI_(String) _errmsg();
-    
+
     //native
     CARAPI _set_encoding(
         /** [in] **/String enc);
@@ -710,7 +709,7 @@ private:
     CARAPI _set_authorizer(
         /** [in] **/IAuthorizer* auth);
 
-    
+
     //native
     CARAPI _trace(
         /** [in] **/ITrace* tr);
@@ -722,7 +721,7 @@ private:
      */
     //native
     CARAPI Vm_compile(
-        /** [in] **/String sql, 
+        /** [in] **/String sql,
         /** [in] **/IVm* vm);
 
     /**
@@ -733,8 +732,8 @@ private:
      */
     //native
     CARAPI Vm_compile_args(
-        /** [in] **/String sql, 
-        /** [in] **/IVm* vm, 
+        /** [in] **/String sql,
+        /** [in] **/IVm* vm,
         /** [in] **/ArrayOf<String>* args);
 
     /**
@@ -744,7 +743,7 @@ private:
      */
     //native
     CARAPI Stmt_prepare(
-        /** [in] **/String sql, 
+        /** [in] **/String sql,
         /** [in] **/IStmt* stmt);
 
     /**
@@ -758,28 +757,28 @@ private:
      */
     //native
     CARAPI _open_blob(
-        /** [in] **/String db, 
-        /** [in] **/String table, 
+        /** [in] **/String db,
+        /** [in] **/String table,
         /** [in] **/String column,
-		/** [in] **/Int64 row, 
-        /** [in] **/Boolean rw, 
+		/** [in] **/Int64 row,
+        /** [in] **/Boolean rw,
         /** [in] **/IBlob2* blob);
 
     //native
     CARAPI _progress_handler(
-        /** [in] **/Int32 n, 
+        /** [in] **/Int32 n,
         /** [in] **/IProgressHandler* p);
 
     //native
     CARAPI _key(
         /** [in] **/ArrayOf<Byte>* ekey);
 
-    
+
     //native
     CARAPI _rekey(
         /** [in] **/ArrayOf<Byte>* ekey);
 
-    
+
 
     /**
      * Internal native initializer.
@@ -787,7 +786,7 @@ private:
     //native
     CARAPI internal_init();
 
-    
+
 
     /**
      * Static initializer to load the native part.

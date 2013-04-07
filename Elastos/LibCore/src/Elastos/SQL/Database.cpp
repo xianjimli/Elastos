@@ -1,11 +1,12 @@
 #include "Database.h"
 #include "cmdef.h"
-#include <sqlite3.h>
 #include "CTableResult.h"
 //#include "TableResult.h"
 #include "CVm.h"
 #include "CStmt.h"
 #include "CBlob2.h"
+#include <sqlite3.h>
+#include <stdio.h>
 
 Database::Database()
     :mHandle(0)
@@ -41,7 +42,7 @@ ECode Database::_enable_shared_cache(
 {
     assert(result != NULL);
 #if HAVE_SQLITE3_SHARED_CACHE
-    *result = (sqlite3_enable_shared_cache(onoff == TRUE) == SQLITE_OK) ? 
+    *result = (sqlite3_enable_shared_cache(onoff == TRUE) == SQLITE_OK) ?
         TRUE : FALSE;
 #else
     *result = FALSE;
@@ -50,7 +51,7 @@ ECode Database::_enable_shared_cache(
 }
 
 ECode Database::Open(
-    /** [in] **/const String &filename, 
+    /** [in] **/const String &filename,
     /** [in] **/Int32 mode)
 {
     if ((mode & 0200) != 0) {
@@ -59,7 +60,7 @@ ECode Database::Open(
     } else if ((mode & 0400) != 0) {
         mode = IConstants_SQLITE_OPEN_READONLY;
     }
-    
+
     //Mutex* selfLock = GetSelfLock();
     //Mutex::Autolock lock(*selfLock);
 
@@ -67,7 +68,7 @@ ECode Database::Open(
 }
 
 ECode Database::OpenLocked(
-    /** [in] **/const String &filename, 
+    /** [in] **/const String &filename,
     /** [in] **/Int32 mode)
 {/*
     try {
@@ -79,12 +80,12 @@ ECode Database::OpenLocked(
     } catch (Throwable t) {
     _open(filename, mode);
     }*/
-    return NOERROR; 
+    return NOERROR;
 }
 
 ECode Database::OpenEx(
-    /** [in] **/const String &filename, 
-    /** [in] **/Int32 mode, 
+    /** [in] **/const String &filename,
+    /** [in] **/Int32 mode,
     /** [in] **/const String &vfs)
 {
     if ((mode & 0200) != 0) {
@@ -101,8 +102,8 @@ ECode Database::OpenEx(
 }
 
 ECode Database::OpenExLocked(
-    /** [in] **/const String &filename, 
-    /** [in] **/Int32 mode, 
+    /** [in] **/const String &filename,
+    /** [in] **/Int32 mode,
     /** [in] **/const String &vfs)
 {/*
     try {
@@ -114,13 +115,13 @@ ECode Database::OpenExLocked(
     } catch (Throwable t) {
     _open(filename, mode);
     }*/
-    return NOERROR; 
+    return NOERROR;
 }
 
 ECode Database::OpenEx2(
-    /** [in] **/const String &filename, 
-    /** [in] **/Int32 mode, 
-    /** [in] **/const String &vfs, 
+    /** [in] **/const String &filename,
+    /** [in] **/Int32 mode,
+    /** [in] **/const String &vfs,
     /** [in] **/Boolean ver2)
 {
     if ((mode & 0200) != 0) {
@@ -137,9 +138,9 @@ ECode Database::OpenEx2(
 }
 
 ECode Database::OpenEx2Locked(
-    /** [in] **/const String &filename, 
-    /** [in] **/Int32 mode, 
-    /** [in] **/const String &vfs, 
+    /** [in] **/const String &filename,
+    /** [in] **/Int32 mode,
+    /** [in] **/const String &vfs,
     /** [in] **/Boolean ver2)
 {/*
     try {
@@ -152,7 +153,7 @@ ECode Database::OpenEx2Locked(
     _open(filename, mode);
     }*/
 
-    return NOERROR; 
+    return NOERROR;
 }
 
 ECode Database::Open_aux_file(
@@ -184,7 +185,7 @@ ECode Database::CloseLocked()
 }
 
 ECode Database::Exec(
-    /** [in] **/const String &sql, 
+    /** [in] **/const String &sql,
     /** [in] **/ICallback* cb)
 {
     //Mutex* selfLock = GetSelfLock();
@@ -194,14 +195,14 @@ ECode Database::Exec(
 }
 
 ECode Database::ExecLocked(
-    /** [in] **/const String &sql, 
+    /** [in] **/const String &sql,
     /** [in] **/ICallback* cb)
 {
     return _exec(sql, cb);
 }
 
 ECode Database::ExecEx(
-    /** [in] **/const String &sql, 
+    /** [in] **/const String &sql,
     /** [in] **/ICallback* cb,
     /** [in] **/ArrayOf<String>* args)
 {
@@ -212,7 +213,7 @@ ECode Database::ExecEx(
 }
 
 ECode Database::ExecExLocked(
-    /** [in] **/const String &sql, 
+    /** [in] **/const String &sql,
     /** [in] **/ICallback* cb,
     /** [in] **/ArrayOf<String>* args)
 {
@@ -297,7 +298,7 @@ ECode Database::Busy_timeoutLocked(
 }
 
 ECode Database::Get_table(
-    /** [in] **/const String &sql, 
+    /** [in] **/const String &sql,
     /** [in] **/Int32 maxrows,
     /** [out] **/ITableResult** result)
 {
@@ -317,7 +318,7 @@ ECode Database::Get_table(
         }
     } else {
   //      synchronized(this) {
-        // only one statement !!! 
+        // only one statement !!!
         AutoPtr<IVm> vm;
         Compile(sql, (IVm**)&vm);
         Vm* cvm = (Vm *)vm->Probe(EIID_IVm);
@@ -352,8 +353,8 @@ ECode Database::Get_tableEx(
 }
 
 ECode Database::Get_tableEx2(
-    /** [in] **/const String &sql, 
-    /** [in] **/Int32 maxrows, 
+    /** [in] **/const String &sql,
+    /** [in] **/Int32 maxrows,
     /** [in] **/ArrayOf<String>* args,
     /** [out] **/ITableResult** result)
 {
@@ -371,10 +372,10 @@ ECode Database::Get_tableEx2(
                 return E_SQL_EXCEPTION;
             }
         }
- 
+
     } else {
       //  synchronized(this) {
-        // only one statement !!! 
+        // only one statement !!!
         //Vm vm = compile(sql, args);
         AutoPtr<IVm> vm;
         CompileEx(sql, args, (IVm**)&vm);
@@ -404,7 +405,7 @@ ECode Database::Get_tableEx2(
 }
 
 ECode Database::Get_tableEx3(
-    /** [in] **/const String &sql, 
+    /** [in] **/const String &sql,
     /** [in] **/ArrayOf<String>* args,
     /** [out] **/ITableResult** result)
 {
@@ -412,8 +413,8 @@ ECode Database::Get_tableEx3(
 }
 
 ECode Database::Get_tableEx4(
-    /** [in] **/const String &sql, 
-    /** [in] **/ArrayOf<String>* args, 
+    /** [in] **/const String &sql,
+    /** [in] **/ArrayOf<String>* args,
     /** [in] **/ITableResult* tbl)
 {
     TableResult* tr = (TableResult *)tbl->Probe(EIID_ITableResult);
@@ -428,7 +429,7 @@ ECode Database::Get_tableEx4(
         }
     } else {
      //   synchronized(this) {
-        // only one statement !!! 
+        // only one statement !!!
         //Vm vm = compile(sql, args);
         AutoPtr<IVm> vm;
         CompileEx(sql, args, (IVm**)&vm);
@@ -517,8 +518,8 @@ ECode Database::Dbversion(
 }
 
 ECode Database::Create_function(
-    /** [in] **/const String &name, 
-    /** [in] **/Int32 nargs, 
+    /** [in] **/const String &name,
+    /** [in] **/Int32 nargs,
     /** [in] **/IFunction* f)
 {
     //Mutex* selfLock = GetSelfLock();
@@ -528,16 +529,16 @@ ECode Database::Create_function(
 }
 
 ECode Database::Create_functionLocked(
-    /** [in] **/const String &name, 
-    /** [in] **/Int32 nargs, 
+    /** [in] **/const String &name,
+    /** [in] **/Int32 nargs,
     /** [in] **/IFunction* f)
 {
     return _create_function(name, nargs, f);
 }
 
 ECode Database::Create_aggregate(
-    /** [in] **/const String &name, 
-    /** [in] **/Int32 nargs, 
+    /** [in] **/const String &name,
+    /** [in] **/Int32 nargs,
     /** [in] **/IFunction* f)
 {
     //Mutex* selfLock = GetSelfLock();
@@ -547,15 +548,15 @@ ECode Database::Create_aggregate(
 }
 
 ECode Database::Create_aggregateLocked(
-    /** [in] **/const String &name, 
-    /** [in] **/Int32 nargs, 
+    /** [in] **/const String &name,
+    /** [in] **/Int32 nargs,
     /** [in] **/IFunction* f)
 {
     return _create_aggregate(name, nargs, f);
 }
 
 ECode Database::Function_type(
-    /** [in] **/const String &name, 
+    /** [in] **/const String &name,
     /** [in] **/Int32 type)
 {
     //Mutex* selfLock = GetSelfLock();
@@ -565,7 +566,7 @@ ECode Database::Function_type(
 }
 
 ECode Database::Function_typeLocked(
-    /** [in] **/const String &name, 
+    /** [in] **/const String &name,
     /** [in] **/Int32 type)
 {
     return _function_type(name, type);
@@ -670,7 +671,7 @@ ECode Database::CompileLocked(
 }
 
 ECode Database::CompileEx(
-    /** [in] **/const String &sql, 
+    /** [in] **/const String &sql,
     /** [in] **/ArrayOf<String>* args,
     /** [out] **/IVm** vm)
 {
@@ -681,7 +682,7 @@ ECode Database::CompileEx(
 }
 
 ECode Database::CompileExLocked(
-    /** [in] **/const String &sql, 
+    /** [in] **/const String &sql,
     /** [in] **/ArrayOf<String>* args,
     /** [out] **/IVm** vm)
 {
@@ -714,10 +715,10 @@ ECode Database::PrepareLocked(
 }
 
 ECode Database::Open_blob(
-    /** [in] **/const String &db, 
-    /** [in] **/const String &table, 
+    /** [in] **/const String &db,
+    /** [in] **/const String &table,
     /** [in] **/const String &column,
-    /** [in] **/Int64 row, 
+    /** [in] **/Int64 row,
     /** [in] **/Boolean rw,
     /** [out] **/IBlob2** blob)
 {
@@ -728,10 +729,10 @@ ECode Database::Open_blob(
 }
 
 ECode Database::Open_blobLocked(
-    /** [in] **/const String &db, 
-    /** [in] **/const String &table, 
+    /** [in] **/const String &db,
+    /** [in] **/const String &table,
     /** [in] **/const String &column,
-    /** [in] **/Int64 row, 
+    /** [in] **/Int64 row,
     /** [in] **/Boolean rw,
     /** [out] **/IBlob2** blob)
 {
@@ -764,7 +765,7 @@ ECode Database::Is3(
 }
 
 ECode Database::Progress_handler(
-    /** [in] **/Int32 n, 
+    /** [in] **/Int32 n,
     /** [in] **/IProgressHandler* p)
 {
     //Mutex* selfLock = GetSelfLock();
@@ -774,7 +775,7 @@ ECode Database::Progress_handler(
 }
 
 ECode Database::Progress_handlerLocked(
-    /** [in] **/Int32 n, 
+    /** [in] **/Int32 n,
     /** [in] **/IProgressHandler* p)
 {
     return _progress_handler(n, p);
@@ -893,225 +894,106 @@ ECode Database::Julian_from_long(
 }
 
 ECode Database::_open(
-    /** [in] **/String filename, 
-    /** [in] **/Int32 mode)
+    /* [in] */ const String& filename,
+    /* [in] */ Int32 mode)
 {
-    _open4(filename, mode, String(NULL), FALSE);
-    return E_NOT_IMPLEMENTED;
+    return _open4(filename, mode, String(NULL), FALSE);
 }
 
-ECode Database::_open4(
-    /** [in] **/String filename, 
-    /** [in] **/Int32 mode, 
-    /** [in] **/String vfs,
-    /** [in] **/Boolean ver2)
-{/*
-    handle *h = gethandle(env, obj);
-    jthrowable exc;
-    char *err = 0;
-    transstr filename;
-    int maj, min, lev;
-#if HAVE_SQLITE3_OPEN_V2
-    transstr vfsname;
+/* internal handle for SQLite database */
 
-    vfsname.result = 0;
-    vfsname.tofree = 0;
-    vfsname.jstr = 0;
+typedef struct {
+    void *sqlite;       /* SQLite handle */
+    int ver;            /* version code */
+//    jobject bh;         /* BusyHandler object */
+//    jobject cb;         /* Callback object */
+//    jobject ai;         /* Authorizer object */
+//    jobject tr;         /* Trace object */
+//    jobject ph;         /* ProgressHandler object */
+//    JNIEnv *env;        /* Java environment for callbacks */
+    int row1;           /* true while processing first row */
+    // int haveutf;        /* true for SQLite UTF-8 support */
+//    jstring enc;        /* encoding or 0 */
+    struct hfunc *funcs;    /* SQLite user defined function handles */
+#if HAVE_SQLITE_COMPILE
+    struct hvm *vms;        /* Compiled SQLite VMs */
 #endif
+    sqlite3_stmt *stmt;     /* For callback() */
+  struct hbl *blobs;        /* SQLite3 blob handles */
+} handle;
+
+/* internal handle for SQLite user defined function */
+
+typedef struct hfunc {
+    struct hfunc *next;     /* next function */
+    // jobject fc;         /* FunctionContext object */
+    // jobject fi;         /* Function object */
+    // jobject db;         /* Database object */
+    handle *h;          /* SQLite database handle */
+    void *sf;           /* SQLite function handle */
+    // JNIEnv *env;        /* Java environment for callbacks */
+} hfunc;
+
+/* internal handle for sqlite3_blob */
+
+typedef struct hbl {
+    struct hbl *next;       /* next blob handle */
+    sqlite3_blob *blob;     /* SQLite3 blob */
+    handle *h;          /* SQLite database handle */
+} hbl;
+
+ECode Database::_open4(
+    /* [in] */ const String& filename,
+    /* [in] */ Int32 mode,
+    /* [in] */ const String& vfsname,
+    /* [in] */ Boolean ver2)
+{
+    handle* h = (handle*)mHandle;
+    char* err = NULL;
+    Int32 maj, min, lev;
 
     if (h) {
-    if (h->sqlite) {
-#if HAVE_BOTH_SQLITE
-        if (h->is3) {
-        sqlite3_close((sqlite3 *) h->sqlite);
-        } else {
-        sqlite_close((sqlite *) h->sqlite);
+        if (h->sqlite) {
+            sqlite3_close((sqlite3*)h->sqlite);
+            h->sqlite = NULL;
         }
-        h->is3 = 0;
-#else
-#if HAVE_SQLITE2
-        sqlite_close((sqlite *) h->sqlite);
-#endif
-#if HAVE_SQLITE3
-        sqlite3_close((sqlite3 *) h->sqlite);
-#endif
-#endif
-        h->sqlite = 0;
     }
-    } else {
-    h = malloc(sizeof (handle));
-    if (!h) {
-        throwoom(env, "unable to get SQLite handle");
-        return;
-    }
-    h->sqlite = 0;
-    h->bh = h->cb = h->ai = h->tr = h->ph = 0;
-    // CHECK THIS 
-#if HAVE_BOTH_SQLITE
-    h->is3 = 0;
-    h->stmt = 0;
-    h->haveutf = 1;
-#else
-#if HAVE_SQLITE2
-    h->haveutf = strcmp(sqlite_libencoding(), "UTF-8") == 0;
-#endif
-#if HAVE_SQLITE3
-    h->stmt = 0;
-    h->haveutf = 1;
-#endif
-#endif
-    h->enc = 0;
-    h->funcs = 0;
-    h->ver = 0;
+    else {
+        h = (handle*)malloc(sizeof (handle));
+        if (!h) {
+            // throwoom(env, "unable to get SQLite handle");
+            return E_OUT_OF_MEMORY_ERROR;
+        }
+        h->sqlite = NULL;
+    // CHECK THIS
+        h->stmt = NULL;
+        h->funcs = NULL;
+        h->ver = 0;
 #if HAVE_SQLITE_COMPILE
-    h->vms = 0;
+        h->vms = NULL;
 #endif
-#if HAVE_SQLITE3 && HAVE_SQLITE3_INCRBLOBIO
-    h->blobs = 0;
-#endif
+        h->blobs = NULL;
     }
-    h->env = 0;
-    if (!file) {
-    throwex(env, err ? err : "invalid file name");
-    return;
+    if (filename.IsNull()) {
+        // throwex(env, err ? err : "invalid file name");
+        return E_SQLITE_EXCEPTION;
     }
-    trans2iso(env, h->haveutf, h->enc, file, &filename);
-    exc = (*env)->ExceptionOccurred(env);
-    if (exc) {
-    (*env)->DeleteLocalRef(env, exc);
-    return;
-    }
-#if HAVE_SQLITE3_OPEN_V2
-    if (vfs) {
-    trans2iso(env, 1, h->enc, vfs, &vfsname);
-    exc = (*env)->ExceptionOccurred(env);
-    if (exc) {
-        transfree(&filename);
-        (*env)->DeleteLocalRef(env, exc);
-        return;
-    }
-    }
-#endif
-#if HAVE_BOTH_SQLITE
-    {
-    FILE *f = fopen(filename.result, "rb");
-    int c_0 = EOF;
-
-    if (f) {
-        c_0 = fgetc(f);
-        fclose(f);
-    }
-    if (c_0 != '*' && ver2 == JNI_FALSE) {
-#if HAVE_SQLITE3_OPEN_V2
-        int rc = sqlite3_open_v2(filename.result, (sqlite3 **) &h->sqlite,
-                     (int) mode, vfsname.result);
-#else
-        int rc = sqlite3_open(filename.result, (sqlite3 **) &h->sqlite);
-#endif
-
-        if (rc == SQLITE_OK) {
-        h->is3 = 1;
-        } else if (h->sqlite) {
-        sqlite3_close((sqlite3 *) h->sqlite);
-        h->sqlite = 0;
+    if (sqlite3_open_v2(filename.string(), (sqlite3 **)&h->sqlite,
+            mode, vfsname.string()) != SQLITE_OK) {
+        if (h->sqlite) {
+            sqlite3_close((sqlite3 *)h->sqlite);
+            h->sqlite = NULL;
         }
-    } else {
-        h->sqlite = (void *) sqlite_open(filename.result,
-                         (int) mode, &err);
-    }
-    }
-#else
-#if HAVE_SQLITE2
-    h->sqlite = (void *) sqlite_open(filename.result, (int) mode, &err);
-#endif
-#if HAVE_SQLITE3
-#if HAVE_SQLITE3_OPEN_V2
-    if (sqlite3_open_v2(filename.result, (sqlite3 **) &h->sqlite,
-            (int) mode, vfsname.result) != SQLITE_OK)
-#else
-    if (sqlite3_open(filename.result, (sqlite3 **) &h->sqlite) != SQLITE_OK)
-#endif
-    {
-    if (h->sqlite) {
-        sqlite3_close((sqlite3 *) h->sqlite);
-        h->sqlite = 0;
-    }
-    }
-#endif
-#endif
-    transfree(&filename);
-#if HAVE_SQLITE3_OPEN_V2
-    transfree(&vfsname);
-#endif
-    exc = (*env)->ExceptionOccurred(env);
-    if (exc) {
-    (*env)->DeleteLocalRef(env, exc);
-#if HAVE_SQLITE2
-    if (err) {
-        sqlite_freemem(err);
-    }
-#endif
-    if (h->sqlite) {
-#if HAVE_BOTH_SQLITE
-        if (h->is3) {
-        sqlite3_close((sqlite3 *) h->sqlite);
-        h->is3 = 0;
-        } else {
-        sqlite_close((sqlite *) h->sqlite);
-        }
-#else
-#if HAVE_SQLITE2
-        sqlite_close((sqlite *) h->sqlite);
-#endif
-#if HAVE_SQLITE3
-        sqlite3_close((sqlite3 *) h->sqlite);
-#endif
-#endif
-    }
-    h->sqlite = 0;
-    return;
     }
     if (h->sqlite) {
-    jvalue v;
-
-    v.j = 0;
-    v.l = (jobject) h;
-    (*env)->SetLongField(env, obj, F_SQLite_Database_handle, v.j);
-#if HAVE_SQLITE2
-    if (err) {
-        sqlite_freemem(err);
-    }
-#endif
-#if HAVE_BOTH_SQLITE
-    if (h->is3) {
+        mHandle = (Int32)h;
         sscanf(sqlite3_libversion(), "%d.%d.%d", &maj, &min, &lev);
-#if HAVE_SQLITE3_LOAD_EXTENSION
-        sqlite3_enable_load_extension((sqlite3 *) h->sqlite, 1);
-#endif
-    } else {
-        sscanf(sqlite_libversion(), "%d.%d.%d", &maj, &min, &lev);
+        sqlite3_enable_load_extension((sqlite3 *)h->sqlite, 1);
+        h->ver = ((maj & 0xFF) << 16) | ((min & 0xFF) << 8) | (lev & 0xFF);
+        return NOERROR;
     }
-#else
-#if HAVE_SQLITE2
-    sscanf(sqlite_libversion(), "%d.%d.%d", &maj, &min, &lev);
-#endif
-#if HAVE_SQLITE3
-    sscanf(sqlite3_libversion(), "%d.%d.%d", &maj, &min, &lev);
-#if HAVE_SQLITE3_LOAD_EXTENSION
-    sqlite3_enable_load_extension((sqlite3 *) h->sqlite, 1);
-#endif
-#endif
-#endif
-    h->ver = ((maj & 0xFF) << 16) | ((min & 0xFF) << 8) | (lev & 0xFF);
-    return;
-    }
-    throwex(env, err ? err : "unknown error in open");
-#if HAVE_SQLITE2
-    if (err) {
-    sqlite_freemem(err);
-    }
-#endif*/
-    return NOERROR;
+    // throwex(env, err ? err : "unknown error in open");
+    return E_SQLITE_EXCEPTION;
 }
 
 ECode Database::_open_aux_file(String filename)
@@ -1176,7 +1058,7 @@ ECode Database::_close()
 }
 
 ECode Database::_exec(
-    /** [in] **/String sql, 
+    /** [in] **/String sql,
     /** [in] **/ICallback* cb)
 {/*
     handle *h = gethandle(env, obj);
@@ -1256,8 +1138,8 @@ ECode Database::_exec(
 }
 
 ECode Database::_execEx(
-    /** [in] **/String sql, 
-    /** [in] **/ICallback* cb, 
+    /** [in] **/String sql,
+    /** [in] **/ICallback* cb,
     /** [in] **/ArrayOf<String>* args)
 {/*
     handle *h = gethandle(env, obj);
@@ -1662,7 +1544,7 @@ Boolean Database::_complete(
     return JNI_FALSE;
     }
 #if HAVE_BOTH_SQLITE || HAVE_SQLITE3
-    // CHECK THIS 
+    // CHECK THIS
     trans2iso(env, 1, 0, sql, &sqlstr);
     result = sqlite3_complete(sqlstr.result) ? JNI_TRUE : JNI_FALSE;
 #else
@@ -1676,17 +1558,17 @@ Boolean Database::_complete(
 }
 
 ECode Database::_create_function(
-    /** [in] **/String name, 
-    /** [in] **/Int32 nargs, 
+    /** [in] **/String name,
+    /** [in] **/Int32 nargs,
     /** [in] **/IFunction* f)
 {
     //mkfunc_common(env, 0, obj, name, nargs, fi);
     return E_NOT_IMPLEMENTED;
 }
-    
+
 ECode Database::_create_aggregate(
-    /** [in] **/String name, 
-    /** [in] **/Int32 nargs, 
+    /** [in] **/String name,
+    /** [in] **/Int32 nargs,
     /** [in] **/IFunction* f)
 {
     //mkfunc_common(env, 1, obj, name, nargs, fi);
@@ -1694,7 +1576,7 @@ ECode Database::_create_aggregate(
 }
 
 ECode Database::_function_type(
-    /** [in] **/String name, 
+    /** [in] **/String name,
     /** [in] **/Int32 type)
 {/*
 handle *h = gethandle(env, obj);
@@ -1750,7 +1632,7 @@ String Database::_errmsg()
     return 0;*/
     return String("aaa");
 }
-    
+
 
 ECode Database::_set_encoding(
     /** [in] **/String enc)
@@ -1842,7 +1724,7 @@ ECode Database::_trace(
 }
 
 ECode Database::Vm_compile(
-    /** [in] **/String sql, 
+    /** [in] **/String sql,
     /** [in] **/IVm* vm)
 {/*
 #if HAVE_SQLITE_COMPILE
@@ -2001,8 +1883,8 @@ ECode Database::Vm_compile(
 }
 
 ECode Database::Vm_compile_args(
-    /** [in] **/String sql, 
-    /** [in] **/IVm* vm, 
+    /** [in] **/String sql,
+    /** [in] **/IVm* vm,
     /** [in] **/ArrayOf<String>* args)
 {/*
 #if HAVE_SQLITE_COMPILE
@@ -2020,7 +1902,7 @@ ECode Database::Vm_compile_args(
     throwex(env, "unsupported");
 #endif
 #endif
-#if HAVE_SQLITE3 
+#if HAVE_SQLITE3
     if (!h || !h->sqlite) {
     throwclosed(env);
     return;
@@ -2222,7 +2104,7 @@ ECode Database::Vm_compile_args(
 }
 
 ECode Database::Stmt_prepare(
-    /** [in] **/String sql, 
+    /** [in] **/String sql,
     /** [in] **/IStmt* stmt)
 {/*
 #if HAVE_SQLITE3
@@ -2325,11 +2207,11 @@ ECode Database::Stmt_prepare(
 }
 
 ECode Database::_open_blob(
-    /** [in] **/String db, 
-    /** [in] **/String table, 
+    /** [in] **/String db,
+    /** [in] **/String table,
     /** [in] **/String column,
-    /** [in] **/Int64 row, 
-    /** [in] **/Boolean rw, 
+    /** [in] **/Int64 row,
+    /** [in] **/Boolean rw,
     /** [in] **/IBlob2* blob)
 {/*
 #if HAVE_SQLITE3 && HAVE_SQLITE3_INCRBLOBIO
@@ -2405,13 +2287,13 @@ ECode Database::_open_blob(
 }
 
 ECode Database::_progress_handler(
-    /** [in] **/Int32 n, 
+    /** [in] **/Int32 n,
     /** [in] **/IProgressHandler* p)
 {/*
     handle *h = gethandle(env, obj);
 
     if (h && h->sqlite) {
-    // CHECK THIS 
+    // CHECK THIS
 #if HAVE_SQLITE_PROGRESS_HANDLER
     delglobrefp(env, &h->ph);
 #if HAVE_BOTH_SQLITE
@@ -2508,7 +2390,7 @@ ECode Database::_key(
     if (data) {
     memset(data, 0, len);
     }
-    // no error 
+    // no error
 #endif*/
     return E_NOT_IMPLEMENTED;
 }
