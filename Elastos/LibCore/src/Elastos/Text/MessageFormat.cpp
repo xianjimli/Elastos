@@ -1,7 +1,6 @@
 #include "MessageFormat.h"
 
-const AutoPtr<IMessageFormat_Field> MessageFormat::MessageFormat_Field::ARGUMENT;
-
+const AutoPtr<IMessageFormatField> MessageFormat::MessageFormatField::ARGUMENT;
 
 MessageFormat::~MessageFormat()
 {
@@ -18,15 +17,15 @@ MessageFormat::~MessageFormat()
 }
 
 void MessageFormat::Init(
-        /* [in] */ String tem,
-        /* [in] */ ILocale* locale)
+    /* [in] */ String tem,
+    /* [in] */ ILocale* locale)
 {
     mLocale = locale;
     ApplyPattern(tem);
 }
 
 void MessageFormat::Init(
-        /* [in] */ String tem)
+    /* [in] */ String tem)
 {
     AutoPtr<ILocaleHelper> pLocaleHelper;
     CLocaleHelper::AcquireSingleton((ILocaleHelper**)&pLocaleHelper);
@@ -112,16 +111,16 @@ ECode MessageFormat::ApplyPattern(
 }
 
 ECode MessageFormat::FormatToCharacterIterator(
-        /* [in] */ IInterface* object,
-        /* [out] */ IAttributedCharacterIterator** characterIterator)
+    /* [in] */ IInterface* object,
+    /* [out] */ IAttributedCharacterIterator** characterIterator)
 {
     if (object == NULL) {
         //throw new NullPointerException();
-        return NOERROR;
+        return E_NULL_POINTER_EXCEPTION;
     }
 
     StringBuffer* buffer = new StringBuffer("");
-    Vector<FieldContainer*>* fields = new Vector<FieldContainer*>();
+    Vector<FieldContainer*> *fields = new Vector<FieldContainer*>();
 
     // format the message, and find fields
     AutoPtr<IFieldPosition> position;
@@ -130,39 +129,37 @@ ECode MessageFormat::FormatToCharacterIterator(
     FormatImpl((ArrayOf< IInterface* >*) object, buffer, position, fields, sb);
 
     // create an AttributedString with the formatted buffer
-//    AttributedString as = new AttributedString(buffer.toString());
+    AutoPtr<IAttributedString> as;
+    CAttributedString::New(buffer->Substring(0, buffer->GetLength()), (IAttributedString**)&as);
 
     // add MessageFormat field attributes and values to the AttributedString
-//    for (int i = 0; i < fields.size(); i++) {
-//        FieldContainer fc = fields.elementAt(i);
-//        as.addAttribute(fc.attribute, fc.value, fc.start, fc.end);
-//    }
+    for (Int32 i = 0; i < (Int32)fields->GetSize(); i++) {
+        FieldContainer *fc = (*fields)[i];
+        FAIL_RETURN(as->AddAttributeEx(fc->mAttribute, fc->mValue, fc->mStart, fc->mEnd));
+    }
 
     // return the CharacterIterator from AttributedString
-//    return as.getIterator();
-    return NOERROR;
+    return as->GetIterator(characterIterator);
 }
 
-ECode MessageFormat::formatEx2(
-        /* [in] */ ArrayOf< IInterface* >* objects,
-        /* [in] */ const String& buffer,
-        /* [in] */ IFieldPosition* field,
-        /* [out] */ String* value)
+ECode MessageFormat::FormatObjects(
+    /* [in] */ ArrayOf< IInterface* >* objects,
+    /* [in] */ const String& buffer,
+    /* [in] */ IFieldPosition* field,
+    /* [out] */ String* value)
 {
-    assert(0);
-    return E_NOT_IMPLEMENTED;
-    // return FormatImpl(objects, buffer, field, NULL, value);
+    return FormatImpl(objects, new StringBuffer(buffer.string()), field, NULL, new StringBuffer(value->string()));
 }
 
 ECode MessageFormat::FormatImpl(
-        /* [in] */ ArrayOf< IInterface* >* objects,
-        /* [in] */ StringBuffer* buffer,
-        /* [in] */ IFieldPosition* field,
-        /* [in] */ Vector<FieldContainer*>* fields,
-        /* [out] */ StringBuffer* value)
+    /* [in] */ ArrayOf< IInterface* >* objects,
+    /* [in] */ StringBuffer* buffer,
+    /* [in] */ IFieldPosition* position,
+    /* [in] */ Vector<FieldContainer*>* fields,
+    /* [out] */ StringBuffer* value)
 {
-    AutoPtr<IFieldPosition> position;
-    CFieldPosition::New(0, (IFieldPosition**)&position);
+    AutoPtr<IFieldPosition> passedField;
+    CFieldPosition::New(0, (IFieldPosition**)&passedField);
 
     for (Int32 i = 0; i <= mMaxOffset; i++) {
         *buffer += (*mStrings)[i];
@@ -191,38 +188,39 @@ ECode MessageFormat::FormatImpl(
                 continue;
             }
         }
-//        if (format instanceof ChoiceFormat) {
-//            String result = format.format(arg);
-//            MessageFormat mf = new MessageFormat(result);
-//            mf.setLocale(locale);
-//            mf.format(objects, buffer, passedField);
-//            handleArgumentField(begin, buffer.length(), argumentNumbers[i],
-//                    position, fields);
-//            handleformat(format, arg, begin, fields);
-//        } else {
-//            format.format(arg, buffer, passedField);
-//            handleArgumentField(begin, buffer.length(), argumentNumbers[i],
-//                    position, fields);
-//            handleformat(format, arg, begin, fields);
-//        }
+        if (format->Probe(EIID_IChoiceFormat) != NULL) {
+            String result;
+            format->FormatObject(arg, &result);
+            AutoPtr<IMessageFormat> mf;
+            //CMessageFormat::New(result, (IMessageFormat**)&mf);
+            mf->SetLocale(mLocale);
+            mf->FormatObjects(objects, buffer->Substring(0, buffer->GetLength()), passedField, &result);
+            HandleArgumentField(begin, buffer->GetLength(), (*mArgumentNumbers)[i], position, fields);
+            Handleformat(format, arg, begin, fields);
+        } else {
+            String result;
+            format->FormatObjectEx(arg, buffer->Substring(0, buffer->GetLength()), passedField, &result);
+            HandleArgumentField(begin, buffer->GetLength(), (*mArgumentNumbers)[i], position, fields);
+            Handleformat(format, arg, begin, fields);
+        }
     }
-//    if (maxOffset + 1 < strings.length) {
-//        buffer.append(strings[maxOffset + 1]);
-//    }
-//    return buffer;
-        return NOERROR;
+    if (mMaxOffset + 1 < mStrings->GetLength()) {
+        (*buffer) += (*mStrings)[mMaxOffset + 1];
+    }
+    value = buffer;
+    return NOERROR;
 }
 
 ECode MessageFormat::HandleArgumentField(
-        /* [in] */ Int32 begin,
-        /* [in] */ Int32 end,
-        /* [in] */ Int32 argIndex,
-        /* [in] */ IFieldPosition* position,
-        /* [in] */ Vector<FieldContainer*>* fields)
+    /* [in] */ Int32 begin,
+    /* [in] */ Int32 end,
+    /* [in] */ Int32 argIndex,
+    /* [in] */ IFieldPosition* position,
+    /* [in] */ Vector<FieldContainer*>* fields)
 {
     if (fields != NULL) {
         FieldContainer* fc = new FieldContainer(begin, end,
-            (IAttributedCharacterIteratorAttribute*)MessageFormat_Field::ARGUMENT,
+            (IAttributedCharacterIteratorAttribute*)MessageFormatField::ARGUMENT,
             (IInterface*)argIndex);
         fields->PushBack(fc);
     } else {
@@ -231,7 +229,7 @@ ECode MessageFormat::HandleArgumentField(
         AutoPtr<IFormatField> fa;
         position->GetFieldAttribute((IFormatField**)&fa);
         if (position != NULL
-                && fa == MessageFormat_Field::ARGUMENT
+                && fa == MessageFormatField::ARGUMENT
                 && endIndex == 0) {
             position->SetBeginIndex(begin);
             position->SetEndIndex(end);
@@ -241,10 +239,10 @@ ECode MessageFormat::HandleArgumentField(
 }
 
 MessageFormat::FieldContainer::FieldContainer(
-        /* [in] */ Int32 start,
-        /* [in] */ Int32 end,
-        /* [in] */ IAttributedCharacterIteratorAttribute* attribute,
-        /* [in] */ IInterface* value)
+    /* [in] */ Int32 start,
+    /* [in] */ Int32 end,
+    /* [in] */ IAttributedCharacterIteratorAttribute* attribute,
+    /* [in] */ IInterface* value)
 {
     mStart = start;
     mEnd = end;
@@ -253,10 +251,10 @@ MessageFormat::FieldContainer::FieldContainer(
 }
 
 ECode MessageFormat::Handleformat(
-        /* [in] */ IFormat* format,
-        /* [in] */ IInterface* arg,
-        /* [in] */ Int32 begin,
-        /* [in] */ Vector<FieldContainer*>* fields)
+    /* [in] */ IFormat* format,
+    /* [in] */ IInterface* arg,
+    /* [in] */ Int32 begin,
+    /* [in] */ Vector<FieldContainer*>* fields)
 {
     if (fields != NULL) {
         AutoPtr<IAttributedCharacterIterator> iterator;
@@ -286,24 +284,24 @@ ECode MessageFormat::Handleformat(
 }
 
 ECode MessageFormat::FormatObjectEx(
-        /* [in] */ IInterface* object,
-        /* [in] */ const String& buffer,
-        /* [in] */ IFieldPosition* field,
-        /* [out] */ String* value)
+    /* [in] */ IInterface* object,
+    /* [in] */ const String& buffer,
+    /* [in] */ IFieldPosition* field,
+    /* [out] */ String* value)
 {
     VALIDATE_NOT_NULL(value);
-    return formatEx2((ArrayOf< IInterface* >*) object, buffer, field, value);
+    return FormatObjects((ArrayOf< IInterface* >*) object, buffer, field, value);
 }
 
 ECode MessageFormat::GetFormats(
-        /* [out] */ ArrayOf< IFormat* >** arrayOfInstances)
+    /* [out] */ ArrayOf< IFormat* >** arrayOfInstances)
 {
     *arrayOfInstances = mFormats->Clone();
     return NOERROR;
 }
 
 ECode MessageFormat::GetFormatsByArgumentIndex(
-        /* [out] */ ArrayOf< IFormat* >** arrayOfInstances)
+    /* [out] */ ArrayOf< IFormat* >** arrayOfInstances)
 {
     ArrayOf< IFormat* >* answer = ArrayOf< IFormat* >::Alloc(mMaxArgumentIndex + 1);
     for (Int32 i = 0; i < mMaxOffset + 1; i++) {
@@ -314,8 +312,8 @@ ECode MessageFormat::GetFormatsByArgumentIndex(
 }
 
 ECode MessageFormat::SetFormatByArgumentIndex(
-        /* [in] */ Int32 argIndex,
-        /* [in] */ IFormat* format)
+    /* [in] */ Int32 argIndex,
+    /* [in] */ IFormat* format)
 {
     for (Int32 i = 0; i < mMaxOffset + 1; i++) {
         if ((*mArgumentNumbers)[i] == argIndex) {
@@ -326,7 +324,7 @@ ECode MessageFormat::SetFormatByArgumentIndex(
 }
 
 ECode MessageFormat::SetFormatsByArgumentIndexEx(
-        /* [in] */ ArrayOf< IFormat* >* formats)
+    /* [in] */ ArrayOf< IFormat* >* formats)
 {
     for (Int32 j = 0; j < mFormats->GetLength(); j++) {
         for (Int32 i = 0; i < mMaxOffset + 1; i++) {
@@ -339,15 +337,15 @@ ECode MessageFormat::SetFormatsByArgumentIndexEx(
 }
 
 ECode MessageFormat::GetLocale(
-        /* [out] */ ILocale** locale)
+    /* [out] */ ILocale** locale)
 {
     *locale = mLocale;
     return NOERROR;
 }
 
 ECode MessageFormat::Parse(
-        /* [in] */ String string,
-        /* [out, callee] */ ArrayOf< IInterface* >** value)
+    /* [in] */ String string,
+    /* [out, callee] */ ArrayOf< IInterface* >** value)
 {
     AutoPtr<IParsePosition> position;
     CParsePosition::New(0, (IParsePosition**)&position);
@@ -357,16 +355,16 @@ ECode MessageFormat::Parse(
     position->GetIndex(&index);
     if (index == 0) {
         //throw new ParseException("Parse failure", position.getErrorIndex());
-        return NOERROR;
+        return E_PARSE_EXCEPTION;
     }
     *value = result->Clone();
     return NOERROR;
 }
 
 ECode MessageFormat::ParseEx(
-        /* [in] */ String string,
-        /* [in] */ IParsePosition* position,
-        /* [out, callee] */ ArrayOf< IInterface* >** value)
+    /* [in] */ String string,
+    /* [in] */ IParsePosition* position,
+    /* [out, callee] */ ArrayOf< IInterface* >** value)
 {
     if (string.IsNull()) {
         *value = ArrayOf< IInterface* >::Alloc(0);
@@ -434,19 +432,19 @@ ECode MessageFormat::ParseEx(
 }
 
 ECode MessageFormat::ParseObjectEx(
-        /* [in] */ String string,
-        /* [in] */ IParsePosition* position,
-        /* [out] */ IInterface** arrayOfObjects)
+    /* [in] */ String string,
+    /* [in] */ IParsePosition* position,
+    /* [out] */ IInterface** arrayOfObjects)
 {
     return ParseEx(string, position, (ArrayOf< IInterface* >**)arrayOfObjects);
 }
 
 ECode MessageFormat::Match(
-        /* [in] */ String string,
-        /* [in] */ IParsePosition* position,
-        /* [in] */ Boolean last,
-        /* [in] */ ArrayOf<String>* tokens,
-        /* [out] */ Int32* value)
+    /* [in] */ String string,
+    /* [in] */ IParsePosition* position,
+    /* [in] */ Boolean last,
+    /* [in] */ ArrayOf<String>* tokens,
+    /* [out] */ Int32* value)
 {
     VALIDATE_NOT_NULL(value);
     Int32 length = string.GetLength();
@@ -484,9 +482,9 @@ ECode MessageFormat::Match(
 }
 
 ECode MessageFormat::ParseVariable(
-        /* [in] */ String string,
-        /* [in] */ IParsePosition* position,
-        /* [out] */ IFormat** value)
+    /* [in] */ String string,
+    /* [in] */ IParsePosition* position,
+    /* [out] */ IFormat** value)
 {
     Int32 length = (Int32)(string.GetLength());
     Int32 offset;
@@ -540,7 +538,10 @@ ECode MessageFormat::ParseVariable(
             if (dateStyle == -1) {
                 Boolean succeeded;
                 Format::UpToWithQuotes(string, position, buffer, '}', '{', &succeeded);
-//                return new SimpleDateFormat(buffer.toString(), locale);
+                AutoPtr<ISimpleDateFormat> sdf;
+                CSimpleDateFormat::New(buffer.Substring(0, buffer.GetLength()), mLocale, (ISimpleDateFormat**)&sdf);
+                *value = sdf.Get();
+                (*value)->AddRef();
                 return NOERROR;
             }
             switch (dateStyle) {
@@ -579,8 +580,12 @@ ECode MessageFormat::ParseVariable(
             if (numberStyle == -1) {
                 Boolean succeeded;
                 Format::UpToWithQuotes(string, position, buffer, '}', '{', &succeeded);
-//                return new DecimalFormat(buffer.toString(),
-//                        new DecimalFormatSymbols(locale));
+                AutoPtr<IDecimalFormatSymbols> dfs;
+                CDecimalFormatSymbols::New(mLocale, (IDecimalFormatSymbols**)&dfs);
+                AutoPtr<IDecimalFormat> df;
+                CDecimalFormat::New(buffer.Substring(0, buffer.GetLength()), dfs, (IDecimalFormat**)&df);
+                *value = df.Get();
+                (*value)->AddRef();
                 return NOERROR;
             }
             ArrayOf<String>::Free(tokens3);
@@ -602,7 +607,10 @@ ECode MessageFormat::ParseVariable(
 //    } catch (IllegalArgumentException e) {
         // ignored
 //    }
-//    return new ChoiceFormat(buffer.toString());
+    AutoPtr<IChoiceFormat> cf;
+    CChoiceFormat::New(buffer.Substring(0, buffer.GetLength()), (IChoiceFormat**)&cf);
+    *value = cf.Get();
+    (*value)->AddRef();
     if (tokens2 != NULL) {
         ArrayOf<String>::Free(tokens2);
     }
@@ -610,15 +618,15 @@ ECode MessageFormat::ParseVariable(
 }
 
 ECode MessageFormat::SetFormat(
-        /* [in] */ Int32 offset,
-        /* [in] */ IFormat* format)
+    /* [in] */ Int32 offset,
+    /* [in] */ IFormat* format)
 {
     (*mFormats)[offset] = format;
     return NOERROR;
 }
 
 ECode MessageFormat::SetFormats(
-        /* [in] */ ArrayOf< IFormat* >* formats)
+    /* [in] */ ArrayOf< IFormat* >* formats)
 {
     Int32 min = mFormats->GetLength();
     if (formats->GetLength() < min) {
@@ -631,11 +639,11 @@ ECode MessageFormat::SetFormats(
 }
 
 ECode MessageFormat::SetLocale(
-        /* [in] */ ILocale* locale)
+    /* [in] */ ILocale* locale)
 {
     mLocale = locale;
     for (Int32 i = 0; i <= mMaxOffset; i++) {
-//        AutoPtr<IFormat> format = (*mFormats)[i];
+        AutoPtr<IFormat> format = (*mFormats)[i];
         // BEGIN android-removed
         //if (format instanceof DecimalFormat) {
         //     formats[i] = new DecimalFormat(((DecimalFormat) format)
@@ -648,88 +656,124 @@ ECode MessageFormat::SetLocale(
         // BEGIN android-added
         // java specification undefined for null argument, change into
         // a more tolerant implementation
-//        if (format->Probe(EIID_IDecimalFormat) != NULL) {
+        if (format->Probe(EIID_IDecimalFormat) != NULL) {
             //try {
-//                formats[i] = new DecimalFormat(((DecimalFormat) format)
-//                        .toPattern(), new DecimalFormatSymbols(locale));
+            String pattern;
+            IDecimalFormat* df = reinterpret_cast<IDecimalFormat*>(format->Probe(EIID_IDecimalFormat));
+            df->ToPattern(&pattern);
+            AutoPtr<IDecimalFormatSymbols> dfs;
+            CDecimalFormatSymbols::New(mLocale, (IDecimalFormatSymbols**)&dfs);
+            AutoPtr<IDecimalFormat> dff;
+            CDecimalFormat::New(pattern, dfs, (IDecimalFormat**)&dff);
+            (*mFormats)[i] = dff.Get();
+            ((*mFormats)[i])->AddRef();
             //} catch (NullPointerException npe){
             //    formats[i] = null;
             //}
-//        } else if (format->Probe(EIID_ISimpleDateFormat) != NULL) {
+        } else if (format->Probe(EIID_ISimpleDateFormat) != NULL) {
             //try {
-//                formats[i] = new SimpleDateFormat(((SimpleDateFormat) format)
-//                        .toPattern(), locale);
+            String pattern;
+            ISimpleDateFormat* sdf = reinterpret_cast<ISimpleDateFormat*>(format->Probe(EIID_ISimpleDateFormat));
+            sdf->ToPattern(&pattern);
+            AutoPtr<ISimpleDateFormat> sdff;
+            CSimpleDateFormat::New(pattern, mLocale, (ISimpleDateFormat**)&sdff);
+            (*mFormats)[i] = sdff.Get();
+            ((*mFormats)[i])->AddRef();
             //} catch (NullPointerException npe) {
             //    formats[i] = null;
             //}
-//        }
+        }
         // END android-added
     }
     return NOERROR;
 }
 
 ECode MessageFormat::DecodeDecimalFormat(
-        /* [in] */ StringBuffer* buffer,
-        /* [in] */ IFormat* format,
-        /* [out] */ String* value)
+    /* [in] */ StringBuffer* buffer,
+    /* [in] */ IFormat* format,
+    /* [out] */ String* value)
 {
     VALIDATE_NOT_NULL(value);
     *buffer += ",number";
-//    if (format.equals(NumberFormat.getNumberInstance(locale))) {
+
+    INumberFormat* nff = reinterpret_cast<INumberFormat*>(format->Probe(EIID_INumberFormat));
+    AutoPtr<INumberFormat> nfn;
+    NumberFormat::GetNumberInstance(mLocale, (INumberFormat**)&nfn);
+    AutoPtr<INumberFormat> nfi;
+    NumberFormat::GetIntegerInstance(mLocale, (INumberFormat**)&nfi);
+    AutoPtr<INumberFormat> nfc;
+    NumberFormat::GetCurrencyInstance(mLocale, (INumberFormat**)&nfc);
+    AutoPtr<INumberFormat> nfp;
+    NumberFormat::GetPercentInstance(mLocale, (INumberFormat**)&nfp);
+    if (nff == nfn.Get()) {
         // Empty block
-//    } else if (format.equals(NumberFormat.getIntegerInstance(locale))) {
+    } else if (nff == nfi.Get()) {
         *buffer += ",integer";
-//    } else if (format.equals(NumberFormat.getCurrencyInstance(locale))) {
+    } else if (nff == nfc.Get()) {
         *buffer += ",currency";
-//    } else if (format.equals(NumberFormat.getPercentInstance(locale))) {
+    } else if (nff == nfp.Get()) {
         *buffer += ",percent";
-//    } else {
+    } else {
         *buffer += ',';
-//        return ((DecimalFormat) format).toPattern();
-//    }
+        IDecimalFormat* nfff = reinterpret_cast<IDecimalFormat*>(format->Probe(EIID_IDecimalFormat));
+        nfff->ToPattern(value);
+        return NOERROR;
+    }
     *value = String(NULL);
     return NOERROR;
 }
 
 ECode MessageFormat::DecodeSimpleDateFormat(
-        /* [in] */ StringBuffer* buffer,
-        /* [in] */ IFormat* format,
-        /* [out] */ String* value)
+    /* [in] */ StringBuffer* buffer,
+    /* [in] */ IFormat* format,
+    /* [out] */ String* value)
 {
     VALIDATE_NOT_NULL(value);
-//    if (format.equals(DateFormat.getTimeInstance(DateFormat.DEFAULT, locale))) {
+    IDateFormat* df = reinterpret_cast<IDateFormat*>(format->Probe(EIID_IDateFormat));
+    AutoPtr<IDateFormat> dft;
+    DateFormat::GetTimeInstance(IDateFormat_DEFAULT, mLocale, (IDateFormat**)&dft);
+    AutoPtr<IDateFormat> dfd;
+    DateFormat::GetDateInstance(IDateFormat_DEFAULT, mLocale, (IDateFormat**)&dfd);
+    AutoPtr<IDateFormat> dft2;
+    DateFormat::GetTimeInstance(IDateFormat_SHORT, mLocale, (IDateFormat**)&dft2);
+    AutoPtr<IDateFormat> dfd2;
+    DateFormat::GetDateInstance(IDateFormat_SHORT, mLocale, (IDateFormat**)&dfd2);
+    AutoPtr<IDateFormat> dft3;
+    DateFormat::GetTimeInstance(IDateFormat_LONG, mLocale, (IDateFormat**)&dft3);
+    AutoPtr<IDateFormat> dfd3;
+    DateFormat::GetDateInstance(IDateFormat_LONG, mLocale, (IDateFormat**)&dfd3);
+    AutoPtr<IDateFormat> dft4;
+    DateFormat::GetTimeInstance(IDateFormat_FULL, mLocale, (IDateFormat**)&dft4);
+    AutoPtr<IDateFormat> dfd4;
+    DateFormat::GetDateInstance(IDateFormat_FULL, mLocale, (IDateFormat**)&dfd4);
+    if (df == dft.Get()) {
         *buffer += ",time";
-//    } else if (format.equals(DateFormat.getDateInstance(DateFormat.DEFAULT,
-//            locale))) {
+    } else if (df == dfd.Get()) {
         *buffer += ",date";
-//    } else if (format.equals(DateFormat.getTimeInstance(DateFormat.SHORT,
-//            locale))) {
+    } else if (df == dft2.Get()) {
         *buffer += ",time,short";
-//    } else if (format.equals(DateFormat.getDateInstance(DateFormat.SHORT,
-//            locale))) {
+    } else if (df == dfd2.Get()) {
         *buffer += ",date,short";
-//    } else if (format.equals(DateFormat.getTimeInstance(DateFormat.LONG,
-//            locale))) {
+    } else if (df == dft3.Get()) {
         *buffer += ",time,long";
-//    } else if (format.equals(DateFormat.getDateInstance(DateFormat.LONG,
-//            locale))) {
+    } else if (df == dfd3.Get()) {
         *buffer += ",date,long";
-//    } else if (format.equals(DateFormat.getTimeInstance(DateFormat.FULL,
-//            locale))) {
+    } else if (df == dft4.Get()) {
         *buffer += ",time,full";
-//    } else if (format.equals(DateFormat.getDateInstance(DateFormat.FULL,
-//            locale))) {
+    } else if (df == dfd4.Get()) {
         *buffer += ",date,full";
-//    } else {
+    } else {
         *buffer += ",date,";
-//        return ((SimpleDateFormat) format).toPattern();
-//    }
+        ISimpleDateFormat* sdf = reinterpret_cast<ISimpleDateFormat*>(format->Probe(EIID_ISimpleDateFormat));
+        sdf->ToPattern(value);
+        return NOERROR;
+    }
     *value = String(NULL);
     return NOERROR;
 }
 
 ECode MessageFormat::ToPattern(
-        /* [out] */ String* value)
+    /* [out] */ String* value)
 {
     VALIDATE_NOT_NULL(value);
     StringBuffer* buffer = new StringBuffer("");
@@ -739,17 +783,18 @@ ECode MessageFormat::ToPattern(
         *buffer += (*mArgumentNumbers)[i];
         AutoPtr<IFormat> format = (*mFormats)[i];
         String pattern = String(NULL);
-//        if (format->Probe(EIID_IChoiceFormat) != NULL) {
+        if (format->Probe(EIID_IChoiceFormat) != NULL) {
             *buffer += ",choice,";
-//            pattern = ((ChoiceFormat) format).toPattern();
-//        } else if (format instanceof DecimalFormat) {
+            IChoiceFormat* cf = reinterpret_cast<IChoiceFormat*>(format->Probe(EIID_IChoiceFormat));
+            cf->ToPattern(&pattern);
+        } else if (format->Probe(EIID_IDecimalFormat) != NULL) {
             DecodeDecimalFormat(buffer, (IFormat*)format, value);
-//        } else if (format instanceof SimpleDateFormat) {
+        } else if (format->Probe(EIID_ISimpleDateFormat) != NULL) {
             DecodeSimpleDateFormat(buffer, (IFormat*)format, value);
-//        } else if (format != null) {
+        } else if (format != NULL) {
             //throw new IllegalArgumentException("Unknown format");
             return E_ILLEGAL_ARGUMENT_EXCEPTION;
-//        }
+        }
         if (!(pattern.IsNull()) ) {
             Boolean quote = FALSE;
             Int32 index = 0;
@@ -786,8 +831,8 @@ ECode MessageFormat::ToPattern(
 }
 
 ECode MessageFormat::AppendQuoted(
-        /* [in] */ StringBuffer* buffer,
-        /* [in] */ String string)
+    /* [in] */ StringBuffer* buffer,
+    /* [in] */ String string)
 {
     Int32 length = string.GetLength();
     for (Int32 i = 0; i < length; i++) {
@@ -803,9 +848,10 @@ ECode MessageFormat::AppendQuoted(
     return NOERROR;
 }
 
-ECode MessageFormat::MessageFormat_Field::ReadResolve(
-        /* [out] */ IInterface** object)
+ECode MessageFormat::MessageFormatField::ReadResolve(
+    /* [out] */ IInterface** object)
 {
+    assert(0);
     //String name = this.getName();
     //if (Objects.equal(name, ARGUMENT.getName())) {
     //    return ARGUMENT;

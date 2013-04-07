@@ -60,6 +60,15 @@ ECode CMessageFormat::ApplyPattern(
     return MessageFormat::ApplyPattern(tem);
 }
 
+ECode CMessageFormat::FormatObjects(
+    /* [in] */ ArrayOf<IInterface *> * objects,
+    /* [in] */ const String& buffer,
+    /* [in] */ IFieldPosition * field,
+    /* [out] */ String* value)
+{
+    return MessageFormat::FormatObjects(objects, buffer, field, value);
+}
+
 ECode CMessageFormat::GetFormats(
     /* [out, callee] */ ArrayOf<IFormat *> ** ppFormats)
 {

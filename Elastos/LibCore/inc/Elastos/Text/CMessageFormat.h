@@ -41,6 +41,12 @@ public:
     CARAPI ApplyPattern(
         /* [in] */ const String& tem);
 
+    CARAPI FormatObjects(
+        /* [in] */ ArrayOf<IInterface *> * objects,
+        /* [in] */ const String& buffer,
+        /* [in] */ IFieldPosition * field,
+        /* [out] */ String * value);
+
     CARAPI GetFormats(
         /* [out, callee] */ ArrayOf<IFormat *> ** ppFormats);
 

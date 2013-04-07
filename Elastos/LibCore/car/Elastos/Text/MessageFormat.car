@@ -3,7 +3,7 @@ module
     interface ILocale;
     interface IParsePosition;
 
-    interface IMessageFormat_Field extends IFormatField {
+    interface IMessageFormatField extends IFormatField {
 
     }
     [deprecated]
@@ -23,11 +23,11 @@ module
          * this field position is set to the location of the first occurrence of a
          * message format argument. Otherwise, the {@code FieldPosition} is ignored.
          */
-        //formatEx2(
-        //    [in] ArrayOf<IInterface*>* objects,
-        //    [in] StringBuffer* buffer,
-        //    [in] IFieldPosition* field,
-        //    [out] StringBuffer* outBuffer);
+        FormatObjects(
+            [in] ArrayOf<IInterface*>* objects,
+            [in] String buffer,
+            [in] IFieldPosition* field,
+            [out] String* value);
 
         /**
          * Returns the {@code Format} instances used by this message format.
