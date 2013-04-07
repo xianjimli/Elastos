@@ -464,8 +464,8 @@ public:
 
     typedef typename Base::Iterator           Iterator;
     typedef typename Base::ConstIterator     ConstIterator;
-    typedef ReverseIterator<ConstIterator>   ConstReverseIterator;
-    typedef ReverseIterator<Iterator>         ReverseIterator;
+    typedef Elastos::ReverseIterator<ConstIterator>   ConstReverseIterator;
+    typedef Elastos::ReverseIterator<Iterator>         ReverseIterator;
 
 protected:
     typedef Pointer* MapPointer;
