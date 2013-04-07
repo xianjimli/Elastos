@@ -13,7 +13,7 @@ module
     merge("../../../car/Elastos/Text/IDateFormat.car");
     merge("../../../car/Elastos/Text/DateFormatSymbols.car");
     merge("../../../car/Elastos/Text/INumberFormat.car");
-    merge("../../../car/Elastos/Text/MessageFormat.car");
+    merge("../../../car/Elastos/Text/IMessageFormat.car");
     merge("../../../car/Elastos/Text/ChoiceFormat.car");
     merge("../../../car/Elastos/Text/IDecimalFormatSymbols.car");
     merge("../../../car/Elastos/Text/INativeDecimalFormat.car");
