@@ -59,4 +59,8 @@ SOURCES += EncoderCapabilities.cpp
 SOURCES += FaceDetector.cpp
 SOURCES += CFaceDetectorFace.cpp
 SOURCES += CFaceDetector.cpp
+SOURCES += ResampleInputStream.cpp
+SOURCES += CResampleInputStream.cpp
+SOURCES += MiniThumbFile.cpp
+SOURCES += CMiniThumbFile.cpp
 
