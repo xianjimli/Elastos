@@ -6,7 +6,6 @@
 #include <elastos/List.h>
 #include <elastos/AutoPtr.h>
 #include <StringBuffer.h>
-//#include <CLocale.h>
 #include <Character.h>
 
 #include "Elastos.Text_server.h"
@@ -118,11 +117,11 @@ public:
      * @return the string buffer.
      */
     //@Override
-    CARAPI formatEx3(
+    CARAPI FormatDoubleEx(
         /* [in] */ Double value,
-        /* [in] */ StringBuffer* buffer,
+        /* [in] */ const String& buffer,
         /* [in] */ IFieldPosition* field,
-        /* [out] */ StringBuffer* result);
+        /* [out] */ String* result);
 
     /**
      * Appends the string associated with the range in which the specified long
@@ -137,11 +136,11 @@ public:
      * @return the string buffer.
      */
     //@Override
-    CARAPI formatEx5(
+    CARAPI FormatInt64Ex(
         /* [in] */ Int64 value, 
-        /* [in] */ StringBuffer* buffer, 
+        /* [in] */ const String& buffer, 
         /* [in] */ IFieldPosition* field,
-        /* [out] */ StringBuffer* formattedString);
+        /* [out] */ String* formattedString);
 
     /**
      * Returns the strings associated with the ranges of this {@code
@@ -303,8 +302,6 @@ public:
     const static Double NEGATIVE_INFINITY;
 
 private:
-    //const static Int64 serialVersionUID = 1795184449645032964L;
-
     ArrayOf<Double>* mChoiceLimits;
 
     ArrayOf<String>* mChoiceFormats;

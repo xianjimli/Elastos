@@ -1,0 +1,44 @@
+module
+{
+    [deprecated]
+    interface IChoiceFormat extends INumberFormat {
+        /**
+         * Parses the pattern to determine new strings and ranges for this
+         * {@code ChoiceFormat}.
+         */
+        ApplyPattern(
+            [in] String tem);
+
+        /**
+         * Returns the strings associated with the ranges of this {@code
+         * ChoiceFormat}.
+         */
+        GetFormats(
+            [out, callee] ArrayOf<IInterface*>* formats);
+
+        /**
+         * Returns the limits of this {@code ChoiceFormat}.
+         */
+        GetLimits(
+            [out, callee] ArrayOf<Double>* limits);
+
+        /**
+         * Sets the double values and associated strings of this ChoiceFormat. When
+         * calling {@link #format(double, StringBuffer, FieldPosition) format} with
+         * a double value {@code d}, then the element {@code i} in {@code formats}
+         * is selected where {@code i} fulfills
+         * {@code limits[i] <= d < limits[i+1]}.
+         */
+        SetChoices(
+            [in] ArrayOf<Double>* limits, 
+            [in] ArrayOf<String>* formats);
+
+        /**
+         * Returns the pattern of this {@code ChoiceFormat} which specifies the
+         * ranges and their associated strings.
+         */
+        ToPattern(
+            [out] String* pattern);
+
+    }
+}

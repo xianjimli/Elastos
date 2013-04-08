@@ -64,7 +64,7 @@ ECode CChoiceFormat::FormatDoubleEx(
     /* [in] */ IFieldPosition* field,
     /* [out] */ String* result)
 {
-    return E_NOT_IMPLEMENTED;
+    return ChoiceFormat::FormatDoubleEx(value, buffer, field, result);
 }
 
 ECode CChoiceFormat::FormatInt64(
@@ -80,7 +80,7 @@ ECode CChoiceFormat::FormatInt64Ex(
     /* [in] */ IFieldPosition* field,
     /* [out] */ String* result)
 {
-    return E_NOT_IMPLEMENTED;
+    return ChoiceFormat::FormatInt64Ex(value, buffer, field, result);
 }
 
 ECode CChoiceFormat::GetMaximumFractionDigits(
