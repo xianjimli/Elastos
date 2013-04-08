@@ -16,6 +16,7 @@ C_DEFINES += -D_FRAMEWORK_CORE
 SOURCES = MetaKeyKeyListener.cpp
 SOURCES += BaseKeyListener.cpp
 SOURCES += TextKeyListener.cpp
+SOURCES += CTextKeyListenerHelper.cpp
 SOURCES += CTextKeyListener.cpp
 SOURCES += QwertyKeyListener.cpp
 SOURCES += CQwertyKeyListener.cpp

@@ -245,6 +245,12 @@ module
         interface ITextKeyListener;
         interface ISpanWatcher;
     }
+    
+    class CTextKeyListenerHelper {
+        constructor();
+        
+        interface ITextKeyListenerHelper;
+    }
 
     class CQwertyKeyListener {
         constructor(
