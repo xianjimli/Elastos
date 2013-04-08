@@ -48,7 +48,6 @@ SOURCES += CExifInterface.cpp
 SOURCES += MediaMetadataRetriever.cpp
 SOURCES += CMediaMetadataRetriever.cpp
 SOURCES += ThumbnailUtils.cpp
-SOURCES += AmrInputStream.cpp
 SOURCES += CAmrInputStream.cpp
 SOURCES += AsyncPlayer.cpp
 SOURCES += CAsyncPlayer.cpp

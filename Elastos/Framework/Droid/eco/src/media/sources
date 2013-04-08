@@ -71,4 +71,5 @@ LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.eco
 LIBRARIES += $(XDK_TARGETS)/Elastos.Core.eco
 LIBRARIES += $(XDK_USER_LIB)/crt0.lib
 LIBRARIES += -lexpat -llog -lutils -lbinder -lskia -lskiagl -lsurfaceflinger_client -lui -lcutils -lsqlite -ldrm1 -lmedia
+LIBRARIES += -lstagefright_amrnbenc -lstagefright_amrnb_common
 endif
