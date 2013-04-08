@@ -16,7 +16,6 @@ C_DEFINES += -D_FRAMEWORK_MEDIA
 SOURCES = AudioTrack.cpp
 SOURCES += CAudioTrack.cpp
 SOURCES += ElAudioSystem.cpp
-SOURCES += AudioManager.cpp
 SOURCES += CAudioManager.cpp
 SOURCES += CAudioService.cpp
 SOURCES += Metadata.cpp

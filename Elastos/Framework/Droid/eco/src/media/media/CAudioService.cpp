@@ -2187,7 +2187,7 @@ ECode CAudioService::ReloadAudioSettings()
         Int32 index;
         system->GetInt32(mContentResolver,
                            settingName,
-                           AudioManager::DEFAULT_STREAM_VOLUME[streamType], &index);
+                           CAudioManager::DEFAULT_STREAM_VOLUME[streamType], &index);
         if (STREAM_VOLUME_ALIAS[streamType] != streamType) {
             index = RescaleIndex(index * 10, STREAM_VOLUME_ALIAS[streamType], streamType);
         }
@@ -2199,7 +2199,7 @@ ECode CAudioService::ReloadAudioSettings()
         index = (index + 5) / 10;
         system->GetInt32(mContentResolver,
                         lastAudibleSettingName,
-                        (index > 0) ? index : AudioManager::DEFAULT_STREAM_VOLUME[streamType], &index);
+                        (index > 0) ? index : CAudioManager::DEFAULT_STREAM_VOLUME[streamType], &index);
         if (STREAM_VOLUME_ALIAS[streamType] != streamType) {
             index = RescaleIndex(index * 10, STREAM_VOLUME_ALIAS[streamType], streamType);
         }

@@ -1,7 +1,6 @@
 
 #include "media/RingtoneManager.h"
-#include "media/AudioManager.h"
-
+#include "media/CAudioManager.h"
 #include "media/CRingtone.h"
 
 #include <elastos/List.h>
