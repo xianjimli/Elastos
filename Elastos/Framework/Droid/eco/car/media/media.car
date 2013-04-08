@@ -12,6 +12,7 @@ module
     merge("media/audiofx/PresetReverb.car");
     merge("media/audiofx/Virtualizer.car");
     merge("media/audiofx/Visualizer.car");
+    merge("media/AudioFormat.car");
     merge("media/IAudioFocusDispatcher.car");
     merge("media/IAudioService.car");
     merge("media/AudioService.car");

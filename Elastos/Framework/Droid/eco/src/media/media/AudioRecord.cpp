@@ -1,7 +1,6 @@
 
 #include "media/AudioRecord.h"
 #include "media/MediaRecorder.h"
-#include "media/AudioFormat.h"
 
 AudioRecord::AudioRecord()
 {
@@ -17,29 +16,29 @@ AudioRecord::AudioRecord()
  *    recording source definitions.
  * @param sampleRateInHz the sample rate expressed in Hertz. Examples of rates are (but
  *   not limited to) 44100, 22050 and 11025.
- * @param channelConfig describes the configuration of the audio channels. 
+ * @param channelConfig describes the configuration of the audio channels.
  *   See {@link AudioFormat#CHANNEL_IN_MONO} and
  *   {@link AudioFormat#CHANNEL_IN_STEREO}
- * @param audioFormat the format in which the audio data is represented. 
- *   See {@link AudioFormat#ENCODING_PCM_16BIT} and 
+ * @param audioFormat the format in which the audio data is represented.
+ *   See {@link AudioFormat#ENCODING_PCM_16BIT} and
  *   {@link AudioFormat#ENCODING_PCM_8BIT}
  * @param bufferSizeInBytes the total size (in bytes) of the buffer where audio data is written
- *   to during the recording. New audio data can be read from this buffer in smaller chunks 
+ *   to during the recording. New audio data can be read from this buffer in smaller chunks
  *   than this size. See {@link #getMinBufferSize(Int32, Int32, Int32)} to determine the minimum
  *   required buffer size for the successful creation of an AudioRecord instance. Using values
  *   smaller than getMinBufferSize() will result in an initialization failure.
  * @throws java.lang.IllegalArgumentException
  */
 AudioRecord::AudioRecord(
-    /* [in] */ Int32 audioSource, 
-    /* [in] */ Int32 sampleRateInHz, 
-    /* [in] */ Int32 channelConfig, 
-    /* [in] */ Int32 audioFormat, 
+    /* [in] */ Int32 audioSource,
+    /* [in] */ Int32 sampleRateInHz,
+    /* [in] */ Int32 channelConfig,
+    /* [in] */ Int32 audioFormat,
     /* [in] */ Int32 bufferSizeInBytes)
-{   
+{
     mState = STATE_UNINITIALIZED;
     mRecordingState = RECORDSTATE_STOPPED;
-    
+
     // remember which looper is associated with the AudioRecord instanciation
     /*if ((mInitializationLooper = Looper.myLooper()) == NULL) {
         mInitializationLooper = Looper.getMainLooper();
@@ -52,7 +51,7 @@ AudioRecord::AudioRecord(
     // native initialization
     //TODO: update native initialization when information about hardware init failure
     //      due to capture device already open is available.
-    Int32 initResult;/* = native_setup(new WeakReference<AudioRecord>(this), 
+    Int32 initResult;/* = native_setup(new WeakReference<AudioRecord>(this),
             mRecordSource, mSampleRate, mChannels, mAudioFormat, mNativeBufferSizeInBytes);*/
     if (initResult != SUCCESS) {
         //loge("Error code "+initResult+" when initializing native AudioRecord object.");
@@ -72,9 +71,9 @@ AudioRecord::AudioRecord(
 //    mAudioFormat is valid
 //    mSampleRate is valid
 void AudioRecord::AudioParamCheck(
-    /* [in] */ Int32 audioSource, 
-    /* [in] */ Int32 sampleRateInHz, 
-    /* [in] */ Int32 channelConfig, 
+    /* [in] */ Int32 audioSource,
+    /* [in] */ Int32 sampleRateInHz,
+    /* [in] */ Int32 channelConfig,
     /* [in] */ Int32 audioFormat)
 {
 
@@ -87,13 +86,13 @@ void AudioRecord::AudioParamCheck(
     } else {
         mRecordSource = audioSource;
     }
-    
+
     //--------------
     // sample rate
     if ( (sampleRateInHz < 4000) || (sampleRateInHz > 48000) ) {
         /*throw (new IllegalArgumentException(sampleRateInHz
                 + "Hz is not a supported sample rate."));*/
-    } else { 
+    } else {
         mSampleRate = sampleRateInHz;
     }
 
@@ -102,37 +101,37 @@ void AudioRecord::AudioParamCheck(
     mChannelConfiguration = channelConfig;
 
     switch (channelConfig) {
-    case AudioFormat::CHANNEL_IN_DEFAULT: // AudioFormat.CHANNEL_CONFIGURATION_DEFAULT
-    case AudioFormat::CHANNEL_IN_MONO:
-    case AudioFormat::CHANNEL_CONFIGURATION_MONO:
+    case AudioFormat_CHANNEL_IN_DEFAULT: // AudioFormat.CHANNEL_CONFIGURATION_DEFAULT
+    case AudioFormat_CHANNEL_IN_MONO:
+    case AudioFormat_CHANNEL_CONFIGURATION_MONO:
         mChannelCount = 1;
-        mChannels = AudioFormat::CHANNEL_IN_MONO;
+        mChannels = AudioFormat_CHANNEL_IN_MONO;
         break;
-    case AudioFormat::CHANNEL_IN_STEREO:
-    case AudioFormat::CHANNEL_CONFIGURATION_STEREO:
+    case AudioFormat_CHANNEL_IN_STEREO:
+    case AudioFormat_CHANNEL_CONFIGURATION_STEREO:
         mChannelCount = 2;
-        mChannels = AudioFormat::CHANNEL_IN_STEREO;
+        mChannels = AudioFormat_CHANNEL_IN_STEREO;
         break;
     default:
         mChannelCount = 0;
-        mChannels = AudioFormat::CHANNEL_INVALID;
-        mChannelConfiguration = AudioFormat::CHANNEL_INVALID;
+        mChannels = AudioFormat_CHANNEL_INVALID;
+        mChannelConfiguration = AudioFormat_CHANNEL_INVALID;
         //throw (new IllegalArgumentException("Unsupported channel configuration."));
     }
 
     //--------------
     // audio format
     switch (audioFormat) {
-    case AudioFormat::ENCODING_DEFAULT:
-        mAudioFormat = AudioFormat::ENCODING_PCM_16BIT;
+    case AudioFormat_ENCODING_DEFAULT:
+        mAudioFormat = AudioFormat_ENCODING_PCM_16BIT;
         break;
-    case AudioFormat::ENCODING_PCM_16BIT:
-    case AudioFormat::ENCODING_PCM_8BIT:
+    case AudioFormat_ENCODING_PCM_16BIT:
+    case AudioFormat_ENCODING_PCM_8BIT:
         mAudioFormat = audioFormat;
         break;
     default:
-        mAudioFormat = AudioFormat::ENCODING_INVALID;
-    /*throw (new IllegalArgumentException("Unsupported sample encoding." 
+        mAudioFormat = AudioFormat_ENCODING_INVALID;
+    /*throw (new IllegalArgumentException("Unsupported sample encoding."
             + " Should be ENCODING_PCM_8BIT or ENCODING_PCM_16BIT."));*/
     }
 }
@@ -147,27 +146,27 @@ void AudioRecord::AudioParamCheck(
 void AudioRecord::AudioBuffSizeCheck(
     /* [in] */ Int32 audioBufferSize)
 {
-    // NB: this section is only valid with PCM data. 
+    // NB: this section is only valid with PCM data.
     // To update when supporting compressed formats
-    Int32 frameSizeInBytes = mChannelCount 
-        * (mAudioFormat == AudioFormat::ENCODING_PCM_8BIT ? 1 : 2);
+    Int32 frameSizeInBytes = mChannelCount
+        * (mAudioFormat == AudioFormat_ENCODING_PCM_8BIT ? 1 : 2);
     if ((audioBufferSize % frameSizeInBytes != 0) || (audioBufferSize < 1)) {
         //throw (new IllegalArgumentException("Invalid audio buffer size."));
     }
 
     mNativeBufferSizeInBytes = audioBufferSize;
-}    
+}
 
 /**
  * Releases the native AudioRecord resources.
  * The object can no longer be used and the reference should be set to NULL
  * after a call to release()
  */
-ECode AudioRecord::ReleaseEx() 
+ECode AudioRecord::ReleaseEx()
 {
     //try {
         Stop();
-    //} catch(IllegalStateException ise) { 
+    //} catch(IllegalStateException ise) {
         // don't raise an exception, we're releasing the resources.
     //}
     native_release();
@@ -177,10 +176,10 @@ ECode AudioRecord::ReleaseEx()
 }
 
 
-void AudioRecord::Finalize() 
+void AudioRecord::Finalize()
 {
     native_finalize();
-} 
+}
 
 
 //--------------------------------------------------------------------------
@@ -195,7 +194,7 @@ Int32 AudioRecord::GetSampleRate()
 }
 
 /**
- * Returns the audio recording source. 
+ * Returns the audio recording source.
  * @see MediaRecorder.AudioSource
  */
 Int32 AudioRecord::GetAudioSource()
@@ -213,7 +212,7 @@ Int32 AudioRecord::GetAudioFormat()
 }
 
 /**
- * Returns the configured channel configuration. 
+ * Returns the configured channel configuration.
  * See {@link AudioFormat#CHANNEL_IN_MONO}
  * and {@link AudioFormat#CHANNEL_IN_STEREO}.
  */
@@ -232,13 +231,13 @@ Int32 AudioRecord::GetChannelCount()
 
 /**
  * Returns the state of the AudioRecord instance. This is useful after the
- * AudioRecord instance has been created to check if it was initialized 
+ * AudioRecord instance has been created to check if it was initialized
  * properly. This ensures that the appropriate hardware resources have been
  * acquired.
  * @see AudioRecord#STATE_INITIALIZED
  * @see AudioRecord#STATE_UNINITIALIZED
  */
-Int32 AudioRecord::GetState() 
+Int32 AudioRecord::GetState()
 {
     return mState;
 }
@@ -276,49 +275,49 @@ Int32 AudioRecord::GetPositionNotificationPeriod()
  * should be chosen according to the expected frequency at which the AudioRecord instance
  * will be polled for new data.
  * @param sampleRateInHz the sample rate expressed in Hertz.
- * @param channelConfig describes the configuration of the audio channels. 
+ * @param channelConfig describes the configuration of the audio channels.
  *   See {@link AudioFormat#CHANNEL_IN_MONO} and
  *   {@link AudioFormat#CHANNEL_IN_STEREO}
- * @param audioFormat the format in which the audio data is represented. 
+ * @param audioFormat the format in which the audio data is represented.
  *   See {@link AudioFormat#ENCODING_PCM_16BIT}.
- * @return {@link #ERROR_BAD_VALUE} if the recording parameters are not supported by the 
+ * @return {@link #ERROR_BAD_VALUE} if the recording parameters are not supported by the
  *  hardware, or an invalid parameter was passed,
- *  or {@link #ERROR} if the implementation was unable to query the hardware for its 
- *  output properties, 
+ *  or {@link #ERROR} if the implementation was unable to query the hardware for its
+ *  output properties,
  *   or the minimum buffer size expressed in bytes.
  */
 Int32 AudioRecord::GetMinBufferSize(
-    /* [in] */ Int32 sampleRateInHz, 
-    /* [in] */ Int32 channelConfig, 
-    /* [in] */ Int32 audioFormat) 
+    /* [in] */ Int32 sampleRateInHz,
+    /* [in] */ Int32 channelConfig,
+    /* [in] */ Int32 audioFormat)
 {
     Int32 channelCount = 0;
     switch(channelConfig) {
-    case AudioFormat::CHANNEL_IN_DEFAULT: // AudioFormat.CHANNEL_CONFIGURATION_DEFAULT
-    case AudioFormat::CHANNEL_IN_MONO:
-    case AudioFormat::CHANNEL_CONFIGURATION_MONO:
+    case AudioFormat_CHANNEL_IN_DEFAULT: // AudioFormat.CHANNEL_CONFIGURATION_DEFAULT
+    case AudioFormat_CHANNEL_IN_MONO:
+    case AudioFormat_CHANNEL_CONFIGURATION_MONO:
         channelCount = 1;
         break;
-    case AudioFormat::CHANNEL_IN_STEREO:
-    case AudioFormat::CHANNEL_CONFIGURATION_STEREO:
+    case AudioFormat_CHANNEL_IN_STEREO:
+    case AudioFormat_CHANNEL_CONFIGURATION_STEREO:
         channelCount = 2;
         break;
-    case AudioFormat::CHANNEL_INVALID:
+    case AudioFormat_CHANNEL_INVALID:
     default:
         //loge("getMinBufferSize(): Invalid channel configuration.");
         return AudioRecord::ERROR_BAD_VALUE;
     }
-    
+
     // PCM_8BIT is not supported at the moment
-    if (audioFormat != AudioFormat::ENCODING_PCM_16BIT) {
+    if (audioFormat != AudioFormat_ENCODING_PCM_16BIT) {
         //loge("getMinBufferSize(): Invalid audio format.");
         return AudioRecord::ERROR_BAD_VALUE;
     }
-    
+
     Int32 size = native_get_min_buff_size(sampleRateInHz, channelCount, audioFormat);
     if (size == 0) {
         return AudioRecord::ERROR_BAD_VALUE;
-    } 
+    }
     else if (size == -1) {
         return AudioRecord::ERROR;
     }
@@ -332,7 +331,7 @@ Int32 AudioRecord::GetMinBufferSize(
 // Transport control methods
 //--------------------
 /**
- * Starts recording from the AudioRecord instance. 
+ * Starts recording from the AudioRecord instance.
  * @throws IllegalStateException
  */
 ECode AudioRecord::StartRecording()
@@ -386,17 +385,17 @@ ECode AudioRecord::Stop()
  *    if the object wasn't properly initialized, or {@link #ERROR_BAD_VALUE} if
  *    the parameters don't resolve to valid data and indexes.
  *    The number of bytes will not exceed sizeInBytes.
- */    
+ */
 Int32 AudioRecord::Read(
-    /* [in] */ ArrayOf<Byte>* audioData, 
-    /* [in] */ Int32 offsetInBytes, 
+    /* [in] */ ArrayOf<Byte>* audioData,
+    /* [in] */ Int32 offsetInBytes,
     /* [in] */ Int32 sizeInBytes)
 {
     if (mState != STATE_INITIALIZED) {
         return ERROR_INVALID_OPERATION;
     }
-    
-    if ( (audioData == NULL) || (offsetInBytes < 0 ) || (sizeInBytes < 0) 
+
+    if ( (audioData == NULL) || (offsetInBytes < 0 ) || (sizeInBytes < 0)
             || (offsetInBytes + sizeInBytes > audioData->GetLength())) {
         return ERROR_BAD_VALUE;
     }
@@ -414,17 +413,17 @@ Int32 AudioRecord::Read(
  *    if the object wasn't properly initialized, or {@link #ERROR_BAD_VALUE} if
  *    the parameters don't resolve to valid data and indexes.
  *    The number of shorts will not exceed sizeInShorts.
- */    
+ */
 Int32 AudioRecord::Read(
-    /* [in] */ ArrayOf<Int16>* audioData, 
-    /* [in] */ Int32 offsetInShorts, 
-    /* [in] */ Int32 sizeInShorts) 
+    /* [in] */ ArrayOf<Int16>* audioData,
+    /* [in] */ Int32 offsetInShorts,
+    /* [in] */ Int32 sizeInShorts)
 {
     if (mState != STATE_INITIALIZED) {
         return ERROR_INVALID_OPERATION;
     }
-    
-    if ( (audioData == NULL) || (offsetInShorts < 0 ) || (sizeInShorts < 0) 
+
+    if ( (audioData == NULL) || (offsetInShorts < 0 ) || (sizeInShorts < 0)
             || (offsetInShorts + sizeInShorts > audioData->GetLength())) {
         return ERROR_BAD_VALUE;
     }
@@ -442,15 +441,15 @@ Int32 AudioRecord::Read(
  *    if the object wasn't properly initialized, or {@link #ERROR_BAD_VALUE} if
  *    the parameters don't resolve to valid data and indexes.
  *    The number of bytes will not exceed sizeInBytes.
- */    
+ */
 //Int32 AudioRecord::Read(
-//    /* [in] */ ByteBuffer* audioBuffer, 
+//    /* [in] */ ByteBuffer* audioBuffer,
 //    /* [in] */ Int32 sizeInBytes)
 //{
 //    if (mState != STATE_INITIALIZED) {
 //        return ERROR_INVALID_OPERATION;
 //    }
-//    
+//
 //    if ( (audioBuffer == NULL) || (sizeInBytes < 0) ) {
 //        return ERROR_BAD_VALUE;
 //    }
@@ -461,7 +460,7 @@ Int32 AudioRecord::Read(
 
 //--------------------------------------------------------------------------
 // Initialization / configuration
-//--------------------  
+//--------------------
 /**
  * Sets the listener the AudioRecord notifies when a previously set marker is reached or
  * for each periodic record head position update.
@@ -484,13 +483,13 @@ ECode AudioRecord::SetRecordPositionUpdateListener(
  * @param handler the Handler that will receive the event notification messages.
  */
 ECode AudioRecord::SetRecordPositionUpdateListener(
-    /* [in] */ IOnRecordPositionUpdateListener* listener, 
+    /* [in] */ IOnRecordPositionUpdateListener* listener,
     /* [in] */ IHandler* handler)
 {
     //synchronized (mPositionListenerLock) {
-        
+
         mPositionListener = listener;
-        
+
         //if (listener != NULL) {
         //    if (handler != NULL) {
         //        mEventHandler = new NativeEventHandler(this, handler.getLooper());
@@ -504,17 +503,17 @@ ECode AudioRecord::SetRecordPositionUpdateListener(
     //}
 
     return NOERROR;
-    
+
 }
 
 
 /**
- * Sets the marker position at which the listener is called, if set with 
- * {@link #setRecordPositionUpdateListener(OnRecordPositionUpdateListener)} or 
+ * Sets the marker position at which the listener is called, if set with
+ * {@link #setRecordPositionUpdateListener(OnRecordPositionUpdateListener)} or
  * {@link #setRecordPositionUpdateListener(OnRecordPositionUpdateListener, Handler)}.
  * @param markerInFrames marker position expressed in frames
  * @return error code or success, see {@link #SUCCESS}, {@link #ERROR_BAD_VALUE},
- *  {@link #ERROR_INVALID_OPERATION} 
+ *  {@link #ERROR_INVALID_OPERATION}
  */
 Int32 AudioRecord::SetNotificationMarkerPosition(
     /* [in] */ Int32 markerInFrames)
@@ -525,7 +524,7 @@ Int32 AudioRecord::SetNotificationMarkerPosition(
 
 /**
  * Sets the period at which the listener is called, if set with
- * {@link #setRecordPositionUpdateListener(OnRecordPositionUpdateListener)} or 
+ * {@link #setRecordPositionUpdateListener(OnRecordPositionUpdateListener)} or
  * {@link #setRecordPositionUpdateListener(OnRecordPositionUpdateListener, Handler)}.
  * @param periodInFrames update period expressed in frames
  * @return error code or success, see {@link #SUCCESS}, {@link #ERROR_INVALID_OPERATION}
@@ -537,8 +536,8 @@ Int32 AudioRecord::SetPositionNotificationPeriod(
 }
 
 //AudioRecord::NativeEventHandler::NativeEventHandler(
-//    /* [in] */ AudioRecord* recorder, 
-//    /* [in] */ ILooper* looper) 
+//    /* [in] */ AudioRecord* recorder,
+//    /* [in] */ ILooper* looper)
 //{
 //    super(looper);
 //    mAudioRecord = recorder;
@@ -551,7 +550,7 @@ ECode AudioRecord::NativeEventHandler::HandleMessage(
     //synchronized (mPositionListenerLock) {
         listener = mAudioRecord->mPositionListener;
     //}
-    
+
     //switch(msg.what) {
     //case NATIVE_EVENT_MARKER:
     //    if (listener != NULL) {
@@ -604,9 +603,9 @@ ECode AudioRecord::NativeEventHandler::GetInterfaceID(
 //--------------------
 void AudioRecord::PostEventFromNative(
     /* [in] */ IInterface* audiorecord_ref,
-    /* [in] */ Int32 what, 
-    /* [in] */ Int32 arg1, 
-    /* [in] */ Int32 arg2, 
+    /* [in] */ Int32 what,
+    /* [in] */ Int32 arg1,
+    /* [in] */ Int32 arg2,
     /* [in] */ IInterface* obj)
 {
     //logd("Event posted from the native side: event="+ what + " args="+ arg1+" "+arg2);
@@ -614,9 +613,9 @@ void AudioRecord::PostEventFromNative(
     if (recorder == NULL) {
         return;
     }
-    
+
     if (recorder.mEventHandler != NULL) {
-        Message m = 
+        Message m =
             recorder.mEventHandler.obtainMessage(what, arg1, arg2, obj);
         recorder.mEventHandler.sendMessage(m);
     }*/
@@ -629,11 +628,11 @@ void AudioRecord::PostEventFromNative(
 //--------------------
 
 Int32 AudioRecord::native_setup(
-    /* [in] */ IInterface* audiorecord_this, 
-    /* [in] */ Int32 recordSource, 
-    /* [in] */ Int32 sampleRate, 
-    /* [in] */ Int32 nbChannels, 
-    /* [in] */ Int32 audioFormat, 
+    /* [in] */ IInterface* audiorecord_this,
+    /* [in] */ Int32 recordSource,
+    /* [in] */ Int32 sampleRate,
+    /* [in] */ Int32 nbChannels,
+    /* [in] */ Int32 audioFormat,
     /* [in] */ Int32 buffSizeInBytes)
 {
     return 0;
@@ -660,23 +659,23 @@ void AudioRecord::native_stop()
 }
 
 Int32 AudioRecord::native_read_in_byte_array(
-    /* [in] */ ArrayOf<Byte>* audioData, 
-    /* [in] */ Int32 offsetInBytes, 
+    /* [in] */ ArrayOf<Byte>* audioData,
+    /* [in] */ Int32 offsetInBytes,
     /* [in] */ Int32 sizeInBytes)
 {
     return 0;
 }
 
 Int32 AudioRecord::native_read_in_short_array(
-    /* [in] */ ArrayOf<Int16>* audioData, 
-    /* [in] */ Int32 offsetInShorts, 
+    /* [in] */ ArrayOf<Int16>* audioData,
+    /* [in] */ Int32 offsetInShorts,
     /* [in] */ Int32 sizeInShorts)
 {
     return 0;
 }
 
 Int32 AudioRecord::native_read_in_direct_buffer(
-    /* [in] */ IInterface* jBuffer, 
+    /* [in] */ IInterface* jBuffer,
     /* [in] */ Int32 sizeInBytes)
 {
     return 0;
@@ -705,8 +704,8 @@ Int32 AudioRecord::native_get_pos_update_period()
 }
 
 Int32 AudioRecord::native_get_min_buff_size(
-    /* [in] */ Int32 sampleRateInHz, 
-    /* [in] */ Int32 channelCount, 
+    /* [in] */ Int32 sampleRateInHz,
+    /* [in] */ Int32 channelCount,
     /* [in] */ Int32 audioFormat)
 {
     return 0;
