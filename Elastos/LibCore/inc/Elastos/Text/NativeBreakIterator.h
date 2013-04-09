@@ -64,7 +64,7 @@ public:
         /* [in] */ ICharacterIterator* newText);
 
     CARAPI_(void) SetText(
-        /* [in] */ String newText);
+        /* [in] */ const String& newText);
 
     CARAPI_(Boolean) IsBoundary(
         /* [in] */ Int32 offset);
@@ -96,20 +96,20 @@ private:
         /* [in] */ const String& locale);
 
     static CARAPI_(Int32) GetWordInstanceImpl(
-        /* [in] */ String locale);
+        /* [in] */ const String& locale);
 
     static CARAPI_(Int32) GetLineInstanceImpl(
-        /* [in] */ String locale);
+        /* [in] */ const String& locale);
 
     static CARAPI_(Int32) GetSentenceInstanceImpl(
-        /* [in] */ String locale);
+        /* [in] */ const String& locale);
 
     static CARAPI_(void) CloseBreakIteratorImpl(
         /* [in] */ Int32 addr);
 
     static CARAPI_(void) SetTextImpl(
         /* [in] */ Int32 addr, 
-        /* [in] */ String text);
+        /* [in] */ const String& text);
 
     static CARAPI_(Int32) CloneImpl(
         /* [in] */ Int32 addr);

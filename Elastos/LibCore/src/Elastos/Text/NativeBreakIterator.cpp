@@ -79,7 +79,7 @@ void NativeBreakIterator::SetText(
 }
 
 void NativeBreakIterator::SetText(
-    /* [in] */ String newText)
+    /* [in] */ const String& newText)
 {
     AutoPtr<IStringCharacterIterator> pISCI;
     CStringCharacterIterator::New(newText, (IStringCharacterIterator**)&pISCI);
@@ -177,19 +177,19 @@ Int32 NativeBreakIterator::GetCharacterInstanceImpl(
 }
 
 Int32 NativeBreakIterator::GetWordInstanceImpl(
-    /* [in] */ String locale)
+    /* [in] */ const String& locale)
 {
     return GetIterator(locale, UBRK_WORD);
 }
 
 Int32 NativeBreakIterator::GetLineInstanceImpl(
-    /* [in] */ String locale)
+    /* [in] */ const String& locale)
 {
     return GetIterator(locale, UBRK_LINE);
 }
 
 Int32 NativeBreakIterator::GetSentenceInstanceImpl(
-    /* [in] */ String locale)
+    /* [in] */ const String& locale)
 {
     return GetIterator(locale, UBRK_SENTENCE);
 }
@@ -207,7 +207,7 @@ void NativeBreakIterator::CloseBreakIteratorImpl(
 
 void NativeBreakIterator::SetTextImpl(
     /* [in] */ Int32 addr, 
-    /* [in] */ String text)
+    /* [in] */ const String& text)
 {
     UnicodeString _s = UnicodeString::fromUTF8(text.string());
     UnicodeString& s(_s);
