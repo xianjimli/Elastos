@@ -152,15 +152,15 @@ ECode CAppWidgetProviderInfo::ReadFromParcel(
     Int32 value;
     source->ReadInt32(&value);
     if (0 != value) {
-        CComponentName::New(in, (IComponentName**)&mProvider);
+        // CComponentName::New(in, (IComponentName**)&mProvider);
     }
     source->ReadInt32(&mMinWidth);
     source->ReadInt32(&mMinHeight);
     source->ReadInt32(&mUpdatePeriodMillis);
     source->ReadInt32(&mInitialLayout);
-    source->ReadInt32(&value)
+    source->ReadInt32(&value);
     if (0 != value) {
-        CComponentName::New(in, (IComponentName**)&mConfigure);
+        // CComponentName::New(in, (IComponentName**)&mConfigure);
     }
     source->ReadString(&mLabel);
     source->ReadInt32(&mIcon);
