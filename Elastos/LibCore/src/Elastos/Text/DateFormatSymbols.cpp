@@ -5,10 +5,10 @@
 ECode DateFormatSymbols::InternalZoneStrings(
         /* [out, callee] */ ArrayOf<ArrayOf<String> * > ** zoneStrings)
 {
-    //Mutex::Autolock lock(mLock);
+    Mutex::Autolock lock(mLock);
 
     if (mZoneStrings == NULL) {
-//        mZoneStrings = TimeZones.getZoneStrings(locale);
+        TimeZones::GetZoneStrings(mLocale, &mZoneStrings);
     }
     *zoneStrings = mZoneStrings->Clone();
     return NOERROR;
@@ -29,7 +29,9 @@ ECode DateFormatSymbols::Init(
     mLocale = locale;
     String SimpleDateFormat_PATTERN_CHARS = String("GyMdkHmsSEDFwWahKzZLc");
     mLocalPatternChars = SimpleDateFormat_PATTERN_CHARS;
-/*    LocaleData *localeData = LocaleData::Get(locale);
+    assert(0);
+/*
+    LocaleData *localeData = LocaleData::Get(locale);
     mAmpms = (localeData->mAmPm)->Clone();
     mEras = (localeData->mEras)->Clone();
     mMonths = (localeData->mLongMonthNames)->Clone();
@@ -116,14 +118,15 @@ Boolean DateFormatSymbols::TimeZoneStringsEqual(
         /* [in] */ IDateFormatSymbols *lhs,
         /* [in] */ IDateFormatSymbols *rhs)
 {
-/*    // Quick check that may keep us from having to load the zone strings.
+    assert(0);
+    // Quick check that may keep us from having to load the zone strings.
     // Note that different locales may have the same strings, so the opposite check isn't valid.
-    if (lhs.zoneStrings == null && rhs.zoneStrings == null && lhs.locale.equals(rhs.locale)) {
-        return true;
-    }
+//    if (lhs.zoneStrings == null && rhs.zoneStrings == null && lhs.locale.equals(rhs.locale)) {
+//        return true;
+//    }
     // Make sure zone strings are loaded, then check.
-    return Arrays.deepEquals(lhs.internalZoneStrings(), rhs.internalZoneStrings());
-*/
+//    return Arrays.deepEquals(lhs.internalZoneStrings(), rhs.internalZoneStrings());
+
     return NOERROR;
 }
 
@@ -223,8 +226,9 @@ ECode DateFormatSymbols::GetWeekdays(
 ECode DateFormatSymbols::GetZoneStrings(
         /* [out, callee] */ ArrayOf<ArrayOf<String> * > ** zoneStrings)
 {
-//    return TimeZones.clone2dStringArray(internalZoneStrings());
-    return NOERROR;
+    ArrayOf<ArrayOf<String> * >* izoneStrings;
+    InternalZoneStrings(&izoneStrings);
+    return TimeZones::Clone2dStringArray(izoneStrings, zoneStrings);
 }
 
 ECode DateFormatSymbols::SetAmPmStrings(
@@ -294,8 +298,7 @@ ECode DateFormatSymbols::SetZoneStrings(
             return E_ILLEGAL_ARGUMENT_EXCEPTION;
         }
     }
-
-//    this.zoneStrings = TimeZones.clone2dStringArray(zoneStrings);
+    TimeZones::Clone2dStringArray(zoneStrings, &mZoneStrings);
     mCustomZoneStrings = TRUE;
     return NOERROR;
 }

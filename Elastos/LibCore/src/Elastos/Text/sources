@@ -27,6 +27,7 @@ SOURCES += MessageFormat.cpp
 SOURCES += CMessageFormat.cpp
 SOURCES += ChoiceFormat.cpp
 SOURCES += CChoiceFormat.cpp
+SOURCES += TimeZones.cpp
 SOURCES += DateFormatSymbols.cpp
 SOURCES += CDateFormatSymbols.cpp
 SOURCES += NativeDecimalFormat.cpp

@@ -5,13 +5,14 @@
 #include "Elastos.Text_server.h"
 #include <elastos.h>
 #include <elastos/AutoPtr.h>
-//#include <elastos/Mutex.h>
-//#include <LocaleData.h>
-
-
+#include <elastos/AutoFree.h>
+#include <elastos/Mutex.h>
+#include "TimeZones.h"
+//#include "LocaleData.h"
 //#include "CDateFormatSymbols.h"
 
 using namespace Elastos;
+using namespace Elastos::Core::Threading;
 
 class DateFormatSymbols
 {
@@ -390,11 +391,9 @@ protected:
      */
     mutable AutoPtr<ILocale> mLocale;
 
-    //Mutex mLock;
+    Mutex* mLock;
 
 private:
-    //const static Int64 serialVersionUID = -5987973545549424702L;
-
     String mLocalPatternChars;
 
     ArrayOf<String> *mAmpms, *mEras, *mMonths, *mShortMonths, *mShortWeekdays, *mWeekdays;

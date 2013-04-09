@@ -11,7 +11,7 @@ module
     merge("../../../car/Elastos/Text/IFormat.car");
     merge("../../../car/Elastos/Text/IFieldPosition.car");
     merge("../../../car/Elastos/Text/IDateFormat.car");
-    merge("../../../car/Elastos/Text/DateFormatSymbols.car");
+    merge("../../../car/Elastos/Text/IDateFormatSymbols.car");
     merge("../../../car/Elastos/Text/INumberFormat.car");
     merge("../../../car/Elastos/Text/IMessageFormat.car");
     merge("../../../car/Elastos/Text/IChoiceFormat.car");
