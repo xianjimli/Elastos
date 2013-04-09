@@ -7,7 +7,7 @@
 #include <elastos.h>
 #include <elastos/AutoPtr.h>
 #include <StringBuffer.h>
-#include "CStringCharacterIterator.h"
+
 
 using namespace Elastos;
 
@@ -93,7 +93,7 @@ private:
         /* [in] */ Int32 type);
 
     static CARAPI_(Int32) GetCharacterInstanceImpl(
-        /* [in] */ String locale);
+        /* [in] */ const String& locale);
 
     static CARAPI_(Int32) GetWordInstanceImpl(
         /* [in] */ String locale);

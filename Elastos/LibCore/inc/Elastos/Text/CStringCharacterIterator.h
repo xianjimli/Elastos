@@ -4,7 +4,7 @@
 
 #include "_CStringCharacterIterator.h"
 #include "StringCharacterIterator.h"
-CarClass(CStringCharacterIterator), public StringCharacterIterator
+CarClass(CStringCharacterIterator), public ::StringCharacterIterator
 {
 public:
     CARAPI constructor(
