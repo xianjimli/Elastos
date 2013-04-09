@@ -157,5 +157,102 @@ module
     const AppWidgetManager_META_DATA_APPWIDGET_OLD_NAME = "elastos.appwidget.oldName";
 
     interface IAppWidgetManager {
+        /**
+         * Set the RemoteViews to use for the specified appWidgetIds.
+         *
+         * <p>
+         * It is okay to call this method both inside an {@link #ACTION_APPWIDGET_UPDATE} broadcast,
+         * and outside of the handler.
+         * This method will only work when called from the uid that owns the AppWidget provider.
+         *
+         * @param appWidgetIds     The AppWidget instances for which to set the RemoteViews.
+         * @param views         The RemoteViews object to show.
+         */
+        UpdateAppWidget(
+            [in] ArrayOf<Int32> appWidgetIds,
+            [in] IRemoteViews* views);
+
+        /**
+         * Set the RemoteViews to use for the specified appWidgetId.
+         *
+         * <p>
+         * It is okay to call this method both inside an {@link #ACTION_APPWIDGET_UPDATE} broadcast,
+         * and outside of the handler.
+         * This method will only work when called from the uid that owns the AppWidget provider.
+         *
+         * @param appWidgetId      The AppWidget instance for which to set the RemoteViews.
+         * @param views         The RemoteViews object to show.
+         */
+        UpdateAppWidgetEx(
+            [in] Int32 appWidgetId,
+            [in] IRemoteViews* views);
+
+        /**
+         * Set the RemoteViews to use for all AppWidget instances for the supplied AppWidget provider.
+         *
+         * <p>
+         * It is okay to call this method both inside an {@link #ACTION_APPWIDGET_UPDATE} broadcast,
+         * and outside of the handler.
+         * This method will only work when called from the uid that owns the AppWidget provider.
+         *
+         * @param provider      The {@link ComponentName} for the {@link
+         * android.content.BroadcastReceiver BroadcastReceiver} provider
+         *                      for your AppWidget.
+         * @param views         The RemoteViews object to show.
+         */
+        UpdateAppWidgetEx2(
+            [in] IComponentName* provider,
+            [in] IRemoteViews* views);
+
+        /**
+         * Return a list of the AppWidget providers that are currently installed.
+         */
+        GetInstalledProviders(
+            [out] IObjectContainer** providerInfos);
+
+        /**
+         * Get the available info about the AppWidget.
+         *
+         * @return A appWidgetId.  If the appWidgetId has not been bound to a provider yet, or
+         * you don't have access to that appWidgetId, null is returned.
+         */
+        GetAppWidgetInfo(
+            [in] Int32 appWidgetId,
+            [out] IAppWidgetProviderInfo** info);
+
+        /**
+         * Set the component for a given appWidgetId.
+         *
+         * <p class="note">You need the APPWIDGET_LIST permission.  This method is to be used by the
+         * AppWidget picker.
+         *
+         * @param appWidgetId     The AppWidget instance for which to set the RemoteViews.
+         * @param provider      The {@link android.content.BroadcastReceiver} that will be the AppWidget
+         *                      provider for this AppWidget.
+         */
+        BindAppWidgetId(
+            [in] Int32 appWidgetId,
+            [in] IComponentName* provider);
+
+        /**
+         * Get the list of appWidgetIds that have been bound to the given AppWidget
+         * provider.
+         *
+         * @param provider The {@link android.content.BroadcastReceiver} that is the
+         *            AppWidget provider to find appWidgetIds for.
+         */
+        GetAppWidgetIds(
+            [in] IComponentName* provider,
+            [out, callee] ArrayOf<Int32>* appWidgetIds);
+    }
+
+    interface IAppWidgetManagerHelper {
+        /**
+         * Get the AppWidgetManager instance to use for the supplied {@link android.content.Context
+         * Context} object.
+         */
+        GetInstance(
+            [in] IContext* context,
+            [out] IAppWidgetManager** appWidgetManager);
     }
 }

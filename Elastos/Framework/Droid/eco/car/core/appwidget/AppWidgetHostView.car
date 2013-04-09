@@ -1,0 +1,39 @@
+
+module
+{
+    const AppWidgetHostView_VIEW_MODE_NOINIT = 0;
+    const AppWidgetHostView_VIEW_MODE_CONTENT = 1;
+    const AppWidgetHostView_VIEW_MODE_ERROR = 2;
+    const AppWidgetHostView_VIEW_MODE_DEFAULT = 3;
+
+    const AppWidgetHostView_FADE_DURATION = 1000;
+
+    interface IAppWidgetHostView extends IFrameLayout {
+        /**
+         * Set the AppWidget that will be displayed by this view.
+         */
+        SetAppWidget(
+            [in] Int32 appWidgetId,
+            [in] IAppWidgetProviderInfo* info);
+
+        GetAppWidgetId(
+            [out] Int32* appWidgetId);
+
+        GetAppWidgetInfo(
+            [out] IAppWidgetProviderInfo** info);
+
+        /**
+         * Update the AppWidgetProviderInfo for this view, and reset it to the
+         * initial layout.
+         */
+        ResetAppWidget(
+            [in] IAppWidgetProviderInfo* info);
+
+        /**
+         * Process a set of {@link RemoteViews} coming in as an update from the
+         * AppWidget provider. Will animate into these new views as needed
+         */
+        UpdateAppWidget(
+            [in] IRemoteViews* remoteViews);
+    }
+}

@@ -1,0 +1,68 @@
+
+module
+{
+    interface IAppWidgetHostView;
+
+    const AppWidgetHost_HANDLE_UPDATE = 1;
+    const AppWidgetHost_HANDLE_PROVIDER_CHANGED = 2;
+
+    interface ILocalAppWidgetHost {
+        /**
+         * Start receiving onAppWidgetChanged calls for your AppWidgets.  Call this when your activity
+         * becomes visible, i.e. from onStart() in your Activity.
+         */
+        StartListening();
+
+        /**
+         * Stop receiving onAppWidgetChanged calls for your AppWidgets.  Call this when your activity is
+         * no longer visible, i.e. from onStop() in your Activity.
+         */
+        StopListening();
+
+        /**
+         * Get a appWidgetId for a host in the calling process.
+         *
+         * @return a appWidgetId
+         */
+        AllocateAppWidgetId(
+            [out] Int32* appWidgetId);
+
+        /**
+         * Stop listening to changes for this AppWidget.
+         */
+        DeleteAppWidgetId(
+            [in] Int32 appWidgetId);
+
+        /**
+         * Remove all records about this host from the AppWidget manager.
+         * <ul>
+         *   <li>Call this when initializing your database, as it might be because of a data wipe.</li>
+         *   <li>Call this to have the AppWidget manager release all resources associated with your
+         *   host.  Any future calls about this host will cause the records to be re-allocated.</li>
+         * </ul>
+         */
+        DeleteHost();
+
+        CreateView(
+            [in] IContext* context,
+            [in] Int32 appWidgetId,
+            [in] IAppWidgetProviderInfo* appWidget,
+            [out] IAppWidgetHostView** hostView);
+
+        UpdateAppWidgetView(
+            [in] Int32 appWidgetId,
+            [in] IRemoteViews* views);
+    }
+
+    interface ILocalAppWidgetHostHelper {
+        /**
+         * Remove all records about all hosts for your package.
+         * <ul>
+         *   <li>Call this when initializing your database, as it might be because of a data wipe.</li>
+         *   <li>Call this to have the AppWidget manager release all resources associated with your
+         *   host.  Any future calls about this host will cause the records to be re-allocated.</li>
+         * </ul>
+         */
+        DeleteAllHosts();
+    }
+}

@@ -7,6 +7,19 @@ include $(MAKEDIR)/../../../../sources.inc
 INCLUDES += $(MAKEDIR)/../../../inc/core
 INCLUDES += ../
 
+INCLUDES += $(PREBUILD_INC)/skia/utils
+INCLUDES += $(PREBUILD_INC)/skia/core
+INCLUDES += $(PREBUILD_INC)/skia/effects
+INCLUDES += $(PREBUILD_INC)/skia/images
+
 C_DEFINES += -D_FRAMEWORK_CORE
 
 SOURCES = CAppWidgetProviderInfo.cpp
+SOURCES += CAppWidgetHostCallbacks.cpp
+SOURCES += CAppWidgetHost.cpp
+SOURCES += CAppWidgetHostHelper.cpp
+SOURCES += CAppWidgetHostView.cpp
+SOURCES += AppWidgetHostView.cpp
+SOURCES += CAppWidgetManager.cpp
+SOURCES += CAppWidgetManagerHelper.cpp
+SOURCES += AppWidgetProvider.cpp

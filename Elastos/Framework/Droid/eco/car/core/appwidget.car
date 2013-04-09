@@ -5,6 +5,9 @@ module
     merge("appwidget/IAppWidgetHost.car");
     merge("appwidget/AppWidgetProviderInfo.car");
     merge("appwidget/AppWidgetManager.car");
+    merge("appwidget/AppWidgetHostView.car");
+    merge("appwidget/AppWidgetHost.car");
+    merge("appwidget/AppWidgetProvider.car");
 
     class CAppWidgetProviderInfo {
         constructor();
@@ -18,4 +21,57 @@ module
         interface IAppWidgetProviderInfo;
         interface IParcelable;
     }
-}
+
+    class CAppWidgetHostCallbacks {
+        constructor(
+            [in] ILocalAppWidgetHost* host);
+
+        interface IAppWidgetHost;
+    }
+
+    class CAppWidgetHost {
+        constructor(
+            [in] IContext* context,
+            [in] Int32 hostId);
+
+        interface ILocalAppWidgetHost;
+    }
+
+    singleton class CAppWidgetHostHelper {
+        interface ILocalAppWidgetHostHelper;
+    }
+
+    class CAppWidgetHostView {
+        /**
+         * Create a host view.  Uses default fade animations.
+         */
+        constructor(
+            [in] IContext* context);
+
+        /**
+         * Create a host view. Uses specified animations when pushing
+         * {@link #updateAppWidget(RemoteViews)}.
+         *
+         * @param animationIn Resource ID of in animation to use
+         * @param animationOut Resource ID of out animation to use
+         */
+        //@SuppressWarnings({"UnusedDeclaration"})
+        constructor(
+            [in] IContext* context,
+            [in] Int32 animationIn,
+            [in] Int32 animationOut);
+
+        interface IAppWidgetHostView;
+    }
+
+    class CAppWidgetManager {
+        constructor(
+            [in] IContext* context);
+
+        interface IAppWidgetManager;
+    }
+
+    singleton class CAppWidgetManagerHelper {
+        interface IAppWidgetManagerHelper;
+    }
+ }
