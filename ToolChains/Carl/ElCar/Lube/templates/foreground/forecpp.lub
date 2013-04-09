@@ -10,23 +10,41 @@ $WITH all interfaces DO
 $   IF attrib is not "callback" and attrib is not "callbacksink" and attrib is not "clsobj" and attrib is not "filter" and name is not "IRegime" and name is not "IObject"
 $       WITH all parents_and_me DO
 $       WITH all methods DO
+$           IF interface.attrib is "inherited" and interface.name is not "IAppletTaskStartup"
+$               WITH all supers DO
+$                   IF super is last
+// inherits from ${super.name}, implement to override ${super.name}::${method.name}
+$                   END IF ;; is last
+$               END DO ;; all supers
+// $^
+$           END IF ;; is "inherited"
 ${type} ${class.name}::${name}($^
 $           WITH all parameters DO
 
+$   IF interface.attrib is "inherited" and interface.name is not "IAppletTaskStartup"
+// $^
+$   END IF ;; is "inherited"
     /* [${attrib}] */ ${type} ${PrefixingNameByName(parameter)}$^
 $           IF parameter is not last
 ,$^
 $           END IF
 $           END DO ;; all parameters
 )
+$   IF interface.attrib is "inherited" and interface.name is not "IAppletTaskStartup"
+// {
+//     // TODO: Add your code here
+//     return E_NOT_IMPLEMENTED;
+// }
+$   ELSE
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
+$   END IF ;; is "inherited" and not "IAppletTaskStartup"
 
 $       END DO ;; all methods
 $       END DO ;; parents_and_me
-$   END IF ;; is not "callback" and not "callbacksink" and not "clsobj" and not "filter"
+$   END IF ;; is not "callback" and not "callbacksink" and not "clsobj" and not "filter" and name is not "IRegime" and name is not "IObject"
 $
 $   IF attrib is "callbacksink"
 $       WITH all parents_and_me DO

@@ -3126,11 +3126,18 @@ Restart:
             break;
 
         case Type_enum:
-            assert(0 == pType->nPointer);
+            assert(1 >= pType->nPointer);
 
-            pCtx->PutString("pParams->WriteInt32(");
-            UserFunc_PrefixingName(pCtx, pDesc, pvArg);
-            pCtx->PutString(");");
+            if (0 == pType->nPointer) {
+                pCtx->PutString("pParams->WriteInt32(");
+                UserFunc_PrefixingName(pCtx, pDesc, pvArg);
+                pCtx->PutString(");");
+            }
+            else {
+                pCtx->PutString("pParams->WriteInt32Ptr((Handle32)");
+                UserFunc_PrefixingName(pCtx, pDesc, pvArg);
+                pCtx->PutString(");");
+            }
             break;
 
         case Type_struct:

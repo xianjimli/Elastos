@@ -2,9 +2,6 @@
 // Copyright (c) 2000-2009,  Elastos, Inc.  All Rights Reserved.
 //==========================================================================
 
-#include <windows.h>
-#include <assert.h>
-
 #include "parser.h"
 
 ParserContext::ParserContext(char *pBuffer)

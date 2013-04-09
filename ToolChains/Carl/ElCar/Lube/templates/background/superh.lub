@@ -148,6 +148,7 @@ $ END DO ;;
 $
 
 $ WITH all super DO    
+$ IF super is last
 $ WITH super DO
     //
     // Parent's pseudo interface methods
@@ -281,11 +282,13 @@ $       END IF ;; callback
 $   END DO ;; all interfaces
 $ END IF ;; hascallback
 $ END DO ;; super
+$ END IF ;; super is last
 $ END DO ;; all super
 $
 protected:
     IObject* _m_pSuper;
 $ WITH all super DO
+$ IF super is last
 $ WITH super DO
 $   WITH all interfaces DO
 $     IF attrib is not "callback" and attrib is not "clsobj" and attrib is not "filter" and name is not "IObject"
@@ -296,4 +299,5 @@ $   IF attrib is "hascallback"
     _I${name}CallbackTrigger* _m_pSuperCallbackTrigger;
 $   END IF
 $ END DO ;; super
+$ END IF ;; super is last
 $ END DO ;; all super
