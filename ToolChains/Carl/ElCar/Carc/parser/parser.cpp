@@ -2730,6 +2730,24 @@ int TryGetParentClsIntf(ClassDescriptor *pDesc, InterfaceDescriptor *pIntf)
     return -1;
 }
 
+BOOL IsClassInterfaceVirtuallyImplementedByAnyone(
+    ClassInterface* pClsIntf, int clsIndex)
+{
+    assert(pClsIntf && s_pModule->ppClassDir[clsIndex]);
+    ClassDescriptor* pDesc = s_pModule->ppClassDir[clsIndex]->pDesc;
+
+    int index = pClsIntf->sIndex;
+
+    for (int n = 0; n < pDesc->cInterfaces; n++) {
+        ClassInterface* pClsIntfn = pDesc->ppInterfaces[n];
+        if (index == pClsIntfn->sIndex) {
+            return (pClsIntfn->wAttribs & ClassInterfaceAttrib_virtual);
+        }
+    }
+
+    return FALSE;
+}
+
 // CLS_ITF     -> [ k_virtual | k_hidden | k_callback ]
 //                k_interface ident s_semicolon
 //
@@ -2878,6 +2896,12 @@ int P_ClassInterface(ClassDirEntry *pClass)
         if (!(pIntf->dwAttribs & InterfaceAttrib_local))
             pDesc->dwAttribs &= ~ClassAttrib_classlocal;
         pDesc->dwAttribs |= ClassAttrib_defined;
+    }
+
+    if (pDesc->dwAttribs & ClassAttrib_hasparent) {
+        BOOL inherit = IsClassInterfaceVirtuallyImplementedByAnyone(
+            pDesc->ppInterfaces[n], pDesc->sParentIndex);
+        if (inherit) wAttribs |= ClassInterfaceAttrib_inherited;
     }
 
     pDesc->ppInterfaces[n]->wAttribs = wAttribs;
