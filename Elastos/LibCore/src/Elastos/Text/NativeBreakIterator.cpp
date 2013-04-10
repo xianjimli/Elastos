@@ -93,7 +93,7 @@ Boolean NativeBreakIterator::IsBoundary(
 }
 
 Int32 NativeBreakIterator::Preceding(
-    /* [in] */ Int32 offset) 
+    /* [in] */ Int32 offset)
 {
     return PrecedingImpl(addr, offset);
 }
@@ -227,7 +227,7 @@ Int32 NativeBreakIterator::CloneImpl(
 }
 
 Int32 NativeBreakIterator::PrecedingImpl(
-    /* [in] */ Int32 addr, 
+    /* [in] */ Int32 addr,
     /* [in] */ Int32 offset)
 {
     return ubrk_preceding(breakIterator(addr), offset);

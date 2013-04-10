@@ -5,7 +5,7 @@
 #include "Elastos.Text_server.h"
 #include <elastos.h>
 #include "NativeBreakIterator.h"
-//#include "ICU.h"
+
 using namespace Elastos;
 
 class BreakIterator {

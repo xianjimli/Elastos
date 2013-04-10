@@ -21,7 +21,7 @@ module
     merge("../../../car/Elastos/Text/ICUCollationElementIterator.car");
     merge("../../../car/Elastos/Text/IDecimalFormat.car");
     merge("../../../car/Elastos/Text/SimpleDateFormat.car");
-    merge("../../../car/Elastos/Text/BreakIterator.car");
+    merge("../../../car/Elastos/Text/IBreakIterator.car");
     merge("../../../car/Elastos/Text/RuleBasedBreakIterator.car");
     merge("../../../car/Elastos/Text/CollationKey.car");
     merge("../../../car/Elastos/Text/Collator.car");

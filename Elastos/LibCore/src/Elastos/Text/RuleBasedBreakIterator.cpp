@@ -1,4 +1,10 @@
 #include "RuleBasedBreakIterator.h"
+PInterface RuleBasedBreakIterator::Probe(
+    /* [in] */ REIID riid)
+{
+    return NULL;
+}
+
 RuleBasedBreakIterator::RuleBasedBreakIterator()
 {
     //BreakIterator(iterator);
@@ -7,7 +13,7 @@ RuleBasedBreakIterator::RuleBasedBreakIterator()
 RuleBasedBreakIterator::~RuleBasedBreakIterator()
 {}
 
-void RuleBasedBreakIterator::Init(
+RuleBasedBreakIterator::RuleBasedBreakIterator(
     /* [in] */ NativeBreakIterator* iterator)
 {
 }

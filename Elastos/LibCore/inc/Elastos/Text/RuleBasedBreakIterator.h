@@ -11,7 +11,16 @@ using namespace Elastos;
 class RuleBasedBreakIterator : public BreakIterator {
 
 public:
+    virtual CARAPI_(PInterface) Probe(
+        /* [in] */ REIID riid);
+
     RuleBasedBreakIterator();
+
+    /*
+     * Wrapping constructor.
+     */
+    RuleBasedBreakIterator(
+            /* [in] */ NativeBreakIterator* iterator);
 
     virtual ~RuleBasedBreakIterator();
 
@@ -162,12 +171,6 @@ public:
         cloned.wrapped = (NativeBreakIterator) wrapped.clone();
         return cloned;
     }*/
-protected:
-    /*
-     * Wrapping constructor.
-     */
-    CARAPI_(void) Init(
-            /* [in] */ NativeBreakIterator* iterator);
 
 private:
     /*

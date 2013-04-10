@@ -1,5 +1,7 @@
-#include "BreakIterator.h"
 
+#include "BreakIterator.h"
+#include "NativeBreakIterator.h"
+#include "CRuleBasedBreakIterator.h"
 BreakIterator::BreakIterator(){}
 
 BreakIterator::BreakIterator(
@@ -11,8 +13,9 @@ BreakIterator::BreakIterator(
 ECode BreakIterator::GetAvailableLocales(
         /* [out] */ ArrayOf<ILocale*>** availableLocales)
 {
-//    return ICU::GetAvailableBreakIteratorLocales(availableLocales);
-    return E_NOT_IMPLEMENTED;
+    AutoPtr<IICUHelper> pICUHelper;
+    CICUHelper::AcquireSingleton((IICUHelper**)&pICUHelper);
+    return pICUHelper->GetAvailableBreakIteratorLocales(availableLocales);
 }
 
 ECode BreakIterator::GetCharacterInstance(
@@ -29,8 +32,12 @@ ECode BreakIterator::GetCharacterInstance(
         /* [in] */ ILocale* where,
         /* [out] */ IBreakIterator** instance)
 {
-//    return new RuleBasedBreakIterator(NativeBreakIterator.getCharacterInstance(where));
-    return E_NOT_IMPLEMENTED;
+    RuleBasedBreakIterator * rbbi = new RuleBasedBreakIterator(
+        NativeBreakIterator::GetCharacterInstance(where));
+    IRuleBasedBreakIterator * irbbi = reinterpret_cast<IRuleBasedBreakIterator * >(
+        rbbi->Probe(EIID_IRuleBasedBreakIterator));
+    *instance = (IBreakIterator*)irbbi;
+    return NOERROR;
 }
 
 ECode BreakIterator::GetLineInstance(
@@ -47,8 +54,12 @@ ECode BreakIterator::GetLineInstance(
         /* [in] */ ILocale* where,
         /* [out] */ IBreakIterator** instance)
 {
-//    return new RuleBasedBreakIterator(NativeBreakIterator.getLineInstance(where));
-    return E_NOT_IMPLEMENTED;
+    RuleBasedBreakIterator * rbbi = new RuleBasedBreakIterator(
+        NativeBreakIterator::GetLineInstance(where));
+    IRuleBasedBreakIterator * irbbi = reinterpret_cast<IRuleBasedBreakIterator * >(
+        rbbi->Probe(EIID_IRuleBasedBreakIterator));
+    *instance = (IBreakIterator*)irbbi;
+    return NOERROR;
 }
 
 ECode BreakIterator::GetSentenceInstance(
@@ -65,8 +76,12 @@ ECode BreakIterator::GetSentenceInstance(
         /* [in] */ ILocale* where,
         /* [out] */ IBreakIterator** instance)
 {
-//    return new RuleBasedBreakIterator(NativeBreakIterator.getSentenceInstance(where));
-    return E_NOT_IMPLEMENTED;
+    RuleBasedBreakIterator * rbbi = new RuleBasedBreakIterator(
+        NativeBreakIterator::GetSentenceInstance(where));
+    IRuleBasedBreakIterator * irbbi = reinterpret_cast<IRuleBasedBreakIterator * >(
+        rbbi->Probe(EIID_IRuleBasedBreakIterator));
+    *instance = (IBreakIterator*)irbbi;
+    return NOERROR;
 }
 
 ECode BreakIterator::GetWordInstance(
@@ -83,8 +98,12 @@ ECode BreakIterator::GetWordInstance(
         /* [in] */ ILocale* where,
         /* [out] */ IBreakIterator** instance)
 {
-//    return new RuleBasedBreakIterator(NativeBreakIterator.getWordInstance(where));
-    return E_NOT_IMPLEMENTED;
+    RuleBasedBreakIterator * rbbi = new RuleBasedBreakIterator(
+        NativeBreakIterator::GetWordInstance(where));
+    IRuleBasedBreakIterator * irbbi = reinterpret_cast<IRuleBasedBreakIterator * >(
+        rbbi->Probe(EIID_IRuleBasedBreakIterator));
+    *instance = (IBreakIterator*)irbbi;
+    return NOERROR;
 }
 
 ECode BreakIterator::IsBoundary(
