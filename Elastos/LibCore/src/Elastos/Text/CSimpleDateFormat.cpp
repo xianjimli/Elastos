@@ -77,7 +77,7 @@ ECode CSimpleDateFormat::FormatDateEx(
     /* [in] */ IFieldPosition* field,
     /* [out] */ String* result)
 {
-    return E_NOT_IMPLEMENTED;
+    return SimpleDateFormat::FormatDateEx(date, buffer, field, result);
 }
 
 ECode CSimpleDateFormat::GetCalendar(

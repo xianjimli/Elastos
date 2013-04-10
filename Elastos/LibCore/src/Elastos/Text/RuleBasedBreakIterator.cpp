@@ -7,7 +7,7 @@ PInterface RuleBasedBreakIterator::Probe(
 
 RuleBasedBreakIterator::RuleBasedBreakIterator()
 {
-    //BreakIterator(iterator);
+
 }
 
 RuleBasedBreakIterator::~RuleBasedBreakIterator()
@@ -16,6 +16,7 @@ RuleBasedBreakIterator::~RuleBasedBreakIterator()
 RuleBasedBreakIterator::RuleBasedBreakIterator(
     /* [in] */ NativeBreakIterator* iterator)
 {
+    //BreakIterator(iterator);
 }
 
 ECode RuleBasedBreakIterator::Current(
@@ -126,7 +127,7 @@ ECode RuleBasedBreakIterator::IsBoundary(
 //@Override
 ECode RuleBasedBreakIterator::Preceding(
     /* [in] */ Int32 offset,
-    /* [out] */ Int32* precedingValue) 
+    /* [out] */ Int32* precedingValue)
 {
     VALIDATE_NOT_NULL(precedingValue);
     ValidateOffset(offset);

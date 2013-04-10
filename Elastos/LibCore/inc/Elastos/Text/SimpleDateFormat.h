@@ -5,6 +5,7 @@
 
 #include <elastos.h>
 #include <elastos/AutoPtr.h>
+#include <elastos/AutoFree.h>
 #include <elastos/Vector.h>
 #include <StringBuffer.h>
 
@@ -12,6 +13,7 @@
 #include "DateFormat.h"
 #include "CFieldPosition.h"
 #include "Character.h"
+
 
 using namespace Elastos;
 
@@ -149,11 +151,11 @@ public:
      *             if there are invalid characters in the pattern.
      */
     //@Override
-    CARAPI formatEx3(
+    CARAPI FormatDateEx(
         /* [in] */ IDate* date,
-        /* [in] */ StringBuffer* buffer,
-        /* [in] */ IFieldPosition* field,
-        /* [out] */ StringBuffer* formatString);
+        /* [in] */ const String& buffer,
+        /* [in] */ IFieldPosition* fieldPos,
+        /* [out] */ String* formatString);
 
     /**
      * Returns the date which is the start of the one hundred year period for two-digit year values.

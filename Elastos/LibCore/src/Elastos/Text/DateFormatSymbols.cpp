@@ -30,8 +30,10 @@ ECode DateFormatSymbols::Init(
     String SimpleDateFormat_PATTERN_CHARS = String("GyMdkHmsSEDFwWahKzZLc");
     mLocalPatternChars = SimpleDateFormat_PATTERN_CHARS;
     assert(0);
+
 /*
     LocaleData *localeData = LocaleData::Get(locale);
+
     mAmpms = (localeData->mAmPm)->Clone();
     mEras = (localeData->mEras)->Clone();
     mMonths = (localeData->mLongMonthNames)->Clone();
@@ -43,7 +45,8 @@ ECode DateFormatSymbols::Init(
     mLongStandAloneMonths = (localeData->mLongStandAloneMonthNames)->Clone();
     mShortStandAloneMonths = (localeData->mShortStandAloneMonthNames)->Clone();
     mLongStandAloneWeekdays = (localeData->mLongStandAloneWeekdayNames)->Clone();
-    mShortStandAloneWeekdays = (localeData->mShortStandAloneWeekdayNames)->Clone();*/
+    mShortStandAloneWeekdays = (localeData->mShortStandAloneWeekdayNames)->Clone();
+*/
     return NOERROR;
 }
 
