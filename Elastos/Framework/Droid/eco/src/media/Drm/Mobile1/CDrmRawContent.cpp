@@ -372,10 +372,10 @@ ECode CDrmRawContent::constructor(
     CBufferedInputStream::New(inRawdata,1024 ,(IBufferedInputStream**)&mInData);
     mInDataLen = len;
 
-    if (mimeTypeStr == DRM_MIMETYPE_MESSAGE_STRING){
+    if (mimeTypeStr == DrmRawContent_DRM_MIMETYPE_MESSAGE_STRING){
         mimeType = DRM_MIMETYPE_MESSAGE;
     }
-    else if (DRM_MIMETYPE_CONTENT_STRING == mimeTypeStr){
+    else if (DrmRawContent_DRM_MIMETYPE_CONTENT_STRING == mimeTypeStr){
         mimeType = DRM_MIMETYPE_CONTENT;
     }
     else
@@ -435,17 +435,17 @@ ECode CDrmRawContent::GetRawType(
 
 ECode CDrmRawContent::GetContentInputStream(
     /* [in] */ IDrmRights* rights,
-    /* [out] */ IInputStream** inputStream)
+    /* [out] */ IInputStream** is)
 {
-    VALIDATE_NOT_NULL(inputStream);
+    VALIDATE_NOT_NULL(is);
     if (NULL == rights){
         return E_NULL_POINTER_EXCEPTION;
     }
 
     DrmInputStream* tmp = new DrmInputStream(rights, this);
-    *inputStream = tmp;
-    if (*inputStream) {
-        (*inputStream)->AddRef();
+    *is = tmp;
+    if (*is) {
+        (*is)->AddRef();
     }
 
     return NOERROR;
@@ -462,12 +462,12 @@ ECode CDrmRawContent::GetContentType(
 }
 
 ECode CDrmRawContent::GetContentLength(
-    /* [in] */ IDrmRights* mRights,
-    /* [out] */ Int32* len)
+    /* [in] */ IDrmRights* rights,
+    /* [out] */ Int32* length)
 {
-    VALIDATE_NOT_NULL(len);
+    VALIDATE_NOT_NULL(length);
 
-    if (NULL == mRights){
+    if (NULL == rights){
         return E_NULL_POINTER_EXCEPTION;
     }
 
@@ -483,9 +483,9 @@ ECode CDrmRawContent::GetContentLength(
     }
 
     if (JNI_DRM_UNKNOWN_DATA_LEN == mediaLen)
-        *len = DRM_UNKNOWN_DATA_LEN;
+        *length = DRM_UNKNOWN_DATA_LEN;
     else
-        *len = mediaLen;
+        *length = mediaLen;
 
     return NOERROR;
 }

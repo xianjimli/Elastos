@@ -1,6 +1,7 @@
 
 module
 {
+    merge("Drm/Mobile1/Exceptions.car");
     merge("Drm/Mobile1/DrmConstraintInfo.car");
     merge("Drm/Mobile1/DrmRights.car");
     merge("Drm/Mobile1/DrmRawContent.car");
@@ -41,6 +42,26 @@ module
     merge("media/FaceDetector.car");
     merge("media/ResampleInputStream.car");
     merge("media/MiniThumbFile.car");
+
+    class CDrmConstraintInfo {
+        interface IDrmConstraintInfo;
+    }
+
+    class CDrmRights {
+        interface IDrmRights;
+    }
+
+    class CDrmRawContent {
+        constructor(
+            [in] IInputStream* inRawdata,
+            [in] Int32 len,
+            [in] String mimeTypeStr);
+            interface IDrmRawContent;
+    }
+
+    singleton class CDrmRightsManager {
+        interface IDrmRightsManager;
+    }
 
     class CAudioEffect {
         constructor(
@@ -132,29 +153,6 @@ module
             [in] IContext* context);
 
         interface IAudioService;
-    }
-
-    class CDrmConstraintInfo {
-        constructor();
-        interface IDrmConstraintInfo;
-    }
-
-    class CDrmRights {
-        constructor();
-        interface IDrmRights;
-    }
-
-    class CDrmRawContent {
-        constructor(
-            [in] IInputStream* inRawdata,
-            [in] Int32 len,
-            [in] String mimeTypeStr);
-            interface IDrmRawContent;
-    }
-
-    class CDrmRightsManager {
-        constructor();
-        interface IDrmRightsManager;
     }
 
     class CMetadata {
