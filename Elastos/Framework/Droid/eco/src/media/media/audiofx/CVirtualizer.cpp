@@ -9,7 +9,7 @@ using namespace Elastos::Utility::Logging;
 CVirtualizer::CVirtualizer()
 {
     mStrengthSupported = false;
-    CAudioEffect::New(0,0,(IAudioEffect**)&obj);
+    CAudioEffect::New((IUUID*) 0,(IUUID*) 0,0,0,(IAudioEffect**)&obj);
 }
 
 PInterface CVirtualizer::BaseParameterListener::Probe(
@@ -109,13 +109,13 @@ ECode CVirtualizer::BaseParameterListener::OnParameterChange(
 
         if (param.GetLength() == 4) {
             AutoPtr<IAudioEffect> obj;
-            CAudioEffect::New(0,0,(IAudioEffect**)&obj);
+            CAudioEffect::New((IUUID*) 0,(IUUID*) 0,0,0,(IAudioEffect**)&obj);
             obj->ByteArrayToInt32Ex(param, 0, &p);
             obj->Release();
         }
         if (value.GetLength() == 2) {
             AutoPtr<IAudioEffect> obj;
-            CAudioEffect::New(0,0,(IAudioEffect**)&obj);
+            CAudioEffect::New((IUUID*) 0,(IUUID*) 0,0,0,(IAudioEffect**)&obj);
             obj->ByteArrayToInt16Ex(value, 0, &v);
             obj->Release();
         }
@@ -134,7 +134,7 @@ ECode CVirtualizer::SetParameterListenerEx(
         mParamListener = listener;
         mBaseParamListener = new BaseParameterListener();
         AutoPtr<IAudioEffect> obj;
-        CAudioEffect::New(0,0,(IAudioEffect**)&obj);
+        CAudioEffect::New((IUUID*) 0,(IUUID*) 0,0,0,(IAudioEffect**)&obj);
         obj->SetParameterListener(mBaseParamListener);
         obj->Release();
     }

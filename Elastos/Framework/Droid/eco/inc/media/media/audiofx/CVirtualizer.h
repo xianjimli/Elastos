@@ -6,6 +6,7 @@
 #include "os/Runnable.h"
 #include <elastos/AutoPtr.h>
 #include <elastos/ElRefBase.h>
+#include <media/audiofx/AudioEffect.h>
 using namespace Elastos::Core::Threading;
 
 /**
@@ -28,7 +29,7 @@ using namespace Elastos::Core::Threading;
  * audio effects.
  */
 
-CarClass(CVirtualizer)
+CarClass(CVirtualizer), public AudioEffect
 {
 public:
     /**

@@ -44,8 +44,8 @@ module
 
     class CAudioEffect {
         constructor(
-            //[in] IUUID* type,
-            //[in] IUUID* uuid,
+            [in] IUUID* type,
+            [in] IUUID* uuid,
             [in] Int32 priority,
             [in] Int32 audioSession);
 

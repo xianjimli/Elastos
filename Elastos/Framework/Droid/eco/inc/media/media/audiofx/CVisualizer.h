@@ -6,6 +6,7 @@
 #include <elastos/List.h>
 #include <elastos/AutoPtr.h>
 #include <elastos/ElRefBase.h>
+#include <media/audiofx/AudioEffect.h>
 using namespace Elastos::Core::Threading;
 
 /**
@@ -44,7 +45,7 @@ using namespace Elastos::Core::Threading;
  * {@link android.Manifest.permission#MODIFY_AUDIO_SETTINGS}
  */
 
-CarClass(CVisualizer)
+CarClass(CVisualizer), public AudioEffect
 {
 private:
     /**
