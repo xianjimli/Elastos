@@ -101,7 +101,7 @@ ECode UsbService::OpenAccessory(
         return NOERROR;
     }
 
-    *descriptor = mDeviceManager->OpenAccessory(accessory);
+    mDeviceManager->OpenAccessory(accessory, descriptor);
     return NOERROR;
 }
 
