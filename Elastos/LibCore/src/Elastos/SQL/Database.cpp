@@ -900,6 +900,10 @@ ECode Database::_open(
     return _open4(filename, mode, String(NULL), FALSE);
 }
 
+/* free memory proc */
+
+typedef void (freemem)(void *);
+
 /* internal handle for SQLite database */
 
 typedef struct {
@@ -919,7 +923,7 @@ typedef struct {
     struct hvm *vms;        /* Compiled SQLite VMs */
 #endif
     sqlite3_stmt *stmt;     /* For callback() */
-  struct hbl *blobs;        /* SQLite3 blob handles */
+    struct hbl *blobs;        /* SQLite3 blob handles */
 } handle;
 
 /* internal handle for SQLite user defined function */
@@ -933,6 +937,21 @@ typedef struct hfunc {
     void *sf;           /* SQLite function handle */
     // JNIEnv *env;        /* Java environment for callbacks */
 } hfunc;
+
+
+//#if HAVE_SQLITE_COMPILE
+/* internal handle for SQLite VM (sqlite_compile()) */
+
+typedef struct hvm {
+    struct hvm *next;       /* next vm handle */
+    void *vm;           /* SQLite 2/3 VM/statement */
+    char *tail;         /* tail SQL string */
+    int tail_len;       /* only for SQLite3/prepare */
+    handle *h;          /* SQLite database handle */
+    handle hh;          /* fake SQLite database handle */
+} hvm;
+//#endif
+
 
 /* internal handle for sqlite3_blob */
 
@@ -949,7 +968,6 @@ ECode Database::_open4(
     /* [in] */ Boolean ver2)
 {
     handle* h = (handle*)mHandle;
-    char* err = NULL;
     Int32 maj, min, lev;
 
     if (h) {
@@ -996,263 +1014,617 @@ ECode Database::_open4(
     return E_SQLITE_EXCEPTION;
 }
 
-ECode Database::_open_aux_file(String filename)
-{/*
-    handle *h = gethandle(env, obj);
-#if HAVE_SQLITE_OPEN_AUX_FILE
-    jthrowable exc;
-    char *err = 0;
-    transstr filename;
-    int ret;
-#endif
+ECode Database::_open_aux_file(
+    /* [in] */ String filename)
+{
+    handle* h = (handle*)mHandle;
 
     if (h && h->sqlite) {
-#if HAVE_SQLITE_OPEN_AUX_FILE
-#if HAVE_BOTH_SQLITE
-    if (h->is3) {
-        throwex(env, "unsupported");
+        return E_SQLITE_EXCEPTION;
     }
-#endif
-    trans2iso(env, h->haveutf, h->enc, file, &filename);
-    exc = (*env)->ExceptionOccurred(env);
-    if (exc) {
-        (*env)->DeleteLocalRef(env, exc);
-        return;
-    }
-    ret = sqlite_open_aux_file((sqlite *) h->sqlite,
-                   filename.result, &err);
-    transfree(&filename);
-    exc = (*env)->ExceptionOccurred(env);
-    if (exc) {
-        (*env)->DeleteLocalRef(env, exc);
-        if (err) {
-        sqlite_freemem(err);
+
+    return NOERROR;
+}
+
+
+ECode Database::Doclose(
+    /* [in] */ Int32 final)
+{
+    handle* h = (handle*)mHandle;
+
+    if (h) {
+        hfunc *f;
+        hbl *bl;
+
+#if HAVE_SQLITE_COMPILE
+        hvm *v;
+        while ((v = h->vms)) {
+            h->vms = v->next;
+            v->next = 0;
+            v->h = 0;
+            if (v->vm) {
+                sqlite3_finalize((sqlite3_stmt *) v->vm);
+            v->vm = 0;
+            }
         }
-        return;
-    }
-    if (ret != SQLITE_OK) {
-        throwex(env, err ? err : sqlite_error_string(ret));
-    }
-    if (err) {
-        sqlite_freemem(err);
-    }
-#else
-    throwex(env, "unsupported");
 #endif
-    return;
+        if (h->sqlite) {
+            sqlite3_close((sqlite3 *) h->sqlite);
+            h->sqlite = 0;
+        }
+        while ((f = h->funcs)) {
+            h->funcs = f->next;
+            f->h = 0;
+            f->sf = 0;
+            free(f);
+        }
+
+        while ((bl = h->blobs)) {
+            h->blobs = bl->next;
+            bl->next = 0;
+            bl->h = 0;
+            if (bl->blob) {
+                sqlite3_blob_close(bl->blob);
+            }
+            bl->blob = 0;
+        } 
+
+    free(h);
+
+    return NOERROR;
     }
-    throwclosed(env);*/
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode Database::_finalize()
 {
-    //doclose(env, obj, 1);
-    return E_NOT_IMPLEMENTED;
+    return Doclose(1);
 }
 
 ECode Database::_close()
 {
-    //doclose(env, obj, 0);
-    return E_NOT_IMPLEMENTED;
+    return Doclose(0);
+}
+
+static int callback(void *udata, int ncol, char **data, char **cols)
+{
+    return 0;
 }
 
 ECode Database::_exec(
     /** [in] **/String sql,
     /** [in] **/ICallback* cb)
-{/*
-    handle *h = gethandle(env, obj);
+{
+    handle* h = (handle*)mHandle;
     freemem *freeproc;
 
-    if (!sql) {
-    throwex(env, "invalid SQL statement");
-    return;
+    if (sql.IsNull()) {
+        //throwex(env, "invalid SQL statement");
+        return E_SQLITE_EXCEPTION;
     }
     if (h) {
-    if (h->sqlite) {
-        jthrowable exc;
-        int rc;
-        char *err = 0;
-        transstr sqlstr;
-        jobject oldcb = globrefpop(env, &h->cb);
-
-        globrefset(env, cb, &h->cb);
-        h->env = env;
-        h->row1 = 1;
-        trans2iso(env, h->haveutf, h->enc, sql, &sqlstr);
-        exc = (*env)->ExceptionOccurred(env);
-        if (exc) {
-        (*env)->DeleteLocalRef(env, exc);
-        return;
+        if (h->sqlite) {
+            Int32 rc;
+            char *err = NULL;
+            h->row1 = 1;
+            rc = sqlite3_exec((sqlite3 *) h->sqlite, sql.string(),
+                      callback, h, &err);
+            freeproc = (freemem *) sqlite3_free;
+            if (err) {
+                freeproc(err);
+            }
+            if (rc != SQLITE_OK) {
+                return E_SQLITE_EXCEPTION;
+            }
+            return NOERROR;
         }
-#if HAVE_BOTH_SQLITE
-        if (h->is3) {
-        rc = sqlite3_exec((sqlite3 *) h->sqlite, sqlstr.result,
-                  callback, h, &err);
-        freeproc = (freemem *) sqlite3_free;
-        } else {
-        rc = sqlite_exec((sqlite *) h->sqlite, sqlstr.result,
-                 callback, h, &err);
-        freeproc = (freemem *) sqlite_freemem;
-        }
-#else
-#if HAVE_SQLITE2
-        rc = sqlite_exec((sqlite *) h->sqlite, sqlstr.result,
-                 callback, h, &err);
-        freeproc = (freemem *) sqlite_freemem;
-#endif
-#if HAVE_SQLITE3
-        rc = sqlite3_exec((sqlite3 *) h->sqlite, sqlstr.result,
-                  callback, h, &err);
-        freeproc = (freemem *) sqlite3_free;
-#endif
-#endif
-        transfree(&sqlstr);
-        exc = (*env)->ExceptionOccurred(env);
-        delglobrefp(env, &h->cb);
-        h->cb = oldcb;
-        if (exc) {
-        (*env)->DeleteLocalRef(env, exc);
-        if (err) {
-            freeproc(err);
-        }
-        return;
-        }
-        if (rc != SQLITE_OK) {
-        char msg[128];
-
-        seterr(env, obj, rc);
-        if (!err) {
-            sprintf(msg, "error %d in sqlite*_exec", rc);
-        }
-        throwex(env, err ? err : msg);
-        }
-        if (err) {
-        freeproc(err);
-        }
-        return;
     }
+    return NOERROR;
+}
+
+/* free memory proc */
+
+typedef void (freemem)(void *);
+
+static void freep(char **strp)
+{
+    if (strp && *strp) {
+    free(*strp);
+    *strp = 0;
     }
-    throwclosed(env);*/
-    return E_NOT_IMPLEMENTED;
 }
 
 ECode Database::_execEx(
     /** [in] **/String sql,
     /** [in] **/ICallback* cb,
     /** [in] **/ArrayOf<String>* args)
-{/*
-    handle *h = gethandle(env, obj);
+{
+    handle* h = (handle*)mHandle;
     freemem *freeproc = 0;
 
-    if (!sql) {
-    throwex(env, "invalid SQL statement");
-    return;
+    if (sql.IsNull()) {
+        //throwex(env, "invalid SQL statement");
+        return E_SQLITE_EXCEPTION;
     }
     if (h) {
-    if (h->sqlite) {
-        jthrowable exc;
+        if (h->sqlite) {
+            Int32 rc = SQLITE_ERROR, nargs, i;
+            char *err = 0, *p;
+            const char *str = (const char *)sql;
+            struct args {
+                char *arg;
+                //jobject obj;
+                //transstr trans;
+            } *argv = 0;
+            char **cargv = 0;
+            p = (char *) str;
+            nargs = 0;
+            while (*p) {
+                if (*p == '%') {
+                    ++p;
+                    if (*p == 'q' || *p == 's') {
+                        nargs++;
+                        if (nargs > MAX_PARAMS) {
+                            //(*env)->ReleaseStringUTFChars(env, sql, str);
+                            //delglobrefp(env, &h->cb);
+                            //throwex(env, "too much SQL parameters");
+                            return E_SQLITE_EXCEPTION;
+                        }
+                    } else if (h->ver >= 0x020500 && *p == 'Q') {
+                        nargs++;
+                        if (nargs > MAX_PARAMS) {
+                            //(*env)->ReleaseStringUTFChars(env, sql, str);
+                            //delglobrefp(env, &h->cb);
+                            //throwex(env, "too much SQL parameters");
+                            return E_SQLITE_EXCEPTION;
+                        }
+                    } else if (*p != '%') {
+                        //(*env)->ReleaseStringUTFChars(env, sql, str);
+                        //delglobrefp(env, &h->cb);
+                        //throwex(env, "bad % specification in query");
+                        return E_SQLITE_EXCEPTION;
+                    }
+                }
+                ++p;
+            }
+            cargv = (char **)malloc((sizeof (*argv) + sizeof (char *))
+                   * MAX_PARAMS);
+            if (!cargv) {
+                //(*env)->ReleaseStringUTFChars(env, sql, str);
+                //delglobrefp(env, &h->cb);
+                //throwoom(env, "unable to allocate arg vector");
+                return E_SQLITE_EXCEPTION;
+            }
+            argv = (struct args *) (cargv + MAX_PARAMS);
+            for (i = 0; i < MAX_PARAMS; i++) {
+                cargv[i] = 0;
+                argv[i].arg = 0;
+            }
+            for (i = 0; i < nargs; i++) {
+                //argv[i].arg = cargv[i] = (char *)(*args)[i];
+            }
+            h->row1 = 1;
+
+            if (TRUE) {
+                char *s = sqlite3_mprintf(sql.string(),
+                              cargv[0], cargv[1],
+                              cargv[2], cargv[3],
+                              cargv[4], cargv[5],
+                              cargv[6], cargv[7],
+                              cargv[8], cargv[9],
+                              cargv[10], cargv[11],
+                              cargv[12], cargv[13],
+                              cargv[14], cargv[15],
+                              cargv[16], cargv[17],
+                              cargv[18], cargv[19],
+                              cargv[20], cargv[21],
+                              cargv[22], cargv[23],
+                              cargv[24], cargv[25],
+                              cargv[26], cargv[27],
+                              cargv[28], cargv[29],
+                              cargv[30], cargv[31]);
+
+                if (s) {
+                    rc = sqlite3_exec((sqlite3 *) h->sqlite, s, callback,
+                              h, &err);
+                    sqlite3_free(s);
+                } else {
+                    rc = SQLITE_NOMEM;
+                }
+                freeproc = (freemem *) sqlite3_free;
+            }
+
+            freep((char **) &cargv);
+            
+            if (err && freeproc) {
+                freeproc(err);
+            }
+
+            if (rc != SQLITE_OK) {
+                return E_SQLITE_EXCEPTION;
+            }
+
+            return NOERROR;
+        }
+    }
+    //throwclosed(env);
+    return NOERROR;
+}
+
+Int64 Database::_last_insert_rowid()
+{
+    handle* h = (handle*)mHandle;
+
+    if (h && h->sqlite) {
+        return (Int64) sqlite3_last_insert_rowid((sqlite3 *) h->sqlite);
+    }
+
+    return (Int64) 0;
+}
+
+ECode Database::_interrupt()
+{
+    handle* h = (handle*)mHandle;
+
+    if (h && h->sqlite) {
+        sqlite3_interrupt((sqlite3 *) h->sqlite);
+        return NOERROR;
+    }
+    return NOERROR;
+}
+
+Int64 Database::_changes()
+{
+    handle* h = (handle*)mHandle;
+
+    if (h && h->sqlite) {
+        return (Int64) sqlite3_changes((sqlite3 *) h->sqlite);
+    }
+    return (Int64) 0;
+}
+
+static int busyhandler3(void *udata, int count)
+{/*
+    handle *h = (handle *) udata;
+    JNIEnv *env = h->env;*/
+    Int32 ret = 0;
+/*
+    if (env && h->bh) {
+    jclass cls = (*env)->GetObjectClass(env, h->bh);
+    jmethodID mid = (*env)->GetMethodID(env, cls, "busy",
+                        "(Ljava/lang/String;I)Z");
+
+    if (mid == 0) {
+        (*env)->DeleteLocalRef(env, cls);
+        return ret;
+    }
+    ret = (*env)->CallBooleanMethod(env, h->bh, mid, 0, (jint) count)
+        != JNI_FALSE;
+    (*env)->DeleteLocalRef(env, cls);
+    }*/
+    return ret;
+}
+
+ECode Database::_busy_handler(
+    /** [in] **/IBusyHandler* bh)
+{
+    handle* h = (handle*)mHandle;
+
+    if (h && h->sqlite) {
+        sqlite3_busy_handler((sqlite3 *) h->sqlite, busyhandler3, h);
+        return NOERROR;
+    }
+
+    return NOERROR;
+}
+
+ECode Database::_busy_timeout(
+    /** [in] **/Int32 ms)
+{
+    handle* h = (handle*)mHandle;
+
+    if (h && h->sqlite) {
+        sqlite3_busy_timeout((sqlite3 * ) h->sqlite, ms);
+        return NOERROR;
+    }
+    return NOERROR;
+}
+
+Boolean Database::_complete(
+    /** [in] **/String sql)
+{
+    Boolean result;
+
+    if (sql.IsNull()) {
+        return FALSE;
+    }
+
+    result = sqlite3_complete(sql.string()) ? TRUE : FALSE;
+
+    return result;
+}
+
+static void call3_common(sqlite3_context *sf, Int32 isstep, Int32 nargs, sqlite3_value **args)
+{
+    hfunc *f = (hfunc *) sqlite3_user_data(sf);
+
+    if (f) {
+        f->sf = sf;
+    }
+}
+
+static void call3_func(sqlite3_context *sf, Int32 nargs, sqlite3_value **args)
+{
+    call3_common(sf, 0, nargs, args);
+}
+
+static void call3_step(sqlite3_context *sf, Int32 nargs, sqlite3_value **args)
+{
+    call3_common(sf, 1, nargs, args);
+}
+
+static void call3_final(sqlite3_context *sf)
+{
+    hfunc *f = (hfunc *) sqlite3_user_data(sf);
+
+    if (f) {
+        f->sf = sf;
+    }
+}
+
+ECode Database::mkfunc_common(
+    /** [in] **/ Int32 isagg, 
+    /** [in] **/ String name,
+    /** [in] **/ Int32 nargs, 
+    /** [in] **/ IFunction* fi)
+{
+    handle* h = (handle*)mHandle;
+
+    if (h && h->sqlite) {
+        hfunc *f;
+        Int32 ret;
+
+        if (!fi) {
+            //throwex(env, "null SQLite.Function not allowed");
+            return E_SQLITE_EXCEPTION;
+        }
+        f = (hfunc *)malloc(sizeof (hfunc));
+        if (!f) {
+            //throwoom(env, "unable to get SQLite.FunctionContext handle");
+            return E_SQLITE_EXCEPTION;
+        }
+
+        f->h = h;
+        f->next = h->funcs;
+        h->funcs = f;
+        f->sf = 0;
+
+        ret = sqlite3_create_function((sqlite3 *) h->sqlite,
+                          name.string(),
+                          (Int32) nargs,
+                          SQLITE_UTF8, f,
+                          isagg ? NULL : call3_func,
+                          isagg ? call3_step : NULL,
+                          isagg ? call3_final : NULL);
+
+        if (ret != SQLITE_OK) {
+            //throwex(env, "error creating function/aggregate");
+            return E_SQLITE_EXCEPTION;
+        }
+
+        return NOERROR;
+    }
+    return NOERROR;
+}
+
+ECode Database::_create_function(
+    /** [in] **/String name,
+    /** [in] **/Int32 nargs,
+    /** [in] **/IFunction* fi)
+{
+    return mkfunc_common(0, name, nargs, fi);
+}
+
+ECode Database::_create_aggregate(
+    /** [in] **/String name,
+    /** [in] **/Int32 nargs,
+    /** [in] **/IFunction* fi)
+{
+    return mkfunc_common(1, name, nargs, fi);
+}
+
+ECode Database::_function_type(
+    /** [in] **/String name,
+    /** [in] **/Int32 type)
+{
+    handle* h = (handle*)mHandle;
+
+    if (h && h->sqlite) {
+        return NOERROR;
+    }
+
+    return NOERROR;
+}
+
+String Database::_errmsg()
+{
+
+    handle* h = (handle*)mHandle;
+
+    if (h && h->sqlite) {
+        return String(sqlite3_errmsg((sqlite3 *) h->sqlite));
+    }
+
+    return String("");
+}
+
+
+ECode Database::_set_encoding(
+    /** [in] **/String enc)
+{
+    return NOERROR;
+}
+
+
+ECode Database::_set_authorizer(
+    /** [in] **/IAuthorizer* auth)
+{
+    return NOERROR;
+}
+
+static void dotrace(void *arg, const char *msg)
+{
+    return;
+}
+
+ECode Database::_trace(
+    /** [in] **/ITrace* tr)
+{
+    handle* h = (handle*)mHandle;
+
+    if (h && h->sqlite) {
+        sqlite3_trace((sqlite3 *) h->sqlite, tr ? dotrace : 0, h);
+        return NOERROR;
+    }
+    return NOERROR;
+}
+
+ECode Database::Vm_compile(
+    /** [in] **/String sql,
+    /** [in] **/IVm* vm)
+{
+#if HAVE_SQLITE_COMPILE
+    handle* h = (handle*)mHandle;
+    void *svm = 0;
+    hvm *v;
+    char *err = 0;
+
+    const char *tail;
+    Int32 ret;
+
+    if (!h) {
+        return E_SQLITE_EXCEPTION;
+    }
+    if (!vm) {
+        return E_SQLITE_EXCEPTION;
+    }
+    if (sql.IsNull()) {
+        return E_SQLITE_EXCEPTION;
+    }
+
+
+
+    ret = sqlite3_prepare((sqlite3 *) h->sqlite, sql.string(), -1,
+              (sqlite3_stmt **) &svm, &tail);
+
+    if (ret != SQLITE_OK) {
+        if (svm) {
+            sqlite3_finalize((sqlite3_stmt *) svm);
+            svm = 0;
+        }
+    }
+
+
+    if (ret != SQLITE_OK) {
+        return E_SQLITE_EXCEPTION;
+    }
+    if (!svm) {
+        return NOERROR;
+    }
+    v = malloc(sizeof (hvm) + strlen(tail) + 1);
+    if (!v) {
+        sqlite3_finalize((sqlite3_stmt *) svm);
+        return E_SQLITE_EXCEPTION;
+    }
+    v->next = h->vms;
+    h->vms = v;
+    v->vm = svm;
+    v->h = h;
+    v->tail = (char *) (v + 1);
+
+    strcpy(v->tail, tail);
+    v->hh.sqlite = 0;
+    v->hh.ver = h->ver;
+    v->hh.row1 = 1;
+    v->hh.funcs = 0;
+    v->hh.vms = 0;
+
+#else
+    //throwex(env, "unsupported");
+    return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
+#endif
+    return NOERROR;
+}
+
+ECode Database::Vm_compile_args(
+    /** [in] **/String sql,
+    /** [in] **/IVm* vm,
+    /** [in] **/ArrayOf<String>* args1)
+{
+#if HAVE_SQLITE_COMPILE
+    handle* h = (handle*)mHandle;
+
+    if (!h || !h->sqlite) {
+        //throwclosed(env);
+        return E_SQLITE_EXCEPTION;
+    }
+    if (!vm) {
+        //throwex(env, "null vm");
+        return E_SQLITE_EXCEPTION;
+    }
+    if (sql.IsNull()) {
+        //throwex(env, "null sql");
+        return E_SQLITE_EXCEPTION;
+    } else {
+        void *svm = 0;
+        hvm *v;
+        //jvalue vv;
         int rc = SQLITE_ERROR, nargs, i;
-        char *err = 0, *p;
-        const char *str = (*env)->GetStringUTFChars(env, sql, 0);
-        transstr sqlstr;
+        char *p;
+        const char *str = (const char *)sql;
+        const char *tail;
         struct args {
-        char *arg;
-        jobject obj;
-        transstr trans;
+            char *arg;
+            //jobject obj;
+            //transstr trans;
         } *argv = 0;
         char **cargv = 0;
-        jobject oldcb = globrefpop(env, &h->cb);
 
-        globrefset(env, cb, &h->cb);
         p = (char *) str;
         nargs = 0;
         while (*p) {
-        if (*p == '%') {
+            if (*p == '%') {
+                ++p;
+                if (*p == 'q' || *p == 'Q' || *p == 's') {
+                    nargs++;
+                    if (nargs > MAX_PARAMS) {
+                        return E_SQLITE_EXCEPTION;
+                    }
+                } else if (*p != '%') {
+                    return E_SQLITE_EXCEPTION;
+                }
+            }
             ++p;
-            if (*p == 'q' || *p == 's') {
-            nargs++;
-            if (nargs > MAX_PARAMS) {
-                (*env)->ReleaseStringUTFChars(env, sql, str);
-                delglobrefp(env, &h->cb);
-                h->cb = oldcb;
-                throwex(env, "too much SQL parameters");
-                return;
-            }
-            } else if (h->ver >= 0x020500 && *p == 'Q') {
-            nargs++;
-            if (nargs > MAX_PARAMS) {
-                (*env)->ReleaseStringUTFChars(env, sql, str);
-                delglobrefp(env, &h->cb);
-                h->cb = oldcb;
-                throwex(env, "too much SQL parameters");
-                return;
-            }
-            } else if (*p != '%') {
-            (*env)->ReleaseStringUTFChars(env, sql, str);
-            delglobrefp(env, &h->cb);
-            h->cb = oldcb;
-            throwex(env, "bad % specification in query");
-            return;
-            }
         }
-        ++p;
-        }
-        cargv = malloc((sizeof (*argv) + sizeof (char *))
-               * MAX_PARAMS);
+        cargv = (char **)malloc((sizeof (*argv) + sizeof (char *)) * MAX_PARAMS);
         if (!cargv) {
-        (*env)->ReleaseStringUTFChars(env, sql, str);
-        delglobrefp(env, &h->cb);
-        h->cb = oldcb;
-        throwoom(env, "unable to allocate arg vector");
-        return;
+            return E_SQLITE_EXCEPTION;
         }
         argv = (struct args *) (cargv + MAX_PARAMS);
         for (i = 0; i < MAX_PARAMS; i++) {
-        cargv[i] = 0;
-        argv[i].arg = 0;
-        argv[i].obj = 0;
-        argv[i].trans.result = argv[i].trans.tofree = 0;
+            cargv[i] = 0;
+            argv[i].arg = 0;
+            //argv[i].obj = 0;
+            //argv[i].trans.result = argv[i].trans.tofree = 0;
         }
-        exc = 0;
         for (i = 0; i < nargs; i++) {
-        jobject so = (*env)->GetObjectArrayElement(env, args, i);
-
-        exc = (*env)->ExceptionOccurred(env);
-        if (exc) {
-            (*env)->DeleteLocalRef(env, exc);
-            break;
+           // cargv[i] = (*args1)[i];
+            argv[i].arg = tmp;
         }
-        if (so) {
-            argv[i].obj = so;
-            argv[i].arg = cargv[i] =
-            trans2iso(env, h->haveutf, h->enc, argv[i].obj,
-                  &argv[i].trans);
-        }
-        }
-        if (exc) {
-        for (i = 0; i < nargs; i++) {
-            if (argv[i].obj) {
-            transfree(&argv[i].trans);
-            }
-        }
-        freep((char **) &cargv);
-        (*env)->ReleaseStringUTFChars(env, sql, str);
-        delglobrefp(env, &h->cb);
-        h->cb = oldcb;
-        return;
-        }
-        h->env = env;
         h->row1 = 1;
-        trans2iso(env, h->haveutf, h->enc, sql, &sqlstr);
-        exc = (*env)->ExceptionOccurred(env);
-        if (!exc) {
-#if HAVE_BOTH_SQLITE
-        if (h->is3) {
-#if defined(_WIN32) || !defined(CANT_PASS_VALIST_AS_CHARPTR)
-            char *s = sqlite3_vmprintf(sqlstr.result, (char *) cargv);
-#else
-            char *s = sqlite3_mprintf(sqlstr.result,
+
+        if (TRUE) {
+            char *s = sqlite3_mprintf(sql.string(),
                           cargv[0], cargv[1],
                           cargv[2], cargv[3],
                           cargv[4], cargv[5],
@@ -1269,877 +1641,98 @@ ECode Database::_execEx(
                           cargv[26], cargv[27],
                           cargv[28], cargv[29],
                           cargv[30], cargv[31]);
-#endif
-
-            if (s) {
-            rc = sqlite3_exec((sqlite3 *) h->sqlite, s, callback,
-                      h, &err);
-            sqlite3_free(s);
+            if (!s) {
+                rc = SQLITE_NOMEM;
             } else {
-            rc = SQLITE_NOMEM;
+    #if HAVE_SQLITE3_PREPARE_V2
+                rc = sqlite3_prepare_v2((sqlite3 *) h->sqlite, s, -1,
+                            (sqlite3_stmt **) &svm, &tail);
+    #else
+                rc = sqlite3_prepare((sqlite3 *) h->sqlite, s, -1,
+                              (sqlite3_stmt **) &svm, &tail);
+    #endif
+                if (rc != SQLITE_OK) {
+                    if (svm) {
+                        sqlite3_finalize((sqlite3_stmt *) svm);
+                        svm = 0;
+                    }
+                }
             }
-            freeproc = (freemem *) sqlite3_free;
-        } else {
-#if defined(_WIN32) || !defined(CANT_PASS_VALIST_AS_CHARPTR)
-            rc = sqlite_exec_vprintf((sqlite *) h->sqlite,
-                         sqlstr.result, callback, h, &err,
-                         (char *) cargv);
-#else
-            rc = sqlite_exec_printf((sqlite *) h->sqlite,
-                        sqlstr.result, callback,
-                        h, &err,
-                        cargv[0], cargv[1],
-                        cargv[2], cargv[3],
-                        cargv[4], cargv[5],
-                        cargv[6], cargv[7],
-                        cargv[8], cargv[9],
-                        cargv[10], cargv[11],
-                        cargv[12], cargv[13],
-                        cargv[14], cargv[15],
-                        cargv[16], cargv[17],
-                        cargv[18], cargv[19],
-                        cargv[20], cargv[21],
-                        cargv[22], cargv[23],
-                        cargv[24], cargv[25],
-                        cargv[26], cargv[27],
-                        cargv[28], cargv[29],
-                        cargv[30], cargv[31]);
-#endif
-            freeproc = (freemem *) sqlite_freemem;
-        }
-#else
-#if HAVE_SQLITE2
-#if defined(_WIN32) || !defined(CANT_PASS_VALIST_AS_CHARPTR)
-        rc = sqlite_exec_vprintf((sqlite *) h->sqlite, sqlstr.result,
-                     callback, h, &err, (char *) cargv);
-#else
-        rc = sqlite_exec_printf((sqlite *) h->sqlite, sqlstr.result,
-                    callback, h, &err,
-                    cargv[0], cargv[1],
-                    cargv[2], cargv[3],
-                    cargv[4], cargv[5],
-                    cargv[6], cargv[7],
-                    cargv[8], cargv[9],
-                    cargv[10], cargv[11],
-                    cargv[12], cargv[13],
-                    cargv[14], cargv[15],
-                    cargv[16], cargv[17],
-                    cargv[18], cargv[19],
-                    cargv[20], cargv[21],
-                    cargv[22], cargv[23],
-                    cargv[24], cargv[25],
-                    cargv[26], cargv[27],
-                    cargv[28], cargv[29],
-                    cargv[30], cargv[31]);
-#endif
-        freeproc = (freemem *) sqlite_freemem;
-#endif
-#if HAVE_SQLITE3
-#if defined(_WIN32) || !defined(CANT_PASS_VALIST_AS_CHARPTR)
-        char *s = sqlite3_vmprintf(sqlstr.result, (char *) cargv);
-#else
-        char *s = sqlite3_mprintf(sqlstr.result,
-                      cargv[0], cargv[1],
-                      cargv[2], cargv[3],
-                      cargv[4], cargv[5],
-                      cargv[6], cargv[7],
-                      cargv[8], cargv[9],
-                      cargv[10], cargv[11],
-                      cargv[12], cargv[13],
-                      cargv[14], cargv[15],
-                      cargv[16], cargv[17],
-                      cargv[18], cargv[19],
-                      cargv[20], cargv[21],
-                      cargv[22], cargv[23],
-                      cargv[24], cargv[25],
-                      cargv[26], cargv[27],
-                      cargv[28], cargv[29],
-                      cargv[30], cargv[31]);
-#endif
+            if (rc != SQLITE_OK) {
+                sqlite3_free(s);
+                freep((char **) &cargv);
+                //(*env)->ReleaseStringUTFChars(env, sql, str);
+                //setvmerr(env, vm, rc);
+                //throwex(env, "error in prepare");
+                return E_SQLITE_EXCEPTION;
+            }
+            v = (hvm *)malloc(sizeof (hvm) + strlen(tail) + 1);
+            if (!v) {
+                sqlite3_free(s);
+                freep((char **) &cargv);
+                //(*env)->ReleaseStringUTFChars(env, sql, str);
+                sqlite3_finalize((sqlite3_stmt *) svm);
+                //setvmerr(env, vm, SQLITE_NOMEM);
+                //throwoom(env, "unable to get SQLite handle");
+                return E_SQLITE_EXCEPTION;
+            }
+            v->vm = svm;
+            v->h = h;
+            v->tail = (char *) (v + 1);
 
-        if (s) {
-            rc = sqlite3_exec((sqlite3 *) h->sqlite, s, callback,
-                      h, &err);
+            strcpy(v->tail, tail);
             sqlite3_free(s);
-        } else {
-            rc = SQLITE_NOMEM;
+            v->hh.sqlite = 0;
+            v->hh.ver = h->ver;
+            v->hh.row1 = 1;
+            v->hh.funcs = 0;
+            //vv.j = 0;
+            //vv.l = (jobject) v;
+            //(*env)->SetLongField(env, vm, F_SQLite_Vm_handle, vv.j);
         }
-        freeproc = (freemem *) sqlite3_free;
-#endif
-#endif
-        exc = (*env)->ExceptionOccurred(env);
-        }
-        for (i = 0; i < nargs; i++) {
-        if (argv[i].obj) {
-            transfree(&argv[i].trans);
-        }
-        }
-        transfree(&sqlstr);
-        (*env)->ReleaseStringUTFChars(env, sql, str);
-        freep((char **) &cargv);
-        delglobrefp(env, &h->cb);
-        h->cb = oldcb;
-        if (exc) {
-        (*env)->DeleteLocalRef(env, exc);
-        if (err && freeproc) {
-            freeproc(err);
-        }
-        return;
-        }
-        if (rc != SQLITE_OK) {
-        char msg[128];
 
-        seterr(env, obj, rc);
-        if (!err) {
-            sprintf(msg, "error %d in sqlite*_exec", rc);
-        }
-        throwex(env, err ? err : msg);
-        }
-        if (err && freeproc) {
-        freeproc(err);
-        }
-        return;
-    }
-    }
-    throwclosed(env);*/
-    return E_NOT_IMPLEMENTED;
-}
-
-Int64 Database::_last_insert_rowid()
-{/*
-    handle *h = gethandle(env, obj);
-
-    if (h && h->sqlite) {
-#if HAVE_BOTH_SQLITE
-    if (h->is3) {
-        return (jlong) sqlite3_last_insert_rowid((sqlite3 *) h->sqlite);
-    } else {
-        return (jlong) sqlite_last_insert_rowid((sqlite *) h->sqlite);
-    }
-#else
-#if HAVE_SQLITE2
-    return (jlong) sqlite_last_insert_rowid((sqlite *) h->sqlite);
-#endif
-#if HAVE_SQLITE3
-    return (jlong) sqlite3_last_insert_rowid((sqlite3 *) h->sqlite);
-#endif
-#endif
-    }
-    throwclosed(env);
-    return (jlong) 0;*/
-    return E_NOT_IMPLEMENTED;
-}
-
-ECode Database::_interrupt()
-{/*
-    handle *h = gethandle(env, obj);
-
-    if (h && h->sqlite) {
-#if HAVE_BOTH_SQLITE
-    if (h->is3) {
-        sqlite3_interrupt((sqlite3 *) h->sqlite);
-    } else {
-        sqlite_interrupt((sqlite *) h->sqlite);
-    }
-#else
-#if HAVE_SQLITE2
-    sqlite_interrupt((sqlite *) h->sqlite);
-#endif
-#if HAVE_SQLITE3
-    sqlite3_interrupt((sqlite3 *) h->sqlite);
-#endif
-#endif
-    return;
-    }
-    throwclosed(env);*/
-    return E_NOT_IMPLEMENTED;
-}
-
-Int64 Database::_changes()
-{/*
-    handle *h = gethandle(env, obj);
-
-    if (h && h->sqlite) {
-#if HAVE_BOTH_SQLITE
-    if (h->is3) {
-        return (jlong) sqlite3_changes((sqlite3 *) h->sqlite);
-    } else {
-        return (jlong) sqlite_changes((sqlite *) h->sqlite);
-    }
-#else
-#if HAVE_SQLITE2
-    return (jlong) sqlite_changes((sqlite *) h->sqlite);
-#endif
-#if HAVE_SQLITE3
-    return (jlong) sqlite3_changes((sqlite3 *) h->sqlite);
-#endif
-#endif
-    }
-    throwclosed(env);
-    return (jlong) 0;*/
-    return E_NOT_IMPLEMENTED;
-}
-
-ECode Database::_busy_handler(
-    /** [in] **/IBusyHandler* bh)
-{/*
-    handle *h = gethandle(env, obj);
-
-    if (h && h->sqlite) {
-    delglobrefp(env, &h->bh);
-    globrefset(env, bh, &h->bh);
-#if HAVE_BOTH_SQLITE
-    if (h->is3) {
-        sqlite3_busy_handler((sqlite3 *) h->sqlite, busyhandler3, h);
-    } else {
-        sqlite_busy_handler((sqlite *) h->sqlite, busyhandler, h);
-    }
-#else
-#if HAVE_SQLITE2
-    sqlite_busy_handler((sqlite *) h->sqlite, busyhandler, h);
-#endif
-#if HAVE_SQLITE3
-    sqlite3_busy_handler((sqlite3 *) h->sqlite, busyhandler3, h);
-#endif
-#endif
-    return;
-    }
-    throwclosed(env);*/
-    return E_NOT_IMPLEMENTED;
-}
-
-ECode Database::_busy_timeout(
-    /** [in] **/Int32 ms)
-{/*
-    handle *h = gethandle(env, obj);
-
-    if (h && h->sqlite) {
-#if HAVE_BOTH_SQLITE
-    if (h->is3) {
-        sqlite3_busy_timeout((sqlite3 * ) h->sqlite, ms);
-    } else {
-        sqlite_busy_timeout((sqlite *) h->sqlite, ms);
-    }
-#else
-#if HAVE_SQLITE2
-    sqlite_busy_timeout((sqlite *) h->sqlite, ms);
-#endif
-#if HAVE_SQLITE3
-    sqlite3_busy_timeout((sqlite3 * ) h->sqlite, ms);
-#endif
-#endif
-    return;
-    }
-    throwclosed(env);*/
-    return E_NOT_IMPLEMENTED;
-}
-
-Boolean Database::_complete(
-    /** [in] **/String sql)
-{/*
-    transstr sqlstr;
-    jboolean result;
-
-    if (!sql) {
-    return JNI_FALSE;
-    }
-#if HAVE_BOTH_SQLITE || HAVE_SQLITE3
-    // CHECK THIS
-    trans2iso(env, 1, 0, sql, &sqlstr);
-    result = sqlite3_complete(sqlstr.result) ? JNI_TRUE : JNI_FALSE;
-#else
-    trans2iso(env, strcmp(sqlite_libencoding(), "UTF-8") == 0, 0,
-          sql, &sqlstr);
-    result = sqlite_complete(sqlstr.result) ? JNI_TRUE : JNI_FALSE;
-#endif
-    transfree(&sqlstr);
-    return result;*/
-    return FALSE;
-}
-
-ECode Database::_create_function(
-    /** [in] **/String name,
-    /** [in] **/Int32 nargs,
-    /** [in] **/IFunction* f)
-{
-    //mkfunc_common(env, 0, obj, name, nargs, fi);
-    return E_NOT_IMPLEMENTED;
-}
-
-ECode Database::_create_aggregate(
-    /** [in] **/String name,
-    /** [in] **/Int32 nargs,
-    /** [in] **/IFunction* f)
-{
-    //mkfunc_common(env, 1, obj, name, nargs, fi);
-    return E_NOT_IMPLEMENTED;
-}
-
-ECode Database::_function_type(
-    /** [in] **/String name,
-    /** [in] **/Int32 type)
-{/*
-handle *h = gethandle(env, obj);
-
-    if (h && h->sqlite) {
-#if HAVE_BOTH_SQLITE
-    if (h->is3) {
-        return;
-    }
-#endif
-#if HAVE_SQLITE2
-#if HAVE_SQLITE_FUNCTION_TYPE
-    {
-        int ret;
-        transstr namestr;
-        jthrowable exc;
-
-        trans2iso(env, h->haveutf, h->enc, name, &namestr);
-        exc = (*env)->ExceptionOccurred(env);
-        if (exc) {
-        (*env)->DeleteLocalRef(env, exc);
-        return;
-        }
-        ret = sqlite_function_type(h->sqlite, namestr.result, (int) type);
-        transfree(&namestr);
-        if (ret != SQLITE_OK) {
-        throwex(env, sqlite_error_string(ret));
-        }
-    }
-#endif
-#endif
-    return;
-    }
-    throwclosed(env);*/
-    return E_NOT_IMPLEMENTED;
-}
-
-String Database::_errmsg()
-{/*
-#if HAVE_SQLITE3
-    handle *h = gethandle(env, obj);
-
-    if (h && h->sqlite) {
-#if HAVE_BOTH_SQLITE
-    if (!h->is3) {
-        return 0;
-    }
-#endif
-    return (*env)->NewStringUTF(env,
-                    sqlite3_errmsg((sqlite3 *) h->sqlite));
-    }
-#endif
-    return 0;*/
-    return String("aaa");
-}
-
-
-ECode Database::_set_encoding(
-    /** [in] **/String enc)
-{/*
-    handle *h = gethandle(env, obj);
-
-    if (h && !h->haveutf) {
-#if HAVE_BOTH_SQLITE
-    if (!h->is3) {
-        delglobrefp(env, &h->enc);
-        h->enc = enc;
-        globrefset(env, enc, &h->enc);
-    }
-#else
-#if HAVE_SQLITE2
-    delglobrefp(env, &h->enc);
-    h->enc = enc;
-    globrefset(env, enc, &h->enc);
-#endif
-#endif
-    }*/
-    return E_NOT_IMPLEMENTED;
-}
-
-
-ECode Database::_set_authorizer(
-    /** [in] **/IAuthorizer* auth)
-{/*
-    handle *h = gethandle(env, obj);
-
-    if (h && h->sqlite) {
-    delglobrefp(env, &h->ai);
-    globrefset(env, auth, &h->ai);
-#if HAVE_SQLITE_SET_AUTHORIZER
-    h->env = env;
-#if HAVE_BOTH_SQLITE
-    if (h->is3) {
-        sqlite3_set_authorizer((sqlite3 *) h->sqlite,
-                   h->ai ? doauth : 0, h);
-    } else {
-        sqlite_set_authorizer((sqlite *) h->sqlite,
-                  h->ai ? doauth : 0, h);
-    }
-#else
-#if HAVE_SQLITE2
-    sqlite_set_authorizer((sqlite *) h->sqlite, h->ai ? doauth : 0, h);
-#endif
-#if HAVE_SQLITE3
-    sqlite3_set_authorizer((sqlite3 *) h->sqlite, h->ai ? doauth : 0, h);
-#endif
-#endif
-#endif
-    return;
-    }
-    throwclosed(env);*/
-    return E_NOT_IMPLEMENTED;
-}
-
-ECode Database::_trace(
-    /** [in] **/ITrace* tr)
-{/*
-    handle *h = gethandle(env, obj);
-
-    if (h && h->sqlite) {
-    delglobrefp(env, &h->tr);
-    globrefset(env, tr, &h->tr);
-#if HAVE_BOTH_SQLITE
-    if (h->is3) {
-        sqlite3_trace((sqlite3 *) h->sqlite, h->tr ? dotrace : 0, h);
-    } else {
-#if HAVE_SQLITE_TRACE
-        sqlite_trace((sqlite *) h->sqlite, h->tr ? dotrace : 0, h);
-#endif
-    }
-#else
-#if HAVE_SQLITE2
-#if HAVE_SQLITE_TRACE
-    sqlite_trace((sqlite *) h->sqlite, h->tr ? dotrace : 0, h);
-#endif
-#endif
-#if HAVE_SQLITE3
-    sqlite3_trace((sqlite3 *) h->sqlite, h->tr ? dotrace : 0, h);
-#endif
-#endif
-    return;
-    }
-    throwclosed(env);*/
-    return E_NOT_IMPLEMENTED;
-}
-
-ECode Database::Vm_compile(
-    /** [in] **/String sql,
-    /** [in] **/IVm* vm)
-{/*
-#if HAVE_SQLITE_COMPILE
-    handle *h = gethandle(env, obj);
-    void *svm = 0;
-    hvm *v;
-    char *err = 0;
-#if HAVE_SQLITE2
-    char *errfr = 0;
-#endif
-    const char *tail;
-    transstr tr;
-    jvalue vv;
-    int ret;
-    jthrowable exc;
-
-    if (!h) {
-    throwclosed(env);
-    return;
-    }
-    if (!vm) {
-    throwex(env, "null vm");
-    return;
-    }
-    if (!sql) {
-    throwex(env, "null sql");
-    return;
-    }
-    trans2iso(env, h->haveutf, h->enc, sql, &tr);
-    exc = (*env)->ExceptionOccurred(env);
-    if (exc) {
-    (*env)->DeleteLocalRef(env, exc);
-    return;
-    }
-    h->env = env;
-#if HAVE_BOTH_SQLITE
-    if (h->is3) {
-#if HAVE_SQLITE3_PREPARE_V2
-    ret = sqlite3_prepare_v2((sqlite3 *) h->sqlite, tr.result, -1,
-                 (sqlite3_stmt **) &svm, &tail);
-#else
-    ret = sqlite3_prepare((sqlite3 *) h->sqlite, tr.result, -1,
-                  (sqlite3_stmt **) &svm, &tail);
-#endif
-    if (ret != SQLITE_OK) {
-        if (svm) {
-        sqlite3_finalize((sqlite3_stmt *) svm);
-        svm = 0;
-        }
-        err = (char *) sqlite3_errmsg((sqlite3 *) h->sqlite);
-    }
-    } else {
-    ret = sqlite_compile((sqlite *) h->sqlite, tr.result, &tail,
-                 (sqlite_vm **) &svm, &errfr);
-    if (ret != SQLITE_OK) {
-        err = errfr;
-        if (svm) {
-        sqlite_finalize((sqlite_vm *) svm, 0);
-        }
-    }
-    }
-#else
-#if HAVE_SQLITE2
-    ret = sqlite_compile((sqlite *) h->sqlite, tr.result, &tail,
-             (sqlite_vm **) &svm, &errfr);
-    if (ret != SQLITE_OK) {
-    err = errfr;
-    if (svm) {
-        sqlite_finalize((sqlite_vm *) svm, 0);
-        svm = 0;
-    }
-    }
-#endif
-#if HAVE_SQLITE3
-#if HAVE_SQLITE3_PREPARE_V2
-    ret = sqlite3_prepare_v2((sqlite3 *) h->sqlite, tr.result, -1,
-                 (sqlite3_stmt **) &svm, &tail);
-#else
-    ret = sqlite3_prepare((sqlite3 *) h->sqlite, tr.result, -1,
-              (sqlite3_stmt **) &svm, &tail);
-#endif
-    if (ret != SQLITE_OK) {
-    if (svm) {
-        sqlite3_finalize((sqlite3_stmt *) svm);
-        svm = 0;
-    }
-    err = (char *) sqlite3_errmsg((sqlite3 *) h->sqlite);
-    }
-#endif
-#endif
-    if (ret != SQLITE_OK) {
-    transfree(&tr);
-    setvmerr(env, vm, ret);
-    throwex(env, err ? err : "error in prepare/compile");
-#if HAVE_SQLITE2
-    if (errfr) {
-        sqlite_freemem(errfr);
-    }
-#endif
-    return;
-    }
-#if HAVE_SQLITE2
-    if (errfr) {
-    sqlite_freemem(errfr);
-    }
-#endif
-    if (!svm) {
-    transfree(&tr);
-    return;
-    }
-    v = malloc(sizeof (hvm) + strlen(tail) + 1);
-    if (!v) {
-    transfree(&tr);
-#if HAVE_BOTH_SQLITE
-    if (h->is3) {
-        sqlite3_finalize((sqlite3_stmt *) svm);
-    } else {
-        sqlite_finalize((sqlite_vm *) svm, 0);
-    }
-#else
-#if HAVE_SQLITE2
-    sqlite_finalize((sqlite_vm *) svm, 0);
-#endif
-#if HAVE_SQLITE3
-    sqlite3_finalize((sqlite3_stmt *) svm);
-#endif
-#endif
-    throwoom(env, "unable to get SQLite handle");
-    return;
-    }
-    v->next = h->vms;
-    h->vms = v;
-    v->vm = svm;
-    v->h = h;
-    v->tail = (char *) (v + 1);
-#if HAVE_BOTH_SQLITE
-    v->is3 = v->hh.is3 = h->is3;
-#endif
-    strcpy(v->tail, tail);
-    v->hh.sqlite = 0;
-    v->hh.haveutf = h->haveutf;
-    v->hh.ver = h->ver;
-    v->hh.bh = v->hh.cb = v->hh.ai = v->hh.tr = v->hh.ph = 0;
-    v->hh.row1 = 1;
-    v->hh.enc = h->enc;
-    v->hh.funcs = 0;
-    v->hh.vms = 0;
-    v->hh.env = 0;
-    vv.j = 0;
-    vv.l = (jobject) v;
-    (*env)->SetLongField(env, vm, F_SQLite_Vm_handle, vv.j);
-#else
-    throwex(env, "unsupported");
-#endif*/
-    return E_NOT_IMPLEMENTED;
-}
-
-ECode Database::Vm_compile_args(
-    /** [in] **/String sql,
-    /** [in] **/IVm* vm,
-    /** [in] **/ArrayOf<String>* args)
-{/*
-#if HAVE_SQLITE_COMPILE
-#if HAVE_SQLITE3
-    handle *h = gethandle(env, obj);
-#endif
-
-#if HAVE_BOTH_SQLITE
-    if (h && !h->is3) {
-    throwex(env, "unsupported");
-    return;
-    }
-#else
-#if HAVE_SQLITE2
-    throwex(env, "unsupported");
-#endif
-#endif
-#if HAVE_SQLITE3
-    if (!h || !h->sqlite) {
-    throwclosed(env);
-    return;
-    }
-    if (!vm) {
-    throwex(env, "null vm");
-    return;
-    }
-    if (!sql) {
-    throwex(env, "null sql");
-    return;
-    } else {
-    void *svm = 0;
-    hvm *v;
-    jvalue vv;
-    jthrowable exc;
-    int rc = SQLITE_ERROR, nargs, i;
-    char *p;
-    const char *str = (*env)->GetStringUTFChars(env, sql, 0);
-    const char *tail;
-    transstr sqlstr;
-    struct args {
-        char *arg;
-        jobject obj;
-        transstr trans;
-    } *argv = 0;
-    char **cargv = 0;
-
-    p = (char *) str;
-    nargs = 0;
-    while (*p) {
-        if (*p == '%') {
-        ++p;
-        if (*p == 'q' || *p == 'Q' || *p == 's') {
-            nargs++;
-            if (nargs > MAX_PARAMS) {
-            (*env)->ReleaseStringUTFChars(env, sql, str);
-            throwex(env, "too much SQL parameters");
-            return;
-            }
-        } else if (*p != '%') {
-            (*env)->ReleaseStringUTFChars(env, sql, str);
-            throwex(env, "bad % specification in query");
-            return;
-        }
-        }
-        ++p;
-    }
-    cargv = malloc((sizeof (*argv) + sizeof (char *)) * MAX_PARAMS);
-    if (!cargv) {
-        (*env)->ReleaseStringUTFChars(env, sql, str);
-        throwoom(env, "unable to allocate arg vector");
-        return;
-    }
-    argv = (struct args *) (cargv + MAX_PARAMS);
-    for (i = 0; i < MAX_PARAMS; i++) {
-        cargv[i] = 0;
-        argv[i].arg = 0;
-        argv[i].obj = 0;
-        argv[i].trans.result = argv[i].trans.tofree = 0;
-    }
-    exc = 0;
-    for (i = 0; i < nargs; i++) {
-        jobject so = (*env)->GetObjectArrayElement(env, args, i);
-
-        exc = (*env)->ExceptionOccurred(env);
-        if (exc) {
-        (*env)->DeleteLocalRef(env, exc);
-        break;
-        }
-        if (so) {
-        argv[i].obj = so;
-        argv[i].arg = cargv[i] =
-            trans2iso(env, 1, 0, argv[i].obj, &argv[i].trans);
-        }
-    }
-    if (exc) {
-        for (i = 0; i < nargs; i++) {
-        if (argv[i].obj) {
-            transfree(&argv[i].trans);
-        }
-        }
-        freep((char **) &cargv);
-        (*env)->ReleaseStringUTFChars(env, sql, str);
-        return;
-    }
-    h->row1 = 1;
-    trans2iso(env, 1, 0, sql, &sqlstr);
-    exc = (*env)->ExceptionOccurred(env);
-    if (!exc) {
-#if defined(_WIN32) || !defined(CANT_PASS_VALIST_AS_CHARPTR)
-        char *s = sqlite3_vmprintf(sqlstr.result, (char *) cargv);
-#else
-        char *s = sqlite3_mprintf(sqlstr.result,
-                      cargv[0], cargv[1],
-                      cargv[2], cargv[3],
-                      cargv[4], cargv[5],
-                      cargv[6], cargv[7],
-                      cargv[8], cargv[9],
-                      cargv[10], cargv[11],
-                      cargv[12], cargv[13],
-                      cargv[14], cargv[15],
-                      cargv[16], cargv[17],
-                      cargv[18], cargv[19],
-                      cargv[20], cargv[21],
-                      cargv[22], cargv[23],
-                      cargv[24], cargv[25],
-                      cargv[26], cargv[27],
-                      cargv[28], cargv[29],
-                      cargv[30], cargv[31]);
-#endif
-        if (!s) {
-        rc = SQLITE_NOMEM;
-        } else {
-#if HAVE_SQLITE3_PREPARE_V2
-        rc = sqlite3_prepare_v2((sqlite3 *) h->sqlite, s, -1,
-                    (sqlite3_stmt **) &svm, &tail);
-#else
-        rc = sqlite3_prepare((sqlite3 *) h->sqlite, s, -1,
-                      (sqlite3_stmt **) &svm, &tail);
-#endif
-        if (rc != SQLITE_OK) {
-            if (svm) {
-            sqlite3_finalize((sqlite3_stmt *) svm);
-            svm = 0;
-            }
-        }
-        }
-        if (rc != SQLITE_OK) {
-        sqlite3_free(s);
-        for (i = 0; i < nargs; i++) {
-            if (argv[i].obj) {
-            transfree(&argv[i].trans);
-            }
-        }
-        freep((char **) &cargv);
-        transfree(&sqlstr);
-        (*env)->ReleaseStringUTFChars(env, sql, str);
-        setvmerr(env, vm, rc);
-        throwex(env, "error in prepare");
-        return;
-        }
-        v = malloc(sizeof (hvm) + strlen(tail) + 1);
-        if (!v) {
-        sqlite3_free(s);
-        for (i = 0; i < nargs; i++) {
-            if (argv[i].obj) {
-            transfree(&argv[i].trans);
-            }
-        }
-        freep((char **) &cargv);
-        transfree(&sqlstr);
-        (*env)->ReleaseStringUTFChars(env, sql, str);
-        sqlite3_finalize((sqlite3_stmt *) svm);
-        setvmerr(env, vm, SQLITE_NOMEM);
-        throwoom(env, "unable to get SQLite handle");
-        return;
-        }
-        v->next = h->vms;
-        h->vms = v;
-        v->vm = svm;
-        v->h = h;
-        v->tail = (char *) (v + 1);
-#if HAVE_BOTH_SQLITE
-        v->is3 = v->hh.is3 = h->is3;
-#endif
-        strcpy(v->tail, tail);
-        sqlite3_free(s);
-        v->hh.sqlite = 0;
-        v->hh.haveutf = h->haveutf;
-        v->hh.ver = h->ver;
-        v->hh.bh = v->hh.cb = v->hh.ai = v->hh.tr = v->hh.ph = 0;
-        v->hh.row1 = 1;
-        v->hh.enc = h->enc;
-        v->hh.funcs = 0;
-        v->hh.vms = 0;
-        v->hh.env = 0;
-        vv.j = 0;
-        vv.l = (jobject) v;
-        (*env)->SetLongField(env, vm, F_SQLite_Vm_handle, vv.j);
-    }
-    for (i = 0; i < nargs; i++) {
-        if (argv[i].obj) {
-        transfree(&argv[i].trans);
-        }
-    }
     freep((char **) &cargv);
-    transfree(&sqlstr);
-    (*env)->ReleaseStringUTFChars(env, sql, str);
-    if (exc) {
-        (*env)->DeleteLocalRef(env, exc);
+    //(*env)->ReleaseStringUTFChars(env, sql, str);
     }
-    }
-#endif
 #else
-    throwex(env, "unsupported");
-#endif*/
-    return E_NOT_IMPLEMENTED;
+    //throwex(env, "unsupported");
+    return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
+#endif
+    return NOERROR;
 }
 
 ECode Database::Stmt_prepare(
     /** [in] **/String sql,
     /** [in] **/IStmt* stmt)
-{/*
+{
 #if HAVE_SQLITE3
-    handle *h = gethandle(env, obj);
+    handle* h = (handle*)mHandle;
     void *svm = 0;
     hvm *v;
     jvalue vv;
-    jsize len16;
-    const jchar *sql16, *tail = 0;
-    int ret;
+    Int32 len16;
+    const char *sql16, *tail = 0;
+    Int32 ret;
 
     if (!h) {
-    throwclosed(env);
-    return;
+        //throwclosed(env);
+        return E_SQLITE_EXCEPTION;
     }
     if (!stmt) {
-    throwex(env, "null stmt");
-    return;
+        //throwex(env, "null stmt");
+        return E_SQLITE_EXCEPTION;
     }
-    if (!sql) {
-    throwex(env, "null sql");
-    return;
+    if (sql.IsNull()) {
+        //throwex(env, "null sql");
+        return E_SQLITE_EXCEPTION;
     }
-#ifdef HAVE_BOTH_SQLITE
-    if (!h->is3) {
-    throwex(env, "only on SQLite3 database");
-    return;
-    }
-#endif
-    len16 = (*env)->GetStringLength(env, sql) * sizeof (jchar);
+
+    len16 = sql.GetLength() * sizeof(char);
     if (len16 < 1) {
-    return;
+        return E_SQLITE_EXCEPTION;
     }
-    h->env = env;
-    sql16 = (*env)->GetStringChars(env, sql, 0);
+
+    sql16 = sql.GetPayload();
 #if HAVE_SQLITE3_PREPARE16_V2
     ret = sqlite3_prepare16_v2((sqlite3 *) h->sqlite, sql16, len16,
                    (sqlite3_stmt **) &svm, (const void **) &tail);
@@ -2154,55 +1747,53 @@ ECode Database::Stmt_prepare(
     }
     }
     if (ret != SQLITE_OK) {
-    const char *err = sqlite3_errmsg(h->sqlite);
-
-    (*env)->ReleaseStringChars(env, sql, sql16);
-    setstmterr(env, stmt, ret);
-    throwex(env, err ? err : "error in prepare");
-    return;
+        //const char *err = sqlite3_errmsg(h->sqlite);
+        //(*env)->ReleaseStringChars(env, sql, sql16);
+        //setstmterr(env, stmt, ret);
+        //throwex(env, err ? err : "error in prepare");
+        return E_SQLITE_EXCEPTION;
     }
     if (!svm) {
-    (*env)->ReleaseStringChars(env, sql, sql16);
-    return;
+        (*env)->ReleaseStringChars(env, sql, sql16);
+        return E_SQLITE_EXCEPTION;
     }
-    len16 = len16 + sizeof (jchar) - ((char *) tail - (char *) sql16);
-    if (len16 < (jsize) sizeof (jchar)) {
-    len16 = sizeof (jchar);
+    len16 = len16 + sizeof(char) - ((char *) tail - (char *) sql16);
+    if (len16 < (Int32) sizeof (char)) {
+        len16 = sizeof (char);
     }
     v = malloc(sizeof (hvm) + len16);
     if (!v) {
-    (*env)->ReleaseStringChars(env, sql, sql16);
-    sqlite3_finalize((sqlite3_stmt *) svm);
-    throwoom(env, "unable to get SQLite handle");
-    return;
+        //(*env)->ReleaseStringChars(env, sql, sql16);
+        sqlite3_finalize((sqlite3_stmt *) svm);
+        //throwoom(env, "unable to get SQLite handle");
+        return E_SQLITE_EXCEPTION;
     }
     v->next = h->vms;
     h->vms = v;
     v->vm = svm;
     v->h = h;
     v->tail = (char *) (v + 1);
-#if HAVE_BOTH_SQLITE
-    v->is3 = v->hh.is3 = 1;
-#endif
+
     memcpy(v->tail, tail, len16);
-    len16 /= sizeof (jchar);
-    ((jchar *) v->tail)[len16 - 1] = 0;
-    (*env)->ReleaseStringChars(env, sql, sql16);
+    len16 /= sizeof (char);
+    ((char *) v->tail)[len16 - 1] = 0;
+    //(*env)->ReleaseStringChars(env, sql, sql16);
     v->hh.sqlite = 0;
-    v->hh.haveutf = h->haveutf;
+    //v->hh.haveutf = h->haveutf;
     v->hh.ver = h->ver;
-    v->hh.bh = v->hh.cb = v->hh.ai = v->hh.tr = v->hh.ph = 0;
+    //v->hh.bh = v->hh.cb = v->hh.ai = v->hh.tr = v->hh.ph = 0;
     v->hh.row1 = 1;
-    v->hh.enc = h->enc;
+    //v->hh.enc = h->enc;
     v->hh.funcs = 0;
     v->hh.vms = 0;
-    v->hh.env = 0;
-    vv.j = 0;
-    vv.l = (jobject) v;
-    (*env)->SetLongField(env, stmt, F_SQLite_Stmt_handle, vv.j);
+    //v->hh.env = 0;
+    //vv.j = 0;
+    //vv.l = (jobject) v;
+    //(*env)->SetLongField(env, stmt, F_SQLite_Stmt_handle, vv.j);
 #else
-    throwex(env, "unsupported");
-#endif*/
+    //throwex(env, "unsupported");
+    return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
+#endif
     return E_NOT_IMPLEMENTED;
 }
 
@@ -2212,234 +1803,163 @@ ECode Database::_open_blob(
     /** [in] **/String column,
     /** [in] **/Int64 row,
     /** [in] **/Boolean rw,
-    /** [in] **/IBlob2* blob)
-{/*
+    /** [in] **/IBlob2* blob2)
+{
 #if HAVE_SQLITE3 && HAVE_SQLITE3_INCRBLOBIO
-    handle *h = gethandle(env, obj);
+    handle* h = (handle*)mHandle;
     hbl *bl;
-    jthrowable exc;
-    transstr dbn, tbl, col;
     sqlite3_blob *blob;
     jvalue vv;
-    int ret;
+    Int32 ret;
 
-    if (!blobj) {
-    throwex(env, "null blob");
-    return;
+    if (!blob2) {
+        //throwex(env, "null blob");
+        return E_SQLITE_EXCEPTION;
     }
     if (h && h->sqlite) {
-    trans2iso(env, h->haveutf, h->enc, dbname, &dbn);
-    exc = (*env)->ExceptionOccurred(env);
-    if (exc) {
-        (*env)->DeleteLocalRef(env, exc);
-        return;
-    }
-    trans2iso(env, h->haveutf, h->enc, table, &tbl);
-    exc = (*env)->ExceptionOccurred(env);
-    if (exc) {
-        transfree(&dbn);
-        (*env)->DeleteLocalRef(env, exc);
-        return;
-    }
-    trans2iso(env, h->haveutf, h->enc, column, &col);
-    exc = (*env)->ExceptionOccurred(env);
-    if (exc) {
-        transfree(&tbl);
-        transfree(&dbn);
-        (*env)->DeleteLocalRef(env, exc);
-        return;
-    }
-    ret = sqlite3_blob_open(h->sqlite,
-                dbn.result, tbl.result, col.result,
-                row, rw, &blob);
-    transfree(&col);
-    transfree(&tbl);
-    transfree(&dbn);
-    if (ret != SQLITE_OK) {
-        const char *err = sqlite3_errmsg(h->sqlite);
+        ret = sqlite3_blob_open(h->sqlite,
+                    db.string(), table.string(), column.string(),
+                    row, rw, &blob);
 
-        seterr(env, obj, ret);
-        throwex(env, err ? err : "error in blob open");
-        return;
+        if (ret != SQLITE_OK) {
+            //const char *err = sqlite3_errmsg(h->sqlite);
+            //seterr(env, obj, ret);
+            //throwex(env, err ? err : "error in blob open");
+            return E_SQLITE_EXCEPTION;
+        }
+        bl = malloc(sizeof (hbl));
+        if (!bl) {
+            sqlite3_blob_close(blob);
+            //throwoom(env, "unable to get SQLite blob handle");
+            return E_SQLITE_EXCEPTION;
+        }
+        bl->next = h->blobs;
+        h->blobs = bl;
+        bl->blob = blob;
+        bl->h = h;
+        //vv.j = 0;
+        //vv.l = (jobject) bl;
+        //(*env)->SetLongField(env, blobj, F_SQLite_Blob_handle, vv.j);
+        //(*env)->SetIntField(env, blobj, F_SQLite_Blob_size,
+        //            sqlite3_blob_bytes(blob));
+        return NOERROR;
     }
-    bl = malloc(sizeof (hbl));
-    if (!bl) {
-        sqlite3_blob_close(blob);
-        throwoom(env, "unable to get SQLite blob handle");
-        return;
-    }
-    bl->next = h->blobs;
-    h->blobs = bl;
-    bl->blob = blob;
-    bl->h = h;
-    vv.j = 0;
-    vv.l = (jobject) bl;
-    (*env)->SetLongField(env, blobj, F_SQLite_Blob_handle, vv.j);
-    (*env)->SetIntField(env, blobj, F_SQLite_Blob_size,
-                sqlite3_blob_bytes(blob));
-    return;
-    }
-    throwex(env, "not an open database");
+    //throwex(env, "not an open database");
+    return E_SQLITE_EXCEPTION;
 #else
-    throwex(env, "unsupported");
-#endif*/
-    return E_NOT_IMPLEMENTED;
+    //throwex(env, "unsupported");
+    return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
+#endif
+    return NOERROR;
+}
+
+static int progresshandler(void *udata)
+{
+    //handle *h = (handle *) udata;
+    int ret = 0;
+
+    return ret;
 }
 
 ECode Database::_progress_handler(
     /** [in] **/Int32 n,
     /** [in] **/IProgressHandler* p)
-{/*
-    handle *h = gethandle(env, obj);
+{
+    handle* h = (handle*)mHandle;
 
     if (h && h->sqlite) {
     // CHECK THIS
 #if HAVE_SQLITE_PROGRESS_HANDLER
-    delglobrefp(env, &h->ph);
-#if HAVE_BOTH_SQLITE
-    if (h->is3) {
-        if (ph) {
-        globrefset(env, ph, &h->ph);
-        sqlite3_progress_handler((sqlite3 *) h->sqlite,
-                     n, progresshandler, h);
-        } else {
-        sqlite3_progress_handler((sqlite3 *) h->sqlite,
-                     0, 0, 0);
-        }
-    } else {
-        if (ph) {
-        globrefset(env, ph, &h->ph);
-        sqlite_progress_handler((sqlite *) h->sqlite,
-                    n, progresshandler, h);
-        } else {
-        sqlite_progress_handler((sqlite *) h->sqlite,
-                    0, 0, 0);
-        }
-    }
-#else
-#if HAVE_SQLITE2
-    if (ph) {
-        globrefset(env, ph, &h->ph);
-        sqlite_progress_handler((sqlite *) h->sqlite,
-                    n, progresshandler, h);
-    } else {
-        sqlite_progress_handler((sqlite *) h->sqlite,
-                    0, 0, 0);
-    }
-#endif
-#if HAVE_SQLITE3
-    if (ph) {
-        globrefset(env, ph, &h->ph);
+    if (p) {
         sqlite3_progress_handler((sqlite3 *) h->sqlite,
                      n, progresshandler, h);
     } else {
         sqlite3_progress_handler((sqlite3 *) h->sqlite,
                      0, 0, 0);
     }
-#endif
-#endif
-    return;
+    return NOERROR;
 #else
-    throwex(env, "unsupported");
-    return;
+    //throwex(env, "unsupported");
+    return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
 #endif
     }
-    throwclosed(env);
-    */
-    return E_NOT_IMPLEMENTED;
+    
+    return NOERROR;
 }
 
 ECode Database::_key(
     /** [in] **/ArrayOf<Byte>* ekey)
-{/*
-    jsize len;
-    jbyte *data;
+{
+    Int32 len;
+    Byte *data;
 #if HAVE_SQLITE3_KEY
-    handle *h = gethandle(env, obj);
+    handle* h = (handle*)mHandle;
 #endif
 
-    len = (*env)->GetArrayLength(env, key);
-    data = (*env)->GetByteArrayElements(env, key, 0);
+    len = ekey->GetLength();
+    data = ekey->GetPayload();
     if (len == 0) {
-    data = 0;
+        data = NULL;
     }
     if (!data) {
-    len = 0;
+        len = 0;
     }
 #if HAVE_SQLITE3_KEY
     if (h && h->sqlite) {
-#if HAVE_BOTH_SQLITE
-    if (!h->is3) {
+        sqlite3_key((sqlite3 *) h->sqlite, data, len);
         if (data) {
-        memset(data, 0, len);
+            memset(data, 0, len);
         }
-        throwex(env, "unsupported");
-    }
-#endif
-    sqlite3_key((sqlite3 *) h->sqlite, data, len);
-    if (data) {
-        memset(data, 0, len);
-    }
     } else {
-    if (data) {
-        memset(data, 0, len);
-    }
-    throwclosed(env);
+        if (data) {
+            memset(data, 0, len);
+        }
     }
 #else
     if (data) {
-    memset(data, 0, len);
+        memset(data, 0, len);
     }
     // no error
-#endif*/
+#endif
     return E_NOT_IMPLEMENTED;
 }
 
 ECode Database::_rekey(
     /** [in] **/ArrayOf<Byte>* ekey)
-{/*
-    jsize len;
-    jbyte *data;
+{
+    Int32 len;
+    Byte *data;
 #if HAVE_SQLITE3_KEY
-    handle *h = gethandle(env, obj);
+    handle* h = (handle*)mHandle;
 #endif
 
-    len = (*env)->GetArrayLength(env, key);
-    data = (*env)->GetByteArrayElements(env, key, 0);
+    len = ekey->GetLength();
+    data = ekey->GetPayload();
     if (len == 0) {
-    data = 0;
+        data = NULL;
     }
     if (!data) {
-    len = 0;
+        len = 0;
     }
 #if HAVE_SQLITE3_KEY
     if (h && h->sqlite) {
-#if HAVE_BOTH_SQLITE
-    if (!h->is3) {
+        sqlite3_rekey((sqlite3 *) h->sqlite, data, len);
         if (data) {
-        memset(data, 0, len);
+            memset(data, 0, len);
         }
-        throwex(env, "unsupported");
-    }
-#endif
-    sqlite3_rekey((sqlite3 *) h->sqlite, data, len);
-    if (data) {
-        memset(data, 0, len);
-    }
     } else {
-    if (data) {
-        memset(data, 0, len);
-    }
-    throwclosed(env);
+        if (data) {
+            memset(data, 0, len);
+        }
     }
 #else
     if (data) {
     memset(data, 0, len);
     }
-    throwex(env, "unsupported");
+    //throwex(env, "unsupported");
+    return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
 #endif
-    */
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode Database::internal_init()

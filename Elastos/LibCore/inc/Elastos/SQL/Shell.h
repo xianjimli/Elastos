@@ -9,6 +9,7 @@ using namespace Elastos;
 
 class Shell// : public ICallback
 {
+public:
     AutoPtr<IDatabase> mDb;
 
     Boolean mEcho;
@@ -32,6 +33,8 @@ class Shell// : public ICallback
     AutoPtr<IPrintWriter> mPw;
 
     AutoPtr<IPrintWriter> mErr;
+
+    friend class DBDump;
 public:
     Shell();
 

@@ -1,6 +1,7 @@
 
 #include "Shell.h"
 #include "StringBuffer.h"
+#include "CTableResult.h"
 #include "CShell.h"
 
 Shell::Shell()
@@ -126,129 +127,140 @@ ECode Shell::Types(
 ECode Shell::Newrow(
     /* [in] */ArrayOf<String>* args,
     /* [out] */Boolean* result)
-{/*
+{
     assert(result != NULL);
     Int32 i;
     String tname;
+    String csep;
     switch (mMode) {
     case IShell_MODE_Line:
-        if (args.GetLength() == 0) {
+        if (args->GetLength() == 0) {
             break;
         }
         if (mCount++ > 0) {
-            mPw->Println("");
+            mPw->PrintlnString(String(""));
         }
-        for (i = 0; i < args.GetLength(); i++) {
-            mPw->Println(cols[i] + " = " +
-               args[i] == null ? "NULL" : args[i]);
+        for (i = 0; i < args->GetLength(); i++) {
+            mPw->PrintlnString(String((*mCols)[i] + " = " +
+               (*args)[i] == NULL ? "NULL" : (*args)[i]));
         }
         break;
     case IShell_MODE_Column:
-        String csep = "";
+        csep = "";
         if (mCount++ == 0) {
-        mColwidth = ArrayOf<Int32>::Alloc(args.GetLength());
-        for (i = 0; i < args.GetLength(); i++) {
-            Int32 w, n;
-            w = (*mCols)[i].GetLength();
-            if (w < 10) {
-                w = 10;
+            mColwidth = ArrayOf<Int32>::Alloc(args->GetLength());
+            for (i = 0; i < args->GetLength(); i++) {
+                Int32 w;
+                w = (*mCols)[i].GetLength();
+                if (w < 10) {
+                    w = 10;
+                }
+                (*mColwidth)[i] = w;
+                if (mShowHeader) {
+                    mPw->PrintString(String(csep + (*mCols)[i]));
+                    csep = " ";
+                }
             }
-            mColwidth[i] = w;
             if (mShowHeader) {
-            mPw->Print(csep + cols[i]);
-            csep = " ";
+                mPw->PrintlnString(String(""));
             }
         }
-        if (mShowHeader) {
-            mPw->Println("");
-        }
-        }
-        if (args.GetLength() == 0) {
-        break;
+        if (args->GetLength() == 0) {
+            break;
         }
         csep = "";
-        for (i = 0; i < args.GetLength(); i++) {
-        mPw->Print(csep + (args[i] == NULL ? "NULL" : args[i]));
-        csep = " ";
+        for (i = 0; i < args->GetLength(); i++) {
+            mPw->PrintString(String(csep + (*args)[i] == NULL ? "NULL" : (*args)[i]));
+            csep = " ";
         }
-        mPw->Println("");
+        mPw->PrintlnString(String(""));
         break;
     case IShell_MODE_Semi:
     case IShell_MODE_List:
         if (mCount++ == 0 && mShowHeader) {
-        for (i = 0; i < args.GetLength(); i++) {
-            mPw->Print(cols[i] +
-                 (i == args.GetLength() - 1 ? "\n" : sep));
+            for (i = 0; i < args->GetLength(); i++) {
+                mPw->PrintString(String((*mCols)[i] +
+                     (i == args->GetLength() - 1 ? "\n" : mSep)));
+            }
         }
+        if (args->GetLength() == 0) {
+            break;
         }
-        if (args.GetLength() == 0) {
-        break;
+        for (i = 0; i < args->GetLength(); i++) {
+            mPw->PrintString(String((*args)[i] == NULL ? "NULL" : (*args)[i]));
+            if (mMode == IShell_MODE_Semi) {
+                mPw->PrintString(String(";"));
+            } else if (i < args->GetLength() - 1) {
+                mPw->PrintString(mSep);
+            }
         }
-        for (i = 0; i < args.GetLength(); i++) {
-        mPw->Print(args[i] == NULL ? "NULL" : args[i]);
-        if (mode == IShell_MODE_Semi) {
-            mPw->Print(";");
-        } else if (i < args.GetLength() - 1) {
-            mPw->Print(sep);
-        }
-        }
-        mPw->Println("");
+        mPw->PrintlnString(String(""));
         break;
     case IShell_MODE_Html:
         if (mCount++ == 0 && mShowHeader) {
-            mPw->Print("<TR>");
-        for (i = 0; i < args.GetLength(); i++) {
-            mPw->Print("<TH>" + html_quote(cols[i]) + "</TH>");
+            mPw->PrintString(String("<TR>"));
+        for (i = 0; i < args->GetLength(); i++) {
+            String str;
+            Html_quote((*mCols)[i], &str);
+            mPw->PrintString(String("<TH>" + str + "</TH>"));
         }
-        mPw->Println("</TR>");
+        mPw->PrintlnString(String("</TR>"));
         }
-        if (args.GetLength() == 0) {
+        if (args->GetLength() == 0) {
         break;
         }
-        mPw->Print("<TR>");
-        for (i = 0; i < args.GetLength(); i++) {
-        mPw->Print("<TD>" + html_quote(args[i]) + "</TD>");
+        mPw->PrintString(String("<TR>"));
+        for (i = 0; i < args->GetLength(); i++) {
+            String str;
+            Html_quote((*args)[i], &str);
+            mPw->PrintString(String("<TD>" + str + "</TD>"));
         }
-        mPw->Println("</TR>");
+        mPw->PrintlnString(String("</TR>"));
         break;
     case IShell_MODE_Insert:
-        if (args.GetLength() == 0) {
+        if (args->GetLength() == 0) {
         break;
         }
         tname = mTableName;
         if (!mDestTable.IsNull()) {
             tname = mDestTable;
         }
-        mPw->Print("INSERT INTO " + tname + " VALUES(");
-        for (i = 0; i < args.GetLength(); i++) {
-            String tsep = i > 0 ? "," : "";
-        if (args[i] == NULL) {
-            mPw->Print(tsep + "NULL");
-        } else if (is_numeric(args[i])) {
-            mPw->Print(tsep + args[i]);
-        } else {
-            mPw->Print(tsep + sql_quote(args[i]));
+        mPw->PrintString(String("INSERT INTO " + tname + " VALUES("));
+        for (i = 0; i < args->GetLength(); i++) {
+            String tsep = String(i > 0 ? "," : "");
+            if (args[i] == NULL) {
+                mPw->PrintString(String(tsep + "NULL"));
+            } else {
+                Boolean result;
+                Is_numeric((*args)[i], &result);
+                if (result) {
+                    mPw->PrintString(String(tsep + (*args)[i]));
+                } else {
+                    String str;
+                    Sql_quote((*args)[i], &str);
+                    mPw->PrintString(String(tsep + str));
+                }
+            }
         }
-        }
-        mPw->Println(");");
+        mPw->PrintlnString(String(");"));
         break;
     case IShell_MODE_Insert2:
-        if (args.GetLength() == 0) {
+        if (args->GetLength() == 0) {
         break;
         }
         tname = mTableName;
         if (!mDestTable.IsNull()) {
             tname = mDestTable;
         }
-        mPw->Print("INSERT INTO " + tname + " VALUES(");
-        for (i = 0; i < args.GetLength(); i++) {
-            String tsep = i > 0 ? "," : "";
-        mPw->Print(tsep + args[i]);
+        mPw->PrintString(String("INSERT INTO " + tname + " VALUES("));
+        for (i = 0; i < args->GetLength(); i++) {
+            String tsep = String(i > 0 ? "," : "");
+            mPw->PrintString(String(tsep + (*args)[i]));
         }
-        mPw->Println(");");
+        mPw->PrintlnString(String(");"));
         break;
     }
-    *result = FALSE;*/
+    *result = FALSE;
     return NOERROR;
 }
 
@@ -587,35 +599,39 @@ ECode Shell::Do_cmd(
 DBDump::DBDump(
     /* [in] */IShell* s, 
     /* [in] */const ArrayOf<String>& tables)
-{/*
-    this.s = s;
-    s.pw.println("BEGIN TRANSACTION;");
-        if (tables == null || tables.length == 0) {
-        try {
-            s.db.exec("SELECT name, type, sql FROM sqlite_master " +
-              "WHERE type!='meta' AND sql NOT NULL " +
-              "ORDER BY substr(type,2,1), name", this);
-        } catch (Exception e) {
-            s.err.println("SQL Error: " + e);
-        s.err.flush();
+{
+    ms = s;
+    ECode ec;
+    Shell* she = (Shell *)s->Probe(EIID_IShell);
+    she->mPw->PrintlnString(String("BEGIN TRANSACTION;"));
+    if (tables.GetPayload() == NULL || tables.GetLength() == 0) {
+        ec = she->mDb->Exec(String("SELECT name, type, sql FROM sqlite_master ") +
+          String("WHERE type!='meta' AND sql NOT NULL ") +
+          String("ORDER BY substr(type,2,1), name"), (ICallback*)this);
+        if(NOERROR != ec)
+        {
+          //  she->mErr->PrintlnString(String("SQL Error: " + String(ec)));
+          //  she->mErr->Flush();
         }
     } else {
-        String arg[] = new String[1];
-        for (int i = 0; i < tables.length; i++) {
-            arg[0] = tables[i];
-        try {
-            s.db.exec("SELECT name, type, sql FROM sqlite_master " +
-                  "WHERE tbl_name LIKE '%q' AND type!='meta' " +
-                  " AND sql NOT NULL " +
-                  " ORDER BY substr(type,2,1), name",
-                  this, arg);
-        } catch (Exception e) {
-            s.err.println("SQL Error: " + e);
-            s.err.flush();
+        //String arg[] = new String[1];
+        ArrayOf<String>* arg = ArrayOf<String>::Alloc(1);
+        for (Int32 i = 0; i < tables.GetLength(); i++) {
+            (*arg)[0] = tables[i];
+            ec = she->mDb->ExecEx(String("SELECT name, type, sql FROM sqlite_master ") +
+                      String("WHERE tbl_name LIKE '%q' AND type!='meta' ") +
+                      String(" AND sql NOT NULL ") +
+                      String(" ORDER BY substr(type,2,1), name"),
+                      (ICallback*)this, arg);
+            if(NOERROR != ec)
+            {
+            //    she->mErr.PrintlnString("SQL Error: " + e);
+            //    she->mErr.Flush();
+            }
         }
-        }
+        ArrayOf<String>::Free(arg);
     }
-    s.pw.println("COMMIT;");*/
+    she->mPw->PrintlnString(String("COMMIT;"));
 }
 
 ECode DBDump::Columns(
@@ -634,49 +650,65 @@ ECode DBDump::Newrow(
     /* [in] */ArrayOf<String>* args,
     /* [out] */Boolean* result)
 {
-    assert(result != NULL);/*
-    if (args.length != 3) {
-        return true;
+    assert(result != NULL);
+    if (args->GetLength() != 3) {
+        *result = TRUE;
+        return NOERROR;
     }
-    s.pw.println(args[2] + ";");
-    if (args[1].compareTo("table") == 0) {
-        Shell s2 = (Shell) s.clone();
-        s2.mode = Shell.MODE_Insert;
-        s2.set_table_name(args[0]);
-        String qargs[] = new String[1];
-        qargs[0] = args[0];
-        try {
-            if (s2.db.is3()) {
-            TableResult t = null;
-            t = s2.db.get_table("PRAGMA table_info('%q')", qargs);
-            String query;
-            if (t != null) {
-                StringBuffer sb = new StringBuffer();
-            String sep = "";
+    String sep;
+    Shell* she = (Shell *)ms->Probe(EIID_IShell);
+    she->mPw->PrintlnString(String((*args)[2] + ";"));
+    if ((*args)[1].Compare("table") == 0) {
+        //Shell s2 = (Shell) s.clone();
+        AutoPtr<IShell> s2;
+        she->Clone((IInterface**)&s2);
 
-            sb.append("SELECT ");
-            for (int i = 0; i < t.nrows; i++) {
-                String col = ((String[]) t.rows.elementAt(i))[1];
-                sb.append(sep + "quote(" +
-                      Shell.sql_quote_dbl(col) + ")");
-                sep = ",";
-            }
-            sb.append(" from '%q'");
-            query = sb.toString();
-            s2.mode = Shell.MODE_Insert2;
+        Shell* se = (Shell *)s2->Probe(EIID_IShell);
+        se->mMode = IShell_MODE_Insert;
+        se->Set_table_name((*args)[0]);
+        //String qargs[] = new String[1];
+        ArrayOf<String>* qargs = ArrayOf<String>::Alloc(1);
+        (*qargs)[0] = (*args)[0];
+  //      try {
+            Boolean ret;
+            se->mDb->Is3(&ret);
+            if (ret) {
+                AutoPtr<ITableResult> t = NULL;
+                se->mDb->Get_tableEx3(String("PRAGMA table_info('%q')"), qargs, (ITableResult**)&t);
+                TableResult* tr = (TableResult *)t->Probe(EIID_ITableResult);
+                String query;
+                if (t != NULL) {
+                    StringBuffer sb;
+                    sep = "";
+
+                    sb += ("SELECT ");
+                    for (Int32 i = 0; i < tr->mNrows; i++) {
+     //                   String col = ((String[]) tr->mRows.elementAt(i))[1];
+                        String str;
+    //////                    Shell.sql_quote_dbl(col, &str);
+                        sb += (sep + "quote(" + str + ")");
+                        sep = ",";
+                    }
+                    sb += (" from '%q'");
+                    query = String(sb);
+                    se->mMode = IShell_MODE_Insert2;
+                } else {
+                    query = "SELECT * from '%q'";
+                }
+                se->mDb->ExecEx(query, (ICallback*)s2, qargs);
+                if(qargs != NULL) ArrayOf<String>::Free(qargs);
             } else {
-                query = "SELECT * from '%q'";
+                se->mDb->ExecEx(String("SELECT * from '%q'"), (ICallback*)s2, qargs);
+                if(qargs != NULL) ArrayOf<String>::Free(qargs);
             }
-            s2.db.exec(query, s2, qargs);
-        } else {
-            s2.db.exec("SELECT * from '%q'", s2, qargs);
-        }
-        } catch (Exception e) {
-            s.err.println("SQL Error: " + e);
-        s.err.flush();
-        return true;
-        }
+  //      } catch (Exception e) {
+        //    she->mErr->PrintlnString("SQL Error: " + e);
+        //    she->mErr->Flush();
+  //          *result = TRUE;
+ //           if(qargs !=NULL) ArrayOf<String>::Free(qargs);
+ //           return NOERROR;
+ //       }
     }
-    return false;*/
+    *result = FALSE;
     return NOERROR;
 }

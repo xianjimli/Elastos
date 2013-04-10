@@ -2,6 +2,7 @@
 module
 {
     importlib("Elastos.Core.eco");
+    importlib("Elastos.Utility.eco");
 
     merge("../../../car/Elastos/IO/Errors.car");
     merge("../../../car/Elastos/IO/Exceptions.car");

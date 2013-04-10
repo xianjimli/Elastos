@@ -41,6 +41,8 @@ public:
     CARAPI GetOutputStream(
         /** [out] **/IOutputStream** stream);
 
+    CARAPI Doblobfinal();
+
     /**
      * Close blob.
      */

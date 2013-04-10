@@ -4,5 +4,318 @@ module
     interface IWriter;
 
     interface IPrintWriter extends IWriter {
+
+        /**
+	     * Formats {@code args} according to the format string {@code format}, and writes the result
+	     * to this stream. This method uses the user's default locale.
+	     * See "<a href="../util/Locale.html#default_locale">Be wary of the default locale</a>".
+	     * If automatic flushing is enabled then the buffer is flushed as well.
+	     *
+	     * @param format the format string (see {@link java.util.Formatter#format})
+	     * @param args
+	     *            the list of arguments passed to the formatter. If there are
+	     *            more arguments than required by {@code format},
+	     *            additional arguments are ignored.
+	     * @return this writer.
+	     * @throws IllegalFormatException
+	     *             if the format string is illegal or incompatible with the
+	     *             arguments, if there are not enough arguments or if any other
+	     *             error regarding the format string or arguments is detected.
+	     * @throws NullPointerException if {@code format == null}
+	     */
+	    Format(
+	        [in] String format, 
+	    //    [in] Object... args,
+	        [out] IPrintWriter** pw);
+
+	    /**
+	     * Writes a string formatted by an intermediate {@code Formatter} to the
+	     * target using the specified locale, format string and arguments. If
+	     * automatic flushing is enabled then this writer is flushed.
+	     *
+	     * @param l
+	     *            the locale used in the method. No localization will be applied
+	     *            if {@code l} is {@code null}.
+	     * @param format the format string (see {@link java.util.Formatter#format})
+	     * @param args
+	     *            the list of arguments passed to the formatter. If there are
+	     *            more arguments than required by {@code format},
+	     *            additional arguments are ignored.
+	     * @return this writer.
+	     * @throws IllegalFormatException
+	     *             if the format string is illegal or incompatible with the
+	     *             arguments, if there are not enough arguments or if any other
+	     *             error regarding the format string or arguments is detected.
+	     * @throws NullPointerException if {@code format == null}
+	     */
+	    FormatEx(
+	        [in] ILocale* l, 
+	        [in] String format, 
+	     //   [in] Object... args,
+	        [out] IPrintWriter** pw);
+
+	    /**
+	     * Prints a formatted string. The behavior of this method is the same as
+	     * this writer's {@code #format(String, Object...)} method. For the locale,
+	     * the default value of the current virtual machine instance is used.
+	     *
+	     * @param format the format string (see {@link java.util.Formatter#format})
+	     * @param args
+	     *            the list of arguments passed to the formatter. If there are
+	     *            more arguments than required by {@code format},
+	     *            additional arguments are ignored.
+	     * @return this writer.
+	     * @throws IllegalFormatException
+	     *             if the format string is illegal or incompatible with the
+	     *             arguments, if there are not enough arguments or if any other
+	     *             error regarding the format string or arguments is detected.
+	     * @throws NullPointerException if {@code format == null}
+	     */
+	    Printf(
+	        [in] String format, 
+	    //    [in] Object... args,
+	        [out] IPrintWriter** pw);
+
+	    /**
+	     * Prints a formatted string. The behavior of this method is the same as
+	     * this writer's {@code #format(Locale, String, Object...)} method.
+	     *
+	     * @param l
+	     *            the locale used in the method. No localization will be applied
+	     *            if {@code l} is {@code null}.
+	     * @param format the format string (see {@link java.util.Formatter#format})
+	     * @param args
+	     *            the list of arguments passed to the formatter. If there are
+	     *            more arguments than required by {@code format},
+	     *            additional arguments are ignored.
+	     * @return this writer.
+	     * @throws IllegalFormatException
+	     *             if the format string is illegal or incompatible with the
+	     *             arguments, if there are not enough arguments or if any other
+	     *             error regarding the format string or arguments is detected.
+	     * @throws NullPointerException if {@code format == null}
+	     */
+	    PrintfEx(
+	        [in] ILocale* l, 
+	        [in] String format, 
+	    //    [in] Object... args,
+	        [out] IPrintWriter** pw);
+
+        /**
+	     * Prints the string representation of the specified character to the
+	     * target.
+	     *
+	     * @param ch
+	     *            the character to print to the target.
+	     * @see #print(String)
+	     */
+	    PrintChar8(
+	        [in] Char8 ch);
+
+        /**
+	     * Prints the string representation of the specified character array
+	     * to the target.
+	     *
+	     * @param charArray
+	     *            the character array to print to the target.
+	     * @see #print(String)
+	     */
+	    PrintChar8Ex(
+	        [in] ArrayOf<Char8> charArray);
+
+	    /**
+	     * Prints the string representation of the specified double to the target.
+	     *
+	     * @param dnum
+	     *            the double value to print to the target.
+	     * @see #print(String)
+	     */
+	    PrintDouble(
+	        [in] Double dnum);
+
+	    /**
+	     * Prints the string representation of the specified float to the target.
+	     *
+	     * @param fnum
+	     *            the float value to print to the target.
+	     * @see #print(String)
+	     */
+	    PrintFloat(
+	        [in] Float fnum);
+
+	    /**
+	     * Prints the string representation of the specified integer to the target.
+	     *
+	     * @param inum
+	     *            the integer value to print to the target.
+	     * @see #print(String)
+	     */
+	    PrintInt32(
+	        [in] Int32 inum);
+
+	    /**
+	     * Prints the string representation of the specified long to the target.
+	     *
+	     * @param lnum
+	     *            the long value to print to the target.
+	     * @see #print(String)
+	     */
+	    PrintInt64(
+	        [in] Int64 lnum);
+
+	    /**
+	     * Prints the string representation of the specified object to the target.
+	     *
+	     * @param obj
+	     *            the object to print to the target.
+	     * @see #print(String)
+	     */
+	    PrintObj(
+	        [in] IInterface* obj);
+
+	    /**
+	     * Prints a string to the target. The string is converted to an array of
+	     * bytes using the encoding chosen during the construction of this writer.
+	     * The bytes are then written to the target with {@code write(int)}.
+	     * <p>
+	     * If an I/O error occurs, this writer's error flag is set to {@code true}.
+	     *
+	     * @param str
+	     *            the string to print to the target.
+	     * @see #write(int)
+	     */
+	    PrintString(
+	        [in] String str);
+
+	    /**
+	     * Prints the string representation of the specified boolean to the target.
+	     *
+	     * @param bool
+	     *            the boolean value to print the target.
+	     * @see #print(String)
+	     */
+	    PrintBoolean(
+	        [in] Boolean bool);
+
+	    /**
+	     * Prints the string representation of the system property {@code
+	     * "line.separator"} to the target. Flushes this writer if the autoflush
+	     * flag is set to {@code true}.
+	     */
+	    Println();
+
+	    /**
+	     * Prints the string representation of the specified character followed by
+	     * the system property {@code "line.separator"} to the target. Flushes this
+	     * writer if the autoflush flag is set to {@code true}.
+	     *
+	     * @param ch
+	     *            the character to print to the target.
+	     * @see #print(String)
+	     */
+	    PrintlnChar8(
+	        [in] Char8 ch);
+
+        /**
+	     * Prints the string representation of the specified character array
+	     * followed by the system property {@code "line.separator"} to the target.
+	     * Flushes this writer if the autoflush flag is set to {@code true}.
+	     *
+	     * @param charArray
+	     *            the character array to print to the target.
+	     * @see #print(String)
+	     */
+	    PrintlnChar8Ex(
+	        [in] ArrayOf<Char8> charArray);
+
+	    /**
+	     * Prints the string representation of the specified double followed by the
+	     * system property {@code "line.separator"} to the target. Flushes this
+	     * writer if the autoflush flag is set to {@code true}.
+	     *
+	     * @param dnum
+	     *            the double value to print to the target.
+	     * @see #print(String)
+	     */
+	    PrintlnDouble(
+	        [in] Double dnum);
+
+	    /**
+	     * Prints the string representation of the specified float followed by the
+	     * system property {@code "line.separator"} to the target. Flushes this
+	     * writer if the autoflush flag is set to {@code true}.
+	     *
+	     * @param fnum
+	     *            the float value to print to the target.
+	     * @see #print(String)
+	     */
+	    PrintlnFloat(
+	        [in] Float fnum);
+
+	    /**
+	     * Prints the string representation of the specified integer followed by the
+	     * system property {@code "line.separator"} to the target. Flushes this
+	     * writer if the autoflush flag is set to {@code true}.
+	     *
+	     * @param inum
+	     *            the integer value to print to the target.
+	     * @see #print(String)
+	     */
+	    PrintlnInt32(
+	        [in] Int32 inum);
+
+	    /**
+	     * Prints the string representation of the specified long followed by the
+	     * system property {@code "line.separator"} to the target. Flushes this
+	     * writer if the autoflush flag is set to {@code true}.
+	     *
+	     * @param lnum
+	     *            the long value to print to the target.
+	     * @see #print(String)
+	     */
+	    PrintlnInt64(
+	        [in] Int64 lnum);
+
+	    /**
+	     * Prints the string representation of the specified object followed by the
+	     * system property {@code "line.separator"} to the target. Flushes this
+	     * writer if the autoflush flag is set to {@code true}.
+	     *
+	     * @param obj
+	     *            the object to print to the target.
+	     * @see #print(String)
+	     */
+	    PrintlnObj(
+	        [in] IInterface* obj);
+
+	    /**
+	     * Prints a string followed by the system property {@code "line.separator"}
+	     * to the target. The string is converted to an array of bytes using the
+	     * encoding chosen during the construction of this writer. The bytes are
+	     * then written to the target with {@code write(int)}. Finally, this writer
+	     * is flushed if the autoflush flag is set to {@code true}.
+	     * <p>
+	     * If an I/O error occurs, this writer's error flag is set to {@code true}.
+	     *
+	     * @param str
+	     *            the string to print to the target.
+	     * @see #write(int)
+	     */
+	    PrintlnString(
+	        [in] String str);
+
+	    /**
+	     * Prints the string representation of the specified boolean followed by the
+	     * system property {@code "line.separator"} to the target. Flushes this
+	     * writer if the autoflush flag is set to {@code true}.
+	     *
+	     * @param bool
+	     *            the boolean value to print to the target.
+	     * @see #print(String)
+	     */
+	    PrintlnBoolean(
+	        [in] Boolean bool);
+
+	    SetError();
     }
 }

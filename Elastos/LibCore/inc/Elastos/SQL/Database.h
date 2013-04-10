@@ -8,6 +8,8 @@
 #define HAVE_SQLITE3_SHARED_CACHE 0
 #endif
 
+#define MAX_PARAMS 32
+
 using namespace Elastos;
 using namespace Elastos::Core::Threading;
 /**
@@ -637,7 +639,11 @@ private:
         /* [in] */ Boolean ver2);
 
     //native
-    CARAPI _open_aux_file(String filename);;
+    CARAPI _open_aux_file(
+        /* [in] */ String filename);;
+
+    CARAPI Doclose(
+        /* [in] */ Int32 final);
 
     //native
     CARAPI _finalize();
@@ -681,17 +687,23 @@ private:
     CARAPI_(Boolean) _complete(
         /** [in] **/String sql);
 
+    CARAPI mkfunc_common(
+    /** [in] **/ Int32 isagg, 
+    /** [in] **/ String name,
+    /** [in] **/ Int32 nargs, 
+    /** [in] **/ IFunction* fi);
+
     //native
     CARAPI _create_function(
         /** [in] **/String name,
         /** [in] **/Int32 nargs,
-        /** [in] **/IFunction* f);
+        /** [in] **/IFunction* fi);
 
     //native
     CARAPI _create_aggregate(
         /** [in] **/String name,
         /** [in] **/Int32 nargs,
-        /** [in] **/IFunction* f);
+        /** [in] **/IFunction* fi);
 
     //native
     CARAPI _function_type(
@@ -762,7 +774,7 @@ private:
         /** [in] **/String column,
 		/** [in] **/Int64 row,
         /** [in] **/Boolean rw,
-        /** [in] **/IBlob2* blob);
+        /** [in] **/IBlob2* blob2);
 
     //native
     CARAPI _progress_handler(
