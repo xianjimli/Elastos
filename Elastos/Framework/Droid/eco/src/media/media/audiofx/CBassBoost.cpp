@@ -10,7 +10,7 @@ using namespace Elastos::Utility::Logging;
 CBassBoost::CBassBoost()
 {
     mStrengthSupported = FALSE;
-    CAudioEffect::New(0,0,(IAudioEffect**)&obj);
+    CAudioEffect::New((IUUID*) 0,(IUUID*) 0,0,0,(IAudioEffect**)&obj);
 }
 
 PInterface CBassBoost::BaseParameterListener::Probe(
@@ -107,13 +107,13 @@ ECode CBassBoost::BaseParameterListener::OnParameterChange(
         Int16 v = -1;
         if (param.GetLength() == 4) {
             AutoPtr<IAudioEffect> obj;
-            CAudioEffect::New(0,0,(IAudioEffect**)&obj);
+            CAudioEffect::New((IUUID*) 0,(IUUID*) 0,0,0,(IAudioEffect**)&obj);
             obj->ByteArrayToInt32Ex(param, 0, &p);
             obj->Release();
         }
         if (value.GetLength() == 2) {
             AutoPtr<IAudioEffect> obj;
-            CAudioEffect::New(0,0,(IAudioEffect**)&obj);
+            CAudioEffect::New((IUUID*) 0,(IUUID*) 0,0,0,(IAudioEffect**)&obj);
             obj->ByteArrayToInt16Ex(value, 0, &v);
             obj->Release();
         }
@@ -132,7 +132,7 @@ ECode CBassBoost::SetParameterListenerEx(
         mParamListener = listener;
         mBaseParamListener = new BaseParameterListener();
         AutoPtr<IAudioEffect> obj;
-        CAudioEffect::New(0,0,(IAudioEffect**)&obj);
+        CAudioEffect::New((IUUID*) 0,(IUUID*) 0,0,0,(IAudioEffect**)&obj);
         obj->SetParameterListener(mBaseParamListener);
         obj->Release();
     }

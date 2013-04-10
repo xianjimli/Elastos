@@ -10,7 +10,7 @@ CEqualizer::CEqualizer()
 {
     Equalizer_PARAM_PROPERTIES = 9;
     mNumBands = 0;
-    CAudioEffect::New(0,0,(IAudioEffect**)&obj);
+    CAudioEffect::New((IUUID*) 0,(IUUID*) 0,0,0,(IAudioEffect**)&obj);
 }
 
 PInterface CEqualizer::BaseParameterListener::Probe(
@@ -71,7 +71,7 @@ ECode CEqualizer::constructor(
         for (int i = 0; i < mNumPresets; i++) {
             param[1] = i;
             AutoPtr<IAudioEffect> obj1;
-            CAudioEffect::New(0,0,(IAudioEffect**)&obj1);
+            CAudioEffect::New((IUUID*) 0,(IUUID*) 0,0,0,(IAudioEffect**)&obj1);
             Int32 status;
             obj1->CheckStatus(obj1->GetParameterEx6(param, *value, &status));
             obj1->Release();
@@ -270,7 +270,7 @@ ECode CEqualizer::BaseParameterListener::OnParameterChange(
 
         if (param.GetLength() >= 4) {
             AutoPtr<IAudioEffect> obj;
-            CAudioEffect::New(0,0,(IAudioEffect**)&obj);
+            CAudioEffect::New((IUUID*) 0,(IUUID*) 0,0,0,(IAudioEffect**)&obj);
             obj->ByteArrayToInt32Ex(param, 0, &p1);
             if (param.GetLength() >= 8) {
                 obj->ByteArrayToInt32Ex(param, 4, &p2);
@@ -279,14 +279,14 @@ ECode CEqualizer::BaseParameterListener::OnParameterChange(
         }
         if (value.GetLength() == 2) {
             AutoPtr<IAudioEffect> obj;
-            CAudioEffect::New(0,0,(IAudioEffect**)&obj);
+            CAudioEffect::New((IUUID*) 0,(IUUID*) 0,0,0,(IAudioEffect**)&obj);
             Int16 status;
             obj->ByteArrayToInt16Ex(value, 0, &status);
             v = (Int32) status;
             obj->Release();
         } else if (value.GetLength() == 4) {
             AutoPtr<IAudioEffect> obj;
-            CAudioEffect::New(0,0,(IAudioEffect**)&obj);
+            CAudioEffect::New((IUUID*) 0,(IUUID*) 0,0,0,(IAudioEffect**)&obj);
             obj->ByteArrayToInt32Ex(value, 0, &v);
             obj->Release();
         }
@@ -305,7 +305,7 @@ ECode CEqualizer::SetParameterListenerEx(
         mParamListener = listener;
         mBaseParamListener = new BaseParameterListener();
         AutoPtr<IAudioEffect> obj;
-        CAudioEffect::New(0,0,(IAudioEffect**)&obj);
+        CAudioEffect::New((IUUID*) 0,(IUUID*) 0,0,0,(IAudioEffect**)&obj);
         obj->SetParameterListener(mBaseParamListener);
         obj->Release();
     }
@@ -484,7 +484,7 @@ ECode CEqualizer::SetProperties(
 
     for (int i = 0; i < mNumBands; i++) {
         AutoPtr<IAudioEffect> obj;
-        CAudioEffect::New(0,0,(IAudioEffect**)&obj);
+        CAudioEffect::New((IUUID*) 0,(IUUID*) 0,0,0,(IAudioEffect**)&obj);
         // obj->Int16ToByteArray((*tempInt16Array1)[i], tempByteArray1);
         obj->ConcatArrays(*param, *tempByteArray1, &param);
         obj->Release();

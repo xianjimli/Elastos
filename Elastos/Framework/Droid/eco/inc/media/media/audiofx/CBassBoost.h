@@ -8,6 +8,7 @@
 #include "os/Runnable.h"
 #include <elastos/AutoPtr.h>
 #include <elastos/ElRefBase.h>
+#include <media/audiofx/AudioEffect.h>
 using namespace Elastos::Core::Threading;
 
 /**
@@ -28,7 +29,7 @@ using namespace Elastos::Core::Threading;
  * controlling audio effects.
  */
 
-CarClass(CBassBoost)
+CarClass(CBassBoost), public AudioEffect
 {
 public:
     class Settings{
