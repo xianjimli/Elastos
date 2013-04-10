@@ -25,7 +25,7 @@
 #define GUARD_THREAD_PRIORITY 0
 
 #if GUARD_THREAD_PRIORITY
-Mutex gKeyCreateMutex;
+static Mutex gKeyCreateMutex;
 static pthread_key_t gBgKey = -1;
 #endif
 
@@ -39,10 +39,9 @@ Boolean Process::sPreviousZygoteOpenFailed;
 Mutex Process::mProcessClassLock;
 
 Process::ProcessRunnable::ProcessRunnable(
-    /* [in] */ String processClass)
-{
-    mProcessClass = processClass;
-}
+    /* [in] */ const String& processClass)
+    : mProcessClass(processClass)
+{}
 
 UInt32 Process::ProcessRunnable::AddRef()
 {
@@ -76,22 +75,21 @@ CARAPI Process::ProcessRunnable::GetInterfaceID(
 
 ECode Process::ProcessRunnable::Run()
 {
-    Process::InvokeStaticMain(mProcessClass);
-    return NOERROR;
+    return InvokeStaticMain(mProcessClass);
 }
 
+// Int32 Process::GetCallingPid()
+// {
+//     //not implemented;
+//     return -1;
+// }
 
-Int32 Process::GetCallingPid()
-{
-    //not implemented;
-    return -1;
-}
+// Int32 Process::GetCallingUid()
+// {
+//     //not implemented;
+//     return -1;
+// }
 
-Int32 Process::GetCallingUid()
-{
-    //not implemented;
-    return -1;
-}
 /**
 * Start a new process.
 *
@@ -124,53 +122,46 @@ Int32 Process::GetCallingUid()
 */
 
 ECode Process::Start(
-    /* [in] */ const String processClass,
-    /* [in] */ const String niceName,
+    /* [in] */ const String& processClass,
+    /* [in] */ const String& niceName,
     /* [in] */ Int32 uid,
     /* [in] */ Int32 gid,
-    /* [in] */ const ArrayOf<Int32> & gids,
+    /* [in] */ const ArrayOf<Int32>& gids,
     /* [in] */ Int32 debugFlags,
-    /* [in] */ const ArrayOf<String> & zygoteArgs,
+    /* [in] */ const ArrayOf<String>& zygoteArgs,
     /* [out] */ Int32* pid)
 {
     if (SupportsProcesses()) {
-        ECode ec = StartViaZygote(
-                    processClass,
-                    niceName,
-                    uid,
-                    gid,
-                    gids,
-                    debugFlags,
-                    zygoteArgs,
-                    pid);
-
-        if (FAILED(ec))
-        {
-            // Log.e(LOG_TAG,
-            //         "Starting VM process through Zygote failed");
-            // throw new RuntimeException(
-            //         "Starting VM process through Zygote failed", ex);
+        // try {
+        ECode ec = StartViaZygote(processClass, niceName, uid, gid, gids,
+                    debugFlags, zygoteArgs, pid);
+        // } catch (ZygoteStartFailedEx ex) {
+        //     Log.e(LOG_TAG,
+        //             "Starting VM process through Zygote failed");
+        //     throw new RuntimeException(
+        //             "Starting VM process through Zygote failed", ex);
+        // }
+        if (FAILED(ec)) {
             return E_RUNTIME_EXCEPTION;
         }
     }
     else {
         //Running in single-process mode
-        ProcessRunnable* runnable = new ProcessRunnable(processClass);
+        AutoPtr<ProcessRunnable> runnable = new ProcessRunnable(processClass);
 
         // Thread constructors must not be called with null names (see spec).
-        IThread* thread;
-        if (niceName.GetCharCount() != 0) {
-            CThread::New(runnable, niceName, &thread);
-            thread->Start();
-        } else {
-            CThread::New(runnable, &thread);
+        AutoPtr<IThread> thread;
+        if (!niceName.IsNull()) {
+            CThread::New(runnable, niceName, (IThread**)&thread);
             thread->Start();
         }
-
-        *pid = 0;
-        delete runnable;
+        else {
+            CThread::New(runnable, (IThread**)&thread);
+            thread->Start();
+        }
     }
 
+    *pid = 0;
     return NOERROR;
 }
 
@@ -179,27 +170,20 @@ ECode Process::Start(
 * {@hide}
 */
 ECode Process::Start(
-    /* [in] */ String processClass,
+    /* [in] */ const String& processClass,
     /* [in] */ Int32 uid,
     /* [in] */ Int32 gid,
-    /* [in] */ const ArrayOf<Int32> & gids,
+    /* [in] */ const ArrayOf<Int32>& gids,
     /* [in] */ Int32 debugFlags,
-    /* [in] */ const ArrayOf<String> & zygoteArgs,
-    /* [in] */ Int32* pid)
+    /* [in] */ const ArrayOf<String>& zygoteArgs,
+    /* [out] */ Int32* pid)
 {
-    return Start(
-            processClass,
-            String(""),
-            uid,
-            gid,
-            gids,
-            debugFlags,
-            zygoteArgs,
-            pid);
+    return Start(processClass, String(""), uid, gid, gids,
+                debugFlags, zygoteArgs, pid);
 }
 
 ECode Process::InvokeStaticMain(
-    /* [in] */ String className)
+    /* [in] */ const String& className)
 {
     //TODO:
     // Class cl;
@@ -241,7 +225,8 @@ ECode Process::OpenZygoteSocketIfNeeded()
          * don't pause for retries.
          */
         retryCount = 0;
-    } else {
+    }
+    else {
         retryCount = 10;
     }
 
@@ -264,42 +249,24 @@ ECode Process::OpenZygoteSocketIfNeeded()
         }
 
     // try {
-        ECode ec = CLocalSocket::New((ILocalSocket**)&sZygoteSocket);
-        if (FAILED(ec)) {
-            return ec;
-        }
+        FAIL_RETURN(CLocalSocket::New((ILocalSocket**)&sZygoteSocket));
 
-        ILocalSocketAddress* socketAddress;
-        ec = CLocalSocketAddress::New(String("zygote"), LocalSocketAddressNamespace_RESERVED, &socketAddress);
-        if (FAILED(ec)) {
-            return ec;
-        }
-
+        AutoPtr<ILocalSocketAddress> socketAddress;
+        FAIL_RETURN(CLocalSocketAddress::New(String("zygote"), LocalSocketAddressNamespace_RESERVED,
+                                            (ILocalSocketAddress**)&socketAddress));
         sZygoteSocket->Connect(socketAddress);
 
-        IInputStream* inputStream;
-        sZygoteSocket->GetInputStream(&inputStream);
+        AutoPtr<IInputStream> inputStream;
+        sZygoteSocket->GetInputStream((IInputStream**)&inputStream);
+        FAIL_RETURN(CDataInputStream::New(inputStream, (IDataInputStream**)&sZygoteInputStream));
 
-        ec = CDataInputStream::New(inputStream, (IDataInputStream**)&sZygoteInputStream);
-        if (FAILED(ec)) {
-            return ec;
-        }
+        AutoPtr<IOutputStream> outputStream;
+        sZygoteSocket->GetOutputStream((IOutputStream**)&outputStream);
 
-        IOutputStream* outputStream;
-        sZygoteSocket->GetOutputStream(&outputStream);
+        AutoPtr<IOutputStreamWriter> streamWrite;
+        FAIL_RETURN(COutputStreamWriter::New(outputStream, (IOutputStreamWriter**)&streamWrite));
 
-        IOutputStreamWriter* streamWrite;
-        ec = COutputStreamWriter::New(outputStream, &streamWrite);
-
-        if (FAILED(ec)) {
-            return ec;
-        }
-
-        ec = CBufferedWriter::New(streamWrite, 256, (IBufferedWriter**)&sZygoteWriter);
-
-        if (FAILED(ec)) {
-            return ec;
-        }
+        FAIL_RETURN(CBufferedWriter::New(streamWrite, 256, (IBufferedWriter**)&sZygoteWriter));
 
         //Log.i("Zygote", "Process: zygote socket opened");
         sPreviousZygoteOpenFailed = FALSE;
@@ -410,13 +377,13 @@ Int32 Process::ZygoteSendArgsAndGetPid(
  * @throws ZygoteStartFailedEx if process start failed for any reason
  */
 ECode Process::StartViaZygote(
-    /* [in] */ const String processClass,
-    /* [in] */ const String niceName,
+    /* [in] */ const String& processClass,
+    /* [in] */ const String& niceName,
     /* [in] */ const Int32 uid,
     /* [in] */ const Int32 gid,
-    /* [in] */ const ArrayOf<Int32> & gids,
+    /* [in] */ const ArrayOf<Int32>& gids,
     /* [in] */ Int32 debugFlags,
-    /* [in] */ const ArrayOf<String> & extraArgs,
+    /* [in] */ const ArrayOf<String>& extraArgs,
     /* [out] */ Int32* pid)
 {
     Mutex::Autolock lock(mProcessClassLock);
@@ -531,7 +498,7 @@ Int32 Process::MyUid()
  * directly to a uid.
  */
 Int32 Process::GetUidForName(
-    /* [in] */ String name)
+    /* [in] */ const String& name)
 {
     if (name == NULL) {
         //jniThrowException(env, "java/lang/NullPointerException", NULL);
@@ -569,7 +536,7 @@ Int32 Process::GetUidForName(
  * directly to a gid.
  */
 Int32 Process::GetGidForName(
-    /* [in] */ String name)
+    /* [in] */ const String& name)
 {
     if (name == NULL) {
         //jniThrowException(env, "java/lang/NullPointerException", NULL);
@@ -738,6 +705,30 @@ ECode Process::SetCanSelfBackground(
     return NOERROR;
 }
 
+/**
+ * Sets the scheduling group for a thread.
+ * @hide
+ * @param tid The indentifier of the thread/process to change.
+ * @param group The target group for this thread/process.
+ *
+ * @throws IllegalArgumentException Throws IllegalArgumentException if
+ * <var>tid</var> does not exist.
+ * @throws SecurityException Throws SecurityException if your process does
+ * not have permission to modify the given thread, or to use the given
+ * priority.
+ */
+ECode Process::SetThreadGroup(
+    /* [in] */ Int32 tid,
+    /* [in] */ Int32 group)
+{
+    Int32 res = androidSetThreadSchedulingGroup(tid, group);
+    if (res != android::NO_ERROR) {
+        SignalExceptionForGroupError(res == android::BAD_VALUE ? EINVAL : errno);
+    }
+
+    return NOERROR;
+}
+
 ECode Process::SetThreadPriority(
     /* [in] */ Int32 priority)
 {
@@ -815,7 +806,7 @@ Boolean Process::SetOomAdj(
  * {@hide}
  */
 ECode Process::SetArgV0(
-    /* [in] */ String name)
+    /* [in] */ const String& name)
 {
     if (name == NULL) {
         //jniThrowException(env, "java/lang/NullPointerException", NULL);
@@ -930,7 +921,7 @@ Int64 Process::GetFreeMemory()
     Int64 mem = 0;
 
     static const char* const sums[] = { "MemFree:", "Cached:", NULL };
-    static const Int32 sumsLen[] = { strlen("MemFree:"), strlen("Cached:"), NULL };
+    static const Int32 sumsLen[] = { strlen("MemFree:"), strlen("Cached:"), 0 };
 
     char* p = buffer;
     while (*p && numFound < 2) {
@@ -960,9 +951,9 @@ Int64 Process::GetFreeMemory()
 
 /** @hide */
 ECode Process::ReadProcLines(
-    /* [in] */ String path,
-    /* [in] */ const ArrayOf<String> & reqFields,
-    /* [in] */ const ArrayOf<Int64> & outSizes)
+    /* [in] */ const String& path,
+    /* [in] */ const ArrayOf<String>& reqFields,
+    /* [in] */ const ArrayOf<Int64>& outSizes)
 {
     //LOGI("getMemInfo: %p %p", reqFields, outFields);
 
@@ -1067,7 +1058,9 @@ ECode Process::ReadProcLines(
     return NOERROR;
 }
 
-static Int32 pid_compare(const void* v1, const void* v2)
+static Int32 Pid_compare(
+    /* [in] */ const void* v1,
+    /* [in] */ const void* v2)
 {
     //LOGI("Compare %d vs %d\n", *((const jint*)v1), *((const jint*)v2));
     return *((const Int32*)v1) - *((const Int32*)v2);
@@ -1075,8 +1068,8 @@ static Int32 pid_compare(const void* v1, const void* v2)
 
 /** @hide */
 ECode Process::GetPids(
-    /* [in] */ String path,
-    /* [in] */ const ArrayOf<Int32> & lastArray,
+    /* [in] */ const String& path,
+    /* [in] */ const ArrayOf<Int32>& lastArray,
     /* [out] */ ArrayOf<Int32>** newArray)
 {
     if (path == NULL) {
@@ -1143,7 +1136,7 @@ ECode Process::GetPids(
     closedir(dirp);
 
     if (curData != NULL && curPos > 0) {
-        qsort(curData, curPos, sizeof(Int32), pid_compare);
+        qsort(curData, curPos, sizeof(Int32), Pid_compare);
     }
 
     while (curPos < curCount) {
@@ -1169,10 +1162,10 @@ Boolean ParseProcLineArray(
     /* [in] */ char* buffer,
     /* [in] */ Int32 startIndex,
     /* [in] */ Int32 endIndex,
-    /* [in] */ const ArrayOf<Int32> & format,
-    /* [in] */ const ArrayOf<String> & outStrings,
-    /* [in] */ const ArrayOf<Int64> & outLongs,
-    /* [in] */ const ArrayOf<Float> & outFloats)
+    /* [in] */ const ArrayOf<Int32>& format,
+    /* [in] */ const ArrayOf<String>& outStrings,
+    /* [in] */ const ArrayOf<Int64>& outLongs,
+    /* [in] */ const ArrayOf<Float>& outFloats)
 {
 
     const Int32 NF = format.GetLength();
@@ -1254,11 +1247,11 @@ Boolean ParseProcLineArray(
 
 /** @hide */
 ECode Process::ReadProcFile(
-    /* [in] */ String file,
-    /* [in] */ const ArrayOf<Int32> & format,
-    /* [in] */ const ArrayOf<String> & outStrings,
-    /* [in] */ const ArrayOf<Int64> & outLongs,
-    /* [in] */ const ArrayOf<Float> outFloats,
+    /* [in] */ const String& file,
+    /* [in] */ const ArrayOf<Int32>& format,
+    /* [in] */ const ArrayOf<String>& outStrings,
+    /* [in] */ const ArrayOf<Int64>& outLongs,
+    /* [in] */ const ArrayOf<Float>& outFloats,
     /* [out] */ Boolean* result)
 {
     if (file == NULL) {
@@ -1293,38 +1286,26 @@ ECode Process::ReadProcFile(
     }
     buffer[len] = 0;
 
-    *result = ParseProcLineArray(
-                buffer,
-                0,
-                len,
-                format,
-                outStrings,
-                outLongs,
-                outFloats);
+    *result = ParseProcLineArray(buffer, 0, len,
+                format, outStrings, outLongs, outFloats);
 
     return NOERROR;
 }
 
 /** @hide */
 Boolean Process::ParseProcLine(
-    /* [in] */ const ArrayOf<Byte> & buffer,
+    /* [in] */ const ArrayOf<Byte>& buffer,
     /* [in] */ Int32 startIndex,
     /* [in] */ Int32 endIndex,
-    /* [in] */ const ArrayOf<Int32> & format,
-    /* [in] */ const ArrayOf<String> & outStrings,
-    /* [in] */ const ArrayOf<Int64> & outLongs,
-    /* [in] */ const ArrayOf<Float> & outFloats)
+    /* [in] */ const ArrayOf<Int32>& format,
+    /* [in] */ const ArrayOf<String>& outStrings,
+    /* [in] */ const ArrayOf<Int64>& outLongs,
+    /* [in] */ const ArrayOf<Float>& outFloats)
 {
     Byte* bufferArray = buffer.GetPayload();
 
-    return ParseProcLineArray(
-            (char*)bufferArray,
-            startIndex,
-            endIndex,
-            format,
-            outStrings,
-            outLongs,
-            outFloats);
+    return ParseProcLineArray((char*)bufferArray, startIndex,
+            endIndex, format, outStrings, outLongs, outFloats);
 }
 
 /**
