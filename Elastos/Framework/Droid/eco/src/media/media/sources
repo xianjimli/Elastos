@@ -20,7 +20,6 @@ SOURCES += CAudioManager.cpp
 SOURCES += CAudioService.cpp
 SOURCES += Metadata.cpp
 SOURCES += CMetadata.cpp
-SOURCES += MediaPlayer.cpp
 SOURCES += CMediaPlayer.cpp
 SOURCES += CamcorderProfile.cpp
 SOURCES += CCamcorderProfile.cpp

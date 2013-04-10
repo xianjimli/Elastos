@@ -1,54 +1,373 @@
 
+#include <media/mediaplayer.h>
+#include <binder/Parcel.h>
+#include <surfaceflinger/Surface.h>
 #include "media/CMediaPlayer.h"
+#include "media/CMetadata.h"
+
+
+//MediaPlayer::EventHandler::EventHandler(
+//    /* [in] */ IMediaPlayer* mp,
+//    /* [in] */ Looper looper)
+//{
+//    super(looper);
+//    mMediaPlayer = mp;
+//}
+
+IInterface* CMediaPlayer::EventHandler::Probe(
+    /* [in] */ REIID riid)
+{
+    if (riid == EIID_IInterface) {
+        return (IInterface*)(IApartment*)this;
+    }
+    else if (riid == EIID_IApartment) {
+        return (IApartment*)this;
+    }
+    return NULL;
+}
+
+UInt32 CMediaPlayer::EventHandler::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 CMediaPlayer::EventHandler::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode CMediaPlayer::EventHandler::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+//ECode MediaPlayer::EventHandler::HandleMessage(
+//    /* [in] */ IMessage* msg)
+//{
+//    if (((CMediaPlayer*)mMediaPlayer)->mNativeContext == 0) {
+//        //Log.w(TAG, "mediaplayer went away with unhandled events");
+//        return NOERROR;
+//    }
+//    switch((CMessage*)msg->what) {
+//    case MEDIA_PREPARED:
+//        if (mOnPreparedListener != NULL)
+//            mOnPreparedListener->OnPrepared(mMediaPlayer);
+//        return NOERROR;
+//
+//    case MEDIA_PLAYBACK_COMPLETE:
+//        if (mOnCompletionListener != NULL)
+//            mOnCompletionListener->OnCompletion(mMediaPlayer);
+//        StayAwake(FALSE);
+//        return NOERROR;
+//
+//    case MEDIA_BUFFERING_UPDATE:
+//        if (mOnBufferingUpdateListener != NULL)
+//            mOnBufferingUpdateListener->OnBufferingUpdate(mMediaPlayer, ((CMessage*)msg)->arg1);
+//        return NOERROR;
+//
+//    case MEDIA_SEEK_COMPLETE:
+//      if (mOnSeekCompleteListener != NULL)
+//          mOnSeekCompleteListener->OnSeekComplete(mMediaPlayer);
+//      return NOERROR;
+//
+//    case MEDIA_SET_VIDEO_SIZE:
+//      if (mOnVideoSizeChangedListener != NULL)
+//          mOnVideoSizeChangedListener->OnVideoSizeChanged(mMediaPlayer, ((CMessage*)msg)->arg1, ((CMessage*)msg)->arg2);
+//      return NOERROR;
+//
+//    case MEDIA_ERROR:
+//        // For PV specific error values (msg.arg2) look in
+//        // opencore/pvmi/pvmf/include/pvmf_return_codes.h
+//        //Log.e(TAG, "Error (" + msg.arg1 + "," + msg.arg2 + ")");
+//        Boolean error_was_handled = FALSE;
+//        if (mOnErrorListener != NULL) {
+//            error_was_handled = mOnErrorListener->OnError(mMediaPlayer, ((CMessage*)msg)->arg1, ((CMessage*)msg)->arg2);
+//        }
+//        if (mOnCompletionListener != NULL && ! error_was_handled) {
+//            mOnCompletionListener->OnCompletion(mMediaPlayer);
+//        }
+//        StayAwake(FALSE);
+//        return NOERROR;
+//
+//    case MEDIA_INFO:
+//        // For PV specific code values (msg.arg2) look in
+//        // opencore/pvmi/pvmf/include/pvmf_return_codes.h
+//        //Log.i(TAG, "Info (" + msg.arg1 + "," + msg.arg2 + ")");
+//        if (mOnInfoListener != NULL) {
+//            mOnInfoListener->OnInfo(mMediaPlayer, ((CMessage*)msg)->arg1, ((CMessage*)msg)->arg2);
+//        }
+//        // No real default action so far.
+//        return NOERROR;
+//
+//    case MEDIA_NOP: // interface test message - ignore
+//        break;
+//
+//    default:
+//        //Log.e(TAG, "Unknown message type " + msg.what);
+//        return NOERROR;
+//    }
+//}
+
+
+CString CMediaPlayer::TAG = "MediaPlayer";
+// Name of the remote interface for the media player. Must be kept
+// in sync with the 2nd parameter of the IMPLEMENT_META_INTERFACE
+// macro invocation in IMediaPlayer.cpp
+CString CMediaPlayer::IMEDIA_PLAYER = "android.media.IMediaPlayer";
+const Int32 CMediaPlayer::MEDIA_NOP;
+const Int32 CMediaPlayer::MEDIA_PREPARED;
+const Int32 CMediaPlayer::MEDIA_PLAYBACK_COMPLETE;
+const Int32 CMediaPlayer::MEDIA_BUFFERING_UPDATE;
+const Int32 CMediaPlayer::MEDIA_SEEK_COMPLETE;
+const Int32 CMediaPlayer::MEDIA_SET_VIDEO_SIZE;
+const Int32 CMediaPlayer::MEDIA_ERROR;
+const Int32 CMediaPlayer::MEDIA_INFO;
+
+static Mutex sLock;
+
+CMediaPlayer::CMediaPlayer()
+    : mScreenOnWhilePlaying(FALSE)
+    , mStayAwake(FALSE)
+{
+    //Looper looper;
+    //if ((looper = Looper.myLooper()) != NULL) {
+    //    mEventHandler = new EventHandler(this, looper);
+    //} else if ((looper = Looper.getMainLooper()) != NULL) {
+    //    mEventHandler = new EventHandler(this, looper);
+    //} else {
+    //    mEventHandler = NULL;
+    //}
+
+    ///* Native setup requires a weak reference to our object.
+    // * It's easier to create it here than in C++.
+    // */
+    //Native_setup(new WeakReference<MediaPlayer>(this));
+    ASSERT_SUCCEEDED(NativeSetup(this));
+}
+
+CMediaPlayer::~CMediaPlayer()
+{
+    NativeFinalize();
+}
+
+// ----------------------------------------------------------------------------
+// ref-counted object for callbacks
+class JNIMediaPlayerListener : public android::MediaPlayerListener
+{
+public:
+    JNIMediaPlayerListener(CMediaPlayer* weak_thiz);
+    ~JNIMediaPlayerListener();
+    void notify(int msg, int ext1, int ext2);
+private:
+    JNIMediaPlayerListener();
+    CMediaPlayer* mObject;    // Weak ref to MediaPlayer Java object to call on
+};
+
+JNIMediaPlayerListener::JNIMediaPlayerListener(CMediaPlayer* weak_thiz)
+{
+    // We use a weak reference so the MediaPlayer object can be garbage collected.
+    // The reference is only used as a proxy for callbacks.
+    mObject  = weak_thiz;
+}
+
+JNIMediaPlayerListener::~JNIMediaPlayerListener()
+{}
+
+void JNIMediaPlayerListener::notify(int msg, int ext1, int ext2)
+{
+    // mObject->PostEventFromNative(mObject, msg, ext1, ext2, 0);
+}
+
+static android::sp<android::MediaPlayer> getMediaPlayer(CMediaPlayer* thiz)
+{
+    Mutex::Autolock l(sLock);
+    android::MediaPlayer* const p = (android::MediaPlayer*)thiz->mNativeContext;
+    return android::sp<android::MediaPlayer>(p);
+}
+
+static android::sp<android::MediaPlayer> setMediaPlayer(CMediaPlayer* thiz, const android::sp<android::MediaPlayer>& player)
+{
+    Mutex::Autolock l(sLock);
+    android::sp<android::MediaPlayer> old = (android::MediaPlayer*)thiz->mNativeContext;
+    if (player.get()) {
+        player->incStrong(thiz);
+    }
+    if (old != 0) {
+        old->decStrong(thiz);
+    }
+    thiz->mNativeContext = (Int32)player.get();
+    return old;
+}
+
+// If exception is NULL and opStatus is not OK, this method sends an error
+// event to the client application; otherwise, if exception is not NULL and
+// opStatus is not OK, this method throws the given exception to the client
+// application.
+static ECode process_media_player_call(CMediaPlayer* thiz, android::status_t opStatus, ECode ec)
+{
+    if (ec == NOERROR) {  // Don't throw exception. Instead, send an event.
+        if (opStatus != 0) {
+            android::sp<android::MediaPlayer> mp = getMediaPlayer(thiz);
+            if (mp != 0) mp->notify(android::MEDIA_ERROR, opStatus, 0);
+        }
+        return NOERROR;
+    }
+    else {  // Throw exception!
+        if (opStatus == (android::status_t)android::INVALID_OPERATION ) {
+            // jniThrowException(env, "java/lang/IllegalStateException", NULL);
+            return E_ILLEGAL_STATE_EXCEPTION;
+        }
+        else if (opStatus != 0) {
+            // if (strlen(message) > 230) {
+            //    // if the message is too long, don't bother displaying the status code
+            //    jniThrowException( env, exception, message);
+            // }
+            // else {
+            //    char msg[256];
+            //     // append the status code to the message
+            //    sprintf(msg, "%s: status=0x%X", message, opStatus);
+            //    jniThrowException( env, exception, msg);
+            // }
+            return ec;
+        }
+        return NOERROR;
+    }
+}
+
+static void setVideoSurface(const android::sp<android::MediaPlayer>& mp, CMediaPlayer* thiz)
+{
+    if (thiz->mSurface != NULL) {
+        android::Surface* _surface;
+        thiz->mSurface->GetSurface((Handle32*)&_surface);
+        android::sp<android::Surface> native_surface = _surface;
+        // LOGV("prepare: surface=%p (id=%d)",
+        //      native_surface.get(), native_surface->getIdentity());
+        mp->setVideoSurface(native_surface);
+    }
+}
+
+/*
+ * Update the MediaPlayer ISurface. Call after updating mSurface.
+ */
+ECode CMediaPlayer::NativeSetVideoSurface()
+{
+    android::sp<android::MediaPlayer> mp = getMediaPlayer(this);
+    if (mp == NULL ) {
+        // jniThrowException(env, "java/lang/IllegalStateException", NULL);
+        return E_ILLEGAL_STATE_EXCEPTION;
+    }
+    setVideoSurface(mp, this);
+    return NOERROR;
+}
+
 
 ECode CMediaPlayer::NewRequest(
-    /* [out] */ IParcel ** ppParcel)
+    /* [out] */ IParcel ** parcel)
 {
-    // TODO: Add your code here
+    VALIDATE_NOT_NULL(parcel);
+
+    // Parcel parcel = Parcel.obtain();
+    // parcel.writeInterfaceToken(IMEDIA_PLAYER);
+    // return parcel;
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CMediaPlayer::Invoke(
-    /* [in] */ IParcel * pRequest,
-    /* [in] */ IParcel * pReply,
-    /* [out] */ Int32 * pStatus)
+    /* [in] */ IParcel* request,
+    /* [in] */ IParcel* reply,
+    /* [out] */ Int32* status)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(status);
+
+    FAIL_RETURN(NativeInvoke(request, reply, status));
+    //reply->SetDataPosition(0);
+    return NOERROR;
 }
 
 ECode CMediaPlayer::SetDisplay(
-    /* [in] */ ISurfaceHolder * pSh)
+    /* [in] */ ISurfaceHolder* sh)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    mSurfaceHolder = sh;
+    if (sh != NULL) {
+        sh->GetSurface((ISurface**)&mSurface);
+    }
+    else {
+        mSurface = NULL;
+    }
+    FAIL_RETURN(NativeSetVideoSurface());
+    UpdateSurfaceScreenOn();
+    return NOERROR;
 }
 
 ECode CMediaPlayer::Create(
-    /* [in] */ IContext * pContext,
-    /* [in] */ IUri * pUri,
-    /* [out] */ IMediaPlayer ** ppPlayer)
+    /* [in] */ IContext* context,
+    /* [in] */ IUri* uri,
+    /* [out] */ IMediaPlayer** player)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return Create(context, uri, NULL, player);
 }
 
-ECode CMediaPlayer::CreateEx(
-    /* [in] */ IContext * pContext,
-    /* [in] */ IUri * pUri,
-    /* [in] */ ISurfaceHolder * pHolder,
-    /* [out] */ IMediaPlayer ** ppPlayer)
+ECode CMediaPlayer::Create(
+    /* [in] */ IContext* context,
+    /* [in] */ IUri* uri,
+    /* [in] */ ISurfaceHolder* holder,
+    /* [out] */ IMediaPlayer** player)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(player);
+
+    //try {
+    *player = NULL;
+    AutoPtr<IMediaPlayer> mp;
+    FAIL_RETURN(CMediaPlayer::New((IMediaPlayer**)&mp));
+    FAIL_RETURN(mp->SetDataSource(context, uri));
+    if (holder != NULL) {
+        FAIL_RETURN(mp->SetDisplay(holder));
+    }
+    FAIL_RETURN(mp->Prepare());
+    *player = mp;
+    (*player)->AddRef();
+    return NOERROR;
+    //} catch (IOException ex) {
+    //    Log.d(TAG, "create failed:", ex);
+    //    // fall through
+    //} catch (IllegalArgumentException ex) {
+    //    Log.d(TAG, "create failed:", ex);
+    //    // fall through
+    //} catch (SecurityException ex) {
+    //    Log.d(TAG, "create failed:", ex);
+    //    // fall through
+    //}
 }
 
-ECode CMediaPlayer::CreateEx2(
-    /* [in] */ IContext * pContext,
+ECode CMediaPlayer::Create(
+    /* [in] */ IContext* context,
     /* [in] */ Int32 resid,
-    /* [out] */ IMediaPlayer ** ppPlayer)
+    /* [out] */ IMediaPlayer** player)
 {
-    // TODO: Add your code here
+    VALIDATE_NOT_NULL(player);
+
+    //try {
+    //    AssetFileDescriptor afd = context.getResources().openRawResourceFd(resid);
+    //    if (afd == NULL) return NULL;
+
+    //    MediaPlayer mp = new MediaPlayer();
+    //    mp.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
+    //    afd.close();
+    //    mp.prepare();
+    //    return mp;
+    //} catch (IOException ex) {
+    //    Log.d(TAG, "create failed:", ex);
+    //    // fall through
+    //} catch (IllegalArgumentException ex) {
+    //    Log.d(TAG, "create failed:", ex);
+    //   // fall through
+    //} catch (SecurityException ex) {
+    //    Log.d(TAG, "create failed:", ex);
+    //    // fall through
+    //}
+    // return NULL;
     return E_NOT_IMPLEMENTED;
 }
 
@@ -63,8 +382,7 @@ ECode CMediaPlayer::SetDataSource(
     /* [in] */ IContext* context,
     /* [in] */ IUri* uri)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return SetDataSourceEx(context, uri, NULL);
 }
 
 /**
@@ -81,7 +399,37 @@ ECode CMediaPlayer::SetDataSourceEx(
     /* [in] */ IUri* uri,
     /* [in] */ IObjectStringMap* headers)
 {
-    // TODO: Add your code here
+    //String scheme = uri.getScheme();
+    //if(scheme == NULL || scheme.equals("file")) {
+    //    setDataSource(uri.getPath());
+    //    return;
+    //}
+
+    //AssetFileDescriptor fd = NULL;
+    //try {
+    //    ContentResolver resolver = context.getContentResolver();
+    //    fd = resolver.openAssetFileDescriptor(uri, "r");
+    //    if (fd == NULL) {
+    //        return;
+    //    }
+    //    // Note: using getDeclaredLength so that our behavior is the same
+    //    // as previous versions when the content provider is returning
+    //    // a full file.
+    //    if (fd.getDeclaredLength() < 0) {
+    //        setDataSource(fd.getFileDescriptor());
+    //    } else {
+    //        setDataSource(fd.getFileDescriptor(), fd.getStartOffset(), fd.getDeclaredLength());
+    //    }
+    //    return;
+    //} catch (SecurityException ex) {
+    //} catch (IOException ex) {
+    //} finally {
+    //    if (fd != NULL) {
+    //        fd.close();
+    //    }
+    //}
+    //Log.d(TAG, "Couldn't open file on client side, trying server side");
+    //SetDataSource(uri.toString(), headers);
     return E_NOT_IMPLEMENTED;
 }
 
@@ -94,8 +442,7 @@ ECode CMediaPlayer::SetDataSourceEx(
 ECode CMediaPlayer::SetDataSourceEx2(
     /* [in] */ const String& path)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return SetDataSourceEx3(path, NULL);
 }
 
 /**
@@ -110,7 +457,106 @@ ECode CMediaPlayer::SetDataSourceEx3(
     /* [in] */ const String& path,
     /* [in] */ IObjectStringMap* headers)
 {
-    // TODO: Add your code here
+//    android::sp<android::MediaPlayer> mp = getMediaPlayer(env, thiz);
+//    if (mp == NULL ) {
+//        jniThrowException(env, "java/lang/IllegalStateException", NULL);
+//        return;
+//    }
+//
+//    if (path == NULL) {
+//        jniThrowException(env, "java/lang/IllegalArgumentException", NULL);
+//        return;
+//    }
+//
+//    const char *pathStr = env->GetStringUTFChars(path, NULL);
+//    if (pathStr == NULL) {  // Out of memory
+//        jniThrowException(env, "java/lang/RuntimeException", "Out of memory");
+//        return;
+//    }
+//
+//    // headers is a Map<String, String>.
+//    // We build a similar KeyedVector out of it.
+//    KeyedVector<String8, String8> headersVector;
+//    if (headers) {
+//        // Get the Map's entry Set.
+//        jclass mapClass = env->FindClass("java/util/Map");
+//
+//        jmethodID entrySet =
+//            env->GetMethodID(mapClass, "entrySet", "()Ljava/util/Set;");
+//
+//        jobject set = env->CallObjectMethod(headers, entrySet);
+//        // Obtain an iterator over the Set
+//        jclass setClass = env->FindClass("java/util/Set");
+//
+//        jmethodID iterator =
+//            env->GetMethodID(setClass, "iterator", "()Ljava/util/Iterator;");
+//
+//        jobject iter = env->CallObjectMethod(set, iterator);
+//        // Get the Iterator method IDs
+//        jclass iteratorClass = env->FindClass("java/util/Iterator");
+//        jmethodID hasNext = env->GetMethodID(iteratorClass, "hasNext", "()Z");
+//
+//        jmethodID next =
+//            env->GetMethodID(iteratorClass, "next", "()Ljava/lang/Object;");
+//
+//        // Get the Entry class method IDs
+//        jclass entryClass = env->FindClass("java/util/Map$Entry");
+//
+//        jmethodID getKey =
+//            env->GetMethodID(entryClass, "getKey", "()Ljava/lang/Object;");
+//
+//        jmethodID getValue =
+//            env->GetMethodID(entryClass, "getValue", "()Ljava/lang/Object;");
+//
+//        // Iterate over the entry Set
+//        while (env->CallBooleanMethod(iter, hasNext)) {
+//            jobject entry = env->CallObjectMethod(iter, next);
+//            jstring key = (jstring) env->CallObjectMethod(entry, getKey);
+//            jstring value = (jstring) env->CallObjectMethod(entry, getValue);
+//
+//            const char* keyStr = env->GetStringUTFChars(key, NULL);
+//            if (!keyStr) {  // Out of memory
+//                jniThrowException(
+//                        env, "java/lang/RuntimeException", "Out of memory");
+//                return;
+//            }
+//
+//            const char* valueStr = env->GetStringUTFChars(value, NULL);
+//            if (!valueStr) {  // Out of memory
+//                jniThrowException(
+//                        env, "java/lang/RuntimeException", "Out of memory");
+//                return;
+//            }
+//
+//            headersVector.add(String8(keyStr), String8(valueStr));
+//
+//            env->DeleteLocalRef(entry);
+//            env->ReleaseStringUTFChars(key, keyStr);
+//            env->DeleteLocalRef(key);
+//            env->ReleaseStringUTFChars(value, valueStr);
+//            env->DeleteLocalRef(value);
+//      }
+//
+//      env->DeleteLocalRef(entryClass);
+//      env->DeleteLocalRef(iteratorClass);
+//      env->DeleteLocalRef(iter);
+//      env->DeleteLocalRef(setClass);
+//      env->DeleteLocalRef(set);
+//      env->DeleteLocalRef(mapClass);
+//    }
+//
+//    LOGV("setDataSource: path %s", pathStr);
+//    status_t opStatus =
+//        mp->setDataSource(
+//                String8(pathStr),
+//                headers ? &headersVector : NULL);
+//
+//    // Make sure that local ref is released before a potential exception
+//    env->ReleaseStringUTFChars(path, pathStr);
+//
+//    process_media_player_call(
+//            env, thiz, opStatus, "java/io/IOException",
+//            "setDataSource failed." );
     return E_NOT_IMPLEMENTED;
 }
 
@@ -124,8 +570,8 @@ ECode CMediaPlayer::SetDataSourceEx3(
 ECode CMediaPlayer::SetDataSourceEx4(
     /* [in] */ IFileDescriptor* fd)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    // intentionally less than LONG_MAX
+    return SetDataSourceEx5(fd, 0, 0x7ffffffffffffffll);
 }
 
 /**
@@ -143,7 +589,19 @@ ECode CMediaPlayer::SetDataSourceEx5(
     /* [in] */ Int64 offset,
     /* [in] */ Int64 length)
 {
-    // TODO: Add your code here
+    // android::sp<android::MediaPlayer> mp = getMediaPlayer(env, thiz);
+    // if (mp == NULL ) {
+    //     jniThrowException(env, "java/lang/IllegalStateException", NULL);
+    //     return;
+    // }
+
+    // if (fileDescriptor == NULL) {
+    //     jniThrowException(env, "java/lang/IllegalArgumentException", NULL);
+    //     return;
+    // }
+    // int fd = getParcelFileDescriptorFD(env, fileDescriptor);
+    // LOGV("setDataSourceFD: fd %d", fd);
+    // process_media_player_call( env, thiz, mp->setDataSource(fd, offset, length), "java/io/IOException", "setDataSourceFD failed." );
     return E_NOT_IMPLEMENTED;
 }
 
@@ -158,8 +616,13 @@ ECode CMediaPlayer::SetDataSourceEx5(
  */
 ECode CMediaPlayer::Prepare()
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    android::sp<android::MediaPlayer> mp = getMediaPlayer(this);
+    if (mp == NULL ) {
+        // jniThrowException(env, "java/lang/IllegalStateException", NULL);
+        return E_ILLEGAL_STATE_EXCEPTION;
+    }
+    setVideoSurface(mp, this);
+    return process_media_player_call(this, mp->prepare(), E_IO_EXCEPTION);
 }
 
 /**
@@ -174,41 +637,126 @@ ECode CMediaPlayer::Prepare()
  */
 ECode CMediaPlayer::PrepareAsync()
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    android::sp<android::MediaPlayer> mp = getMediaPlayer(this);
+    if (mp == NULL ) {
+        // jniThrowException(env, "java/lang/IllegalStateException", NULL);
+        return E_ILLEGAL_STATE_EXCEPTION;
+    }
+    if (mSurface != NULL) {
+        android::Surface* _surface;
+        mSurface->GetSurface((Handle32*)&_surface);
+        android::sp<android::Surface> native_surface = _surface;
+        // LOGV("prepareAsync: surface=%p (id=%d)",
+        //      native_surface.get(), native_surface->getIdentity());
+        mp->setVideoSurface(native_surface);
+    }
+    return process_media_player_call(this, mp->prepareAsync(), E_IO_EXCEPTION);
 }
 
 ECode CMediaPlayer::Start()
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    StayAwake(TRUE);
+    return NativeStart();
+}
+
+ECode CMediaPlayer::NativeStart()
+{
+    // LOGV("start");
+    android::sp<android::MediaPlayer> mp = getMediaPlayer(this);
+    if (mp == NULL ) {
+        // jniThrowException(env, "java/lang/IllegalStateException", NULL);
+        return E_ILLEGAL_STATE_EXCEPTION;
+    }
+    return process_media_player_call(this, mp->start(), NOERROR);
 }
 
 ECode CMediaPlayer::Stop()
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    StayAwake(FALSE);
+    return NativeStop();
+}
+
+ECode CMediaPlayer::NativeStop()
+{
+    // LOGV("stop");
+    android::sp<android::MediaPlayer> mp = getMediaPlayer(this);
+    if (mp == NULL ) {
+        // jniThrowException(env, "java/lang/IllegalStateException", NULL);
+        return E_ILLEGAL_STATE_EXCEPTION;
+    }
+    return process_media_player_call(this, mp->stop(), NOERROR);
 }
 
 ECode CMediaPlayer::Pause()
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    StayAwake(FALSE);
+    return NativePause();
+}
+
+ECode CMediaPlayer::NativePause()
+{
+    // LOGV("pause");
+    android::sp<android::MediaPlayer> mp = getMediaPlayer(this);
+    if (mp == NULL ) {
+        // jniThrowException(env, "java/lang/IllegalStateException", NULL);
+        return E_ILLEGAL_STATE_EXCEPTION;
+    }
+    return process_media_player_call(this, mp->pause(), NOERROR);
 }
 
 ECode CMediaPlayer::SetWakeMode(
-    /* [in] */ IContext * pContext,
+    /* [in] */ IContext* context,
     /* [in] */ Int32 mode)
 {
-    // TODO: Add your code here
+    Boolean washeld = FALSE;
+    /*if (mWakeLock != NULL) {
+        if (mWakeLock.isHeld()) {
+            washeld = TRUE;
+            mWakeLock.release();
+        }
+        mWakeLock = NULL;
+    }
+
+    PowerManager pm = (PowerManager)context.getSystemService(Context.POWER_SERVICE);
+    mWakeLock = pm.newWakeLock(mode|PowerManager.ON_AFTER_RELEASE, MediaPlayer.class.getName());
+    mWakeLock.setReferenceCounted(FALSE);
+    if (washeld) {
+        mWakeLock.acquire();
+    }*/
+
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CMediaPlayer::SetScreenOnWhilePlaying(
     /* [in] */ Boolean screenOn)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    if (mScreenOnWhilePlaying != screenOn) {
+        mScreenOnWhilePlaying = screenOn;
+        UpdateSurfaceScreenOn();
+    }
+
+    return NOERROR;
+}
+
+void CMediaPlayer::StayAwake(
+    /* [in] */ Boolean awake)
+{
+    // if (mWakeLock != NULL) {
+    //     if (awake && !mWakeLock.isHeld()) {
+    //         mWakeLock.acquire();
+    //     } else if (!awake && mWakeLock.isHeld()) {
+    //         mWakeLock.release();
+    //     }
+    // }
+    mStayAwake = awake;
+    UpdateSurfaceScreenOn();
+}
+
+void CMediaPlayer::UpdateSurfaceScreenOn()
+{
+    if (mSurfaceHolder != NULL) {
+        mSurfaceHolder->SetKeepScreenOn(mScreenOnWhilePlaying && mStayAwake);
+    }
 }
 
 /**
@@ -223,8 +771,21 @@ ECode CMediaPlayer::SetScreenOnWhilePlaying(
 ECode CMediaPlayer::GetVideoWidth(
     /* [out] */ Int32* width)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(width);
+
+    android::sp<android::MediaPlayer> mp = getMediaPlayer(this);
+    if (mp == NULL ) {
+        // jniThrowException(env, "java/lang/IllegalStateException", NULL);
+        return E_ILLEGAL_STATE_EXCEPTION;
+    }
+    int w;
+    if (0 != mp->getVideoWidth(&w)) {
+        // LOGE("getVideoWidth failed");
+        w = 0;
+    }
+    // LOGV("getVideoWidth: %d", w);
+    *width = w;
+    return NOERROR;
 }
 
 /**
@@ -239,8 +800,21 @@ ECode CMediaPlayer::GetVideoWidth(
 ECode CMediaPlayer::GetVideoHeight(
     /* [out] */ Int32* height)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(height);
+
+    android::sp<android::MediaPlayer> mp = getMediaPlayer(this);
+    if (mp == NULL ) {
+        // jniThrowException(env, "java/lang/IllegalStateException", NULL);
+        return E_ILLEGAL_STATE_EXCEPTION;
+    }
+    int h;
+    if (0 != mp->getVideoHeight(&h)) {
+        // LOGE("getVideoHeight failed");
+        h = 0;
+    }
+    // LOGV("getVideoHeight: %d", h);
+    *height = h;
+    return NOERROR;
 }
 
 /**
@@ -251,8 +825,18 @@ ECode CMediaPlayer::GetVideoHeight(
 ECode CMediaPlayer::IsPlaying(
     /* [out] */ Boolean* isPlaying)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(isPlaying);
+
+    android::sp<android::MediaPlayer> mp = getMediaPlayer(this);
+    if (mp == NULL ) {
+        *isPlaying = FALSE;
+        // jniThrowException(env, "java/lang/IllegalStateException", NULL);
+        return E_ILLEGAL_STATE_EXCEPTION;
+    }
+    *isPlaying = mp->isPlaying();
+
+    // LOGV("isPlaying: %d", is_playing);
+    return NOERROR;
 }
 
 /**
@@ -265,8 +849,13 @@ ECode CMediaPlayer::IsPlaying(
 ECode CMediaPlayer::SeekTo(
     /* [in] */ Int32 msec)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    android::sp<android::MediaPlayer> mp = getMediaPlayer(this);
+    if (mp == NULL ) {
+        // jniThrowException(env, "java/lang/IllegalStateException", NULL);
+        return E_ILLEGAL_STATE_EXCEPTION;
+    }
+    // LOGV("seekTo: %d(msec)", msec);
+    return process_media_player_call(this, mp->seekTo(msec), NOERROR);
 }
 
 /**
@@ -277,24 +866,71 @@ ECode CMediaPlayer::SeekTo(
 ECode CMediaPlayer::GetCurrentPosition(
     /* [out] */ Int32* position)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(position);
+
+    android::sp<android::MediaPlayer> mp = getMediaPlayer(this);
+    if (mp == NULL ) {
+        *position = 0;
+        // jniThrowException(env, "java/lang/IllegalStateException", NULL);
+        return E_ILLEGAL_STATE_EXCEPTION;
+    }
+    int msec;
+    ECode ec = process_media_player_call(this, mp->getCurrentPosition(&msec), NOERROR);
+    // LOGV("getCurrentPosition: %d (msec)", msec);
+    *position = msec;
+    return ec;
 }
 
 ECode CMediaPlayer::GetDuration(
     /* [out] */ Int32* duration)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(duration);
+
+    android::sp<android::MediaPlayer> mp = getMediaPlayer(this);
+    if (mp == NULL ) {
+        *duration = 0;
+        // jniThrowException(env, "java/lang/IllegalStateException", NULL);
+        return E_ILLEGAL_STATE_EXCEPTION;
+    }
+    int msec;
+    ECode ec = process_media_player_call(this, mp->getDuration(&msec), NOERROR);
+    // LOGV("getDuration: %d (msec)", msec);
+    *duration = msec;
+    return ec;
 }
 
 ECode CMediaPlayer::GetMetadata(
     /* [in] */ Boolean update_only,
     /* [in] */ Boolean apply_filter,
-    /* [out] */ IMetadata ** ppMetadata)
+    /* [out] */ IMetadata** metadata)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(metadata);
+
+    AutoPtr<IParcel> reply;// = Parcel.obtain();
+    AutoPtr<IMetadata> data;
+    FAIL_RETURN(CMetadata::New((IMetadata**)&data));
+
+    Boolean succeeded;
+    FAIL_RETURN(NativeGetMetadata(update_only, apply_filter, reply, &succeeded));
+    if (!succeeded) {
+        // reply->Recycle();
+        *metadata = NULL;
+        return NOERROR;
+    }
+
+    // Metadata takes over the parcel, don't recycle it unless
+    // there is an error.
+    Boolean res;
+    FAIL_RETURN(data->Parse(reply, &res));
+    if (!res) {
+        // reply->Recycle();
+        *metadata = NULL;
+        return NOERROR;
+    }
+    *metadata = data;
+    (*metadata)->AddRef();
+
+    return NOERROR;
 }
 
 ECode CMediaPlayer::SetMetadataFilter(
@@ -302,34 +938,152 @@ ECode CMediaPlayer::SetMetadataFilter(
     /* [in] */ IObjectContainer* block,
     /* [out] */ Int32* result)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(result);
+
+    // Do our serialization manually instead of calling
+    // Parcel.writeArray since the sets are made of the same type
+    // we avoid paying the price of calling writeValue (used by
+    // writeArray) which burns an extra Int32 per element to encode
+    // the type.
+    AutoPtr<IParcel> request;
+    FAIL_RETURN(NewRequest((IParcel**)&request));
+
+    // The parcel starts already with an interface token. There
+    // are 2 filters. Each one starts with a 4bytes number to
+    // store the len followed by a number of Int32 (4 bytes as well)
+    // representing the metadata type.
+    Int32 capacity;
+    //request->DataSize(&capacity);
+    //capacity += 4 * (1 + allow->Size() + 1 + block->Size());
+
+    Int32 cap;
+    //request->DataCapacity(&cap);
+    if (cap < capacity) {
+        //request->SetDataCapacity(capacity);
+    }
+
+    //request->WriteInt32(allow->size());
+    /*for(Integer t: allow) {
+        request->WriteInt32(t);
+    }*/
+    //request->WriteInt32(block->Size());
+    /*for(Integer t: block) {
+        request->WriteInt32(t);
+    }*/
+    return NativeSetMetadataFilter(request, result);
 }
 
 ECode CMediaPlayer::ReleaseResources()
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    StayAwake(FALSE);
+    UpdateSurfaceScreenOn();
+    mOnPreparedListener = NULL;
+    mOnBufferingUpdateListener = NULL;
+    mOnCompletionListener = NULL;
+    mOnSeekCompleteListener = NULL;
+    mOnErrorListener = NULL;
+    mOnInfoListener = NULL;
+    mOnVideoSizeChangedListener = NULL;
+    NativeRelease();
+
+    return NOERROR;
+}
+
+void CMediaPlayer::NativeRelease()
+{
+    LOGV("release");
+    android::sp<android::MediaPlayer> mp = setMediaPlayer(this,
+            android::sp<android::MediaPlayer>(NULL));
+    if (mp != NULL) {
+        // this prevents native callbacks after the object is released
+        mp->setListener(0);
+        mp->disconnect();
+    }
 }
 
 ECode CMediaPlayer::Reset()
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    StayAwake(FALSE);
+    FAIL_RETURN(NativeReset());
+    // make sure none of the listeners get called anymore
+    //mEventHandler->RemoveCallbacksAndMessages(NULL);
+    return NOERROR;
 }
 
-ECode CMediaPlayer::Suspend(
-    /* [out] */ Boolean * pRes)
+ECode CMediaPlayer::NativeReset()
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    // LOGV("reset");
+    android::sp<android::MediaPlayer> mp = getMediaPlayer(this);
+    if (mp == NULL ) {
+        // jniThrowException(env, "java/lang/IllegalStateException", NULL);
+        return E_ILLEGAL_STATE_EXCEPTION;
+    }
+    return process_media_player_call(this, mp->reset(), NOERROR);
+}
+
+
+ECode CMediaPlayer::Suspend(
+    /* [out] */ Boolean* succeeded)
+{
+    VALIDATE_NOT_NULL(succeeded);
+
+    Int32 result;
+    FAIL_RETURN(NativeSuspendResume(TRUE, &result));
+    if (result < 0) {
+        *succeeded = FALSE;
+        return NOERROR;
+    }
+
+    StayAwake(FALSE);
+
+    // make sure none of the listeners get called anymore
+    //mEventHandler->RemoveCallbacksAndMessages(NULL);
+
+    *succeeded = TRUE;
+    return NOERROR;
 }
 
 ECode CMediaPlayer::Resume(
-    /* [out] */ Boolean * pRes)
+    /* [out] */ Boolean* succeeded)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(succeeded);
+
+    Int32 result;
+    FAIL_RETURN(NativeSuspendResume(FALSE, &result));
+    if (result < 0) {
+        *succeeded = FALSE;
+        return NOERROR;
+    }
+
+    Boolean isPlaying;
+    FAIL_RETURN(IsPlaying(&isPlaying));
+    if (isPlaying) {
+        StayAwake(TRUE);
+    }
+
+    *succeeded = TRUE;
+    return NOERROR;
+}
+
+/**
+ * @hide
+ */
+ECode CMediaPlayer::NativeSuspendResume(
+    /* [in] */ Boolean isSuspend,
+    /* [out] */ Int32* result)
+{
+    VALIDATE_NOT_NULL(result);
+
+    // LOGV("suspend_resume(%d)", isSuspend);
+    android::sp<android::MediaPlayer> mp = getMediaPlayer(this);
+    if (mp == NULL ) {
+        // jniThrowException(env, "java/lang/IllegalStateException", NULL);
+        *result = android::UNKNOWN_ERROR;
+        return E_ILLEGAL_STATE_EXCEPTION;
+    }
+
+    *result = isSuspend ? mp->suspend() : mp->resume();
+    return NOERROR;
 }
 
 /**
@@ -344,8 +1098,13 @@ ECode CMediaPlayer::Resume(
 ECode CMediaPlayer::SetAudioStreamType(
     /* [in] */ Int32 streamtype)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    // LOGV("setAudioStreamType: %d", streamtype);
+    android::sp<android::MediaPlayer> mp = getMediaPlayer(this);
+    if (mp == NULL ) {
+        // jniThrowException(env, "java/lang/IllegalStateException", NULL);
+        return E_ILLEGAL_STATE_EXCEPTION;
+    }
+    return process_media_player_call(this, mp->setAudioStreamType(streamtype) , NOERROR);
 }
 
 /**
@@ -356,8 +1115,13 @@ ECode CMediaPlayer::SetAudioStreamType(
 ECode CMediaPlayer::SetLooping(
     /* [in] */ Boolean looping)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    // LOGV("setLooping: %d", looping);
+    android::sp<android::MediaPlayer> mp = getMediaPlayer(this);
+    if (mp == NULL ) {
+        // jniThrowException(env, "java/lang/IllegalStateException", NULL);
+        return E_ILLEGAL_STATE_EXCEPTION;
+    }
+    return process_media_player_call(this, mp->setLooping(looping), NOERROR);
 }
 
 /**
@@ -368,8 +1132,17 @@ ECode CMediaPlayer::SetLooping(
 ECode CMediaPlayer::IsLooping(
     /* [out] */ Boolean* isLooping)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(isLooping);
+
+    // LOGV("isLooping");
+    android::sp<android::MediaPlayer> mp = getMediaPlayer(this);
+    if (mp == NULL ) {
+        // jniThrowException(env, "java/lang/IllegalStateException", NULL);
+        *isLooping = FALSE;
+        return E_ILLEGAL_STATE_EXCEPTION;
+    }
+    *isLooping = mp->isLooping();
+    return NOERROR;
 }
 
 /**
@@ -388,8 +1161,13 @@ ECode CMediaPlayer::SetVolume(
     /* [in] */ Float leftVolume,
     /* [in] */ Float rightVolume)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    // LOGV("setVolume: left %f  right %f", leftVolume, rightVolume);
+    android::sp<android::MediaPlayer> mp = getMediaPlayer(this);
+    if (mp == NULL ) {
+        // jniThrowException(env, "java/lang/IllegalStateException", NULL);
+        return E_ILLEGAL_STATE_EXCEPTION;
+    }
+    return process_media_player_call(this, mp->setVolume(leftVolume, rightVolume), NOERROR);
 }
 
 /**
@@ -401,8 +1179,10 @@ ECode CMediaPlayer::GetFrameAt(
     /* [in] */ Int32 msec,
     /* [out] */ IBitmap** frame)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(frame);
+
+    *frame = NULL;
+    return NOERROR;
 }
 
 /**
@@ -424,8 +1204,13 @@ ECode CMediaPlayer::GetFrameAt(
 ECode CMediaPlayer::SetAudioSessionId(
     /* [in] */ Int32 sessionId)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    // LOGV("set_session_id(): %d", sessionId);
+    android::sp<android::MediaPlayer> mp = getMediaPlayer(this);
+    if (mp == NULL ) {
+        // jniThrowException(env, "java/lang/IllegalStateException", NULL);
+        return E_ILLEGAL_STATE_EXCEPTION;
+    }
+    return process_media_player_call(this, mp->setAudioSessionId(sessionId), NOERROR);
 }
 
 /**
@@ -437,8 +1222,18 @@ ECode CMediaPlayer::SetAudioSessionId(
 ECode CMediaPlayer::GetAudioSessionId(
     /* [out] */ Int32* sessionID)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(sessionID);
+
+    // LOGV("get_session_id()");
+    android::sp<android::MediaPlayer> mp = getMediaPlayer(this);
+    if (mp == NULL ) {
+        // jniThrowException(env, "java/lang/IllegalStateException", NULL);
+        *sessionID = 0;
+        return E_ILLEGAL_STATE_EXCEPTION;
+    }
+
+    *sessionID = mp->getAudioSessionId();
+    return NOERROR;
 }
 
 /**
@@ -458,8 +1253,13 @@ ECode CMediaPlayer::GetAudioSessionId(
 ECode CMediaPlayer::AttachAuxEffect(
     /* [in] */ Int32 effectId)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    // LOGV("attachAuxEffect(): %d", effectId);
+    android::sp<android::MediaPlayer> mp = getMediaPlayer(this);
+    if (mp == NULL ) {
+        // jniThrowException(env, "java/lang/IllegalStateException", NULL);
+        return E_ILLEGAL_STATE_EXCEPTION;
+    }
+    return process_media_player_call(this, mp->attachAuxEffect(effectId), NOERROR);
 }
 
 /**
@@ -477,62 +1277,234 @@ ECode CMediaPlayer::AttachAuxEffect(
 ECode CMediaPlayer::SetAuxEffectSendLevel(
     /* [in] */ Float level)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    // LOGV("setAuxEffectSendLevel: level %f", level);
+    android::sp<android::MediaPlayer> mp = getMediaPlayer(this);
+    if (mp == NULL) {
+        // jniThrowException(env, "java/lang/IllegalStateException", NULL);
+        return E_ILLEGAL_STATE_EXCEPTION;
+    }
+    return process_media_player_call(this, mp->setAuxEffectSendLevel(level), NOERROR);
 }
 
+ECode CMediaPlayer::NativeInvoke(
+    /* [in] */ IParcel* request,
+    /* [in] */ IParcel* reply,
+    /* [out] */ Int32* result)
+{
+    VALIDATE_NOT_NULL(result);
+
+    android::sp<android::MediaPlayer> media_player = getMediaPlayer(this);
+    if (media_player == NULL ) {
+        // jniThrowException(env, "java/lang/IllegalStateException", NULL);
+        *result = android::UNKNOWN_ERROR;
+        return E_ILLEGAL_STATE_EXCEPTION;
+    }
+
+
+    android::Parcel* _request;
+    request->GetElementPayload((Handle32*)&_request);
+    android::Parcel* _reply;
+    reply->GetElementPayload((Handle32*)&_reply);
+
+    // Don't use process_media_player_call which use the async loop to
+    // report errors, instead returns the status.
+    *result = media_player->invoke(*_request, _reply);
+    return NOERROR;
+}
+
+ECode CMediaPlayer::NativeGetMetadata(
+    /* [in] */ Boolean update_only,
+    /* [in] */ Boolean apply_filter,
+    /* [in] */ IParcel* reply,
+    /* [out] */ Boolean* succeeded)
+{
+    VALIDATE_NOT_NULL(succeeded);
+
+    android::sp<android::MediaPlayer> media_player = getMediaPlayer(this);
+    if (media_player == NULL ) {
+        // jniThrowException(env, "java/lang/IllegalStateException", NULL);
+        *succeeded = FALSE;
+        return E_ILLEGAL_STATE_EXCEPTION;
+    }
+
+    android::Parcel* metadata;
+    reply->GetElementPayload((Handle32*)&metadata);
+
+    if (metadata == NULL ) {
+        // jniThrowException(env, "java/lang/RuntimeException", "Reply parcel is null");
+        *succeeded = FALSE;
+        return E_RUNTIME_EXCEPTION;
+    }
+
+    metadata->freeData();
+    // On return metadata is positioned at the beginning of the
+    // metadata. Note however that the parcel actually starts with the
+    // return code so you should not rewind the parcel using
+    // setDataPosition(0).
+    *succeeded = media_player->getMetadata(update_only, apply_filter, metadata) == 0;
+    return NOERROR;
+}
+
+ECode CMediaPlayer::NativeSetMetadataFilter(
+    /* [in] */ IParcel* request,
+    /* [out] */ Int32* result)
+{
+    android::sp<android::MediaPlayer> media_player = getMediaPlayer(this);
+    if (media_player == NULL ) {
+        // jniThrowException(env, "java/lang/IllegalStateException", NULL);
+        *result = android::UNKNOWN_ERROR;
+        return E_ILLEGAL_STATE_EXCEPTION;
+    }
+
+    android::Parcel* filter;
+    request->GetElementPayload((Handle32*)&filter);
+
+    if (filter == NULL ) {
+        // jniThrowException(env, "java/lang/RuntimeException", "Filter is null");
+        *result = android::UNKNOWN_ERROR;
+        return E_RUNTIME_EXCEPTION;
+    }
+
+    *result = media_player->setMetadataFilter(*filter);
+    return NOERROR;
+}
+
+ECode CMediaPlayer::NativeSetup(
+    /* [in] */ CMediaPlayer* mediaplayer/*weak_this*/)
+{
+    // LOGV("native_setup");
+    android::sp<android::MediaPlayer> mp = new android::MediaPlayer();
+    if (mp == NULL) {
+        // jniThrowException(env, "java/lang/RuntimeException", "Out of memory");
+        return E_RUNTIME_EXCEPTION;
+    }
+
+    // create new listener and give it to MediaPlayer
+    android::sp<JNIMediaPlayerListener> listener = new JNIMediaPlayerListener(this);
+    mp->setListener(listener);
+
+    // Stow our new C++ MediaPlayer in an opaque field in the Java object.
+    setMediaPlayer(this, mp);
+    return NOERROR;
+}
+
+void CMediaPlayer::NativeFinalize()
+{
+    // LOGV("native_finalize");
+    NativeRelease();
+}
+
+void CMediaPlayer::PostEventFromNative(
+    /* [in] */ IInterface* mediaplayer_ref,
+    /* [in] */ Int32 what,
+    /* [in] */ Int32 arg1,
+    /* [in] */ Int32 arg2,
+    /* [in] */ IInterface* obj)
+{
+    /*MediaPlayer mp = (MediaPlayer)((WeakReference)mediaplayer_ref).get();
+    if (mp == NULL) {
+        return;
+    }
+
+    if (mp.mEventHandler != NULL) {
+        Message m = mp.mEventHandler.obtainMessage(what, arg1, arg2, obj);
+        mp.mEventHandler.sendMessage(m);
+    }*/
+}
+
+/**
+ * Register a callback to be invoked when the media source is ready
+ * for playback.
+ *
+ * @param listener the callback that will be run
+ */
 ECode CMediaPlayer::SetOnPreparedListener(
-    /* [in] */ IMediaPlayerOnPreparedListener * pListener)
+    /* [in] */ IMediaPlayerOnPreparedListener* listener)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    mOnPreparedListener = listener;
+
+    return NOERROR;
 }
 
+/**
+ * Register a callback to be invoked when the end of a media source
+ * has been reached during playback.
+ *
+ * @param listener the callback that will be run
+ */
 ECode CMediaPlayer::SetOnCompletionListener(
-    /* [in] */ IMediaPlayerOnCompletionListener * pListener)
+    /* [in] */ IMediaPlayerOnCompletionListener* listener)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    mOnCompletionListener = listener;
+
+    return NOERROR;
 }
 
+/**
+ * Register a callback to be invoked when the status of a network
+ * stream's buffer has changed.
+ *
+ * @param listener the callback that will be run.
+ */
 ECode CMediaPlayer::SetOnBufferingUpdateListener(
-    /* [in] */ IMediaPlayerOnBufferingUpdateListener * pListener)
+    /* [in] */ IMediaPlayerOnBufferingUpdateListener* listener)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    mOnBufferingUpdateListener = listener;
+
+    return NOERROR;
 }
 
+/**
+ * Register a callback to be invoked when a seek operation has been
+ * completed.
+ *
+ * @param listener the callback that will be run
+ */
 ECode CMediaPlayer::SetOnSeekCompleteListener(
-    /* [in] */ IMediaPlayerOnSeekCompleteListener * pListener)
+    /* [in] */ IMediaPlayerOnSeekCompleteListener* listener)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    mOnSeekCompleteListener = listener;
+
+    return NOERROR;
 }
 
+/**
+ * Register a callback to be invoked when the video size is
+ * known or updated.
+ *
+ * @param listener the callback that will be run
+ */
 ECode CMediaPlayer::SetOnVideoSizeChangedListener(
-    /* [in] */ IMediaPlayerOnVideoSizeChangedListener * pListener)
+    /* [in] */ IMediaPlayerOnVideoSizeChangedListener* listener)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    mOnVideoSizeChangedListener = listener;
+
+    return NOERROR;
 }
 
+/**
+ * Register a callback to be invoked when an error has happened
+ * during an asynchronous operation.
+ *
+ * @param listener the callback that will be run
+ */
 ECode CMediaPlayer::SetOnErrorListener(
-    /* [in] */ IMediaPlayerOnErrorListener * pListener)
+    /* [in] */ IMediaPlayerOnErrorListener* listener)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    mOnErrorListener = listener;
+
+    return NOERROR;
 }
 
+/**
+ * Register a callback to be invoked when an info/warning is available.
+ *
+ * @param listener the callback that will be run
+ */
 ECode CMediaPlayer::SetOnInfoListener(
-    /* [in] */ IMediaPlayerOnInfoListener * pListener)
+    /* [in] */ IMediaPlayerOnInfoListener* listener)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
-}
+    mOnInfoListener = listener;
 
-ECode CMediaPlayer::constructor()
-{
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
-

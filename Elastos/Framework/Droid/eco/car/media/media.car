@@ -164,8 +164,6 @@ module
     }
 
     class CMediaPlayer {
-        constructor();
-
         interface IMediaPlayer;
     }
 
@@ -316,8 +314,8 @@ module
 
     class CResampleInputStream {
         constructor(
-            [in] IInputStream* inputStream, 
-            [in] Int32 rateIn, 
+            [in] IInputStream* inputStream,
+            [in] Int32 rateIn,
             [in] Int32 rateOut);
 
         interface IResampleInputStream;
