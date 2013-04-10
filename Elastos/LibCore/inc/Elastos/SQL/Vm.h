@@ -63,6 +63,9 @@ public:
     CARAPI Compile(
         /** [out] **/Boolean* result);
 
+    CARAPI Dovmfinal(
+    /** [in] **/Int32 final);
+
     /**
      * Abort the compiled SQLite VM.
      */
