@@ -1223,7 +1223,7 @@ ECode CActivityManagerService::StartActivityIntentSender(
             mMainStack->mResumedActivity->mInfo->GetApplicationInfo((IApplicationInfo**)&appInfo);
             Int32 uid;
             appInfo->GetUid(&uid);
-            if (uid == Process::GetCallingUid()) {
+            if (uid == Binder::GetCallingUid()) {
                 mAppSwitchesAllowedTime = 0;
             }
         }
@@ -3473,8 +3473,8 @@ Int32 CActivityManagerService::CheckCallingPermission(
     /* [in] */ const String& permission)
 {
     return CheckPermission(permission,
-            Process::GetCallingPid(),
-            Process::GetCallingUid());
+            Binder::GetCallingPid(),
+            Binder::GetCallingUid());
 }
 
 /**
@@ -3493,9 +3493,9 @@ ECode CActivityManagerService::EnforceCallingPermission(
     msg += "Permission Denial: ";
     msg += func;
     msg += " from pid=";
-    msg += Process::GetCallingPid();
+    msg += Binder::GetCallingPid();
     msg += ", uid=";
-    msg += Process::GetCallingUid();
+    msg += Binder::GetCallingUid();
     msg += " requires " + permission;
     Slogger::W(TAG, msg);
     return E_SECURITY_EXCEPTION;
@@ -4761,8 +4761,8 @@ String CActivityManagerService::CheckContentProviderPermissionLocked(
         r->mInfo->GetUid(&callingUid);
     }
     else {
-        callingPid = Process::GetCallingPid();
-        callingUid = Process::GetCallingUid();
+        callingPid = Binder::GetCallingPid();
+        callingUid = Binder::GetCallingUid();
     }
     String cpiReadPerm, cpiWritePerm;
     cpi->GetReadPermission(&cpiReadPerm);
@@ -4850,7 +4850,7 @@ ECode CActivityManagerService::GetContentProviderImpl(
             String callerDes;
             caller->GetDescription(&callerDes);
             Slogger::E(TAG, StringBuffer("Unable to find app for caller ") + callerDes
-                    + " (pid=" + Process::GetCallingPid()
+                    + " (pid=" + Binder::GetCallingPid()
                     + ") when getting content provider " + name);
             return E_SECURITY_EXCEPTION;
         }
@@ -5229,7 +5229,7 @@ ECode CActivityManagerService::PublishContentProviders(
         caller->GetDescription(&callerDes);
         Slogger::W(TAG,
                 StringBuffer("Unable to find app for caller ") + callerDes
-                + " (pid=" + Process::GetCallingPid()
+                + " (pid=" + Binder::GetCallingPid()
                 + ") when publishing content providers");
         return E_SECURITY_EXCEPTION;
     }
@@ -7677,8 +7677,8 @@ CActivityManagerService::RetrieveServiceLocked(
             String srDes;
             r->mName->GetDescription(&srDes);
             Slogger::W(TAG, StringBuffer("Permission Denial: Accessing service ") + srDes
-                    + " from pid=" + Process::GetCallingPid()
-                    + ", uid=" + Process::GetCallingUid()
+                    + " from pid=" + Binder::GetCallingPid()
+                    + ", uid=" + Binder::GetCallingUid()
                     + " requires " + r->mPermission);
             return new ServiceLookupResult(NULL, r->mPermission);
         }
@@ -8261,7 +8261,7 @@ ECode CActivityManagerService::StartServiceLocked(
             caller->GetDescription(&appApDes);
             service->GetDescription(&intDes);
             Slogger::E(TAG, StringBuffer("Unable to find app for caller ")
-                    + appApDes + " (pid=" + Process::GetCallingPid()
+                    + appApDes + " (pid=" + Binder::GetCallingPid()
                     + ") when starting service " + intDes);
             return E_SECURITY_EXCEPTION;
         }
@@ -8386,7 +8386,7 @@ ECode CActivityManagerService::StopService(
         caller->GetDescription(&appApDes);
         service->GetDescription(&intDes);
         Slogger::E(TAG, StringBuffer("Unable to find app for caller ") + appApDes
-                + " (pid=" + Process::GetCallingPid()
+                + " (pid=" + Binder::GetCallingPid()
                 + ") when stopping service " + intDes);
         return E_SECURITY_EXCEPTION;
     }
@@ -8441,8 +8441,8 @@ ECode CActivityManagerService::PeekService(
         // r.record is null if findServiceLocked() failed the caller permission check
         if (r->mRecord == NULL) {
             Slogger::E(TAG, StringBuffer("Permission Denial: Accessing service ")
-                    + " from pid=" + Process::GetCallingPid()
-                    + ", uid=" + Process::GetCallingUid()
+                    + " from pid=" + Binder::GetCallingPid()
+                    + ", uid=" + Binder::GetCallingUid()
                     + " requires " + r->mPermission);
             return E_SECURITY_EXCEPTION;
         }
@@ -8627,7 +8627,7 @@ ECode CActivityManagerService::BindService(
         caller->GetDescription(&appApDes);
         service->GetDescription(&intDes);
         Slogger::E(TAG, StringBuffer("Unable to find app for caller ") + appApDes
-                + " (pid=" + Process::GetCallingPid()
+                + " (pid=" + Binder::GetCallingPid()
                 + ") when binding service " + intDes);
         return E_SECURITY_EXCEPTION;
     }
@@ -9099,7 +9099,7 @@ ECode CActivityManagerService::ServiceDoneExecuting(
 //        Binder.restoreCallingIdentity(origId);
     } else {
         Slogger::W(TAG, StringBuffer("Done executing unknown service from pid ")
-                        + Process::GetCallingPid());
+                        + Binder::GetCallingPid());
     }
     return NOERROR;
 }

@@ -216,27 +216,27 @@ public:
 
 public:
     class ProcessRunnable : public ElRefBase, public IRunnable
-        {
-        public:
-            ProcessRunnable(
-                /* [in] */ String processClass);
+    {
+    public:
+        ProcessRunnable(
+            /* [in] */ const String& processClass);
 
-            UInt32 AddRef();
+        UInt32 AddRef();
 
-            UInt32 Release();
+        UInt32 Release();
 
-            PInterface Probe(
-                /* [in] */ REIID riid);
+        PInterface Probe(
+            /* [in] */ REIID riid);
 
-            CARAPI GetInterfaceID(
-                /* [in] */ IInterface* pObject,
-                /* [in] */ InterfaceID* pIID);
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface* pObject,
+            /* [in] */ InterfaceID* pIID);
 
-            ECode Run();
+        ECode Run();
 
-        protected:
-            String mProcessClass;
-        };
+    protected:
+        String mProcessClass;
+    };
 
 public:
     /**
@@ -246,7 +246,7 @@ public:
      * If the current thread is not currently executing an incoming transaction,
      * then its own pid is returned.
      */
-    static CARAPI_(Int32) GetCallingPid();
+    // static CARAPI_(Int32) GetCallingPid();
 
     /**
      * Return the ID of the user assigned to the process that sent you the
@@ -255,7 +255,7 @@ public:
      * permissions.  If the current thread is not currently executing an
      * incoming transaction, then its own uid is returned.
      */
-    static CARAPI_(Int32) GetCallingUid();
+    // static CARAPI_(Int32) GetCallingUid();
 
     /**
     * Start a new process.
@@ -289,13 +289,13 @@ public:
     */
 
     static CARAPI Start(
-        /* [in] */ const String processClass,
-        /* [in] */ const String niceName,
+        /* [in] */ const String& processClass,
+        /* [in] */ const String& niceName,
         /* [in] */ Int32 uid,
         /* [in] */ Int32 gid,
-        /* [in] */ const ArrayOf<Int32> & gids,
+        /* [in] */ const ArrayOf<Int32>& gids,
         /* [in] */ Int32 debugFlags,
-        /* [in] */ const ArrayOf<String> & zygoteArgs,
+        /* [in] */ const ArrayOf<String>& zygoteArgs,
         /* [out] */ Int32* pid);
 
     /**
@@ -303,13 +303,13 @@ public:
     * {@hide}
     */
     static CARAPI Start(
-        /* [in] */ String processClass,
+        /* [in] */ const String& processClass,
         /* [in] */ Int32 uid,
         /* [in] */ Int32 gid,
-        /* [in] */ const ArrayOf<Int32> & gids,
+        /* [in] */ const ArrayOf<Int32>& gids,
         /* [in] */ Int32 debugFlags,
-        /* [in] */ const ArrayOf<String> & zygoteArgs,
-        /* [in] */ Int32* pid);
+        /* [in] */ const ArrayOf<String>& zygoteArgs,
+        /* [out] */ Int32* pid);
 
     /**
      * Returns elapsed milliseconds of the time this process has run.
@@ -340,7 +340,7 @@ public:
      * directly to a uid.
      */
     static CARAPI_(Int32) GetUidForName(
-        /* [in] */ String name);
+        /* [in] */ const String& name);
 
     /**
      * Returns the GID assigned to a particular user name, or -1 if there is
@@ -348,7 +348,7 @@ public:
      * directly to a gid.
      */
     static CARAPI_(Int32) GetGidForName(
-        /* [in] */ String name);
+        /* [in] */ const String& name);
 
     /**
      * Returns a uid for a currently running process.
@@ -358,6 +358,48 @@ public:
      */
     static CARAPI_(Int32) GetUidForPid(
         /* [in] */ Int32 pid);
+
+    /**
+     * Call with 'false' to cause future calls to {@link #setThreadPriority(int)} to
+     * throw an exception if passed a background-level thread priority.  This is only
+     * effective if the JNI layer is built with GUARD_THREAD_PRIORITY defined to 1.
+     *
+     * @hide
+     */
+    static CARAPI SetCanSelfBackground(
+        /* [in] */ Boolean backgroundOk);
+
+    /**
+     * Sets the scheduling group for a thread.
+     * @hide
+     * @param tid The indentifier of the thread/process to change.
+     * @param group The target group for this thread/process.
+     *
+     * @throws IllegalArgumentException Throws IllegalArgumentException if
+     * <var>tid</var> does not exist.
+     * @throws SecurityException Throws SecurityException if your process does
+     * not have permission to modify the given thread, or to use the given
+     * priority.
+     */
+    static CARAPI SetThreadGroup(
+        /* [in] */ Int32 tid,
+        /* [in] */ Int32 group);
+
+    /**
+     * Sets the scheduling group for a process and all child threads
+     * @hide
+     * @param pid The indentifier of the process to change.
+     * @param group The target group for this process.
+     *
+     * @throws IllegalArgumentException Throws IllegalArgumentException if
+     * <var>tid</var> does not exist.
+     * @throws SecurityException Throws SecurityException if your process does
+     * not have permission to modify the given thread, or to use the given
+     * priority.
+     */
+    static CARAPI SetProcessGroup(
+        /* [in] */ Int32 pid,
+        /* [in] */ Int32 group);
 
     /**
      * Set the priority of a thread, based on Linux priorities.
@@ -377,21 +419,22 @@ public:
         /* [in] */ Int32 priority);
 
     /**
-     * Call with 'false' to cause future calls to {@link #setThreadPriority(int)} to
-     * throw an exception if passed a background-level thread priority.  This is only
-     * effective if the JNI layer is built with GUARD_THREAD_PRIORITY defined to 1.
+     * Set the priority of the calling thread, based on Linux priorities.  See
+     * {@link #setThreadPriority(int, int)} for more information.
      *
-     * @hide
+     * @param priority A Linux priority level, from -20 for highest scheduling
+     * priority to 19 for lowest scheduling priority.
+     *
+     * @throws IllegalArgumentException Throws IllegalArgumentException if
+     * <var>tid</var> does not exist.
+     * @throws SecurityException Throws SecurityException if your process does
+     * not have permission to modify the given thread, or to use the given
+     * priority.
+     *
+     * @see #setThreadPriority(int, int)
      */
-    static CARAPI SetCanSelfBackground(
-        /* [in] */ Boolean backgroundOk);
-
     static CARAPI SetThreadPriority(
         /* [in] */ Int32 priority);
-
-    static CARAPI SetProcessGroup(
-        /* [in] */ Int32 pid,
-        /* [in] */ Int32 group);
 
     /**
      * Return the current priority of a thread, based on Linux priorities.
@@ -408,8 +451,25 @@ public:
     static CARAPI_(Int32) GetThreadPriority(
         /* [in] */ Int32 tid);
 
+    /**
+     * Determine whether the current environment supports multiple processes.
+     *
+     * @return Returns true if the system can run in multiple processes, else
+     * false if everything is running in a single process.
+     */
     static CARAPI_(Boolean) SupportsProcesses();
 
+    /**
+     * Set the out-of-memory badness adjustment for a process.
+     *
+     * @param pid The process identifier to set.
+     * @param amt Adjustment value -- linux allows -16 to +15.
+     *
+     * @return Returns true if the underlying system supports this
+     *         feature, else false.
+     *
+     * {@hide}
+     */
     static CARAPI_(Boolean) SetOomAdj(
         /* [in] */ Int32 pid,
         /* [in] */ Int32 amt);
@@ -423,10 +483,22 @@ public:
      * {@hide}
      */
     static CARAPI SetArgV0(
-        /* [in] */ String name);
+        /* [in] */ const String& name);
 
+    /**
+     * Kill the process with the given PID.
+     * Note that, though this API allows us to request to
+     * kill any process based on its PID, the kernel will
+     * still impose standard restrictions on which PIDs you
+     * are actually able to kill.  Typically this means only
+     * the process running the caller's packages/application
+     * and any additional processes created by that app; packages
+     * sharing a common UID will also be able to kill each
+     * other's processes.
+     */
     static CARAPI KillProcess(
         /* [in] */ Int32 pid);
+
     /** @hide */
     static CARAPI_(Int32) SetUid(
         /* [in] */ Int32 uid);
@@ -434,6 +506,7 @@ public:
     /** @hide */
     static CARAPI_(Int32) SetGid(
         /* [in] */ Int32 uid);
+
     /**
      * Send a signal to the given process.
      *
@@ -444,6 +517,12 @@ public:
         /* [in] */ Int32 pid,
         /* [in] */ Int32 signal);
 
+    /**
+     * @hide
+     * Private impl for avoiding a log message...  DO NOT USE without doing
+     * your own log, or the Android Illuminati will find you some night and
+     * beat you up.
+     */
     static CARAPI KillProcessQuiet(
         /* [in] */ Int32 pid);
 
@@ -462,34 +541,34 @@ public:
 
     /** @hide */
     static CARAPI ReadProcLines(
-        /* [in] */ String path,
-        /* [in] */ const ArrayOf<String> & reqFields,
-        /* [in] */ const ArrayOf<Int64> & outSizes);
+        /* [in] */ const String& path,
+        /* [in] */ const ArrayOf<String>& reqFields,
+        /* [in] */ const ArrayOf<Int64>& outSizes);
 
     /** @hide */
     static CARAPI GetPids(
-        /* [in] */ String path,
-        /* [in] */ const ArrayOf<Int32> & lastArray,
+        /* [in] */ const String& path,
+        /* [in] */ const ArrayOf<Int32>& lastArray,
         /* [out] */ ArrayOf<Int32>** newArray);
 
     /** @hide */
     static CARAPI ReadProcFile(
-        /* [in] */ String file,
-        /* [in] */ const ArrayOf<Int32> & format,
-        /* [in] */ const ArrayOf<String> & outStrings,
-        /* [in] */ const ArrayOf<Int64> & outLongs,
-        /* [in] */ const ArrayOf<Float> outFloats,
+        /* [in] */ const String& file,
+        /* [in] */ const ArrayOf<Int32>& format,
+        /* [in] */ const ArrayOf<String>& outStrings,
+        /* [in] */ const ArrayOf<Int64>& outLongs,
+        /* [in] */ const ArrayOf<Float>& outFloats,
         /* [out] */ Boolean* result);
 
     /** @hide */
     static CARAPI_(Boolean) ParseProcLine(
-        /* [in] */ const ArrayOf<Byte> & buffer,
+        /* [in] */ const ArrayOf<Byte>& buffer,
         /* [in] */ Int32 startIndex,
         /* [in] */ Int32 endIndex,
-        /* [in] */ const ArrayOf<Int32> & format,
-        /* [in] */ const ArrayOf<String> & outStrings,
-        /* [in] */ const ArrayOf<Int64> & outLongs,
-        /* [in] */ const ArrayOf<Float> & outFloats);
+        /* [in] */ const ArrayOf<Int32>& format,
+        /* [in] */ const ArrayOf<String>& outStrings,
+        /* [in] */ const ArrayOf<Int64>& outLongs,
+        /* [in] */ const ArrayOf<Float>& outFloats);
 
     /**
      * Gets the total Pss value for a given process, in bytes.
@@ -504,7 +583,7 @@ public:
 
 private:
     static CARAPI InvokeStaticMain(
-        /* [in] */ String className);
+        /* [in] */ const String& className);
 
     /**
      * Tries to open socket to Zygote process if not already open. If
@@ -538,13 +617,13 @@ private:
      * @throws ZygoteStartFailedEx if process start failed for any reason
      */
     static CARAPI StartViaZygote(
-        /* [in] */ const String processClass,
-        /* [in] */ const String niceName,
+        /* [in] */ const String& processClass,
+        /* [in] */ const String& niceName,
         /* [in] */ const Int32 uid,
         /* [in] */ const Int32 gid,
-        /* [in] */ const ArrayOf<Int32> & gids,
+        /* [in] */ const ArrayOf<Int32>& gids,
         /* [in] */ Int32 debugFlags,
-        /* [in] */ const ArrayOf<String> & extraArgs,
+        /* [in] */ const ArrayOf<String>& extraArgs,
         /* [out] */ Int32* pid);
 
 // public:
