@@ -1,6 +1,100 @@
 
 module
 {
+    /**
+       Constant to retrieve only the new metadata since the last
+       call.
+       // FIXME: unhide.
+       // FIXME: add link to getMetadata(boolean, boolean)
+       {@hide}
+     */
+    const MediaPlayer_METADATA_UPDATE_ONLY = 1; //true;
+
+    /**
+       Constant to retrieve all the metadata.
+       // FIXME: unhide.
+       // FIXME: add link to getMetadata(boolean, boolean)
+       {@hide}
+     */
+    const MediaPlayer_METADATA_ALL = 0; //false;
+
+    /**
+       Constant to enable the metadata filter during retrieval.
+       // FIXME: unhide.
+       // FIXME: add link to getMetadata(boolean, boolean)
+       {@hide}
+     */
+    const MediaPlayer_APPLY_METADATA_FILTER = 1; //true;
+
+    /**
+       Constant to disable the metadata filter during retrieval.
+       // FIXME: unhide.
+       // FIXME: add link to getMetadata(boolean, boolean)
+       {@hide}
+     */
+    const MediaPlayer_BYPASS_METADATA_FILTER = 0; //false;
+
+    /* Do not change these values without updating their counterparts
+     * in include/media/mediaplayer.h!
+     */
+    /** Unspecified media player error.
+     * @see android.media.MediaPlayer.OnErrorListener
+     */
+    const MediaPlayer_MEDIA_ERROR_UNKNOWN = 1;
+
+    /** Media server died. In this case, the application must release the
+     * MediaPlayer object and instantiate a new one.
+     * @see android.media.MediaPlayer.OnErrorListener
+     */
+    const MediaPlayer_MEDIA_ERROR_SERVER_DIED = 100;
+
+    /** The video is streamed and its container is not valid for progressive
+     * playback i.e the video's index (e.g moov atom) is not at the start of the
+     * file.
+     * @see android.media.MediaPlayer.OnErrorListener
+     */
+    const MediaPlayer_MEDIA_ERROR_NOT_VALID_FOR_PROGRESSIVE_PLAYBACK = 200;
+
+    /* Do not change these values without updating their counterparts
+     * in include/media/mediaplayer.h!
+     */
+    /** Unspecified media player info.
+     * @see android.media.MediaPlayer.OnInfoListener
+     */
+    const MediaPlayer_MEDIA_INFO_UNKNOWN = 1;
+
+    /** The video is too complex for the decoder: it can't decode frames fast
+     *  enough. Possibly only the audio plays fine at this stage.
+     * @see android.media.MediaPlayer.OnInfoListener
+     */
+    const MediaPlayer_MEDIA_INFO_VIDEO_TRACK_LAGGING = 700;
+
+    /** MediaPlayer is temporarily pausing playback internally in order to
+     * buffer more data.
+     */
+    const MediaPlayer_MEDIA_INFO_BUFFERING_START = 701;
+
+    /** MediaPlayer is resuming playback after filling buffers.
+     */
+    const MediaPlayer_MEDIA_INFO_BUFFERING_END = 702;
+
+    /** Bad interleaving means that a media has been improperly interleaved or
+     * not interleaved at all, e.g has all the video samples first then all the
+     * audio ones. Video is playing but a lot of disk seeks may be happening.
+     * @see android.media.MediaPlayer.OnInfoListener
+     */
+    const MediaPlayer_MEDIA_INFO_BAD_INTERLEAVING = 800;
+
+    /** The media cannot be seeked (e.g live stream)
+     * @see android.media.MediaPlayer.OnInfoListener
+     */
+    const MediaPlayer_MEDIA_INFO_NOT_SEEKABLE = 801;
+
+    /** A new set of metadata is available.
+     * @see android.media.MediaPlayer.OnInfoListener
+     */
+    const MediaPlayer_MEDIA_INFO_METADATA_UPDATE = 802;
+
     interface IMediaPlayer;
 
     /**
