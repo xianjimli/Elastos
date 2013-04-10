@@ -4,22 +4,14 @@ module
     /**
      * The "application/vnd.oma.drm.rights+xml" mime type.
      */
-    const DRM_MIMETYPE_RIGHTS_XML_STRING = "application/vnd.oma.drm.rights+xml";
+    const DrmRightsManager_DRM_MIMETYPE_RIGHTS_XML_STRING = "application/vnd.oma.drm.rights+xml";
 
     /**
      * The "application/vnd.oma.drm.rights+wbxml" mime type.
      */
-    const DRM_MIMETYPE_RIGHTS_WBXML_STRING = "application/vnd.oma.drm.rights+wbxml";
+    const DrmRightsManager_DRM_MIMETYPE_RIGHTS_WBXML_STRING = "application/vnd.oma.drm.rights+wbxml";
 
     interface IDrmRightsManager {
-        /**
-        * Get the DrmRightsManager instance.
-        *
-        * @return the instance of DrmRightsManager.
-        */
-        GetInstance(
-            [out] IDrmRightsManager** mSingleton);
-
         /**
         * Install one DRM rights and return one instance of DrmRights.
         *
@@ -29,8 +21,8 @@ module
         * @return the instance of the installed DrmRights.
         */
         InstallRights(
-            [in] IInputStream* rightsData, 
-            [in] Int32 len, 
+            [in] IInputStream* rightsData,
+            [in] Int32 length,
             [in] String mimeTypeStr,
             [out] IDrmRights** rights);
 
@@ -51,7 +43,7 @@ module
          * @return the list of all the rights object.
          */
         GetRightsList(
-            [out, callee] ArrayOf<IDrmRights*>* rightsList);
+            [out] IObjectContainer** rightsList);
 
         /**
          * Delete the specified DRM rights object.
@@ -60,6 +52,5 @@ module
          */
         DeleteRights(
             [in] IDrmRights* rights);
-
     }
 }

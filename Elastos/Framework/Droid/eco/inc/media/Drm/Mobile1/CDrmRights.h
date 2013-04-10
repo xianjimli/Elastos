@@ -3,19 +3,20 @@
 #define __CDRMRIGHTS_H__
 
 #include "_CDrmRights.h"
+#include "CDrmConstraintInfo.h"
 
 CarClass(CDrmRights)
 {
 public:
-	CARAPI GetConstraint(
+    CDrmRights();
+
+    CARAPI GetConstraint(
         /*[in] */ Int32 permission,
         /*[out] */ IDrmConstraintInfo** constraint);
 
     CARAPI ConsumeRights(
         /* [in] */ Int32 permission,
         /* [out] */ Boolean* result);
-
-    CARAPI constructor();
 
 private:
     /**
@@ -29,7 +30,7 @@ private:
      */
     CARAPI_(Int32) NativeGetConstraintInfo(
         /* [in] */ Int32 permission,
-        /* [in] */ IDrmConstraintInfo* constraint);
+        /* [in] */ CDrmConstraintInfo* constraint);
 
     CARAPI_(Int32) NativeConsumeRights(
         /* [in] */ Int32 permission);
@@ -50,4 +51,5 @@ public:
      */
     String mRoId;
 };
+
 #endif // __CDRMRIGHTS_H__

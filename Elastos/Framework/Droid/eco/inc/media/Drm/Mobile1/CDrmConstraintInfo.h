@@ -3,7 +3,6 @@
 #define __CDRMCONSTRAINTINFO_H__
 
 #include "_CDrmConstraintInfo.h"
-//#include "Elastos.Droid.Drm.Mobile1_server.h"
 
 /**
  * This class provides interfaces to access the DRM constraint.
@@ -11,13 +10,8 @@
 CarClass(CDrmConstraintInfo)
 {
 public:
-    CARAPI GetInterfaceID(
-        /*[in]*/ IInterface *pObject,
-        /*[out]*/ InterfaceID *pIID);
-    /**
-     * Construct the DrmConstraint.
-     */
-    CARAPI constructor();
+    CDrmConstraintInfo();
+
     /**
      * Get the count constraint.
      *

@@ -6,17 +6,15 @@
 #include <elastos/AutoPtr.h>
 #include <elastos/ElRefBase.h>
 #include <Elastos.IO.h>
+#include "CDrmRights.h"
 
 CarClass(CDrmRightsManager)
 {
 public:
-    CARAPI GetInstance(
-        /*[out] */ IDrmRightsManager** mSingleton);
-
     CARAPI InstallRights(
         /* [in] */ IInputStream* rightsData,
-        /* [in] */ Int32 len,
-        /* [in] */ const String & mimeTypeStr,
+        /* [in] */ Int32 length,
+        /* [in] */ const String& mimeTypeStr,
         /* [out] */ IDrmRights** rights);
 
     CARAPI QueryRights(
@@ -24,12 +22,10 @@ public:
         /* [out] */ IDrmRights** rights);
 
     CARAPI GetRightsList(
-        /* [out,callee] */ ArrayOf<IDrmRights*>** rightsList);
+        /* [out] */ IObjectContainer** rightsList);
 
     CARAPI DeleteRights(
         /* [in] */ IDrmRights* rights);
-
-    CARAPI constructor();
 
 private:
     /**
@@ -49,7 +45,7 @@ private:
         /* [in] */ IInputStream* data,
         /* [in] */ Int32 len,
         /* [in] */ Int32 mimeType,
-        /* [in] */ IDrmRights* rights);
+        /* [in] */ CDrmRights* rights);
 
     /**
      * native method: query the given DRM content's rights object.
@@ -121,12 +117,6 @@ public:
      * General failure.
      */
     static const Int32 JNI_DRM_FAILURE = -1;
-
-private:
-    /**
-     * The instance of the rights manager.
-     */
-    IDrmRightsManager* mSingleton;
 };
 
 #endif // __CDRMRIGHTSMANAGER_H__

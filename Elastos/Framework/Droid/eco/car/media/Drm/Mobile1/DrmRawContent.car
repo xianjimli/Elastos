@@ -4,12 +4,12 @@ module
     /**
      * The "application/vnd.oma.drm.message" mime type.
      */
-    const DRM_MIMETYPE_MESSAGE_STRING = "application/vnd.oma.drm.message";
+    const DrmRawContent_DRM_MIMETYPE_MESSAGE_STRING = "application/vnd.oma.drm.message";
 
     /**
      * The "application/vnd.oma.drm.content" mime type.
      */
-    const DRM_MIMETYPE_CONTENT_STRING = "application/vnd.oma.drm.content";
+    const DrmRawContent_DRM_MIMETYPE_CONTENT_STRING = "application/vnd.oma.drm.content";
 
      /**
      * The DRM delivery type: Forward-Lock
@@ -39,7 +39,6 @@ module
     interface IDrmRights;
 
     interface IDrmRawContent {
-
         /**
          * Get rights address from raw Seperate Delivery content.
          *
@@ -47,7 +46,7 @@ module
          *         or null if no rights issuer.
          */
         GetRightsAddress(
-            [out] String* rightsIssuer);
+            [out] String* rightsAddress);
 
         /**
          * Get the type of the raw DRM content.
@@ -69,8 +68,8 @@ module
          * @return the InputStream object of decrypted media content.
          */
         GetContentInputStream(
-            [in] IDrmRights* mRights,
-            [out] IInputStream** rights);
+            [in] IDrmRights* rights,
+            [out] IInputStream** is);
 
         /**
          * Get the type of the decrypted media content.
@@ -89,7 +88,7 @@ module
          *         #DRM_UNKNOWN_DATA_LEN if the length is unknown currently.
          */
         GetContentLength(
-            [in] IDrmRights* mRights,
-            [out] Int32* len);
+            [in] IDrmRights* rights,
+            [out] Int32* length);
     }
 }

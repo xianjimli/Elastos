@@ -1,14 +1,14 @@
 
+#include "cmdef.h"
 #include "CDrmRightsManager.h"
 #include "CDrmRights.h"
 #include "CDrmRawContent.h"
-#include "cmdef.h"
 #include <objmng/svc_drm.h>
 #include <elastos/List.h>
 
 //use namespace
 namespace JNI_CDrmRightsManager {
-    
+
 /**
  * Define the mime type of DRM data.
  */
@@ -27,7 +27,7 @@ typedef struct _DrmData {
 
     /**
      * The pointer of DRM raw content InputStream object.
-     */ 
+     */
     AutoPtr<IInputStream> pInData;
 
     /**
@@ -154,7 +154,7 @@ static Int32 NativeInstallDrmRights(
     /* [in] */ IInputStream* data,
     /* [in] */ Int32 len,
     /* [in] */ Int32 mimeType,
-    /* [in] */ IDrmRights* rights)
+    /* [in] */ CDrmRights* rights)
 {
     T_DRM_Input_Data inData;
     DrmData* drmInData;
@@ -280,6 +280,7 @@ static Int32 NativeDeleteRights(
     return CDrmRightsManager::JNI_DRM_SUCCESS;
 }
 
+
 };//end namespace
 
 const Int32 CDrmRightsManager::DRM_MIMETYPE_RIGHTS_XML;
@@ -290,55 +291,51 @@ const Int32 CDrmRightsManager::JNI_DRM_FAILURE;
 
 using namespace JNI_CDrmRightsManager;
 
-ECode CDrmRightsManager::GetInstance(
-    /*[out] */ IDrmRightsManager** singleton)
-{
-    if (singleton == NULL) {
-        CDrmRightsManager::New(&mSingleton);
-        }
-
-    *singleton = mSingleton;
-    return NOERROR;
-}
 
 ECode CDrmRightsManager::InstallRights(
     /* [in] */ IInputStream* rightsData,
-    /* [in] */ Int32 len,
-    /* [in] */ const String & mimeTypeStr,
+    /* [in] */ Int32 length,
+    /* [in] */ const String& mimeTypeStr,
     /* [out] */ IDrmRights** rights)
 {
+    VALIDATE_NOT_NULL(rights);
+
+    Mutex::Autolock lock(&_m_syncLock);
+
     Int32 mMimeType = 0;
 
-    if (mimeTypeStr.Equals(DRM_MIMETYPE_RIGHTS_XML_STRING)){
+    if (mimeTypeStr.Equals(DrmRightsManager_DRM_MIMETYPE_RIGHTS_XML_STRING)){
         mMimeType = DRM_MIMETYPE_RIGHTS_XML;
     }
-    else if (mimeTypeStr.Equals(DRM_MIMETYPE_RIGHTS_WBXML_STRING)){
+    else if (mimeTypeStr.Equals(DrmRightsManager_DRM_MIMETYPE_RIGHTS_WBXML_STRING)){
         mMimeType = DRM_MIMETYPE_RIGHTS_WBXML;
     }
-    else if (mimeTypeStr.Equals(DRM_MIMETYPE_MESSAGE_STRING)){
+    else if (mimeTypeStr.Equals(DrmRawContent_DRM_MIMETYPE_MESSAGE_STRING)){
         mMimeType = DRM_MIMETYPE_MESSAGE;
     }
     else{
         //throw new IllegalArgumentException("mimeType must be DRM_MIMETYPE_RIGHTS_XML or DRM_MIMETYPE_RIGHTS_WBXML or DRM_MIMETYPE_MESSAGE");
-        return E_INVALID_ARGUMENT;
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
 
-    if (len <= 0){
+    if (length <= 0){
         *rights = NULL;
+        return NOERROR;
     }
 
-    //IDrmRights* mRights = new DrmRights();//
-    AutoPtr<IDrmRights> mRights;
-    CDrmRights::New((IDrmRights**)&mRights);
+    AutoPtr<CDrmRights> rightsObj;
+    CDrmRights::NewByFriend((CDrmRights**)&rightsObj);
 
     /* call native method to install this rights object. */
-    Int32 res = JNI_CDrmRightsManager::NativeInstallDrmRights(rightsData, len, mMimeType, mRights);
+    Int32 res = JNI_CDrmRightsManager::NativeInstallDrmRights(rightsData, length, mMimeType, rightsObj);
 
     if (JNI_DRM_FAILURE == res){
         //throw new DrmException("nativeInstallDrmRights() returned JNI_DRM_FAILURE");
+        //return E_DRM_EXCEPTION;
     }
 
-    *rights = mRights;
+    *rights = (IDrmRights*)rightsObj.Get();
+    (*rights)->AddRef();
     return NOERROR;
 }
 
@@ -346,73 +343,84 @@ ECode CDrmRightsManager::QueryRights(
     /* [in] */ IDrmRawContent * content,
     /* [out] */ IDrmRights ** rights)
 {
-    //IDrmRights* mRights = new DrmRights();//
-    AutoPtr<IDrmRights> mRights;
-    CDrmRights::New((IDrmRights**)&mRights);
+    VALIDATE_NOT_NULL(rights);
+
+    Mutex::Autolock lock(&_m_syncLock);
+
+    AutoPtr<CDrmRights> rightsObj;
+    CDrmRights::NewByFriend((CDrmRights**)&rightsObj);
 
     /* call native method to query the rights */
-    Int32 res = JNI_CDrmRightsManager::NativeQueryRights(content, mRights);
+    Int32 res = JNI_CDrmRightsManager::NativeQueryRights(content, rightsObj);
 
     if (JNI_DRM_FAILURE == res){
         *rights = NULL;
+        return NOERROR;
     }
 
-    *rights = mRights;
+    *rights = (IDrmRights*)rightsObj.Get();
+    (*rights)->AddRef();
     return NOERROR;
 }
 
 ECode CDrmRightsManager::GetRightsList(
-    /* [out,callee] */ ArrayOf<IDrmRights*>** rightsList)
+    /* [out] */ IObjectContainer** rightsList)
 {
-    VALIDATE_NOT_NULL(rightsList);//check the rightsList assert NULL
-    //List mRightsList = new ArrayList();
+    VALIDATE_NOT_NULL(rightsList);
+
+    Mutex::Autolock lock(&_m_syncLock);
 
     /* call native method to get how many rights object in current agent */
     Int32 mNum = JNI_CDrmRightsManager::NativeGetNumOfRights();
 
-    if (JNI_DRM_FAILURE == mNum)
-        return NULL;
+    if (JNI_DRM_FAILURE == mNum) {
+        *rightsList = NULL;
+        return NOERROR;
+    }
+
+    AutoPtr<IObjectContainer> list;
+    CObjectContainer::New((IObjectContainer**)&list);
 
     if (mNum > 0) {
-        //DrmRights[] rightsArray = new DrmRights[num];//
         ArrayOf<IDrmRights*>* rightsArray = ArrayOf<IDrmRights*>::Alloc(mNum);
         Int32 i;
 
-        for (i = 0; i < mNum; i++)
-            //rightsArray[i] = new DrmRights();//
-            CDrmRights::New((IDrmRights**)&rightsArray[i]);
+        for (i = 0; i < mNum; i++) {
+            CDrmRights::New(&(*rightsArray)[i]);
+        }
 
         /* call native method to get all the rights information */
         mNum = JNI_CDrmRightsManager::NativeGetRightsList(rightsArray, mNum);
 
-        if (JNI_DRM_FAILURE == mNum)
+        if (JNI_DRM_FAILURE == mNum) {
+            for (Int32 i = 0; i < rightsArray->GetLength(); ++i) {
+                (*rightsArray)[i]->Release();
+            }
+            ArrayOf<IDrmRights*>::Free(rightsArray);
             *rightsList = NULL;
+            return NOERROR;
+        }
 
-        *rightsList = rightsArray;    
         /* add all rights informations to ArrayList */
-        //for (i = 0; i < mNum; i++)
-        //    mRightsList.add(rightsArray[i]);
+        for (i = 0; i < mNum; i++) {
+            list->Add((IDrmRights*)(*rightsArray)[i]);
+            (*rightsArray)[i]->Release();
+        }
+        ArrayOf<IDrmRights*>::Free(rightsArray);
     }
-    else {
-        *rightsList = NULL;    
-    }
+
+    *rightsList = list;
+    (*rightsList)->AddRef();
     return NOERROR;
 }
 
 ECode CDrmRightsManager::DeleteRights(
     /* [in] */ IDrmRights* rights)
 {
+    Mutex::Autolock lock(&_m_syncLock);
+
     /* call native method to delete the specified rights object */
-    Int32 mRes = JNI_CDrmRightsManager::NativeDeleteRights(rights);
+    JNI_CDrmRightsManager::NativeDeleteRights((CDrmRights*)rights);
 
-    if (JNI_DRM_FAILURE == mRes){
-        rights = NULL;
-    }
-
-    return NOERROR;
-}
-
-ECode CDrmRightsManager::constructor()
-{
     return NOERROR;
 }

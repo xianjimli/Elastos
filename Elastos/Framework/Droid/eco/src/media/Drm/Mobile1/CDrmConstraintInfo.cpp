@@ -8,59 +8,12 @@
 /**
  * Construct the DrmConstraint.
  */
-ECode CDrmConstraintInfo::constructor(){
-    mCount = -1;
-    mStartDate = -1;
-    mEndDate = -1;
-    mInterval = -1;
-    return NOERROR;
-}
-
-
-PInterface IDrmConstraintInfo::Probe(
-    /* [in]  */ REIID riid)
-{
-    if (riid == EIID_IInterface) {
-        return (PInterface)(IDrmConstraintInfo*)this;
-    }
-    else if (riid == EIID_IDrmConstraintInfo) {
-        return (IDrmConstraintInfo*)this;
-    }
-
-    return NULL;
-}
-
-
-UInt32 AddRef()
-{
-    //return ElRefBase::AddRef();
-}
-
-UInt32 Release()
-{
-    //return ElRefBase::Release();
-}
-/*
-*/
-ECode CDrmConstraintInfo::GetInterfaceID(
-     /*[in]*/   IInterface *pObject,
-     /*[out]*/   InterfaceID *pIID)
-{
-    if (pIID == NULL) {
-        return E_INVALID_ARGUMENT;
-    }
-
-    if (pObject == (IInterface*)(IDrmConstraintInfo*)this) {
-        *pIID = EIID_IDrmConstraintInfo;
-    }
-    else {
-        return E_INVALID_ARGUMENT;
-    }
-
-    return NOERROR;
-}
-
-
+CDrmConstraintInfo::CDrmConstraintInfo()
+    : mCount(-1)
+    , mStartDate(-1)
+    , mEndDate(-1)
+    , mInterval(-1)
+{}
 
 /**
  * Get the count constraint.
@@ -71,6 +24,7 @@ ECode CDrmConstraintInfo::GetCount(
     /* [out] */ Int32* count)
 {
     VALIDATE_NOT_NULL(count);
+
     *count = mCount;
     return NOERROR;
 }
@@ -120,6 +74,7 @@ ECode CDrmConstraintInfo::GetInterval(
     /* [out] */ Int64* interval)
 {
     VALIDATE_NOT_NULL(interval);
+
     *interval = mInterval;
     return NOERROR;
 }

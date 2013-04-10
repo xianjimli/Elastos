@@ -1,8 +1,9 @@
 
+#include "cmdef.h"
 #include "CDrmRights.h"
 #include "CDrmConstraintInfo.h"
-#include <objmng/svc_drm.h>
 #include <elastos/AutoPtr.h>
+#include <objmng/svc_drm.h>
 
 #define MS_PER_SECOND 1000                  /* Milliseconds per second */
 #define MS_PER_MINUTE 60 * MS_PER_SECOND    /* Milliseconds per minute */
@@ -25,26 +26,22 @@ static const int32_t ydays[] = {
 #define int64_add(dst, s1, s2)  ((void)((dst) = (s1) + (s2)))
 #define int64_mul(dst, s1, s2)  ((void)((dst) = (int64_t)(s1) * (int64_t)(s2)))
 
-using namespace Elastos;
-
 
 const Int32 CDrmRights::JNI_DRM_SUCCESS;
 const Int32 CDrmRights::JNI_DRM_FAILURE;
 
-ECode CDrmRights::constructor()
-{
-    mRoId = "";
-    return NOERROR;
-}
+CDrmRights::CDrmRights()
+    : mRoId("")
+{}
 
 ECode CDrmRights::GetConstraint(
     /* [in] */ Int32 permission,
-    /* [out] */ IDrmConstraintInfo** constraint) 
+    /* [out] */ IDrmConstraintInfo** constraint)
 {
-    //VALIDATE_NOT_NULL(constraint);
-    //IDrmConstraintInfo* c = new DrmConstraintInfo();
-    AutoPtr<IDrmConstraintInfo> c;// = new IDrmConstraintInfo();
-    CDrmConstraintInfo::New((IDrmConstraintInfo**)&c);
+    VALIDATE_NOT_NULL(constraint);
+
+    AutoPtr<CDrmConstraintInfo> c;
+    FAIL_RETURN(CDrmConstraintInfo::NewByFriend((CDrmConstraintInfo**)&c));
 
     /* call native method to get latest constraint information */
     Int32 res = NativeGetConstraintInfo(permission, c);
@@ -54,7 +51,7 @@ ECode CDrmRights::GetConstraint(
         return NOERROR;
     }
 
-    *constraint = c;
+    *constraint = (IDrmConstraintInfo*)c.Get();
     (*constraint)->AddRef();
 
     return NOERROR;
@@ -64,7 +61,7 @@ ECode CDrmRights::ConsumeRights(
     /* [in] */ Int32 permission,
     /* [out] */ Boolean* result)
 {
-    //VALIDATE_NOT_NULL(result);
+    VALIDATE_NOT_NULL(result);
 
     /* call native method to consume and update rights */
     Int32 res = NativeConsumeRights(permission);
@@ -100,34 +97,6 @@ static const T_DRM_Rights_Info_Node* SearchRightsObject(
     return tmp;
 }
 
-
-static Int32 SetObjectIntField(
-    /* [in] */ IDrmConstraintInfo* _constraint,
-    /* [in] */ Int32 value)
-{
-
-    if (NULL == _constraint){
-        return CDrmRights::JNI_DRM_FAILURE;
-    }
-
-    ((CDrmConstraintInfo*)_constraint)->mCount = value;
-
-    return CDrmRights::JNI_DRM_SUCCESS;
-}
-
-static Int64 SetObjectLongField(
-    /* [in] */ IDrmConstraintInfo* _constraint,
-    /* [in] */ Int64 value)
-{
-    if (NULL == _constraint){
-        return CDrmRights::JNI_DRM_FAILURE;
-    }
-
-    ((CDrmConstraintInfo*)_constraint)->mCount = value;
-
-    return CDrmRights::JNI_DRM_SUCCESS;
-}
-
 /**
  * Returns the difference in seconds between the given GMT time
  * and 1970-01-01 00:00:00 GMT.
@@ -143,11 +112,11 @@ static Int64 SetObjectLongField(
  *         and 1970-01-01 00:00:00 GMT.
  */
 static int64_t Mkgmtime(
-        /* [in] */ uint32_t year, 
-        /* [in] */ uint32_t month, 
+        /* [in] */ uint32_t year,
+        /* [in] */ uint32_t month,
         /* [in] */ uint32_t day,
-        /* [in] */ uint32_t hour, 
-        /* [in] */ uint32_t minute, 
+        /* [in] */ uint32_t hour,
+        /* [in] */ uint32_t minute,
         /* [in] */ uint32_t second)
 {
     Int64 result;
@@ -187,7 +156,7 @@ static int64_t Mkgmtime(
  * @return the related milliseconds
  */
 static int64_t ComputeTime(
-    /* [in] */ int32_t date, 
+    /* [in] */ int32_t date,
     /* [in] */ int32_t time)
 {
     int32_t year, month, day, hour, minute, second;
@@ -232,7 +201,7 @@ static int64_t ComputeTime(
  * @return the related milliseconds
  */
 static int64_t ComputeInterval(
-    /* [in] */ int32_t date, 
+    /* [in] */ int32_t date,
     /* [in] */ int32_t time)
 {
     int32_t year, month, day, hour, minute, second;
@@ -259,26 +228,18 @@ static int64_t ComputeInterval(
 }
 
 static Int32 SetConstraintFields(
-    /* [in] */ IDrmConstraintInfo* _constraint,
+    /* [in] */ CDrmConstraintInfo* _constraint,
     /* [in] */ T_DRM_Constraint_Info* constraint)
 {
     /* if no this permission */
     if (constraint->indicator == (uint8_t)DRM_NO_RIGHTS) {
-
-        if (CDrmRights::JNI_DRM_FAILURE == SetObjectIntField(_constraint,0)) {
-            return CDrmRights::JNI_DRM_FAILURE;
-        }
-
+        _constraint->mCount = 0;
         return CDrmRights::JNI_DRM_SUCCESS;
     }
 
     /* set count field */
     if (constraint->indicator & DRM_COUNT_CONSTRAINT) {
-
-        if (CDrmRights::JNI_DRM_FAILURE == SetObjectIntField(_constraint,constraint->count)){
-            return CDrmRights::JNI_DRM_FAILURE;
-        }
-
+        _constraint->mCount = constraint->count;
     }
 
     /* set start time field */
@@ -287,10 +248,7 @@ static Int32 SetConstraintFields(
 
         startTime = ComputeTime(constraint->startDate, constraint->startTime);
 
-        if (CDrmRights::JNI_DRM_FAILURE == SetObjectLongField(_constraint,startTime)){
-            return CDrmRights::JNI_DRM_FAILURE;
-        }
-
+        _constraint->mStartDate = startTime;
     }
 
     /* set end time field */
@@ -299,10 +257,7 @@ static Int32 SetConstraintFields(
 
         endTime = ComputeTime(constraint->endDate, constraint->endTime);
 
-        if (CDrmRights::JNI_DRM_FAILURE == SetObjectLongField(_constraint,endTime)){
-            return CDrmRights::JNI_DRM_FAILURE;
-        }
-
+        _constraint->mEndDate = endTime;
     }
 
     /* set interval field */
@@ -311,10 +266,7 @@ static Int32 SetConstraintFields(
 
         interval = ComputeInterval(constraint->intervalDate, constraint->intervalTime);
 
-        if (CDrmRights::JNI_DRM_FAILURE == SetObjectLongField(_constraint,interval)){
-            return CDrmRights::JNI_DRM_FAILURE;
-        }
-
+        _constraint->mInterval = interval;
     }
 
     return CDrmRights::JNI_DRM_SUCCESS;
@@ -322,7 +274,7 @@ static Int32 SetConstraintFields(
 
 Int32 CDrmRights::NativeGetConstraintInfo(
     /* [in] */ Int32 permission,
-    /* [in] */ IDrmConstraintInfo* _constraint)
+    /* [in] */ CDrmConstraintInfo* _constraint)
 {
     T_DRM_Rights_Info_Node* rightsList;
     T_DRM_Rights_Info_Node* curNode;
@@ -397,10 +349,6 @@ Int32 CDrmRights::NativeConsumeRights(
         return JNI_DRM_FAILURE;
     }
 
-    //if (NULL == rights){
-    //    return JNI_DRM_FAILURE;
-    //}
-
     if (mRoId.IsNull()) {
         return JNI_DRM_FAILURE;
     }
@@ -408,9 +356,9 @@ Int32 CDrmRights::NativeConsumeRights(
         return JNI_DRM_SUCCESS;
     }
 
-    //if (JNI_DRM_SUCCESS != SVC_drm_updateRights(rights, permission)) {
-    //    return JNI_DRM_FAILURE;
-    //}
+    if (JNI_DRM_SUCCESS != SVC_drm_updateRights((uint8_t*)(mRoId.string()), permission)) {
+       return JNI_DRM_FAILURE;
+    }
 
     return JNI_DRM_SUCCESS;
 }

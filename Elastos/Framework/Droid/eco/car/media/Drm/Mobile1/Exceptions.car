@@ -1,0 +1,12 @@
+
+module
+{
+//    const FAMILY_CORE = 0x40    // Drm exception codes
+
+//    #define FRAMEWORK_ERROR(c)      MAKE_ECODE(SEVERITY_ERROR, FAMILY_FRAMEWORK, c)
+//    #define FRAMEWORK_SUCCESS(c)    MAKE_SUCCESS(FAMILY_FRAMEWORK, c)
+
+    //==========================================================================
+    // Elastos Framework Media Drm exception codes (Family: 0x40)
+    const E_DRM_EXCEPTION                   = 0xC0010000;
+}
