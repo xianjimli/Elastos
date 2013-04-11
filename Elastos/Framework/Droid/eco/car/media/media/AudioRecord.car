@@ -1,6 +1,53 @@
 
 module
 {
+    //---------------------------------------------------------
+    // Constants
+    //--------------------
+    /**
+     *  indicates AudioRecord state is not successfully initialized.
+     */
+    const AudioRecord_STATE_UNINITIALIZED = 0;
+
+    /**
+     *  indicates AudioRecord state is ready to be used
+     */
+    const AudioRecord_STATE_INITIALIZED   = 1;
+
+
+    /**
+     * indicates AudioRecord recording state is not recording
+     */
+    const AudioRecord_RECORDSTATE_STOPPED = 1;  // matches SL_RECORDSTATE_STOPPED
+
+    /**
+     * indicates AudioRecord recording state is recording
+     */
+    const AudioRecord_RECORDSTATE_RECORDING = 3;// matches SL_RECORDSTATE_RECORDING
+
+    // Error codes:
+    // to keep in sync with frameworks/base/core/jni/android_media_AudioRecord.cpp
+    /**
+     * Denotes a successful operation.
+     */
+    const AudioRecord_SUCCESS                 = 0;
+
+    /**
+     * Denotes a generic operation failure.
+     */
+    const AudioRecord_ERROR                   = -1;
+
+    /**
+     * Denotes a failure due to the use of an invalid value.
+     */
+    const AudioRecord_ERROR_BAD_VALUE         = -2;
+
+    /**
+     * Denotes a failure due to the improper use of a method.
+     */
+    const AudioRecord_ERROR_INVALID_OPERATION = -3;
+
+
     interface IAudioRecord;
 
     /**
