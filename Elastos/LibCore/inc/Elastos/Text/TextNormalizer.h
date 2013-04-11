@@ -1,5 +1,5 @@
-#ifndef __NORMALIZER_H__
-#define __NORMALIZER_H__
+#ifndef __TEXTNORMALIZER_H__
+#define __TEXTNORMALIZER_H__
 
 #include "cmdef.h"
 #include "Elastos.Text_server.h"
@@ -14,7 +14,7 @@ using namespace Elastos;
  *
  * @since 1.6
  */
-class Normalizer {
+class TextNormalizer {
 public:
     /**
      * The normalization forms supported by the Normalizer. These are specified in
@@ -69,17 +69,6 @@ public:
         /* [in] */ Form form);
 
 private:
-    Normalizer();
-
-    static CARAPI_(Int32) ToUNormalizationMode(
-        /* [in] */ Form form);
-
-    static CARAPI_(String) Native_normalizeImpl(
-        /* [in] */ String src,
-        /* [in] */ Int32 form);
-
-    static CARAPI_(Boolean) Native_isNormalizedImpl(
-        /* [in] */ String src,
-        /* [in] */ Int32 form);
+    TextNormalizer();
 };
-#endif //__NORMALIZER_H__
+#endif //__TEXTNORMALIZER_H__

@@ -124,7 +124,7 @@ public:
      */
     virtual CARAPI GetCollationKey(
         /* [in] */ String string,
-        /* [out] */ ICollationKey** key) = 0;
+        /* [out] */ IICUCollationKey** key) = 0;
 
     /**
      * Returns the decomposition rule for this collator.

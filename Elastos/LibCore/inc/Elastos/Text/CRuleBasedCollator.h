@@ -32,7 +32,7 @@ public:
 
     CARAPI GetCollationKey(
         /* [in] */ const String& string,
-        /* [out] */ ICollationKey ** ppCollationKey);
+        /* [out] */ IICUCollationKey ** ppCollationKey);
 
     CARAPI GetDecomposition(
         /* [out] */ Int32 * pDecomposition);

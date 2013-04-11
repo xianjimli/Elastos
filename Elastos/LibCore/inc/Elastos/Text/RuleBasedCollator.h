@@ -134,7 +134,7 @@ public:
     //@Override
     CARAPI GetCollationKey(
         /* [in] */ String source,
-        /* [out] */ ICollationKey ** collationKey);
+        /* [out] */ IICUCollationKey ** collationKey);
 
 /*
     @Override

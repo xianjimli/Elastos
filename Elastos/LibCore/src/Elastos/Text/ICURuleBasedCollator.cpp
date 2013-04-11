@@ -1,4 +1,6 @@
 #include "ICURuleBasedCollator.h"
+#include "CRuleBasedCollator.h"
+
 
 PInterface ICURuleBasedCollator::Probe(
             /* [in]  */ REIID riid)
@@ -17,7 +19,7 @@ ECode ICURuleBasedCollator::Init(
     m_hashcode_ = 0;
     if (rules.IsNull()) {
         //throw new NullPointerException();
-        return NOERROR;
+        return E_NULL_POINTER_EXCEPTION;
     }
     m_collator_ = NativeCollation::OpenCollatorFromRules(rules,
             ICollationAttribute_VALUE_OFF, ICollationAttribute_VALUE_DEFAULT_STRENGTH);
@@ -31,7 +33,7 @@ ECode ICURuleBasedCollator::Init(
     m_hashcode_ = 0;
     if (rules.IsNull()) {
         //throw new NullPointerException();
-        return NOERROR;
+        return E_NULL_POINTER_EXCEPTION;
     }
     m_collator_ = NativeCollation::OpenCollatorFromRules(rules, ICollationAttribute_VALUE_OFF, strength);
     return NOERROR;
@@ -45,18 +47,20 @@ ECode ICURuleBasedCollator::Init(
     m_hashcode_ = 0;
     if (rules.IsNull()) {
         //throw new NullPointerException();
-        return NOERROR;
+        return E_NULL_POINTER_EXCEPTION;
     }
     m_collator_ = NativeCollation::OpenCollatorFromRules(rules, normalizationMode, strength);
+    return NOERROR;
 }
 
 ECode ICURuleBasedCollator::Clone(
-        /* [out] */ IInterface ** Instance)
+        /* [out] */ IInterface ** instance)
 {
-    //ICURuleBasedCollator* result = NULL;
-//    Int32 collatoraddress = NativeCollation::SafeClone(m_collator_);
-//    ICURuleBasedCollator* result = new ICURuleBasedCollator(collatoraddress);
-//    *Instance = (IICUCollator*)result;
+    AutoPtr<IRuleBasedCollator> result = NULL;
+    Int32 collatoraddress = NativeCollation::SafeClone(m_collator_);
+    CRuleBasedCollator::New(String::FromInt32(collatoraddress), (IRuleBasedCollator**)&result);
+    *instance = reinterpret_cast<ICollator*>(result->Probe(EIID_ICollator));
+    (*instance)->AddRef();
     return NOERROR;
 }
 
@@ -151,7 +155,6 @@ ECode ICURuleBasedCollator::GetCollationElementIterator(
     CICUCollationElementIterator::New(
             NativeCollation::GetCollationElementIterator(m_collator_, source), 
             (IICUCollationElementIterator**)&result);
-    // result.setOwnCollationElementIterator(true);
     *collationElementIterator = (IICUCollationElementIterator*)result;
     return NOERROR;
 }
@@ -226,7 +229,7 @@ ECode ICURuleBasedCollator::CharacterIteratorToString(
     StringBuffer *result = new StringBuffer("");
     Char32 ch;
     it->Current(&ch);
-    while(ch != '0xffff') {
+    while(ch != DONE) {
         (*result) += ch;
         it->Next(&ch);
     }

@@ -39,7 +39,7 @@ ECode CRuleBasedCollator::Equals(
 
 ECode CRuleBasedCollator::GetCollationKey(
     /* [in] */ const String& string,
-    /* [out] */ ICollationKey ** ppCollationKey)
+    /* [out] */ IICUCollationKey ** ppCollationKey)
 {
     return RuleBasedCollator::GetCollationKey(string, ppCollationKey);
 }

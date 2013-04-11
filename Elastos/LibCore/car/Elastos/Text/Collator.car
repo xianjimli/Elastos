@@ -1,4 +1,6 @@
 module {
+    interface IICUCollationKey;
+
     /**
      * Constant used to specify the decomposition rule.
      */
@@ -68,7 +70,7 @@ module {
          */
         GetCollationKey(
             [in] String string,
-            [out] ICollationKey** collationKey);
+            [out] IICUCollationKey** collationKey);
 
         /**
          * Returns the decomposition rule for this collator.

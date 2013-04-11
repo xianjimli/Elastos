@@ -1,10 +1,13 @@
 #include "ICUCollator.h"
+#include "CICURuleBasedCollator.h"
 
 IICUCollator* ICUCollator::GetInstance(
     /* [in] */ ILocale* locale)
 {
-//    return new RuleBasedCollator(locale);
-    return NULL;
+    AutoPtr<IICURuleBasedCollator> icurbc;
+    CICURuleBasedCollator::New(locale, (IICURuleBasedCollator**)&icurbc);
+    IICUCollator * icuc = reinterpret_cast<IICUCollator*>(icurbc->Probe(EIID_IICUCollator));
+    return icuc;
 }
 
 ECode ICUCollator::Equals(
