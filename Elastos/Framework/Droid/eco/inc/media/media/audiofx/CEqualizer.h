@@ -44,25 +44,28 @@ public:
         CARAPI toString(
             /* [out] */ String* result);
 
-        CARAPI GetParameterInt16(
-            /* [in] */ String param,
-            /* [out] */  Int16* result);
+        CARAPI GetCurPreset(
+            /* [out] */ Int16* curPreset);
 
-        CARAPI SetParameterInt16(
-            /* [in] */ String param,
-            /* [in] */ Int16 result);
+        CARAPI SetCurPreset(
+            /* [in] */ Int16 curPreset);
 
-        CARAPI GetParameterInt16Array(
-            /* [in] */ String param,
-            /* [out,callee] */  ArrayOf<Int16>* result);
+        CARAPI GetNumBands(
+            /* [out] */ Int16* numBands);
 
-        CARAPI SetParameterInt16Array(
-            /* [in] */ String param,
-            /* [in] */ ArrayOf<Int16> result);
+        CARAPI SetNumBands(
+            /* [in] */ Int16 numBands);
+
+        CARAPI GetBandLevels(
+            /* [out] */ ArrayOf<Int16>** bandLevels);
+
+        CARAPI SetBandLevels(
+            /* [in] */ ArrayOf<Int16>* bandLevels);
+
     public:
-        Int16 curPreset;
-        Int16 numBands;
-        ArrayOf<Int16>* bandLevels;
+        Int16 mCurPreset;
+        Int16 mNumBands;
+        ArrayOf<Int16>* mBandLevels;
     };
 private:
     /**

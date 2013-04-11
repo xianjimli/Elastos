@@ -151,7 +151,7 @@ ECode CPresetReverb::Settings::constructor(
 //        throw new IllegalArgumentException("invalid key name: " + key);
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
-    preset = st.NextToken().ToInt32();
+    mPreset = st.NextToken().ToInt32();
 /*
      } catch (NumberFormatException nfe) {
         throw new IllegalArgumentException("invalid value for key: " + key);
@@ -166,23 +166,23 @@ ECode CPresetReverb::Settings::toString(
     VALIDATE_NOT_NULL(result);
 
     *result = String("PresetReverb") +
-            String(";preset=") + String::FromInt32(preset);
+            String(";preset=") + String::FromInt32(mPreset);
     return NOERROR;
 }
 
 ECode CPresetReverb::Settings::GetPreset(
-    /* [out] */  Int16* result)
+    /* [out] */  Int16* preset)
 {
-    VALIDATE_NOT_NULL(result);
+    VALIDATE_NOT_NULL(preset);
 
-    *result = preset;
+    *preset = mPreset;
     return NOERROR;
 }
 
 ECode CPresetReverb::Settings::SetPreset(
-    /* [in] */ Int16 result)
+    /* [in] */ Int16 preset)
 {
-    preset = result;
+    mPreset = preset;
     return NOERROR;
 }
 

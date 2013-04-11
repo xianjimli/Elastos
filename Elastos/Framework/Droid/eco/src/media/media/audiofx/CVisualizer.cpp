@@ -16,6 +16,11 @@ CVisualizer::CVisualizer()
     mState = Visualizer_STATE_UNINITIALIZED;
 }
 
+CVisualizer::~CVisualizer()
+{
+    Native_Finalize();
+}
+
 ECode CVisualizer::constructor(
     /* [in] */ Int32 audioSession)
 {
@@ -53,11 +58,6 @@ ECode CVisualizer::ReleaseResources()
     Native_Release();
     mState = Visualizer_STATE_UNINITIALIZED;
     return NOERROR;
-}
-
-void CVisualizer::Finalize()
-{
-    Native_Finalize();
 }
 
 ECode CVisualizer::SetEnabled(

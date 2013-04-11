@@ -354,61 +354,61 @@ ECode CEnvironmentalReverb::Settings::constructor(
 //        throw new IllegalArgumentException("invalid key name: " + key);
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
-    roomLevel = st.NextToken().ToInt32();
+    mRoomLevel = st.NextToken().ToInt32();
 
     if (!key.Equals("roomHFLevel")) {
 //        throw new IllegalArgumentException("invalid key name: " + key);
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
-    roomHFLevel = st.NextToken().ToInt32();
+    mRoomHFLevel = st.NextToken().ToInt32();
 
     if (!key.Equals("decayTime")) {
 //        throw new IllegalArgumentException("invalid key name: " + key);
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
-    decayTime = st.NextToken().ToInt32();
+    mDecayTime = st.NextToken().ToInt32();
 
     if (!key.Equals("decayHFRatio")) {
 //        throw new IllegalArgumentException("invalid key name: " + key);
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
-    decayHFRatio = st.NextToken().ToInt32();
+    mDecayHFRatio = st.NextToken().ToInt32();
 
     if (!key.Equals("reflectionsLevel")) {
 //        throw new IllegalArgumentException("invalid key name: " + key);
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
-    reflectionsLevel = st.NextToken().ToInt32();
+    mReflectionsLevel = st.NextToken().ToInt32();
 
     if (!key.Equals("reflectionsDelay")) {
 //        throw new IllegalArgumentException("invalid key name: " + key);
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
-    reflectionsDelay = st.NextToken().ToInt32();
+    mReflectionsDelay = st.NextToken().ToInt32();
 
     if (!key.Equals("reverbLevel")) {
 //        throw new IllegalArgumentException("invalid key name: " + key);
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
-    reverbLevel = st.NextToken().ToInt32();
+    mReverbLevel = st.NextToken().ToInt32();
 
     if (!key.Equals("reverbDelay")) {
 //        throw new IllegalArgumentException("invalid key name: " + key);
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
-    reverbDelay = st.NextToken().ToInt32();
+    mReverbDelay = st.NextToken().ToInt32();
 
     if (!key.Equals("diffusion")) {
 //        throw new IllegalArgumentException("invalid key name: " + key);
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
-    diffusion = st.NextToken().ToInt32();
+    mDiffusion = st.NextToken().ToInt32();
 
     if (!key.Equals("density")) {
 //        throw new IllegalArgumentException("invalid key name: " + key);
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
-    density = st.NextToken().ToInt32();
+    mDensity = st.NextToken().ToInt32();
 
 /*
      } catch (NumberFormatException nfe) {
@@ -424,125 +424,165 @@ ECode CEnvironmentalReverb::Settings::toString(
     VALIDATE_NOT_NULL(result);
 
     *result = String("EnvironmentalReverb") +
-            String(";roomLevel=") + String::FromInt32(roomLevel) +
-            String(";roomHFLevel=") + String::FromInt32(roomHFLevel) +
-            String(";decayTime=") + String::FromInt32(decayTime) +
-            String(";decayHFRatio=") + String::FromInt32(decayHFRatio) +
-            String(";reflectionsLevel=") + String::FromInt32(reflectionsLevel) +
-            String(";reflectionsDelay=") + String::FromInt32(reflectionsDelay) +
-            String(";reverbLevel=") + String::FromInt32(reverbLevel) +
-            String(";reverbDelay=") + String::FromInt32(reverbDelay) +
-            String(";diffusion=") + String::FromInt32(diffusion) +
-            String(";density=") + String::FromInt32(density);
+            String(";roomLevel=") + String::FromInt32(mRoomLevel) +
+            String(";roomHFLevel=") + String::FromInt32(mRoomHFLevel) +
+            String(";decayTime=") + String::FromInt32(mDecayTime) +
+            String(";decayHFRatio=") + String::FromInt32(mDecayHFRatio) +
+            String(";reflectionsLevel=") + String::FromInt32(mReflectionsLevel) +
+            String(";reflectionsDelay=") + String::FromInt32(mReflectionsDelay) +
+            String(";reverbLevel=") + String::FromInt32(mReverbLevel) +
+            String(";reverbDelay=") + String::FromInt32(mReverbDelay) +
+            String(";diffusion=") + String::FromInt32(mDiffusion) +
+            String(";density=") + String::FromInt32(mDensity);
     return NOERROR;
 }
 
-ECode CEnvironmentalReverb::Settings::GetParameterInt32(
-    /* [in] */ String param,
-    /* [out] */  Int32* result)
+ECode CEnvironmentalReverb::Settings::GetRoomLevel(
+    /* [out] */ Int16* roomLevel)
 {
-    VALIDATE_NOT_NULL(result);
-
-    if (param.Equals("decayTime")) {
-        *result = decayTime;
-    }
-
-    if (param.Equals("reflectionsDelay")) {
-        *result = reflectionsDelay;
-    }
-
-    if (param.Equals("reverbDelay")) {
-        *result = reverbDelay;
-    }
+    VALIDATE_NOT_NULL(roomLevel);
+    *roomLevel = mRoomLevel;
     return NOERROR;
 }
 
-ECode CEnvironmentalReverb::Settings::SetParameterInt32(
-    /* [in] */ String param,
-    /* [in] */ Int32 result)
+ECode CEnvironmentalReverb::Settings::SetRoomLevel(
+    /* [in] */ Int16 roomLevel)
 {
-    if (param.Equals("decayTime")) {
-        decayTime = result;
-    }
-
-    if (param.Equals("reflectionsDelay")) {
-        reflectionsDelay = result;
-    }
-
-    if (param.Equals("reverbDelay")) {
-        reverbDelay = result;
-    }
+    mRoomLevel = roomLevel;
     return NOERROR;
 }
 
-ECode CEnvironmentalReverb::Settings::GetParameterInt16(
-    /* [in] */ String param,
-    /* [out] */  Int16* result)
+ECode CEnvironmentalReverb::Settings::GetRoomHFLevel(
+    /* [out] */ Int16* roomHFLevel)
 {
-    VALIDATE_NOT_NULL(result);
-
-    if (param.Equals("roomLevel")) {
-        *result = roomLevel;
-    }
-
-    if (param.Equals("roomHFLevel")) {
-        *result = roomHFLevel;
-    }
-
-    if (param.Equals("decayHFRatio")) {
-        *result = decayHFRatio;
-    }
-
-    if (param.Equals("reflectionsLevel")) {
-        *result = reflectionsLevel;
-    }
-
-    if (param.Equals("reverbLevel")) {
-        *result = reverbLevel;
-    }
-
-    if (param.Equals("diffusion")) {
-        *result = diffusion;
-    }
-
-    if (param.Equals("density")) {
-        *result = density;
-    }
-
+    VALIDATE_NOT_NULL(roomHFLevel);
+    *roomHFLevel = mRoomHFLevel;
     return NOERROR;
 }
 
-ECode CEnvironmentalReverb::Settings::SetParameterInt16(
-    /* [in] */ String param,
-    /* [in] */ Int16 result)
+ECode CEnvironmentalReverb::Settings::SetRoomHFLevel(
+    /* [in] */ Int16 roomHFLevel)
 {
-    if (param.Equals("roomLevel")) {
-        roomLevel = result;
-    }
+    mRoomHFLevel = roomHFLevel;
+    return NOERROR;
+}
 
-    if (param.Equals("roomHFLevel")) {
-        roomHFLevel = result;
-    }
+ECode CEnvironmentalReverb::Settings::GetDecayTime(
+    /* [out] */ Int32* decayTime)
+{
+    VALIDATE_NOT_NULL(decayTime);
+    *decayTime = mDecayTime;
+    return NOERROR;
+}
 
-    if (param.Equals("decayHFRatio")) {
-        decayHFRatio = result;
-    }
+ECode CEnvironmentalReverb::Settings::SetDecayTime(
+    /* [in] */ Int32 decayTime)
+{
+    mDecayTime = decayTime;
+    return NOERROR;
+}
 
-    if (param.Equals("reflectionsLevel")) {
-        reflectionsLevel = result;
-    }
+ECode CEnvironmentalReverb::Settings::GetDecayHFRatio(
+    /* [out] */ Int16* decayHFRatio)
+{
+    VALIDATE_NOT_NULL(decayHFRatio);
+    *decayHFRatio = mDecayHFRatio;
+    return NOERROR;
+}
+ECode CEnvironmentalReverb::Settings::SetDecayHFRatio(
+    /* [in] */ Int16 decayHFRatio)
+{
+    mDecayHFRatio = decayHFRatio;
+    return NOERROR;
+}
 
-    if (param.Equals("reverbLevel")) {
-        reverbLevel = result;
-    }
+ECode CEnvironmentalReverb::Settings::GetReflectionsLevel(
+    /* [out] */ Int16* reflectionsLevel)
+{
+    VALIDATE_NOT_NULL(reflectionsLevel);
+    *reflectionsLevel = mReflectionsLevel;
+    return NOERROR;
+}
 
-    if (param.Equals("diffusion")) {
-        diffusion = result;
-    }
+ECode CEnvironmentalReverb::Settings::SetReflectionsLevel(
+    /* [in] */ Int16 reflectionsLevel)
+{
+    mReflectionsLevel = reflectionsLevel;
+    return NOERROR;
+}
 
-    if (param.Equals("density")) {
-        density = result;
-    }
+ECode CEnvironmentalReverb::Settings::GetReflectionsDelay(
+    /* [out] */ Int32* reflectionsDelay)
+{
+    VALIDATE_NOT_NULL(reflectionsDelay);
+    *reflectionsDelay = mReflectionsDelay;
+    return NOERROR;
+}
+
+ECode CEnvironmentalReverb::Settings::SetReflectionsDelay(
+    /* [in] */ Int32 reflectionsDelay)
+{
+    mReflectionsDelay = reflectionsDelay;
+    return NOERROR;
+}
+
+ECode CEnvironmentalReverb::Settings::GetReverbLevel(
+    /* [out] */ Int16* reverbLevel)
+{
+    VALIDATE_NOT_NULL(reverbLevel);
+    *reverbLevel = mReverbLevel;
+    return NOERROR;
+}
+
+ECode CEnvironmentalReverb::Settings::SetReverbLevel(
+    /* [in] */ Int16 reverbLevel)
+{
+    mReverbLevel = reverbLevel;
+    return NOERROR;
+}
+
+ECode CEnvironmentalReverb::Settings::GetReverbDelay(
+    /* [out] */ Int16* reverbDelay)
+{
+    VALIDATE_NOT_NULL(reverbDelay);
+    *reverbDelay = mReverbDelay;
+    return NOERROR;
+}
+
+ECode CEnvironmentalReverb::Settings::SetReverbDelay(
+    /* [in] */ Int16 reverbDelay)
+{
+    mReverbDelay = reverbDelay;
+    return NOERROR;
+}
+
+ECode CEnvironmentalReverb::Settings::GetDiffusion(
+    /* [out] */ Int16* diffusion)
+{
+    VALIDATE_NOT_NULL(diffusion);
+    *diffusion = mDiffusion;
+    return NOERROR;
+}
+
+ECode CEnvironmentalReverb::Settings::SetDiffusion(
+    /* [in] */ Int16 diffusion)
+{
+    mDiffusion = diffusion;
+    return NOERROR;
+}
+
+ECode CEnvironmentalReverb::Settings::GetDensity(
+    /* [out] */ Int16* density)
+{
+    VALIDATE_NOT_NULL(density);
+    *density = mDensity;
+    return NOERROR;
+}
+
+ECode CEnvironmentalReverb::Settings::SetDensity(
+    /* [in] */ Int16 density)
+{
+    mDensity = density;
     return NOERROR;
 }
 
