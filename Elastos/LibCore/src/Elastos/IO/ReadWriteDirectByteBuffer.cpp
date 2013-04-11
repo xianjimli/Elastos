@@ -721,3 +721,11 @@ ECode ReadWriteDirectByteBuffer::Rewind()
     return DirectByteBuffer::Rewind();
 }
 
+ECode ReadWriteDirectByteBuffer::Equals(
+    /* [in]  */ IInterface* other,
+    /* [out] */ Boolean* isEquals)
+{
+    ByteBuffer::Equals(other, isEquals);
+    return NOERROR;
+}
+

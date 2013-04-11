@@ -56,3 +56,11 @@ ECode MappedByteBuffer::Force()
     }
     return NOERROR;
 }
+
+ECode MappedByteBuffer::Equals(
+    /* [in]  */ IInterface* other,
+    /* [out] */ Boolean* isEquals)
+{
+    ByteBuffer::Equals(other, isEquals);
+    return NOERROR;
+}

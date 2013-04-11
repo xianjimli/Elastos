@@ -133,14 +133,12 @@ ECode ByteBuffer::GetBytesEx(
     Int32 length = dst->GetLength();
     if ((off < 0) || (len < 0) || ((Int64) off + (Int64) len > length)) {
         return E_INDEX_OUT_OF_BOUNDS_EXCEPTION;
-//        throw new IndexOutOfBoundsException();
     }
 
     Int32 remaining;
     Remaining(&remaining);
     if (len > remaining) {
         return E_BUFFER_UNDER_FLOW_EXCEPTION;
-//        throw new BufferUnderflowException();
     }
     for (Int32 i = off; i < off + len; i++) {
         GetByte(&(*dst)[i]);
@@ -172,9 +170,6 @@ ECode ByteBuffer::SetOrder(
 ECode ByteBuffer::SetOrderImpl(
     /* [in] */ ByteOrder byteOrder)
 {
-    // if (byteOrder == null) {
-    //     byteOrder = ByteOrder.LITTLE_ENDIAN;
-    // }
     mOrder = byteOrder;
     return NOERROR;
 }
@@ -226,6 +221,41 @@ ECode ByteBuffer::PutByteBuffer(
     ArrayOf<Byte>* contents = ArrayOf<Byte>::Alloc(remaining);
     src->GetBytes(contents);
     PutBytes(*contents);
+    ArrayOf<Byte>::Free(contents);
+
+    return NOERROR;
+}
+
+ECode ByteBuffer::Equals(
+    /* [in]  */ IInterface* other,
+    /* [out] */ Boolean* isEquals)
+{
+    ByteBuffer* otherObj = (ByteBuffer*)(other->Probe(EIID_ByteBuffer));
+    if (NULL == otherObj) {
+        *isEquals = false;
+        return NOERROR;
+    }
+
+    Int32 remaining;
+    Int32 otherRemaining;
+    Remaining(&remaining);
+    otherObj->Remaining(&otherRemaining);
+    if (remaining != otherRemaining) {
+        *isEquals = false;
+        return NOERROR;
+    }
+
+    int myPosition      = mPosition;
+    int otherPosition   = otherObj->mPosition;
+
+    *isEquals = true;
+    Byte value;
+    Byte otherValue;
+    while (*isEquals && (myPosition < mLimit)) {
+        GetByteEx(myPosition++, &value);
+        otherObj->GetByteEx(otherPosition++, &otherValue);
+        *isEquals = (value == otherValue);
+    }
 
     return NOERROR;
 }
@@ -247,5 +277,3 @@ String ByteBuffer::ToString()
     buf += limit;
     return String(buf);
 }
-
-

@@ -709,4 +709,10 @@ ECode MappedByteBufferAdapter::Rewind()
     return MappedByteBuffer::Rewind();
 }
 
-
+ECode MappedByteBufferAdapter::Equals(
+    /* [in]  */ IInterface* other,
+    /* [out] */ Boolean* isEquals)
+{
+    ByteBuffer::Equals(other, isEquals);
+    return NOERROR;
+}

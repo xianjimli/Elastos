@@ -43,7 +43,7 @@ public:
      * @return the created byte buffer.
      */
     CARAPI Wrap(
-        /* [in] */ const ArrayOf<Byte>& array,
+        /* [in] */  ArrayOf<Byte>* array,
         /* [out] */ IByteBuffer** buf);
 
     /**
@@ -65,7 +65,7 @@ public:
      *                if either {@code start} or {@code len} is invalid.
      */
     CARAPI WrapEx(
-        /* [in] */ const ArrayOf<Byte>& array,
+        /* [in] */ ArrayOf<Byte>* array,
         /* [in] */ Int32 start,
         /* [in] */ Int32 len,
         /* [out] */ IByteBuffer** buf);

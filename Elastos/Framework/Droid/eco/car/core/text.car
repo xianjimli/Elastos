@@ -246,7 +246,7 @@ module
         interface ISpanWatcher;
     }
     
-    class CTextKeyListenerHelper {
+    singleton class CTextKeyListenerHelper {
         constructor();
         
         interface ITextKeyListenerHelper;

@@ -253,6 +253,9 @@ public:
 
     CARAPI Rewind();
 
+    virtual CARAPI Equals(
+        /* [in]  */ IInterface* other,
+        /* [out] */ Boolean* isEquals);
 };
 
 #endif // __ReadOnlyHeapByteBuffer_H__

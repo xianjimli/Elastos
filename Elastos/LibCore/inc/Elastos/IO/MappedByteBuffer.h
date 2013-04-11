@@ -37,6 +37,10 @@ public:
 
     CARAPI Force();
 
+    virtual CARAPI Equals(
+        /* [in]  */ IInterface* other,
+        /* [out] */ Boolean* isEquals);
+
 public:
     DirectByteBuffer* mWrapped;
 
