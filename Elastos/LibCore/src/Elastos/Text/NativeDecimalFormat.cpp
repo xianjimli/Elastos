@@ -4,7 +4,6 @@
 #include "ElStringByteSink.h"
 #include <Elastos.Utility.h>
 #include <unicode/decimfmt.h>
-// #include <unicode/numfmt.h>
 #include <unicode/unum.h>
 
 

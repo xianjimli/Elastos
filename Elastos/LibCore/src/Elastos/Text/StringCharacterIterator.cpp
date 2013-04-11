@@ -46,8 +46,7 @@ ECode StringCharacterIterator::Current(
 {
     VALIDATE_NOT_NULL(currentCharacter);
     if (offset == end) {
-        //return DONE;
-        //*index = '0xffff';
+        *currentCharacter = DONE;
         return NOERROR;
     }
     *currentCharacter = string.GetChar(offset);
@@ -59,8 +58,7 @@ ECode StringCharacterIterator::First(
 {
     VALIDATE_NOT_NULL(firstCharacter);
     if (start == end) {
-        //return DONE;
-        //*index = '0xffff';
+        *firstCharacter = DONE;
         return NOERROR;
     }
     offset = start;
@@ -97,8 +95,7 @@ ECode StringCharacterIterator::Last(
 {
     VALIDATE_NOT_NULL(endCharacter);
     if (start == end) {
-        //return DONE;
-        //*index = '0xffff';
+        *endCharacter = DONE;
         return NOERROR;
     }
     offset = end - 1;
@@ -112,8 +109,7 @@ ECode StringCharacterIterator::Next(
     VALIDATE_NOT_NULL(nextCharacter);
     if (offset >= (end - 1)) {
         offset = end;
-        //return DONE;
-        //*index = '0xffff';
+        *nextCharacter = DONE;
         return NOERROR;
     }
     *nextCharacter = string.GetChar(++offset);
@@ -125,8 +121,7 @@ ECode StringCharacterIterator::Previous(
 {
     VALIDATE_NOT_NULL(previousCharacter);
     if (offset == start) {
-        //return DONE;
-        //*index = '0xffff';
+        *previousCharacter = DONE;
         return NOERROR;
     }
     *previousCharacter = string.GetChar(--offset);
@@ -144,8 +139,7 @@ ECode StringCharacterIterator::SetIndex(
     }
     offset = location;
     if (offset == end) {
-        //return DONE;
-        //*index = '0xffff';
+        *index = DONE;
         return NOERROR;
     }
     *index = string.GetChar(offset);

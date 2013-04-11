@@ -5,11 +5,12 @@
 #include "Elastos.Text_server.h"
 #include <elastos.h>
 #include <elastos/AutoPtr.h>
-//#include "ICU.h"
 //#include "CRuleBasedCollator.h"
 #include "ICUCollator.h"
 
+
 using namespace Elastos;
+
 
 class Collator {
 public:
