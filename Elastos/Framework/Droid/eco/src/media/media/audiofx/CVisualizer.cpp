@@ -20,7 +20,7 @@ ECode CVisualizer::constructor(
     /* [in] */ Int32 audioSession)
 {
     ArrayOf_<Int32, 1> id;
-    Mutex::Autolock lock(mStateLock);
+    Mutex::Autolock lock(&mStateLock);
     mState = Visualizer_STATE_UNINITIALIZED;
     // native initialization
     /*
@@ -66,7 +66,7 @@ ECode CVisualizer::SetEnabled(
 {
     VALIDATE_NOT_NULL(result);
 
-    Mutex::Autolock lock(mStateLock);
+    Mutex::Autolock lock(&mStateLock);
     if (mState == Visualizer_STATE_UNINITIALIZED) {
 //        throw(new IllegalStateException("setEnabled() called in wrong state: "+mState));
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
@@ -88,7 +88,7 @@ ECode CVisualizer::GetEnabled(
 {
     VALIDATE_NOT_NULL(enabled);
 
-    Mutex::Autolock lock(mStateLock);
+    Mutex::Autolock lock(&mStateLock);
     if (mState == Visualizer_STATE_UNINITIALIZED) {
 //        throw(new IllegalStateException("getEnabled() called in wrong state: "+mState));
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
@@ -121,7 +121,7 @@ ECode CVisualizer::SetCaptureSize(
 {
     VALIDATE_NOT_NULL(result);
 
-    Mutex::Autolock lock(mStateLock);
+    Mutex::Autolock lock(&mStateLock);
     if (mState == Visualizer_STATE_INITIALIZED) {
 //        throw(new IllegalStateException("setCaptureSize() called in wrong state: "+mState));
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
@@ -136,7 +136,7 @@ ECode CVisualizer::GetCaptureSize(
 {
     VALIDATE_NOT_NULL(captureSize);
 
-    Mutex::Autolock lock(mStateLock);
+    Mutex::Autolock lock(&mStateLock);
     if (mState == Visualizer_STATE_UNINITIALIZED) {
 //        throw(new IllegalStateException("getCaptureSize() called in wrong state: "+mState));
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
@@ -150,7 +150,7 @@ ECode CVisualizer::GetSamplingRate(
 {
     VALIDATE_NOT_NULL(samplingRate);
 
-    Mutex::Autolock lock(mStateLock);
+    Mutex::Autolock lock(&mStateLock);
     if (mState == Visualizer_STATE_UNINITIALIZED) {
 //        throw(new IllegalStateException("getSamplingRate() called in wrong state: "+mState));
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
@@ -165,7 +165,7 @@ ECode CVisualizer::GetWaveForm(
 {
     VALIDATE_NOT_NULL(result);
 
-    Mutex::Autolock lock(mStateLock);
+    Mutex::Autolock lock(&mStateLock);
     if (mState == Visualizer_STATE_ENABLED) {
 //        throw(new IllegalStateException("getWaveForm() called in wrong state: "+mState));
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
@@ -181,7 +181,7 @@ ECode CVisualizer::GetFft(
 {
     VALIDATE_NOT_NULL(result);
 
-    Mutex::Autolock lock(mStateLock);
+    Mutex::Autolock lock(&mStateLock);
     if (mState == Visualizer_STATE_ENABLED) {
 //        throw(new IllegalStateException("getFft() called in wrong state: "+mState));
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
@@ -202,7 +202,7 @@ ECode CVisualizer::SetDataCaptureListener(
     VALIDATE_NOT_NULL(fft);
     VALIDATE_NOT_NULL(result);
 
-    Mutex::Autolock lock(mListenerLock);
+    Mutex::Autolock lock(&mListenerLock);
     mCaptureListener = listener;
     if (listener == NULL) {
         // make sure capture callback is stopped in native code

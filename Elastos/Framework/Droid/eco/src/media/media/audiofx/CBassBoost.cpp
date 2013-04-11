@@ -98,7 +98,7 @@ ECode CBassBoost::BaseParameterListener::OnParameterChange(
     /* [in] */ const ArrayOf<Byte>& value)
 {
     AutoPtr<IBassBoostOnParameterChangeListener> l;
-    Mutex::Autolock lock(mHost->mParamListenerLock);
+    Mutex::Autolock lock(&mHost->mParamListenerLock);
     if (mHost->mParamListener != NULL) {
         l = mHost->mParamListener;
     }
@@ -127,7 +127,7 @@ ECode CBassBoost::BaseParameterListener::OnParameterChange(
 ECode CBassBoost::SetParameterListenerEx(
     /* [in] */ IBassBoostOnParameterChangeListener* listener)
 {
-    Mutex::Autolock lock(mParamListenerLock);
+    Mutex::Autolock lock(&mParamListenerLock);
     if (mParamListener != NULL) {
         mParamListener = listener;
         mBaseParamListener = new BaseParameterListener();
@@ -242,8 +242,8 @@ ECode CBassBoost::SetEnabled(
 }
 
 ECode CBassBoost::SetParameter(
-    /* [in] */ const ArrayOf<Byte>& param,
-    /* [in] */ const ArrayOf<Byte>& value,
+    /* [in] */ ArrayOf<Byte>* param,
+    /* [in] */ ArrayOf<Byte>* value,
     /* [out] */ Int32* result)
 {
     return E_NOT_IMPLEMENTED;
@@ -267,40 +267,40 @@ ECode CBassBoost::SetParameterEx2(
 
 ECode CBassBoost::SetParameterEx3(
     /* [in] */ Int32 param,
-    /* [in] */ const ArrayOf<Byte>& value,
+    /* [in] */ ArrayOf<Byte>* value,
     /* [out] */ Int32* result)
 {
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CBassBoost::SetParameterEx4(
-    /* [in] */ const ArrayOf<Int32>& param,
-    /* [in] */ const ArrayOf<Int32>& value,
+    /* [in] */ ArrayOf<Int32>* param,
+    /* [in] */ ArrayOf<Int32>* value,
     /* [out] */ Int32* result)
 {
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CBassBoost::SetParameterEx5(
-    /* [in] */ const ArrayOf<Int32>& param,
-    /* [in] */ const ArrayOf<Int16>& value,
+    /* [in] */ ArrayOf<Int32>* param,
+    /* [in] */ ArrayOf<Int16>* value,
     /* [out] */ Int32* result)
 {
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CBassBoost::SetParameterEx6(
-    /* [in] */ const ArrayOf<Int32>& param,
-    /* [in] */ const ArrayOf<Byte>& value,
+    /* [in] */ ArrayOf<Int32>* param,
+    /* [in] */ ArrayOf<Byte>* value,
     /* [out] */ Int32* result)
 {
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CBassBoost::GetParameter(
-    /* [in] */ const ArrayOf<Byte>& param,
+    /* [in] */ ArrayOf<Byte>* param,
     /* [out] */ ArrayOf<Byte>* value,
-    /* [out] */  Int32* status)
+    /* [out] */ Int32* status)
 {
     return E_NOT_IMPLEMENTED;
 }
@@ -330,7 +330,7 @@ ECode CBassBoost::GetParameterEx3(
 }
 
 ECode CBassBoost::GetParameterEx4(
-    /* [in] */ const ArrayOf<Int32>& param,
+    /* [in] */ ArrayOf<Int32>* param,
     /* [out] */ ArrayOf<Int32>* value,
     /* [out] */ Int32* status)
 {
@@ -338,7 +338,7 @@ ECode CBassBoost::GetParameterEx4(
 }
 
 ECode CBassBoost::GetParameterEx5(
-    /* [in] */ const ArrayOf<Int32>& param,
+    /* [in] */ ArrayOf<Int32>* param,
     /* [out] */ ArrayOf<Int16>* value,
     /* [out] */ Int32* status)
 {
@@ -346,8 +346,8 @@ ECode CBassBoost::GetParameterEx5(
 }
 
 ECode CBassBoost::GetParameterEx6(
-    /* [in] */ const ArrayOf<Int32>& param,
-    /* [in] */ const ArrayOf<Byte>& value,
+    /* [in] */ ArrayOf<Int32>* param,
+    /* [in] */ ArrayOf<Byte>* value,
     /* [out] */ Int32* status)
 {
     return E_NOT_IMPLEMENTED;
@@ -355,7 +355,7 @@ ECode CBassBoost::GetParameterEx6(
 
 ECode CBassBoost::Command(
     /* [in] */ Int32 cmdCode,
-    /* [in] */ const ArrayOf<Byte>& command,
+    /* [in] */ ArrayOf<Byte>* command,
     /* [out] */ ArrayOf<Byte>* reply,
     /* [out] */ Int32* result)
 {
@@ -369,7 +369,7 @@ ECode CBassBoost::GetId(
 }
 
 ECode CBassBoost::GetEnabled(
-    /* [out] */ Boolean* getenable)
+    /* [out] */ Boolean* enabled)
 {
     return E_NOT_IMPLEMENTED;
 }

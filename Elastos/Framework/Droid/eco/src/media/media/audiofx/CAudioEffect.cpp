@@ -50,13 +50,12 @@ ECode CAudioEffect::SetEnabled(
 {
     VALIDATE_NOT_NULL(result);
 
-    CheckState("SetEnabled()");
     return AudioEffect::SetEnabled(enabled, result);
 }
 
 ECode CAudioEffect::SetParameter(
-    /* [in] */ const ArrayOf<Byte>& param,
-    /* [in] */ const ArrayOf<Byte>& value,
+    /* [in] */ ArrayOf<Byte>* param,
+    /* [in] */ ArrayOf<Byte>* value,
     /* [out] */ Int32* result)
 {
     VALIDATE_NOT_NULL(result);
@@ -86,7 +85,7 @@ ECode CAudioEffect::SetParameterEx2(
 
 ECode CAudioEffect::SetParameterEx3(
     /* [in] */ Int32 param,
-    /* [in] */ const ArrayOf<Byte>& value,
+    /* [in] */ ArrayOf<Byte>* value,
     /* [out] */ Int32* result)
 {
     VALIDATE_NOT_NULL(result);
@@ -95,8 +94,8 @@ ECode CAudioEffect::SetParameterEx3(
 }
 
 ECode CAudioEffect::SetParameterEx4(
-    /* [in] */ const ArrayOf<Int32>& param,
-    /* [in] */ const ArrayOf<Int32>& value,
+    /* [in] */ ArrayOf<Int32>* param,
+    /* [in] */ ArrayOf<Int32>* value,
     /* [out] */ Int32* result)
 {
     VALIDATE_NOT_NULL(result);
@@ -105,8 +104,8 @@ ECode CAudioEffect::SetParameterEx4(
 }
 
 ECode CAudioEffect::SetParameterEx5(
-    /* [in] */ const ArrayOf<Int32>& param,
-    /* [in] */ const ArrayOf<Int16>& value,
+    /* [in] */ ArrayOf<Int32>* param,
+    /* [in] */ ArrayOf<Int16>* value,
     /* [out] */ Int32* result)
 {
     VALIDATE_NOT_NULL(result);
@@ -114,9 +113,9 @@ ECode CAudioEffect::SetParameterEx5(
     return AudioEffect::SetParameterEx5(param, value, result);
 }
 ECode CAudioEffect::SetParameterEx6(
-        /* [in] */ const ArrayOf<Int32>& param,
-        /* [in] */ const ArrayOf<Byte>& value,
-        /* [out] */ Int32* result)
+    /* [in] */ ArrayOf<Int32>* param,
+    /* [in] */ ArrayOf<Byte>* value,
+    /* [out] */ Int32* result)
 {
     VALIDATE_NOT_NULL(result);
 
@@ -124,7 +123,7 @@ ECode CAudioEffect::SetParameterEx6(
 }
 
 ECode CAudioEffect::GetParameter(
-    /* [in] */ const ArrayOf<Byte>& param,
+    /* [in] */ ArrayOf<Byte>* param,
     /* [out] */ ArrayOf<Byte>* value,
     /* [out] */ Int32* status)
 {
@@ -167,7 +166,7 @@ ECode CAudioEffect::GetParameterEx3(
 }
 
 ECode CAudioEffect::GetParameterEx4(
-    /* [in] */ const ArrayOf<Int32>& param,
+    /* [in] */ ArrayOf<Int32>* param,
     /* [out] */ ArrayOf<Int32>* value,
     /* [out] */ Int32* status)
 {
@@ -177,7 +176,7 @@ ECode CAudioEffect::GetParameterEx4(
 }
 
 ECode CAudioEffect::GetParameterEx5(
-    /* [in] */ const ArrayOf<Int32>& param,
+    /* [in] */ ArrayOf<Int32>* param,
     /* [out] */ ArrayOf<Int16>* value,
     /* [out] */ Int32* status)
 {
@@ -188,8 +187,8 @@ ECode CAudioEffect::GetParameterEx5(
 }
 
 ECode CAudioEffect::GetParameterEx6(
-    /* [in] */ const ArrayOf<Int32>& param,
-    /* [in] */ const ArrayOf<Byte>& value,
+    /* [in] */ ArrayOf<Int32>* param,
+    /* [in] */ ArrayOf<Byte>* value,
     /* [out] */ Int32* status)
 {
     VALIDATE_NOT_NULL(status);
@@ -199,7 +198,7 @@ ECode CAudioEffect::GetParameterEx6(
 
 ECode CAudioEffect::Command(
     /* [in] */ Int32 cmdCode,
-    /* [in] */ const ArrayOf<Byte>& command,
+    /* [in] */ ArrayOf<Byte>* command,
     /* [out] */ ArrayOf<Byte>* reply,
     /* [out] */ Int32* result)
 {
@@ -218,11 +217,11 @@ ECode CAudioEffect::GetId(
 }
 
 ECode CAudioEffect::GetEnabled(
-    /* [out] */ Boolean* getenable)
+    /* [out] */ Boolean* enabled)
 {
-    VALIDATE_NOT_NULL(getenable);
+    VALIDATE_NOT_NULL(enabled);
 
-    return AudioEffect::GetEnabled(getenable);
+    return AudioEffect::GetEnabled(enabled);
 }
 
 ECode CAudioEffect::HasControl(

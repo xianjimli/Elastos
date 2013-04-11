@@ -6,6 +6,9 @@
 #include <elastos/AutoPtr.h>
 #include <elastos/ElRefBase.h>
 #include <elastos/HashMap.h>
+#include <elastos/Mutex.h>
+
+using namespace Elastos::Core::Threading;
 
 /**
  * AudioEffect is the base class for controlling audio effects provided by the android audio
@@ -67,21 +70,35 @@ public:
             /* [in] */ const String& name1,
             /* [in] */ const String& implementor1);
 
-        CARAPI GetParameterString(
-            /* [in] */ String param,
-            /* [out] */  String* result);
+        CARAPI GetType(
+            /* [out] */ IUUID** type);
 
-        CARAPI SetParameterString(
-            /* [in] */ String param,
-            /* [in] */ String result);
+        CARAPI SetType(
+            /* [in] */ IUUID* type);
 
-        CARAPI GetParameterUUID(
-            /* [in] */ String param,
-            /* [out] */ IUUID* result);
+        CARAPI GetUuid(
+            /* [out] */ IUUID** uuid);
 
-        CARAPI SetParameterUUID(
-            /* [in] */ String param,
-            /* [in] */ IUUID* result);
+        CARAPI SetUuid(
+            /* [in] */ IUUID* uuid);
+
+        CARAPI GetConnectMode(
+            /* [out] */ String* connectMode);
+
+        CARAPI SetConnectMode(
+            /* [in] */ String connectMode);
+
+        CARAPI GetName(
+            /* [out] */ String* name);
+
+        CARAPI SetName(
+            /* [in] */ String name);
+
+        CARAPI GetImplementor(
+            /* [out] */ String* implementor);
+
+        CARAPI SetImplementor(
+            /* [in] */ String implementor);
     public:
         /**
          *  Indicates the generic type of the effect (Equalizer, Bass boost ...). The UUID
@@ -121,6 +138,10 @@ private:
         , public IApartment
     {
     public:
+        CARAPI constructor(
+            /* [in] */ IAudioEffect* ae,
+            /* [in] */ IApartment* looper);
+
         CARAPI_(PInterface) Probe(
             /* [in]  */ REIID riid);
 
@@ -131,10 +152,6 @@ private:
         CARAPI GetInterfaceID(
             /* [in] */ IInterface *pObject,
             /* [out] */ InterfaceID *pIID);
-
-        CARAPI constructor(
-            /* [in] */ IAudioEffect* ae,
-            /* [in] */ IApartment* looper);
 
         CARAPI HandleMessage(
             /* [in] */ IMessage* msg);
@@ -147,7 +164,7 @@ private:
 public:
     AudioEffect();
 
-//    virtual ~AudioEffect();
+    virtual ~AudioEffect();
 
     /**
      * Releases the native AudioEffect resources. It is a good practice to
@@ -176,7 +193,7 @@ public:
     * @throws IllegalStateException
     */
 
-    static CARAPI QueryEffects(
+    /* static */ CARAPI QueryEffects(
         /* [out, callee] */ ArrayOf<IAudioEffectDescriptor*>** descriptor);
 
     /**
@@ -213,8 +230,8 @@ public:
      * @hide
      */
     CARAPI SetParameter(
-        /* [in] */ const ArrayOf<Byte>& param,
-        /* [in] */ const ArrayOf<Byte>& value,
+        /* [in] */ ArrayOf<Byte>* param,
+        /* [in] */ ArrayOf<Byte>* value,
         /* [out] */ Int32* result);
 
     /**
@@ -249,7 +266,7 @@ public:
      */
     CARAPI SetParameterEx3(
         /* [in] */ Int32 param,
-        /* [in] */ const ArrayOf<Byte>& value,
+        /* [in] */ ArrayOf<Byte>* value,
         /* [out] */ Int32* result);
 
     /**
@@ -260,8 +277,8 @@ public:
      * @hide
      */
     CARAPI SetParameterEx4(
-        /* [in] */ const ArrayOf<Int32>& param,
-        /* [in] */ const ArrayOf<Int32>& value,
+        /* [in] */ ArrayOf<Int32>* param,
+        /* [in] */ ArrayOf<Int32>* value,
         /* [out] */ Int32* result);
 
     /**
@@ -272,8 +289,8 @@ public:
      * @hide
      */
     CARAPI SetParameterEx5(
-        /* [in] */ const ArrayOf<Int32>& param,
-        /* [in] */ const ArrayOf<Int16>& value,
+        /* [in] */ ArrayOf<Int32>* param,
+        /* [in] */ ArrayOf<Int16>* value,
         /* [out] */ Int32* result);
 
     /**
@@ -284,8 +301,8 @@ public:
      * @hide
      */
     CARAPI SetParameterEx6(
-        /* [in] */ const ArrayOf<Int32>& param,
-        /* [in] */ const ArrayOf<Byte>& value,
+        /* [in] */ ArrayOf<Int32>* param,
+        /* [in] */ ArrayOf<Byte>* value,
         /* [out] */ Int32* result);
 
     /**
@@ -307,7 +324,7 @@ public:
      * @hide
      */
     CARAPI GetParameter(
-        /* [in] */ const ArrayOf<Byte>& param,
+        /* [in] */ ArrayOf<Byte>* param,
         /* [out] */ ArrayOf<Byte>* value,
         /* [out] */ Int32* status);
 
@@ -355,7 +372,7 @@ public:
      * @hide
      */
     CARAPI GetParameterEx4(
-        /* [in] */ const ArrayOf<Int32>& param,
+        /* [in] */ ArrayOf<Int32>* param,
         /* [out] */ ArrayOf<Int32>* value,
         /* [out] */ Int32* status);
 
@@ -367,7 +384,7 @@ public:
      * @hide
      */
     CARAPI GetParameterEx5(
-        /* [in] */ const ArrayOf<Int32>& param,
+        /* [in] */ ArrayOf<Int32>* param,
         /* [out] */ ArrayOf<Int16>* value,
         /* [out] */ Int32* status);
 
@@ -379,8 +396,8 @@ public:
      * @hide
      */
     CARAPI GetParameterEx6(
-        /* [in] */ const ArrayOf<Int32>& param,
-        /* [in] */ const ArrayOf<Byte>& value,
+        /* [in] */ ArrayOf<Int32>* param,
+        /* [in] */ ArrayOf<Byte>* value,
         /* [out] */ Int32* status);
 
     /**
@@ -391,7 +408,7 @@ public:
      */
     CARAPI Command(
         /* [in] */ Int32 cmdCode,
-        /* [in] */ const ArrayOf<Byte>& command,
+        /* [in] */ ArrayOf<Byte>* command,
         /* [out] */ ArrayOf<Byte>* reply,
         /* [out] */ Int32* result);
 
@@ -413,7 +430,7 @@ public:
      * @throws IllegalStateException
      */
     CARAPI GetEnabled(
-        /* [out] */ Boolean* getenable);
+        /* [out] */ Boolean* enabled);
 
     /**
      * Checks if this AudioEffect object is controlling the effect engine.
@@ -563,8 +580,6 @@ protected:
         /* [in] */ Int32 priority,
         /* [in] */ Int32 audioSession);
 
-    CARAPI_(void) Finalize();
-
 private:
     // Convenience method for the creation of the native event handler
     // It is called only when a non-null event listener is set.
@@ -635,7 +650,7 @@ public:
      * @hide
      */
 
-    AutoPtr<IInterface> mListenerLock;
+    Mutex mListenerLock;
 
     /**
      * Handler for events coming from the native code
@@ -656,7 +671,7 @@ private:
     /**
      * Lock to synchronize access to mState
      */
-    AutoPtr<IInterface> mStateLock;
+    Mutex mStateLock;
     /**
      * System wide unique effect ID
      */
