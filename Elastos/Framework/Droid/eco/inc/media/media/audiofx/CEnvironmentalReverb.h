@@ -389,8 +389,8 @@ public:
         /* [out] */ Int32* result);
 
     CARAPI SetParameter(
-        /* [in] */ const ArrayOf<Byte>& param,
-        /* [in] */ const ArrayOf<Byte>& value,
+        /* [in] */ ArrayOf<Byte>* param,
+        /* [in] */ ArrayOf<Byte>* value,
         /* [out] */ Int32* result);
 
     CARAPI SetParameterEx(
@@ -405,28 +405,28 @@ public:
 
     CARAPI SetParameterEx3(
         /* [in] */ Int32 param,
-        /* [in] */ const ArrayOf<Byte>& value,
+        /* [in] */ ArrayOf<Byte>* value,
         /* [out] */ Int32* result);
 
     CARAPI SetParameterEx4(
-        /* [in] */ const ArrayOf<Int32>& param,
-        /* [in] */ const ArrayOf<Int32>& value,
+        /* [in] */ ArrayOf<Int32>* param,
+        /* [in] */ ArrayOf<Int32>* value,
         /* [out] */ Int32* result);
 
     CARAPI SetParameterEx5(
-        /* [in] */ const ArrayOf<Int32>& param,
-        /* [in] */ const ArrayOf<Int16>& value,
+        /* [in] */ ArrayOf<Int32>* param,
+        /* [in] */ ArrayOf<Int16>* value,
         /* [out] */ Int32* result);
 
     CARAPI SetParameterEx6(
-        /* [in] */ const ArrayOf<Int32>& param,
-        /* [in] */ const ArrayOf<Byte>& value,
+        /* [in] */ ArrayOf<Int32>* param,
+        /* [in] */ ArrayOf<Byte>* value,
         /* [out] */ Int32* result);
 
     CARAPI GetParameter(
-        /* [in] */ const ArrayOf<Byte>& param,
+        /* [in] */ ArrayOf<Byte>* param,
         /* [out] */ ArrayOf<Byte>* value,
-        /* [out] */  Int32* status);
+        /* [out] */ Int32* status);
 
     CARAPI GetParameterEx(
         /* [in] */ Int32 param,
@@ -444,23 +444,23 @@ public:
         /* [out] */ Int32* status);
 
     CARAPI GetParameterEx4(
-        /* [in] */ const ArrayOf<Int32>& param,
+        /* [in] */ ArrayOf<Int32>* param,
         /* [out] */ ArrayOf<Int32>* value,
         /* [out] */ Int32* status);
 
     CARAPI GetParameterEx5(
-        /* [in] */ const ArrayOf<Int32>& param,
+        /* [in] */ ArrayOf<Int32>* param,
         /* [out] */ ArrayOf<Int16>* value,
         /* [out] */ Int32* status);
 
     CARAPI GetParameterEx6(
-        /* [in] */ const ArrayOf<Int32>& param,
-        /* [in] */ const ArrayOf<Byte>& value,
+        /* [in] */ ArrayOf<Int32>* param,
+        /* [in] */ ArrayOf<Byte>* value,
         /* [out] */ Int32* status);
 
     CARAPI Command(
         /* [in] */ Int32 cmdCode,
-        /* [in] */ const ArrayOf<Byte>& command,
+        /* [in] */ ArrayOf<Byte>* command,
         /* [out] */ ArrayOf<Byte>* reply,
         /* [out] */ Int32* result);
 
@@ -468,7 +468,7 @@ public:
         /* [out] */ Int32* Id);
 
     CARAPI GetEnabled(
-        /* [out] */ Boolean* getenable);
+        /* [out] */ Boolean* enabled);
 
     CARAPI HasControl(
         /* [out] */ Boolean* control);

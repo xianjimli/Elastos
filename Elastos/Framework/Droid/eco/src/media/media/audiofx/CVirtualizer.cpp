@@ -99,7 +99,7 @@ ECode CVirtualizer::BaseParameterListener::OnParameterChange(
 {
     AutoPtr<IVirtualizerOnParameterChangeListener> l;
 
-    Mutex::Autolock lock(mHost->mParamListenerLock);
+    Mutex::Autolock lock(&mHost->mParamListenerLock);
     if (mHost->mParamListener != NULL) {
         l = mHost->mParamListener;
     }
@@ -129,7 +129,7 @@ ECode CVirtualizer::BaseParameterListener::OnParameterChange(
 ECode CVirtualizer::SetParameterListenerEx(
     /* [in] */ IVirtualizerOnParameterChangeListener* listener)
 {
-    Mutex::Autolock lock(mParamListenerLock);
+    Mutex::Autolock lock(&mParamListenerLock);
     if (mParamListener != NULL) {
         mParamListener = listener;
         mBaseParamListener = new BaseParameterListener();
@@ -244,8 +244,8 @@ ECode CVirtualizer::SetEnabled(
 }
 
 ECode CVirtualizer::SetParameter(
-    /* [in] */ const ArrayOf<Byte>& param,
-    /* [in] */ const ArrayOf<Byte>& value,
+    /* [in] */ ArrayOf<Byte>* param,
+    /* [in] */ ArrayOf<Byte>* value,
     /* [out] */ Int32* result)
 {
     return E_NOT_IMPLEMENTED;
@@ -269,46 +269,46 @@ ECode CVirtualizer::SetParameterEx2(
 
 ECode CVirtualizer::SetParameterEx3(
     /* [in] */ Int32 param,
-    /* [in] */ const ArrayOf<Byte>& value,
+    /* [in] */ ArrayOf<Byte>* value,
     /* [out] */ Int32* result)
 {
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CVirtualizer::SetParameterEx4(
-    /* [in] */ const ArrayOf<Int32>& param,
-    /* [in] */ const ArrayOf<Int32>& value,
+    /* [in] */ ArrayOf<Int32>* param,
+    /* [in] */ ArrayOf<Int32>* value,
     /* [out] */ Int32* result)
 {
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CVirtualizer::SetParameterEx5(
-    /* [in] */ const ArrayOf<Int32>& param,
-    /* [in] */ const ArrayOf<Int16>& value,
+    /* [in] */ ArrayOf<Int32>* param,
+    /* [in] */ ArrayOf<Int16>* value,
     /* [out] */ Int32* result)
 {
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CVirtualizer::SetParameterEx6(
-    /* [in] */ const ArrayOf<Int32>& param,
-    /* [in] */ const ArrayOf<Byte>& value,
+    /* [in] */ ArrayOf<Int32>* param,
+    /* [in] */ ArrayOf<Byte>* value,
     /* [out] */ Int32* result)
 {
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CVirtualizer::GetParameter(
-    /* [in] */ const ArrayOf<Byte>& param,
+    /* [in] */ ArrayOf<Byte>* param,
     /* [out] */ ArrayOf<Byte>* value,
-    /* [out] */  Int32* status)
+    /* [out] */ Int32* status)
 {
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CVirtualizer::GetParameterEx(
-    /* [in] */ Int32 param,
+    /* [in] */ const Int32 param,
     /* [out] */ ArrayOf<Byte>* value,
     /* [out] */ Int32* status)
 {
@@ -332,7 +332,7 @@ ECode CVirtualizer::GetParameterEx3(
 }
 
 ECode CVirtualizer::GetParameterEx4(
-    /* [in] */ const ArrayOf<Int32>& param,
+    /* [in] */ ArrayOf<Int32>* param,
     /* [out] */ ArrayOf<Int32>* value,
     /* [out] */ Int32* status)
 {
@@ -340,7 +340,7 @@ ECode CVirtualizer::GetParameterEx4(
 }
 
 ECode CVirtualizer::GetParameterEx5(
-    /* [in] */ const ArrayOf<Int32>& param,
+    /* [in] */ ArrayOf<Int32>* param,
     /* [out] */ ArrayOf<Int16>* value,
     /* [out] */ Int32* status)
 {
@@ -348,8 +348,8 @@ ECode CVirtualizer::GetParameterEx5(
 }
 
 ECode CVirtualizer::GetParameterEx6(
-    /* [in] */ const ArrayOf<Int32>& param,
-    /* [in] */ const ArrayOf<Byte>& value,
+    /* [in] */ ArrayOf<Int32>* param,
+    /* [in] */ ArrayOf<Byte>* value,
     /* [out] */ Int32* status)
 {
     return E_NOT_IMPLEMENTED;
@@ -357,7 +357,7 @@ ECode CVirtualizer::GetParameterEx6(
 
 ECode CVirtualizer::Command(
     /* [in] */ Int32 cmdCode,
-    /* [in] */ const ArrayOf<Byte>& command,
+    /* [in] */ ArrayOf<Byte>* command,
     /* [out] */ ArrayOf<Byte>* reply,
     /* [out] */ Int32* result)
 {
