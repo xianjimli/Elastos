@@ -275,6 +275,10 @@ module
             [in] String capsuleName,
             [in] String className);
 
+        constructor(
+            [in] IContext* capsule,
+            [in] String className);
+
         interface IComponentName;
         interface IParcelable;
     }

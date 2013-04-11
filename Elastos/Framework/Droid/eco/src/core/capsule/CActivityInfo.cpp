@@ -1,6 +1,7 @@
 
 #include "capsule/CActivityInfo.h"
 #include "ext/frameworkdef.h"
+#include <stdio.h>
 
 
 CActivityInfo::CActivityInfo()
@@ -283,6 +284,7 @@ ECode CActivityInfo::GetTheme(
 {
     VALIDATE_NOT_NULL(theme);
     *theme = mTheme;
+
     return NOERROR;
 }
 
@@ -418,6 +420,7 @@ ECode CActivityInfo::ReadFromParcel(
     /* [in] */ IParcel* source)
 {
     ComponentInfo::ReadFromParcel(source);
+    source->ReadInt32(&mTheme);
     source->ReadInt32(&mLaunchMode);
     return NOERROR;
 }
@@ -426,6 +429,7 @@ ECode CActivityInfo::WriteToParcel(
     /* [in] */ IParcel* dest)
 {
     ComponentInfo::WriteToParcel(dest);
+    dest->WriteInt32(mTheme);
     dest->WriteInt32(mLaunchMode);
     return NOERROR;
 }
@@ -441,6 +445,7 @@ ECode CActivityInfo::GetThemeResource(
     /* [out] */ Int32* theme)
 {
     VALIDATE_NOT_NULL(theme);
+
     if (mTheme !=0) *theme = mTheme;
     else *theme = ComponentInfo::mApplicationInfo->mTheme;
     return NOERROR;

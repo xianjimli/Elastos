@@ -102,6 +102,9 @@ public:
     CARAPI AddSignature(
         /* [in] */ ISignature* signature);
 
+    CARAPI GetSignatures(
+        /* [out] */ IObjectContainer** signatures);
+
     CARAPI AddConfigPreference(
         /* [in] */ IConfigurationInfo* config);
 

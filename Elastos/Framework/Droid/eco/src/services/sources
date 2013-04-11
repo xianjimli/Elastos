@@ -79,6 +79,7 @@ SOURCES += TextUtils.cpp
 SOURCES += Binder.cpp
 SOURCES += SparseInt32Array.cpp
 SOURCES += ElPixelFormat.cpp
+SOURCES += Settings.cpp
 
 LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.lib
 LIBRARIES += $(XDK_USER_LIB)/Elastos.Utility.lib

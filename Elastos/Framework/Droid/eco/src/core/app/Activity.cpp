@@ -13,7 +13,6 @@
 #include <stdio.h>
 #include <elastos/Thread.h>
 
-
 const String Activity::WINDOW_HIERARCHY_TAG = String("android:viewHierarchyState");
 const String Activity::SAVED_DIALOG_IDS_KEY = String("android:savedDialogIds");
 const String Activity::SAVED_DIALOGS_TAG = String("android:savedDialogs");
@@ -22,11 +21,17 @@ const String Activity::SAVED_DIALOG_ARGS_KEY_PREFIX = String("android:dialog_arg
 
 Activity::Activity()
     : mManagedDialogs(NULL)
+    , mCalled(FALSE)
+    , mResumed(FALSE)
+    , mStopped(FALSE)
+    , mFinished(FALSE)
+    , mStartedActivity(FALSE)
     , mWindowAdded(FALSE)
     , mVisibleFromClient(TRUE)
     , mTitleColor(0)
     , mTitleReady(FALSE)
     , mDefaultKeyMode(Activity_DEFAULT_KEYS_DISABLE)
+    , mThemeResource(0)
 {}
 
 Activity::~Activity()
@@ -275,7 +280,9 @@ ECode Activity::GetText(
     /* [in] */ Int32 resId,
     /* [out] */ ICharSequence** text)
 {
-    return mBase->GetText(resId, text);
+    AutoPtr<IResources> resources;
+    GetResources((IResources**)&resources);
+    return resources->GetText(resId, text);
 }
 
 ECode Activity::GetString(
@@ -316,7 +323,9 @@ ECode Activity::ObtainStyledAttributes(
     /* [in] */ const ArrayOf<Int32>& attrs,
     /* [out] */ ITypedArray** styles)
 {
-    return mBase->ObtainStyledAttributes(attrs, styles);
+    AutoPtr<ITheme> theme;
+    GetTheme((ITheme**)&theme);
+    return theme->ObtainStyledAttributes(attrs, styles);
 }
 
 ECode Activity::ObtainStyledAttributesEx(
@@ -324,7 +333,9 @@ ECode Activity::ObtainStyledAttributesEx(
     /* [in] */ const ArrayOf<Int32>& attrs,
     /* [out] */ ITypedArray** styles)
 {
-    return mBase->ObtainStyledAttributesEx(resid, attrs, styles);
+    AutoPtr<ITheme> theme;
+    GetTheme((ITheme**)&theme);
+    return theme->ObtainStyledAttributesEx(resid, attrs, styles);
 }
 
 ECode Activity::ObtainStyledAttributesEx2(
@@ -332,7 +343,9 @@ ECode Activity::ObtainStyledAttributesEx2(
     /* [in] */ const ArrayOf<Int32>& attrs,
     /* [out] */ ITypedArray** styles)
 {
-    return mBase->ObtainStyledAttributesEx2(set, attrs, styles);
+    AutoPtr<ITheme> theme;
+    GetTheme((ITheme**)&theme);
+    return theme->ObtainStyledAttributesEx2(set, attrs, 0, 0, styles);
 }
 
 ECode Activity::ObtainStyledAttributesEx3(
@@ -342,8 +355,9 @@ ECode Activity::ObtainStyledAttributesEx3(
     /* [in] */ Int32 defStyleRes,
     /* [out] */ ITypedArray** styles)
 {
-    return mBase->ObtainStyledAttributesEx3(set, attrs,
-            defStyleAttr, defStyleRes, styles);
+    AutoPtr<ITheme> theme;
+    GetTheme((ITheme**)&theme);
+    return theme->ObtainStyledAttributesEx2(set, attrs, defStyleAttr, defStyleRes, styles);
 }
 
 ECode Activity::GetClassLoader(
@@ -721,9 +735,13 @@ ECode Activity::AttachEx(
     }
 
     mWindow->SetCallback((IWindowCallback*)this);
-//    if (info.softInputMode != WindowManager.LayoutParams.SOFT_INPUT_STATE_UNSPECIFIED) {
-//        mWindow.setSoftInputMode(info.softInputMode);
-//    }
+
+    assert(info != NULL);
+    Int32 softInputMode = 0;
+    info->GetSoftInputMode(&softInputMode);
+    if (softInputMode != WindowManagerLayoutParams_SOFT_INPUT_STATE_UNSPECIFIED) {
+        mWindow->SetSoftInputMode(softInputMode);
+    }
 
     mTitle = title;
 
@@ -1372,7 +1390,7 @@ ECode Activity::PerformStop()
 ECode Activity::PerformSaveInstanceState(
     /* [in] */ IBundle* outState)
 {
-//    OnSaveInstanceState(outState);
+    OnSaveInstanceState(outState);
 //    saveManagedDialogs(outState);
     return NOERROR;
 }
@@ -1457,7 +1475,17 @@ ECode Activity::OnApplyThemeResource(
     /* [in] */ Int32 resid,
     /* [in] */ Boolean first)
 {
-    return theme->ApplyStyle(resid, TRUE);
+    //return theme->ApplyStyle(resid, TRUE);
+    if (mParent == NULL) {
+        return theme->ApplyStyle(resid, TRUE);
+    } else {
+        AutoPtr<ITheme> parentTheme;
+        mParent->GetTheme((ITheme**) &parentTheme);
+        theme->SetTo(parentTheme);
+        theme->ApplyStyle(resid, FALSE);
+    }
+
+    return NOERROR;
 }
 
 ECode Activity::InitializeTheme()
@@ -1473,7 +1501,6 @@ ECode Activity::InitializeTheme()
             mTheme->SetTo(theme);
         }
     }
-
     return OnApplyThemeResource(mTheme, mThemeResource, first);
 }
 
@@ -1875,6 +1902,13 @@ ECode Activity::OnContextMenuClosed(
         return mParent->OnContextMenuClosed(menu);
     }
 
+    return NOERROR;
+}
+
+ECode Activity::SetStartedActivity(
+    /* [in] */ Boolean started)
+{
+    mStartedActivity = started;
     return NOERROR;
 }
 

@@ -5,4 +5,5 @@ DIRS += inc/core/content
 DIRS += inc/core/net
 DIRS += inc/core/inputmethodservice
 DIRS += inc/core/utils
+DIRS += inc/core/provider
 DIRS += src

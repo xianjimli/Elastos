@@ -180,14 +180,14 @@ module
         * be available from the initial {@link #onCreate} and
         * {@link #onStart} calls to the new instance, allowing you to extract
         * any useful dynamic state from the previous instance.
-        * 
+        *
         * <p>Note that the data you retrieve here should <em>only</em> be used
         * as an optimization for handling configuration changes.  You should always
         * be able to handle getting a null pointer back, and an activity must
         * still be able to restore itself to its previous state (through the
         * normal {@link #onSaveInstanceState(Bundle)} mechanism) even if this
         * function returns null.
-        * 
+        *
         * @return Returns the object previously returned by
         * {@link #onRetainNonConfigurationChildInstances()}
         */
@@ -539,6 +539,9 @@ module
          */
         OnContextMenuClosed(
             [in] IMenu* menu);
+
+        SetStartedActivity(
+            [in] Boolean started);
     }
 }
 

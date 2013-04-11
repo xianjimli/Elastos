@@ -339,7 +339,7 @@ public:
          * @param name to look up in the table
          * @return the corresponding value, or null if not present
          */
-        CARAPI GetString(
+        static CARAPI GetString(
             /* [in] */ IContentResolver* resolver,
             /* [in] */ const String& name,
             /* [out] */ String* value);
@@ -351,7 +351,7 @@ public:
         * @param value to associate with the name
         * @return true if the value was set, false on database errors
         */
-       CARAPI PutString(
+       static CARAPI PutString(
            /* [in] */ IContentResolver* resolver,
            /* [in] */ const String& name,
            /* [in] */ const String& value,
@@ -363,7 +363,7 @@ public:
         * @param name to look up in the table
         * @return the corresponding content URI, or null if not present
         */
-       CARAPI GetUriFor(
+       static CARAPI GetUriFor(
            /* [in] */ const String& name,
            /* [out] */ IUri** uri);
 
@@ -381,7 +381,7 @@ public:
         * @return The setting's current value, or 'def' if it is not defined
         * or not a valid integer.
         */
-       CARAPI GetInt32(
+       static CARAPI GetInt32(
            /* [in] */ IContentResolver* cr,
            /* [in] */ const String& name,
            /* [in] */ Int32 def,
@@ -405,7 +405,7 @@ public:
         *
         * @return The setting's current value.
         */
-       CARAPI GetInt32Ex(
+       static CARAPI GetInt32Ex(
            /* [in] */ IContentResolver* cr,
            /* [in] */ const String& name,
            /* [out] */ Int32* value);
@@ -423,7 +423,7 @@ public:
         * @param value The new value for the setting.
         * @return true if the value was set, false on database errors
         */
-       CARAPI PutInt32(
+       static CARAPI PutInt32(
            /* [in] */ IContentResolver* cr,
            /* [in] */ const String& name,
            /* [in] */ Int32 value,
@@ -443,7 +443,7 @@ public:
         * @return The setting's current value, or 'def' if it is not defined
         * or not a valid {@code long}.
         */
-       CARAPI GetInt64(
+       static CARAPI GetInt64(
            /* [in] */ IContentResolver* cr,
            /* [in] */ const String& name,
            /* [in] */ Int64 def,
@@ -466,7 +466,7 @@ public:
         * @throws SettingNotFoundException Thrown if a setting by the given
         * name can't be found or the setting value is not an integer.
         */
-       CARAPI GetInt64Ex(
+       static CARAPI GetInt64Ex(
            /* [in] */ IContentResolver* cr,
            /* [in] */ const String& name,
            /* [out] */ Int64* value);
@@ -484,7 +484,7 @@ public:
         * @param value The new value for the setting.
         * @return true if the value was set, false on database errors
         */
-       CARAPI PutInt64(
+       static CARAPI PutInt64(
            /* [in] */ IContentResolver* cr,
            /* [in] */ const String& name,
            /* [in] */ Int64 value,
@@ -504,7 +504,7 @@ public:
         * @return The setting's current value, or 'def' if it is not defined
         * or not a valid float.
         */
-       CARAPI GetFloat(
+       static CARAPI GetFloat(
            /* [in] */ IContentResolver* cr,
            /* [in] */ const String& name,
            /* [in] */ Float def,
@@ -528,7 +528,7 @@ public:
         *
         * @return The setting's current value.
         */
-       CARAPI GetFloatEx(
+       static CARAPI GetFloatEx(
            /* [in] */ IContentResolver* cr,
            /* [in] */ const String& name,
            /* [out] */ Float* value);
@@ -546,7 +546,7 @@ public:
         * @param value The new value for the setting.
         * @return true if the value was set, false on database errors
         */
-       CARAPI PutFloat(
+       static CARAPI PutFloat(
            /* [in] */ IContentResolver* cr,
            /* [in] */ const String& name,
            /* [in] */ Float value,
@@ -556,7 +556,7 @@ public:
         * Get the key that retrieves a bluetooth headset's priority.
         * @hide
         */
-       CARAPI GetBluetoothHeadsetPriorityKey(
+       static CARAPI GetBluetoothHeadsetPriorityKey(
            /* [in] */ const String& address,
            /* [out] */ String* key);
 
@@ -564,7 +564,7 @@ public:
         * Get the key that retrieves a bluetooth a2dp sink's priority.
         * @hide
         */
-       CARAPI GetBluetoothA2dpSinkPriorityKey(
+       static CARAPI GetBluetoothA2dpSinkPriorityKey(
            /* [in] */ const String& address,
            /* [out] */ String* key);
 
@@ -574,7 +574,7 @@ public:
         * @param provider the location provider to query
         * @return true if the provider is enabled
         */
-       CARAPI IsLocationProviderEnabled(
+       static CARAPI IsLocationProviderEnabled(
            /* [in] */ IContentResolver* cr,
            /* [in] */ const String& provider,
            /* [out] */ Boolean* result);
@@ -585,7 +585,7 @@ public:
         * @param provider the location provider to enable or disable
         * @param enabled true if the provider should be enabled
         */
-       CARAPI SetLocationProviderEnabled(
+       static CARAPI SetLocationProviderEnabled(
            /* [in] */ IContentResolver* cr,
            /* [in] */ const String& provider,
            /* [in] */ Boolean enabled);

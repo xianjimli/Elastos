@@ -163,7 +163,7 @@ private:
     public:
         PerformBackupTask(
             /* [in] */ IBackupTransport* transport,
-            /* [in] */ ArrayOf<BackupRequest*>* queue,
+            /* [in] */ List<BackupRequest*>* queue,
             /* [in] */ IFile* journal,
             /* [in] */ CBackupManagerService* host);
 
@@ -181,10 +181,17 @@ private:
 
         CARAPI_(UInt32) Release();
 
+        CARAPI_(PInterface) Probe(
+            /* [in] */ REIID riid);
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
     private:
         static CString TAG;
         AutoPtr<IBackupTransport> mTransport;
-        ArrayOf<BackupRequest*>* mQueue;
+        List<BackupRequest*>* mQueue;
         AutoPtr<IFile> mStateDir;
         AutoPtr<IFile> mJournal;
         CBackupManagerService*  mHost;
@@ -272,6 +279,13 @@ private:
 
         CARAPI_(UInt32) Release();
 
+        CARAPI_(PInterface) Probe(
+            /* [in] */ REIID riid);
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
     private:
         HashSet<String>* mQueue;
     };
@@ -314,7 +328,7 @@ private:
 
         String mPackageName;
         AutoPtr<IBackupTransport> mRestoreTransport;
-        ArrayOf<IRestoreSet>* mRestoreSets;
+        List<IRestoreSet>* mRestoreSets;
         CBackupManagerService* mHost;
     };
 
@@ -343,6 +357,13 @@ private:
         CARAPI_(UInt32) AddRef();
 
         CARAPI_(UInt32) Release();
+
+        CARAPI_(PInterface) Probe(
+            /* [in] */ REIID riid);
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
     };
 
 public:
@@ -450,6 +471,24 @@ private:
         /* [in] */ const String& name,
         /* [in] */ IBackupTransport* transport);
 
+    // Add the backup agents in the given package to our set of known backup participants.
+    // If 'packageName' is null, adds all backup agents in the whole system.
+    CARAPI_(void) AddPackageParticipantsLocked(
+        /* [in] */ const String& packageName);
+
+    CARAPI_(void) AddPackageParticipantsLockedInner(
+        /* [in] */ const String& packageName,
+        /* [in] */ List<AutoPtr<ICapsuleInfo> >* targetPkgs);
+
+    // Remove the given package's entry from our known active set.  If
+    // 'packageName' is null, *all* participating apps will be removed.
+    CARAPI_(void) RemovePackageParticipantsLocked(
+        /* [in] */ const String& packageName);
+
+    CARAPI_(void) RemovePackageParticipantsLockedInner(
+        /* [in] */ const String& packageName,
+        /* [in] */ List<AutoPtr<ICapsuleInfo> >* agents);
+
     // Returns the set of all applications that define an android:backupAgent attribute
     CARAPI_(List<AutoPtr<ICapsuleInfo> > *) AllAgentPackages();
 
@@ -495,14 +534,14 @@ private:
     CARAPI_(Boolean) WaitUntilOperationComplete(
         /* [in] */ Int32 token);
 
-    CARAPI_(Int64) PrepareOperationTimeout(
+    CARAPI_(void) PrepareOperationTimeout(
         /* [in] */ Int32 token,
         /* [in] */ Int64 interval);
 
     // ----- Restore handling -----
 
     CARAPI_(Boolean) SignaturesMatch(
-        /* [in] */ ArrayOf<AutoPtr<ISignature> >* storedSigs,
+        /* [in] */ List<AutoPtr<ISignature> >* storedSigs,
         /* [in] */ ICapsuleInfo* target);
 
     CARAPI_(void) DataChangedImpl(
@@ -527,6 +566,11 @@ private:
 
     CARAPI_(void) HandleRunInitilize();
 
+    CARAPI_(void) HandleMSGTimeout(
+        /* [in] */ Int32 token);
+
+    CARAPI_(ArrayOf<Byte>*) StringToByteArray(
+        /* [in] */ const String& str);
 
 private:
     static CString TAG;
@@ -562,7 +606,7 @@ private:
     static const Int64 TIMEOUT_RESTORE_INTERVAL = 60 * 1000;
 
     AutoPtr<IContext> mContext;
-    AutoPtr<ICapsuleManager> mPackageManager;
+    AutoPtr<ILocalCapsuleManager> mPackageManager;
     AutoPtr<ICapsuleManager> mPackageManagerBinder;
     AutoPtr<IActivityManager> mActivityManager;
 
@@ -578,7 +622,7 @@ private:
 
     //TODO
     // HandlerThread mHandlerThread = new HandlerThread("backup", Process.THREAD_PRIORITY_BACKGROUND);
-    // BackupHandler mBackupHandler;
+    AutoPtr<IApartment> mBackupHandler;
 
 
     AutoPtr<IPendingIntent> mRunBackupIntent, mRunInitIntent;
@@ -587,7 +631,7 @@ private:
     // final SparseArray<HashSet<ApplicationInfo>> mBackupParticipants
     //     = new SparseArray<HashSet<ApplicationInfo>>();
     Map<Int32, HashSet<AutoPtr<IApplicationInfo> >*> mBackupParticipants;
-
+    Mutex mBackupParticipantsLock;
 
     // Backups that we haven't started yet.
     HashMap<AutoPtr<IApplicationInfo>, BackupRequest* > mPendingBackups;

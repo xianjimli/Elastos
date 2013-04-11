@@ -929,16 +929,18 @@ ECode CApplicationApartment::PerformLaunchActivity(
                 r->mLastNonConfigurationInstance,
                 r->mLastNonConfigurationChildInstances, config);
 
-//        if (customIntent != null) {
-//            activity.mIntent = customIntent;
-//        }
-//        r.lastNonConfigurationInstance = null;
-//        r.lastNonConfigurationChildInstances = null;
-//        activity.mStartedActivity = false;
-//        int theme = r.activityInfo.getThemeResource();
-//        if (theme != 0) {
-//            activity.setTheme(theme);
-//        }
+        if (customIntent != NULL) {
+            a->SetIntent(customIntent);
+        }
+
+        r->mLastNonConfigurationInstance = NULL;
+        r->mLastNonConfigurationChildInstances = NULL;
+        a->SetStartedActivity(FALSE);
+        Int32 theme = 0;
+        r->mActivityInfo->GetThemeResource(&theme);
+        if (theme != 0) {
+            a->SetTheme(theme);
+        }
 
         a->SetCalled(FALSE);
         mInstrumentation->CallActivityOnCreate(a, r->mState);

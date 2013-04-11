@@ -1,8 +1,14 @@
 
-#include "provider/CSettings.h"
+#ifdef _FRAMEWORK_CORE
+#include "content/CContentValues.h"
+#else
+#define __USE_MALLOC
+#include "Elastos.Framework.Core.h"
+#endif
+
+#include "provider/Settings.h"
 #include "utils/Config.h"
 #include "net/Uri.h"
-#include "content/CContentValues.h"
 #include <Slogger.h>
 #include <elastos/AutoPtr.h>
 #include <StringBuffer.h>
@@ -56,10 +62,10 @@ Settings::NameValueCache::NameValueCache(
     /* [in] */ const String& callCommand)
     :mVersionSystemProperty(versionSystemProperty)
     ,mUri(uri)
-    ,mCallCommand(callCommand)
+    ,mValues(10)
     ,mValuesVersion(0)
     ,mContentProvider(NULL)
-    ,mValues(10)
+    ,mCallCommand(callCommand)
 {}
 
 ECode Settings::NameValueCache::GetString(

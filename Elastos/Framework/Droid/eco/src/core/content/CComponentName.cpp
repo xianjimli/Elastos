@@ -26,6 +26,17 @@ ECode CComponentName::constructor(
     return NOERROR;
 }
 
+ECode CComponentName::constructor(
+    /* [in] */ IContext* capsule,
+    /* [in] */ const String& className)
+{
+    assert(capsule != NULL && !className.IsNull());
+    capsule->GetCapsuleName(&mCapsule);
+    mClass = className;
+
+    return NOERROR;
+}
+
 ECode CComponentName::GetCapsuleName(
     /* [out] */ String* capsuleName)
 {

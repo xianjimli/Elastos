@@ -203,6 +203,19 @@ ECode CCapsuleInfo::AddSignature(
     return NOERROR;
 }
 
+ECode CCapsuleInfo::GetSignatures(
+    /* [out] */ IObjectContainer** signatures)
+{
+    assert(signatures != NULL && *signatures != NULL);
+
+    List< AutoPtr<ISignature> >::Iterator it = mSignatures.Begin();
+    for (; it != mSignatures.End(); ++it) {
+        (*signatures)->Add(*it);
+    }
+
+    return NOERROR;
+}
+
 ECode CCapsuleInfo::AddConfigPreference(
     /* [in] */ IConfigurationInfo* config)
 {

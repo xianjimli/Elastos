@@ -53,6 +53,10 @@ public:
         /* [in] */ const String& capsuleName,
         /* [in] */ const String& className);
 
+    CARAPI constructor(
+        /* [in] */ IContext* capsule,
+        /* [in] */ const String& className);
+
 public:
     CARAPI_(String) GetShortClassName();
 

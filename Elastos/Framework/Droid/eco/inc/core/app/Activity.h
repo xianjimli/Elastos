@@ -436,6 +436,9 @@ public:
     CARAPI OnContextMenuClosed(
         /* [in] */ IMenu* menu);
 
+    CARAPI  SetStartedActivity(
+        /* [in] */ Boolean started);
+
     /**
      * @see Activity#openOptionsMenu()
      */
