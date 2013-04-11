@@ -3,7 +3,7 @@
 #define __CAUDIOTRACK_H__
 
 #include "_CAudioTrack.h"
-#include "media/AudioTrack.h"
+#include "media/ElAudioTrack.h"
 
 CarClass(CAudioTrack), public AudioTrack
 {
