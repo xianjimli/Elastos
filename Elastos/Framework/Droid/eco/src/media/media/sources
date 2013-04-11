@@ -27,7 +27,6 @@ SOURCES += MediaRecorder.cpp
 SOURCES += CMediaRecorder.cpp
 SOURCES += CAudioRecord.cpp
 SOURCES += MediaFile.cpp
-SOURCES += MediaScanner.cpp
 SOURCES += CMediaScanner.cpp
 SOURCES += CToneGenerator.cpp
 SOURCES += Ringtone.cpp

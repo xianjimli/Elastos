@@ -11,9 +11,5 @@ module
             [in] String volumeName,
             [in] String mimeType,
             [out] IUri** uri);
-
-        ExtractAlbumArt(
-            [in] IFileDescriptor* fd,
-            [out, callee] ArrayOf<Byte>* albumArt);
     }
 }

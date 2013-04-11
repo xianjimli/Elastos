@@ -1,6 +1,8 @@
 
 #include "media/MediaFile.h"
     
+String MediaFile::sFileExtensions;
+
 MediaFile::MediaFileType::MediaFileType(
     /* [in] */ Int32 fileType, 
     /* [in] */ String mimeType)
