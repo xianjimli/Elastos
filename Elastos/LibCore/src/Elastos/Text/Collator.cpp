@@ -1,4 +1,7 @@
 #include "Collator.h"
+#include "CRuleBasedCollator.h"
+#include "ICUCollator.h"
+
 
 Collator::Collator()
 {
@@ -44,8 +47,9 @@ ECode Collator::Equals(
 ECode Collator::GetAvailableLocales(
         /* [out, callee] */ ArrayOf<ILocale*>** locales)
 {
-//    return ICU::GetAvailableCollatorLocales(locales);
-    return NOERROR;
+    AutoPtr<IICUHelper> picu;
+    CICUHelper::AcquireSingleton((IICUHelper**)&picu);
+    return picu->GetAvailableCollatorLocales(locales);
 }
 
 ECode Collator::GetDecomposition(
@@ -74,7 +78,9 @@ ECode Collator::GetInstance(
         //throw new NullPointerException();
         return E_NULL_POINTER_EXCEPTION;
     }
-//    CRuleBasedCollator::New(ICUCollator::GetInstance(locale), (IRuleBasedCollator**)instance);
+    AutoPtr<IRuleBasedCollator> rbc;
+    CRuleBasedCollator::New(ICUCollator::GetInstance(locale), (IRuleBasedCollator**)&rbc);
+    *instance = reinterpret_cast<ICollator*>(rbc->Probe(EIID_ICollator));
     return NOERROR;
 }
 

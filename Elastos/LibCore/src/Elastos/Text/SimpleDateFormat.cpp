@@ -555,7 +555,10 @@ ECode SimpleDateFormat::AppendNumber(
     Int32 minimumIntegerDigits;
     mNumberFormat->GetMinimumIntegerDigits(&minimumIntegerDigits);
     mNumberFormat->SetMinimumIntegerDigits(count);
-//    numberFormat.formatEx5(Integer.valueOf(value), buffer, new FieldPosition(0));
+    AutoPtr<IFieldPosition> fp;
+    CFieldPosition::New(0, (IFieldPosition**)&fp);
+    String result("");
+    //mNumberFormat->FormatObjectEx(Integer.valueOf(value), buffer, fp, &result);
     mNumberFormat->SetMinimumIntegerDigits(minimumIntegerDigits);
     return NOERROR;
 }

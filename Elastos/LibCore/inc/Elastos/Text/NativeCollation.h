@@ -39,7 +39,7 @@ public:
       * @param collatoraddress The UCollatorOld to close
       * @internal ICU 2.4
       */
-    static CARAPI_(Int32) CloseCollator(
+    static CARAPI_(void) CloseCollator(
         /* [in] */ Int32 collatoraddress);
 
       /**
