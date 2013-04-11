@@ -7,7 +7,7 @@ module
     merge("../../../car/Elastos/IO/Errors.car");
     merge("../../../car/Elastos/IO/Exceptions.car");
     merge("../../../car/Elastos/IO/IInputStream.car");
-    merge("../../../car/Elastos/IO/IFilterInputStream.car");
+    merge("../../../car/Elastos/IO/IFilterInputStream.car"); 
     merge("../../../car/Elastos/IO/IBufferedInputStream.car");
     merge("../../../car/Elastos/IO/IOutputStream.car");
     merge("../../../car/Elastos/IO/IFilterOutputStream.car");
@@ -40,7 +40,6 @@ module
     merge("../../../car/Elastos/IO/IPushbackReader.car");
     merge("../../../car/Elastos/IO/IFilePermission.car");
     merge("../../../car/Elastos/IO/IFilePermissionCollection.car");
-    merge("../../../car/Elastos/IO/ICharset.car");
     merge("../../../car/Elastos/IO/IInputStreamReader.car");
     merge("../../../car/Elastos/IO/IOutputStreamWriter.car");
     merge("../../../car/Elastos/IO/IPrintWriter.car");
@@ -61,8 +60,12 @@ module
     merge("../../../car/Elastos/IO/IInt64Buffer.car");
     merge("../../../car/Elastos/IO/IMappedByteBuffer.car");
     merge("../../../car/Elastos/IO/Channels/IChannel.car");
+    merge("../../../car/Elastos/IO/charset/ICharset.car");
     merge("../../../car/Elastos/IO/charset/ICharsetDecoder.car");
     merge("../../../car/Elastos/IO/charset/ICharsetEncoder.car");
+    merge("../../../car/Elastos/IO/charset/ICoderResult.car");
+    merge("../../../car/Elastos/IO/charset/ICodingErrorAction.car");
+    merge("../../../car/Elastos/IO/charset/spi/ICharsetProvider.car");
     merge("../../../car/Elastos/IO/Channels/IChannels.car");
     merge("../../../car/Elastos/IO/Channels/IReadableByteChannel.car");
     merge("../../../car/Elastos/IO/Channels/IWritableByteChannel.car");
@@ -786,29 +789,21 @@ module
         interface IInputStream;
     }
 
-    class CCharset {
-        /**
-         * Constructs a <code>Charset</code> object. Duplicated aliases are
-         * ignored.
-         *
-         * @param canonicalName
-         *            the canonical name of the charset.
-         * @param aliases
-         *            an array containing all aliases of the charset. May be null.
-         * @throws IllegalCharsetNameException
-         *             on an illegal value being supplied for either
-         *             <code>canonicalName</code> or for any element of
-         *             <code>aliases</code>.
-         */
-        constructor(
-            [in] String canonicalName, 
-            [in] ArrayOf<String> aliases);
-
-        interface ICharset;
-    }
-
     singleton class CCharsetHelper {
         interface ICharsetHelper;
+    }
+
+    class CCharsetDecoder {
+        constructor(
+            [in] ICharset* charset,
+            [in] Float averageCharsPerByte,
+            [in] Float maxCharsPerByte);
+
+        interface ICharsetDecoder;
+    }
+
+    class CCodingErrorAction {
+        interface ICodingErrorAction;
     }
 
     class CInputStreamReader {
