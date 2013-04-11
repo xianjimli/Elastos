@@ -3,7 +3,7 @@
 
 
 PInterface ICURuleBasedCollator::Probe(
-            /* [in]  */ REIID riid)
+    /* [in]  */ REIID riid)
 {
     return NULL;
 }
@@ -14,7 +14,7 @@ ICURuleBasedCollator::ICURuleBasedCollator()
 }
 
 ECode ICURuleBasedCollator::Init(
-        /* [in] */ String rules)
+    /* [in] */ String rules)
 {
     m_hashcode_ = 0;
     if (rules.IsNull()) {
@@ -27,8 +27,8 @@ ECode ICURuleBasedCollator::Init(
 }
 
 ECode ICURuleBasedCollator::Init(
-        /* [in] */ String rules, 
-        /* [in] */ Int32 strength)
+    /* [in] */ String rules, 
+    /* [in] */ Int32 strength)
 {
     m_hashcode_ = 0;
     if (rules.IsNull()) {
@@ -40,9 +40,9 @@ ECode ICURuleBasedCollator::Init(
 }
 
 ECode ICURuleBasedCollator::Init(
-        /* [in] */ String rules, 
-        /* [in] */ Int32 normalizationMode, 
-        /* [in] */ Int32 strength)
+    /* [in] */ String rules, 
+    /* [in] */ Int32 normalizationMode, 
+    /* [in] */ Int32 strength)
 {
     m_hashcode_ = 0;
     if (rules.IsNull()) {
@@ -54,7 +54,7 @@ ECode ICURuleBasedCollator::Init(
 }
 
 ECode ICURuleBasedCollator::Clone(
-        /* [out] */ IInterface ** instance)
+    /* [out] */ IInterface ** instance)
 {
     AutoPtr<IRuleBasedCollator> result = NULL;
     Int32 collatoraddress = NativeCollation::SafeClone(m_collator_);
@@ -65,9 +65,9 @@ ECode ICURuleBasedCollator::Clone(
 }
 
 ECode ICURuleBasedCollator::Compare(
-        /* [in] */ String source,
-        /* [in] */ String target,
-        /* [out] */ Int32 * value)
+    /* [in] */ String source,
+    /* [in] */ String target,
+    /* [out] */ Int32 * value)
 {
     VALIDATE_NOT_NULL(value);
     *value = NativeCollation::Compare(m_collator_, source, target);
@@ -75,7 +75,7 @@ ECode ICURuleBasedCollator::Compare(
 }
 
 ECode ICURuleBasedCollator::GetDecomposition(
-        /* [out] */ Int32 * decomposition)
+    /* [out] */ Int32 * decomposition)
 {
     VALIDATE_NOT_NULL(decomposition);
     *decomposition = NativeCollation::GetNormalization(m_collator_);
@@ -83,7 +83,7 @@ ECode ICURuleBasedCollator::GetDecomposition(
 }
 
 ECode ICURuleBasedCollator::SetDecomposition(
-        /* [in] */ Int32 decompositionmode)
+    /* [in] */ Int32 decompositionmode)
 {
     NativeCollation::SetAttribute(m_collator_,
             ICollationAttribute_NORMALIZATION_MODE, decompositionmode);
@@ -91,7 +91,7 @@ ECode ICURuleBasedCollator::SetDecomposition(
 }
 
 ECode ICURuleBasedCollator::GetStrength(
-        /* [out] */ Int32 * strength)
+    /* [out] */ Int32 * strength)
 {
     VALIDATE_NOT_NULL(strength);
     *strength = NativeCollation::GetAttribute(m_collator_, ICollationAttribute_STRENGTH);
@@ -99,23 +99,23 @@ ECode ICURuleBasedCollator::GetStrength(
 }
 
 ECode ICURuleBasedCollator::SetStrength(
-        /* [in] */ Int32 strength)
+    /* [in] */ Int32 strength)
 {
     NativeCollation::SetAttribute(m_collator_, ICollationAttribute_STRENGTH, strength);
     return NOERROR;
 }
 
 ECode ICURuleBasedCollator::SetAttribute(
-        /* [in] */ Int32 type,
-        /* [in] */ Int32 value)
+    /* [in] */ Int32 type,
+    /* [in] */ Int32 value)
 {
     NativeCollation::SetAttribute(m_collator_, type, value);
     return NOERROR;
 }
 
 ECode ICURuleBasedCollator::GetAttribute(
-        /* [in] */ Int32 type,
-        /* [out] */ Int32 * pAttribute)
+    /* [in] */ Int32 type,
+    /* [out] */ Int32 * pAttribute)
 {
     VALIDATE_NOT_NULL(pAttribute);
     NativeCollation::GetAttribute(m_collator_, type);
@@ -123,8 +123,8 @@ ECode ICURuleBasedCollator::GetAttribute(
 }
 
 ECode ICURuleBasedCollator::GetCollationKey(
-        /* [in] */ String source,
-        /* [out] */ IICUCollationKey ** instance)
+    /* [in] */ String source,
+    /* [out] */ IICUCollationKey ** instance)
 {
     if (source.IsNull()) {
         *instance = NULL;
@@ -140,7 +140,7 @@ ECode ICURuleBasedCollator::GetCollationKey(
 }
 
 ECode ICURuleBasedCollator::GetRules(
-        /* [out] */ String* rules)
+    /* [out] */ String* rules)
 {
     VALIDATE_NOT_NULL(rules);
     *rules = NativeCollation::GetRules(m_collator_);
@@ -148,8 +148,8 @@ ECode ICURuleBasedCollator::GetRules(
 }
 
 ECode ICURuleBasedCollator::GetCollationElementIterator(
-        /* [in] */ String source,
-        /* [out] */ IICUCollationElementIterator ** collationElementIterator)
+    /* [in] */ String source,
+    /* [out] */ IICUCollationElementIterator ** collationElementIterator)
 {
     AutoPtr<IICUCollationElementIterator> result;
     CICUCollationElementIterator::New(
@@ -160,8 +160,8 @@ ECode ICURuleBasedCollator::GetCollationElementIterator(
 }
 
 ECode ICURuleBasedCollator::GetCollationElementIteratorEx(
-        /* [in] */ ICharacterIterator * it,
-        /* [out] */ IICUCollationElementIterator ** collationElementIterator)
+    /* [in] */ ICharacterIterator * it,
+    /* [out] */ IICUCollationElementIterator ** collationElementIterator)
 {
     // We only implement the String-based API, so build a string from the iterator.
     String value = String("");
@@ -170,8 +170,8 @@ ECode ICURuleBasedCollator::GetCollationElementIteratorEx(
 }
 
 ECode ICURuleBasedCollator::EqualsEx(
-        /* [in] */ IInterface * object,
-        /* [out] */ Boolean * result)
+    /* [in] */ IInterface * object,
+    /* [out] */ Boolean * result)
 {
     VALIDATE_NOT_NULL(result);
     if (object == (IInterface*)this) {
@@ -203,7 +203,7 @@ ECode ICURuleBasedCollator::EqualsEx(
 }
 
 ECode ICURuleBasedCollator::Init(
-        /* [in] */ ILocale* locale)
+    /* [in] */ ILocale* locale)
 {
     m_hashcode_ = 0;
     String name = String("");
@@ -222,8 +222,8 @@ ICURuleBasedCollator::~ICURuleBasedCollator()
 }
 
 ECode ICURuleBasedCollator::CharacterIteratorToString(
-        /* [in] */ ICharacterIterator* it,
-        /* [out] */ String* value)
+    /* [in] */ ICharacterIterator* it,
+    /* [out] */ String* value)
 {
     VALIDATE_NOT_NULL(value);
     StringBuffer *result = new StringBuffer("");
@@ -238,7 +238,7 @@ ECode ICURuleBasedCollator::CharacterIteratorToString(
 }
 
 ICURuleBasedCollator::ICURuleBasedCollator(
-        /* [in] */ Int32 addr)
+    /* [in] */ Int32 addr)
 {
     m_hashcode_ = 0;
     m_collator_ = addr;
