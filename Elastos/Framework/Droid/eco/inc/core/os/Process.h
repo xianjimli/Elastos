@@ -3,7 +3,6 @@
 #define __PROCESS_H__
 
 #include "ext/frameworkext.h"
-#include <elastos.h>
 #include <elastos/List.h>
 #include <elastos/ElRefBase.h>
 #include <elastos/Mutex.h>
@@ -240,24 +239,6 @@ public:
 
 public:
     /**
-     * Return the ID of the process that sent you the current transaction
-     * that is being processed.  This pid can be used with higher-level
-     * system services to determine its identity and check permissions.
-     * If the current thread is not currently executing an incoming transaction,
-     * then its own pid is returned.
-     */
-    // static CARAPI_(Int32) GetCallingPid();
-
-    /**
-     * Return the ID of the user assigned to the process that sent you the
-     * current transaction that is being processed.  This uid can be used with
-     * higher-level system services to determine its identity and check
-     * permissions.  If the current thread is not currently executing an
-     * incoming transaction, then its own uid is returned.
-     */
-    // static CARAPI_(Int32) GetCallingUid();
-
-    /**
     * Start a new process.
     *
     * <p>If processes are enabled, a new process is created and the
@@ -287,7 +268,6 @@ public:
     *
     * {@hide}
     */
-
     static CARAPI Start(
         /* [in] */ const String& processClass,
         /* [in] */ const String& niceName,
@@ -360,6 +340,23 @@ public:
         /* [in] */ Int32 pid);
 
     /**
+     * Set the priority of a thread, based on Linux priorities.
+     *
+     * @param tid The identifier of the thread/process to change.
+     * @param priority A Linux priority level, from -20 for highest scheduling
+     * priority to 19 for lowest scheduling priority.
+     *
+     * @throws IllegalArgumentException Throws IllegalArgumentException if
+     * <var>tid</var> does not exist.
+     * @throws SecurityException Throws SecurityException if your process does
+     * not have permission to modify the given thread, or to use the given
+     * priority.
+     */
+    static CARAPI SetThreadPriority(
+        /* [in] */ Int32 tid,
+        /* [in] */ Int32 priority);
+
+    /**
      * Call with 'false' to cause future calls to {@link #setThreadPriority(int)} to
      * throw an exception if passed a background-level thread priority.  This is only
      * effective if the JNI layer is built with GUARD_THREAD_PRIORITY defined to 1.
@@ -400,23 +397,6 @@ public:
     static CARAPI SetProcessGroup(
         /* [in] */ Int32 pid,
         /* [in] */ Int32 group);
-
-    /**
-     * Set the priority of a thread, based on Linux priorities.
-     *
-     * @param tid The identifier of the thread/process to change.
-     * @param priority A Linux priority level, from -20 for highest scheduling
-     * priority to 19 for lowest scheduling priority.
-     *
-     * @throws IllegalArgumentException Throws IllegalArgumentException if
-     * <var>tid</var> does not exist.
-     * @throws SecurityException Throws SecurityException if your process does
-     * not have permission to modify the given thread, or to use the given
-     * priority.
-     */
-    static CARAPI SetThreadPriority(
-        /* [in] */ Int32 tid,
-        /* [in] */ Int32 priority);
 
     /**
      * Set the priority of the calling thread, based on Linux priorities.  See
@@ -543,32 +523,33 @@ public:
     static CARAPI ReadProcLines(
         /* [in] */ const String& path,
         /* [in] */ const ArrayOf<String>& reqFields,
-        /* [in] */ const ArrayOf<Int64>& outSizes);
+        /* [out] */ ArrayOf<Int64>* outSizes);
 
     /** @hide */
     static CARAPI GetPids(
         /* [in] */ const String& path,
-        /* [in] */ const ArrayOf<Int32>& lastArray,
-        /* [out] */ ArrayOf<Int32>** newArray);
+        /* [in] */ ArrayOf<Int32>* lastArray,
+        /* [out, callee] */ ArrayOf<Int32>** pids);
 
     /** @hide */
     static CARAPI ReadProcFile(
         /* [in] */ const String& file,
         /* [in] */ const ArrayOf<Int32>& format,
-        /* [in] */ const ArrayOf<String>& outStrings,
-        /* [in] */ const ArrayOf<Int64>& outLongs,
-        /* [in] */ const ArrayOf<Float>& outFloats,
+        /* [out] */ ArrayOf<String>* outStrings,
+        /* [out] */ ArrayOf<Int64>* outLongs,
+        /* [out] */ ArrayOf<Float>* outFloats,
         /* [out] */ Boolean* result);
 
     /** @hide */
-    static CARAPI_(Boolean) ParseProcLine(
+    static CARAPI ParseProcLine(
         /* [in] */ const ArrayOf<Byte>& buffer,
         /* [in] */ Int32 startIndex,
         /* [in] */ Int32 endIndex,
         /* [in] */ const ArrayOf<Int32>& format,
-        /* [in] */ const ArrayOf<String>& outStrings,
-        /* [in] */ const ArrayOf<Int64>& outLongs,
-        /* [in] */ const ArrayOf<Float>& outFloats);
+        /* [out] */ ArrayOf<String>* outStrings,
+        /* [out] */ ArrayOf<Int64>* outLongs,
+        /* [out] */ ArrayOf<Float>* outFloats,
+        /* [out] */ Boolean* result);
 
     /**
      * Gets the total Pss value for a given process, in bytes.
@@ -599,8 +580,9 @@ private:
      * @return PID of new child process
      * @throws ZygoteStartFailedEx if process start failed for any reason
      */
-    static CARAPI_(Int32) ZygoteSendArgsAndGetPid(
-        /* [in] */ List<String>* args);
+    static CARAPI ZygoteSendArgsAndGetPid(
+        /* [in] */ List<String>& args,
+        /* [out] */ Int32* pid);
 
     /**
      * Starts a new process via the zygote mechanism.
@@ -647,9 +629,8 @@ private:
     /** true if previous zygote open failed */
     static Boolean sPreviousZygoteOpenFailed;
 
-    static Mutex mProcessClassLock;
+    static Mutex sProcessClassLock;
 //     const String LOG_TAG = "Process";
-
-
 };
+
 #endif // __PROCESS_H__
