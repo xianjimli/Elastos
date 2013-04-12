@@ -34,4 +34,5 @@ module
     merge("../../car/core/backup.car");
     merge("../../car/core/accessibilityservice.car");
     merge("../../car/core/appwidget.car");
+    merge("../../car/core/accounts.car");
 }

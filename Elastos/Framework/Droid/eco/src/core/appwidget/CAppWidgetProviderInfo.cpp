@@ -147,12 +147,14 @@ ECode CAppWidgetProviderInfo::GetPreviousName(
 }
 
 ECode CAppWidgetProviderInfo::ReadFromParcel(
-    /* [in] */ IParcel *source)
+    /* [in] */ IParcel* source)
 {
     Int32 value;
     source->ReadInt32(&value);
     if (0 != value) {
-        // CComponentName::New(in, (IComponentName**)&mProvider);
+        AutoPtr<CComponentName> cn;
+        FAIL_RETURN(CComponentName::ReadFromParcel(source, (CComponentName**)&cn));
+        mProvider = (IComponentName*)cn->Probe(EIID_IComponentName);
     }
     source->ReadInt32(&mMinWidth);
     source->ReadInt32(&mMinHeight);
@@ -160,7 +162,9 @@ ECode CAppWidgetProviderInfo::ReadFromParcel(
     source->ReadInt32(&mInitialLayout);
     source->ReadInt32(&value);
     if (0 != value) {
-        // CComponentName::New(in, (IComponentName**)&mConfigure);
+        AutoPtr<CComponentName> cn;
+        FAIL_RETURN(CComponentName::ReadFromParcel(source, (CComponentName**)&cn));
+        mConfigure = (IComponentName*)cn->Probe(EIID_IComponentName);
     }
     source->ReadString(&mLabel);
     source->ReadInt32(&mIcon);
@@ -168,7 +172,7 @@ ECode CAppWidgetProviderInfo::ReadFromParcel(
 }
 
 ECode CAppWidgetProviderInfo::WriteToParcel(
-    /* [in] */ IParcel *dest)
+    /* [in] */ IParcel* dest)
 {
     if (mProvider != NULL) {
         dest->WriteInt32(1);

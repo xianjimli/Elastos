@@ -1,0 +1,16 @@
+
+/**
+ * The interface used to return responses for asynchronous calls to the {@link IAccountManager}
+ * @hide
+ */
+module
+{
+    interface IAccountManagerResponse {
+        OnResult(
+            [in] IBundle* value);
+
+        OnError(
+            [in] Int32 errorCode,
+            [in] String errorMessage);
+    }
+}
