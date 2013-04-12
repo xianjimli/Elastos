@@ -23,7 +23,6 @@ SOURCES += CMetadata.cpp
 SOURCES += CMediaPlayer.cpp
 SOURCES += CamcorderProfile.cpp
 SOURCES += CCamcorderProfile.cpp
-SOURCES += MediaRecorder.cpp
 SOURCES += CMediaRecorder.cpp
 SOURCES += CAudioRecord.cpp
 SOURCES += MediaFile.cpp

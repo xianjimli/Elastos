@@ -1,6 +1,29 @@
 
 module
 {
+    /* Do not change this value without updating its counterpart
+     * in include/media/mediarecorder.h!
+     */
+    /** Unspecified media recorder error.
+     * @see android.media.MediaRecorder.OnErrorListener
+     */
+    const MediaRecorder_MEDIA_RECORDER_ERROR_UNKNOWN = 1;
+    /* Do not change these values without updating their counterparts
+     * in include/media/mediarecorder.h!
+     */
+    /** Unspecified media recorder error.
+     * @see android.media.MediaRecorder.OnInfoListener
+     */
+    const MediaRecorder_MEDIA_RECORDER_INFO_UNKNOWN              = 1;
+    /** A maximum duration had been setup and has now been reached.
+     * @see android.media.MediaRecorder.OnInfoListener
+     */
+    const MediaRecorder_MEDIA_RECORDER_INFO_MAX_DURATION_REACHED = 800;
+    /** A maximum filesize had been setup and has now been reached.
+     * @see android.media.MediaRecorder.OnInfoListener
+     */
+    const MediaRecorder_MEDIA_RECORDER_INFO_MAX_FILESIZE_REACHED = 801;
+
     interface IMediaRecorder;
 
     /**

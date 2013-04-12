@@ -1,50 +1,292 @@
 
 #include "media/CMediaRecorder.h"
+#include "media/CCamcorderProfile.h"
+const CString CMediaRecorder::TAG = "MediaRecorder";
 
+CMediaRecorder::CMediaRecorder()
+{
+
+}
+
+CMediaRecorder::~CMediaRecorder()
+{
+    native_finalize();
+}
+
+ECode CMediaRecorder::constructor()
+{
+    /*Looper looper;
+    if ((looper = Looper.myLooper()) != NULL) {
+        mEventHandler = new EventHandler(this, looper);
+    } else if ((looper = Looper.getMainLooper()) != NULL) {
+        mEventHandler = new EventHandler(this, looper);
+    } else {
+        mEventHandler = NULL;
+    }*/
+
+    /* Native setup requires a weak reference to our object.
+     * It's easier to create it here than in C++.
+     */
+    //native_setup(new WeakReference<MediaRecorder>(this));
+    return E_NOT_IMPLEMENTED;
+}
 
 ECode CMediaRecorder::SetCamera(
-        /* [in] */ ICamera* c)
+    /* [in] */ ICamera* c)
 {
-    // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CMediaRecorder::SetPreviewDisplay(
-    /* [in] */ ISurface * pSv)
+    /* [in] */ ISurface* sv)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    mSurface = sv;
+
+    return NOERROR;
 }
 
-/**
- * Sets the audio source to be used for recording. If this method is not
- * called, the output file will not contain an audio track. The source needs
- * to be specified before setting recording-parameters or encoders. Call
- * this only before setOutputFormat().
- *
- * @param audio_source the audio source to use
- * @throws IllegalStateException if it is called after setOutputFormat()
- * @see android.media.MediaRecorder.AudioSource
- */
+PInterface CMediaRecorder::AudioSource::Probe(
+    /* [in]  */ REIID riid)
+{
+    if (riid == EIID_IInterface) {
+        return (PInterface)this;
+    }
+    else if (riid == EIID_IContextMenuInfo) {
+        return (IContextMenuInfo*)this;
+    }
+
+    return NULL;
+}
+
+UInt32 CMediaRecorder::AudioSource::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 CMediaRecorder::AudioSource::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode CMediaRecorder::AudioSource::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{
+    VALIDATE_NOT_NULL(pIID);
+
+    if (pObject == (IInterface*)(IContextMenuInfo*)this) {
+        *pIID = EIID_IContextMenuInfo;
+    }
+    else {
+        return E_INVALID_ARGUMENT;
+    }
+    return NOERROR;
+}
+
+CMediaRecorder::AudioSource::AudioSource()
+    :DEFAULT(0)
+    ,MIC(1)
+    ,VOICE_UPLINK(2)
+    ,VOICE_DOWNLINK(3)
+    ,VOICE_CALL(4)
+    ,CAMCORDER(5)
+    ,VOICE_RECOGNITION(6)
+    ,VOICE_COMMUNICATION(7)
+{
+}
+
+PInterface CMediaRecorder::VideoSource::Probe(
+    /* [in]  */ REIID riid)
+{
+    if (riid == EIID_IInterface) {
+        return (PInterface)this;
+    }
+    else if (riid == EIID_IContextMenuInfo) {
+        return (IContextMenuInfo*)this;
+    }
+
+    return NULL;
+}
+
+UInt32 CMediaRecorder::VideoSource::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 CMediaRecorder::VideoSource::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode CMediaRecorder::VideoSource::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{
+    VALIDATE_NOT_NULL(pIID);
+
+    if (pObject == (IInterface*)(IContextMenuInfo*)this) {
+        *pIID = EIID_IContextMenuInfo;
+    }
+    else {
+        return E_INVALID_ARGUMENT;
+    }
+    return NOERROR;
+}
+
+CMediaRecorder::VideoSource::VideoSource()
+    :DEFAULT(0)
+    ,CAMERA(1)
+{
+}
+
+PInterface CMediaRecorder::OutputFormat::Probe(
+    /* [in]  */ REIID riid)
+{
+    if (riid == EIID_IInterface) {
+        return (PInterface)this;
+    }
+    else if (riid == EIID_IContextMenuInfo) {
+        return (IContextMenuInfo*)this;
+    }
+
+    return NULL;
+}
+
+UInt32 CMediaRecorder::OutputFormat::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 CMediaRecorder::OutputFormat::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode CMediaRecorder::OutputFormat::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{
+    VALIDATE_NOT_NULL(pIID);
+
+    if (pObject == (IInterface*)(IContextMenuInfo*)this) {
+        *pIID = EIID_IContextMenuInfo;
+    }
+    else {
+        return E_INVALID_ARGUMENT;
+    }
+    return NOERROR;
+}
+
+CMediaRecorder::OutputFormat::OutputFormat()
+        :DEFAULT(0)
+        ,THREE_GPP(1)
+        ,MPEG_4(2)
+        ,RAW_AMR(3)
+        ,AMR_NB(3)
+        ,AMR_WB(4)
+        ,AAC_ADIF(5)
+        ,AAC_ADTS(6)
+        ,OUTPUT_FORMAT_RTP_AVP(7)
+        ,OUTPUT_FORMAT_MPEG2TS(8)
+{
+}
+
+PInterface CMediaRecorder::AudioEncoder::Probe(
+    /* [in]  */ REIID riid)
+{
+    if (riid == EIID_IInterface) {
+        return (PInterface)this;
+    }
+    else if (riid == EIID_IContextMenuInfo) {
+        return (IContextMenuInfo*)this;
+    }
+
+    return NULL;
+}
+
+UInt32 CMediaRecorder::AudioEncoder::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 CMediaRecorder::AudioEncoder::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode CMediaRecorder::AudioEncoder::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{
+    VALIDATE_NOT_NULL(pIID);
+
+    if (pObject == (IInterface*)(IContextMenuInfo*)this) {
+        *pIID = EIID_IContextMenuInfo;
+    }
+    else {
+        return E_INVALID_ARGUMENT;
+    }
+    return NOERROR;
+}
+
+CMediaRecorder::AudioEncoder::AudioEncoder()
+        :DEFAULT(0)
+        ,AMR_NB(1)
+        ,AMR_WB(2)
+        ,AAC(3)
+        ,AAC_PLUS(4)
+        ,EAAC_PLUS(4)
+{
+}
+
+PInterface CMediaRecorder::VideoEncoder::Probe(
+    /* [in]  */ REIID riid)
+{
+    if (riid == EIID_IInterface) {
+        return (PInterface)this;
+    }
+    else if (riid == EIID_IContextMenuInfo) {
+        return (IContextMenuInfo*)this;
+    }
+
+    return NULL;
+}
+
+UInt32 CMediaRecorder::VideoEncoder::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 CMediaRecorder::VideoEncoder::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode CMediaRecorder::VideoEncoder::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{
+    VALIDATE_NOT_NULL(pIID);
+
+    if (pObject == (IInterface*)(IContextMenuInfo*)this) {
+        *pIID = EIID_IContextMenuInfo;
+    }
+    else {
+        return E_INVALID_ARGUMENT;
+    }
+    return NOERROR;
+}
+
+CMediaRecorder::VideoEncoder::VideoEncoder()
+        :DEFAULT(0)
+        ,H263(1)
+        ,H264(2)
+        ,MPEG_4_SP(3)
+{
+}
+
 ECode CMediaRecorder::SetAudioSource(
     /* [in] */ Int32 audioSource)
-{
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
-}
-
-/**
- * Sets the video source to be used for recording. If this method is not
- * called, the output file will not contain an video track. The source needs
- * to be specified before setting recording-parameters or encoders. Call
- * this only before setOutputFormat().
- *
- * @param video_source the video source to use
- * @throws IllegalStateException if it is called after setOutputFormat()
- * @see android.media.MediaRecorder.VideoSource
- */
-ECode CMediaRecorder::SetVideoSource(
-    /* [in] */ Int32 videoSource)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -57,18 +299,42 @@ ECode CMediaRecorder::GetAudioSourceMax(
     return E_NOT_IMPLEMENTED;
 }
 
-ECode CMediaRecorder::SetProfile(
-    /* [in] */ ICamcorderProfile * pProfile)
+ECode CMediaRecorder::SetVideoSource(
+    /* [in] */ Int32 videoSource)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
+
+ECode CMediaRecorder::SetProfile(
+    /* [in] */ ICamcorderProfile* profile)
+{
+    SetOutputFormat(((CCamcorderProfile*)profile)->fileFormat);
+    SetVideoFrameRate(((CCamcorderProfile*)profile)->videoFrameRate);
+    SetVideoSize(((CCamcorderProfile*)profile)->videoFrameWidth, ((CCamcorderProfile*)profile)->videoFrameHeight);
+    SetVideoEncodingBitRate(((CCamcorderProfile*)profile)->videoBitRate);
+    SetAudioEncodingBitRate(((CCamcorderProfile*)profile)->audioBitRate);
+    SetAudioChannels(((CCamcorderProfile*)profile)->audioChannels);
+    SetAudioSamplingRate(((CCamcorderProfile*)profile)->audioSampleRate);
+    SetVideoEncoder(((CCamcorderProfile*)profile)->videoCodec);
+    SetAudioEncoder(((CCamcorderProfile*)profile)->audioCodec);
+
+    return NOERROR;
+}
+
 ECode CMediaRecorder::SetOrientationHint(
     /* [in] */ Int32 degrees)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    if (degrees != 0   &&
+        degrees != 90  &&
+        degrees != 180 &&
+        degrees != 270) {
+        //throw new IllegalArgumentException("Unsupported angle: " + degrees);
+    }
+    //SetParameter(String.format("video-param-rotation-angle-degrees=%d", degrees));
+
+    return NOERROR;
 }
 
 /**
@@ -207,49 +473,94 @@ ECode CMediaRecorder::SetVideoEncoder(
 ECode CMediaRecorder::SetAudioSamplingRate(
     /* [in] */ Int32 samplingRate)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    if (samplingRate <= 0) {
+        //throw new IllegalArgumentException("Audio sampling rate is not positive");
+    }
+    //setParameter(String.format("audio-param-sampling-rate=%d", samplingRate));
+
+    return NOERROR;
 }
 
 ECode CMediaRecorder::SetAudioChannels(
     /* [in] */ Int32 numChannels)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    if (numChannels <= 0) {
+        //throw new IllegalArgumentException("Number of channels is not positive");
+    }
+    //setParameter(String.format("audio-param-number-of-channels=%d", numChannels));
+    return NOERROR;
 }
 
 ECode CMediaRecorder::SetAudioEncodingBitRate(
     /* [in] */ Int32 bitRate)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    if (bitRate <= 0) {
+        //throw new IllegalArgumentException("Audio encoding bit rate is not positive");
+    }
+    //setParameter(String.format("audio-param-encoding-bitrate=%d", bitRate));
+
+    return NOERROR;
 }
 
 ECode CMediaRecorder::SetVideoEncodingBitRate(
     /* [in] */ Int32 bitRate)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    if (bitRate <= 0) {
+        //throw new IllegalArgumentException("Video encoding bit rate is not positive");
+    }
+    //setParameter(String.format("video-param-encoding-bitrate=%d", bitRate));
+
+    return NOERROR;
 }
 
 ECode CMediaRecorder::SetOutputFile(
-    /* [in] */ IFileDescriptor * pFd)
+    /* [in] */ IFileDescriptor* fd)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    mPath = NULL;
+    mFd = fd;
+
+    return NOERROR;
 }
 
 ECode CMediaRecorder::SetOutputFileEx(
     /* [in] */ const String& path)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    mFd = NULL;
+    mPath = path;
+
+    return NOERROR;
 }
 
+// native implementation
+void CMediaRecorder::_setOutputFile(
+    /* [in] */ IFileDescriptor* fd,
+    /* [in] */ Int64 offset,
+    /* [in] */ Int64 length)
+{
+
+}
+
+void CMediaRecorder::_prepare()
+{
+
+}
 ECode CMediaRecorder::Prepare()
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    if (mPath != NULL) {
+        //FileOutputStream fos = new FileOutputStream(mPath);
+        //try {
+           // _setOutputFile(fos.getFD(), 0, 0);
+        /*} finally {
+            fos.close();
+        }*/
+    } else if (mFd != NULL) {
+        _setOutputFile(mFd, 0, 0);
+    } else {
+        //throw new IOException("No valid output file");
+    }
+    _prepare();
+
+    return NOERROR;
 }
 
 /**
@@ -279,29 +590,119 @@ ECode CMediaRecorder::Stop()
 
 ECode CMediaRecorder::Reset()
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    native_reset();
+
+    // make sure none of the listeners get called anymore
+    //mEventHandler->RemoveCallbacksAndMessages(NULL);
+
+    return NOERROR;
+}
+
+void CMediaRecorder::native_reset()
+{
+
 }
 
 ECode CMediaRecorder::GetMaxAmplitude(
     /* [out] */ Int32* maxAmplitude)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CMediaRecorder::SetOnErrorListener(
-    /* [in] */ IMediaRecorderOnErrorListener * pL)
+    /* [in] */ IMediaRecorderOnErrorListener* l)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    mOnErrorListener = l;
+
+    return NOERROR;
 }
 
 ECode CMediaRecorder::SetOnInfoListener(
-    /* [in] */ IMediaRecorderOnInfoListener * pListener)
+    /* [in] */ IMediaRecorderOnInfoListener* listener)
 {
-    // TODO: Add your code here
+    mOnInfoListener = listener;
+
+    return NOERROR;
+}
+
+//CMediaRecorder::EventHandler::EventHandler(
+//    /* [in] */ MediaRecorder* mr,
+//    /* [in] */ Looper looper)
+//{
+//    super(looper);
+//    mMediaRecorder = mr;
+//}
+
+ECode CMediaRecorder::EventHandler::HandleMessage(
+    /* [in] */ IMessage* msg)
+{
+    if (mMediaRecorder->mNativeContext == 0) {
+        //Log.w(TAG, "mediarecorder went away with unhandled events");
+        return NOERROR;
+    }
+    //switch(((CMessage*)msg)->what) {
+    //case MEDIA_RECORDER_EVENT_ERROR:
+    //    if (mMediaRecorder->mOnErrorListener != NULL)
+    //        //mOnErrorListener.onError(mMediaRecorder, msg.arg1, msg.arg2);
+
+    //    return NOERROR;
+
+    //case MEDIA_RECORDER_EVENT_INFO:
+    //    if (mMediaRecorder->mOnInfoListener != NULL)
+    //        //mOnInfoListener.onInfo(mMediaRecorder, msg.arg1, msg.arg2);
+
+    //    return NOERROR;
+
+    //default:
+    //    //Log.e(TAG, "Unknown message type " + msg.what);
+    //    return NOERROR;
+    //}
+}
+
+PInterface CMediaRecorder::EventHandler::Probe(
+    /* [in] */ REIID riid)
+{
+    if (riid == EIID_IInterface) {
+        return (IInterface*)this;
+    }
+
+    return NULL;
+}
+
+UInt32 CMediaRecorder::EventHandler::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 CMediaRecorder::EventHandler::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode CMediaRecorder::EventHandler::GetInterfaceID(
+    /* [in] */ IInterface* pObject,
+    /* [out] */ InterfaceID* pIID)
+{
     return E_NOT_IMPLEMENTED;
+}
+
+
+void CMediaRecorder::PostEventFromNative(
+    /* [in] */ IInterface* mediarecorder_ref,
+    /* [in] */ Int32 what,
+    /* [in] */ Int32 arg1,
+    /* [in] */ Int32 arg2,
+    /* [in] */ IInterface* obj)
+{
+    /*MediaRecorder mr = (MediaRecorder)((WeakReference)mediarecorder_ref).get();
+    if (mr == NULL) {
+        return;
+    }
+
+    if (mr.mEventHandler != NULL) {
+        Message m = mr.mEventHandler.obtainMessage(what, arg1, arg2, obj);
+        mr.mEventHandler.sendMessage(m);
+    }*/
 }
 
 ECode CMediaRecorder::ReleaseResources()
@@ -309,10 +710,3 @@ ECode CMediaRecorder::ReleaseResources()
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
-
-ECode CMediaRecorder::constructor()
-{
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
-}
-
