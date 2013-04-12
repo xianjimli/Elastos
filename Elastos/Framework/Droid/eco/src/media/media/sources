@@ -24,7 +24,6 @@ SOURCES += MediaPlayer.cpp
 SOURCES += CMediaPlayer.cpp
 SOURCES += CamcorderProfile.cpp
 SOURCES += CCamcorderProfile.cpp
-SOURCES += MediaRecorder.cpp
 SOURCES += CMediaRecorder.cpp
 SOURCES += AudioRecord.cpp
 SOURCES += CAudioRecord.cpp
