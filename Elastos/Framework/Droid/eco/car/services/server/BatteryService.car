@@ -1,0 +1,48 @@
+
+module
+{
+    const BatteryService_BATTERY_SCALE = 100;    // battery capacity is a percentage
+
+    /**
+    * <p>BatteryService monitors the charging status, and charge level of the device
+    * battery.  When these values change this service broadcasts the new values
+    * to all {@link android.content.BroadcastReceiver IntentReceivers} that are
+    * watching the {@link android.content.Intent#ACTION_BATTERY_CHANGED
+    * BATTERY_CHANGED} action.</p>
+    * <p>The new values are stored in the Intent data and can be retrieved by
+    * calling {@link android.content.Intent#getExtra Intent.getExtra} with the
+    * following keys:</p>
+    * <p>&quot;scale&quot; - int, the maximum value for the charge level</p>
+    * <p>&quot;level&quot; - int, charge level, from 0 through &quot;scale&quot; inclusive</p>
+    * <p>&quot;status&quot; - String, the current charging status.<br />
+    * <p>&quot;health&quot; - String, the current battery health.<br />
+    * <p>&quot;present&quot; - boolean, true if the battery is present<br />
+    * <p>&quot;icon-small&quot; - int, suggested small icon to use for this state</p>
+    * <p>&quot;plugged&quot; - int, 0 if the device is not plugged in; 1 if plugged
+    * into an AC power adapter; 2 if plugged in via USB.</p>
+    * <p>&quot;voltage&quot; - int, current battery voltage in millivolts</p>
+    * <p>&quot;temperature&quot; - int, current battery temperature in tenths of
+    * a degree Centigrade</p>
+    * <p>&quot;technology&quot; - String, the type of battery installed, e.g. "Li-ion"</p>
+    */
+    interface IBatteryService extends IBinder {
+        IsPowered(
+            [out] Boolean* powered); 
+
+        IsPoweredEx(
+            [in] Int32 plugTypeSet,
+            [out] Boolean* powered);
+            
+        GetPlugType(
+            [out] Int32* plugType);
+
+        // returns battery level as a percentage
+        GetBatteryLevel(
+            [out] Int32* batteryLevel);
+
+        SystemReady();
+
+    }
+
+}
+

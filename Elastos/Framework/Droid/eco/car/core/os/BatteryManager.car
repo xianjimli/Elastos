@@ -1,0 +1,97 @@
+
+module
+{
+    /**
+     * Extra for {@link android.content.Intent#ACTION_BATTERY_CHANGED}:
+     * integer containing the current status constant.
+     */
+    const BatteryManager_EXTRA_STATUS = "status";
+    
+    /**
+     * Extra for {@link android.content.Intent#ACTION_BATTERY_CHANGED}:
+     * integer containing the current health constant.
+     */
+    const BatteryManager_EXTRA_HEALTH = "health";
+    
+    /**
+     * Extra for {@link android.content.Intent#ACTION_BATTERY_CHANGED}:
+     * boolean indicating whether a battery is present.
+     */
+    const BatteryManager_EXTRA_PRESENT = "present";
+    
+    /**
+     * Extra for {@link android.content.Intent#ACTION_BATTERY_CHANGED}:
+     * integer field containing the current battery level, from 0 to
+     * {@link #EXTRA_SCALE}.
+     */
+    const BatteryManager_EXTRA_LEVEL = "level";
+    
+    /**
+     * Extra for {@link android.content.Intent#ACTION_BATTERY_CHANGED}:
+     * integer containing the maximum battery level.
+     */
+    const BatteryManager_EXTRA_SCALE = "scale";
+    
+    /**
+     * Extra for {@link android.content.Intent#ACTION_BATTERY_CHANGED}:
+     * integer containing the resource ID of a small status bar icon
+     * indicating the current battery state.
+     */
+    const BatteryManager_EXTRA_ICON_SMALL = "icon-small";
+    
+    /**
+     * Extra for {@link android.content.Intent#ACTION_BATTERY_CHANGED}:
+     * integer indicating whether the device is plugged in to a power
+     * source; 0 means it is on battery, other constants are different
+     * types of power sources.
+     */
+    const BatteryManager_EXTRA_PLUGGED = "plugged";
+    
+    /**
+     * Extra for {@link android.content.Intent#ACTION_BATTERY_CHANGED}:
+     * integer containing the current battery voltage level.
+     */
+    const BatteryManager_EXTRA_VOLTAGE = "voltage";
+    
+    /**
+     * Extra for {@link android.content.Intent#ACTION_BATTERY_CHANGED}:
+     * integer containing the current battery temperature.
+     */
+    const BatteryManager_EXTRA_TEMPERATURE = "temperature";
+    
+    /**
+     * Extra for {@link android.content.Intent#ACTION_BATTERY_CHANGED}:
+     * String describing the technology of the current battery.
+     */
+    const BatteryManager_EXTRA_TECHNOLOGY = "technology";
+    
+    // values for "status" field in the ACTION_BATTERY_CHANGED Intent
+    const BatteryManager_BATTERY_STATUS_UNKNOWN = 1;
+    const BatteryManager_BATTERY_STATUS_CHARGING = 2;
+    const BatteryManager_BATTERY_STATUS_DISCHARGING = 3;
+    const BatteryManager_BATTERY_STATUS_NOT_CHARGING = 4;
+    const BatteryManager_BATTERY_STATUS_FULL = 5;
+
+    // values for "health" field in the ACTION_BATTERY_CHANGED Intent
+    const BatteryManager_BATTERY_HEALTH_UNKNOWN = 1;
+    const BatteryManager_BATTERY_HEALTH_GOOD = 2;
+    const BatteryManager_BATTERY_HEALTH_OVERHEAT = 3;
+    const BatteryManager_BATTERY_HEALTH_DEAD = 4;
+    const BatteryManager_BATTERY_HEALTH_OVER_VOLTAGE = 5;
+    const BatteryManager_BATTERY_HEALTH_UNSPECIFIED_FAILURE = 6;
+
+    // values of the "plugged" field in the ACTION_BATTERY_CHANGED intent.
+    // These must be powers of 2.
+    /** Power source is an AC charger. */
+    const BatteryManager_BATTERY_PLUGGED_AC = 1;
+    /** Power source is a USB port. */
+    const BatteryManager_BATTERY_PLUGGED_USB = 2;
+    
+    /**
+    * The BatteryManager class contains strings and constants used for values
+    * in the {@link android.content.Intent#ACTION_BATTERY_CHANGED} Intent.
+    */
+    interface IBatteryManager {
+    }
+
+}

@@ -57,6 +57,7 @@ SOURCES += CAccessibilityManagerService.cpp
 SOURCES += CAccessibilityServiceConnection.cpp
 SOURCES += CAppWidgetService.cpp
 SOURCES += CBackupManagerService.cpp
+SOURCES += CBatteryService.cpp
 
 LIBRARIES += location/location.lib
 #LIBRARIES += usb/usb.lib

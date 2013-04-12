@@ -4,6 +4,7 @@ module
     merge("server/LightsService.car");
     merge("server/InputMethodManagerService.car");
     merge("server/am.car");
+    merge("server/BatteryService.car");
 
     class CWindowSession {
         constructor(
@@ -116,5 +117,12 @@ module
             [in] IContext* ctx);
 
         interface IBackupManager;
+    }
+
+    class CBatteryService {
+        constructor(
+            [in] IContext* context);
+
+        interface IBatteryService;
     }
 }

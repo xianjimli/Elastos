@@ -20,6 +20,7 @@ module
     merge("os/storage/IMountService.car");
     merge("os/Handler.car");
     merge("os/Message.car");
+    merge("os/BatteryManager.car");
 
     class CRemoteCallbackList {
         constructor();
