@@ -10,6 +10,7 @@
 #include "os/Process.h"
 #include "os/FileUtils.h"
 #include "os/Environment.h"
+#include "os/Binder.h"
 #include <unistd.h>
 #include <assert.h>
 #include <Slogger.h>
@@ -278,17 +279,18 @@ ECode CContextImpl::ApplicationCapsuleManager::GetPermissionInfo(
     /* [out] */ IPermissionInfo** info)
 {
     // try {
-    //     PermissionInfo pi = mPM.getPermissionInfo(name, flags);
-    //     if (pi != null) {
-    //         return pi;
-    //     }
+    IPermissionInfo* pi;
+    mPM->GetPermissionInfo(name, flags, &pi);
+    if (pi != NULL) {
+        *info = pi;
+        return NOERROR;
+    }
     // } catch (RemoteException e) {
     //     throw new RuntimeException("Package manager has died", e);
     // }
 
     // throw new NameNotFoundException(name);
-    assert(0);
-    return E_NOT_IMPLEMENTED;
+    return E_NAME_NOT_FOUND_EXCEPTION;
 }
 
 ECode CContextImpl::ApplicationCapsuleManager::QueryPermissionsByGroup(
@@ -297,17 +299,18 @@ ECode CContextImpl::ApplicationCapsuleManager::QueryPermissionsByGroup(
     /* [out] */ IObjectContainer** infos)
 {
     // try {
-    //     List<PermissionInfo> pi = mPM.queryPermissionsByGroup(group, flags);
-    //     if (pi != null) {
-    //         return pi;
-    //     }
+    IObjectContainer* pi;
+    mPM->QueryPermissionsByGroup(group, flags, &pi);
+    if (pi != NULL) {
+        *infos = pi;
+        return NOERROR;
+    }
     // } catch (RemoteException e) {
     //     throw new RuntimeException("Package manager has died", e);
     // }
 
     // throw new NameNotFoundException(group);
-    assert(0);
-    return E_NOT_IMPLEMENTED;
+    return E_NAME_NOT_FOUND_EXCEPTION;
 }
 
 ECode CContextImpl::ApplicationCapsuleManager::GetPermissionGroupInfo(
@@ -316,17 +319,18 @@ ECode CContextImpl::ApplicationCapsuleManager::GetPermissionGroupInfo(
     /* [out] */ IPermissionGroupInfo** info)
 {
     // try {
-    //     PermissionGroupInfo pgi = mPM.getPermissionGroupInfo(name, flags);
-    //     if (pgi != null) {
-    //         return pgi;
-    //     }
+    IPermissionGroupInfo* pgi;
+    mPM->GetPermissionGroupInfo(name, flags, &pgi);
+    if (pgi != NULL) {
+        *info = pgi;
+        return NOERROR;
+    }
     // } catch (RemoteException e) {
     //     throw new RuntimeException("Package manager has died", e);
     // }
 
     // throw new NameNotFoundException(name);
-    assert(0);
-    return E_NOT_IMPLEMENTED;
+    return E_NAME_NOT_FOUND_EXCEPTION;
 }
 
 ECode CContextImpl::ApplicationCapsuleManager::GetAllPermissionGroups(
@@ -334,12 +338,12 @@ ECode CContextImpl::ApplicationCapsuleManager::GetAllPermissionGroups(
     /* [out] */ IObjectContainer** infos)
 {
     // try {
-    //     return mPM.getAllPermissionGroups(flags);
+    return mPM->GetAllPermissionGroups(flags, infos);
     // } catch (RemoteException e) {
     //     throw new RuntimeException("Package manager has died", e);
     // }
-    assert(0);
-    return E_NOT_IMPLEMENTED;
+
+    //return NOERROR;
 }
 
 ECode CContextImpl::ApplicationCapsuleManager::GetApplicationInfo(
@@ -483,12 +487,12 @@ ECode CContextImpl::ApplicationCapsuleManager::CheckPermission(
     /* [out] */ Int32* perm)
 {
     // try {
-    //     return mPM.checkPermission(permName, pkgName);
+    return mPM->CheckPermission(permName, capName, perm);
     // } catch (RemoteException e) {
     //     throw new RuntimeException("Package manager has died", e);
     // }
-    assert(0);
-    return E_NOT_IMPLEMENTED;
+
+    //return E_NOT_IMPLEMENTED;
 }
 
 ECode CContextImpl::ApplicationCapsuleManager::AddPermission(
@@ -496,12 +500,12 @@ ECode CContextImpl::ApplicationCapsuleManager::AddPermission(
     /* [out] */ Boolean* isAdded)
 {
     // try {
-    //     return mPM.addPermission(info);
+    return mPM->AddPermission(info, isAdded);
     // } catch (RemoteException e) {
     //     throw new RuntimeException("Package manager has died", e);
     // }
-    assert(0);
-    return E_NOT_IMPLEMENTED;
+
+    //return E_NOT_IMPLEMENTED;
 }
 
 ECode CContextImpl::ApplicationCapsuleManager::AddPermissionAsync(
@@ -509,24 +513,24 @@ ECode CContextImpl::ApplicationCapsuleManager::AddPermissionAsync(
     /* [out] */ Boolean* isAdded)
 {
     // try {
-    //     return mPM.addPermissionAsync(info);
+    return mPM->AddPermissionAsync(info, isAdded);
     // } catch (RemoteException e) {
     //     throw new RuntimeException("Package manager has died", e);
     // }
-    assert(0);
-    return E_NOT_IMPLEMENTED;
+
+    // return E_NOT_IMPLEMENTED;
 }
 
 ECode CContextImpl::ApplicationCapsuleManager::RemovePermission(
     /* [in] */ const String& name)
 {
     // try {
-    //     mPM.removePermission(name);
+    return mPM->RemovePermission(name);
     // } catch (RemoteException e) {
     //     throw new RuntimeException("Package manager has died", e);
     // }
-    assert(0);
-    return E_NOT_IMPLEMENTED;
+
+    // return E_NOT_IMPLEMENTED;
 }
 
 ECode CContextImpl::ApplicationCapsuleManager::CheckSignatures(
@@ -870,12 +874,12 @@ ECode CContextImpl::ApplicationCapsuleManager::GetDrawable(
     //     putCachedIcon(name, dr);
     //     return dr;
     // } catch (NameNotFoundException e) {
-    //     Log.w("PackageManager", "Failure retrieving resources for"
+    //     Log.w("CapsuleManager_, "Failure retrieving resources for"
     //             + appInfo.packageName);
     // } catch (RuntimeException e) {
     //     // If an exception was thrown, fall through to return
     //     // default icon.
-    //     Log.w("PackageManager", "Failure retrieving icon 0x"
+    //     Log.w("CapsuleManager_, "Failure retrieving icon 0x"
     //             + Integer.toHexString(resid) + " in package "
     //             + packageName, e);
     // }
@@ -902,7 +906,7 @@ ECode CContextImpl::ApplicationCapsuleManager::GetActivityIconEx(
     // }
 
     // ResolveInfo info = resolveActivity(
-    //     intent, PackageManager.MATCH_DEFAULT_ONLY);
+    //     intent, CapsuleManager_MATCH_DEFAULT_ONLY);
     // if (info != null) {
     //     return info.activityInfo.loadIcon(this);
     // }
@@ -957,7 +961,7 @@ ECode CContextImpl::ApplicationCapsuleManager::GetActivityLogoEx(
     // }
 
     // ResolveInfo info = resolveActivity(
-    //         intent, PackageManager.MATCH_DEFAULT_ONLY);
+    //         intent, CapsuleManager_MATCH_DEFAULT_ONLY);
     // if (info != null) {
     //     return info.activityInfo.loadLogo(this);
     // }
@@ -1190,12 +1194,12 @@ ECode CContextImpl::ApplicationCapsuleManager::GetText(
     //     putCachedString(name, text);
     //     return text;
     // } catch (NameNotFoundException e) {
-    //     Log.w("PackageManager", "Failure retrieving resources for"
+    //     Log.w("CapsuleManager_, "Failure retrieving resources for"
     //             + appInfo.packageName);
     // } catch (RuntimeException e) {
     //     // If an exception was thrown, fall through to return
     //     // default icon.
-    //     Log.w("PackageManager", "Failure retrieving text 0x"
+    //     Log.w("CapsuleManager_, "Failure retrieving text 0x"
     //             + Integer.toHexString(resid) + " in package "
     //             + packageName, e);
     // }
@@ -1232,11 +1236,11 @@ ECode CContextImpl::ApplicationCapsuleManager::GetXml(
     // } catch (RuntimeException e) {
     //     // If an exception was thrown, fall through to return
     //     // default icon.
-    //     Log.w("PackageManager", "Failure retrieving xml 0x"
+    //     Log.w("CapsuleManager_, "Failure retrieving xml 0x"
     //             + Integer.toHexString(resid) + " in package "
     //             + packageName, e);
     // } catch (NameNotFoundException e) {
-    //     Log.w("PackageManager", "Failure retrieving resources for"
+    //     Log.w("CapsuleManager_, "Failure retrieving resources for"
     //             + appInfo.packageName);
     // }
     // return null;
@@ -1492,7 +1496,7 @@ ECode CContextImpl::ApplicationCapsuleManager::GetComponentEnabledSetting(
     // } catch (RemoteException e) {
     //     // Should never happen!
     // }
-    // return PackageManager.COMPONENT_ENABLED_STATE_DEFAULT;
+    // return CapsuleManager_COMPONENT_ENABLED_STATE_DEFAULT;
     assert(0);
     return E_NOT_IMPLEMENTED;
 }
@@ -1520,7 +1524,7 @@ ECode CContextImpl::ApplicationCapsuleManager::GetApplicationEnabledSetting(
     // } catch (RemoteException e) {
     //     // Should never happen!
     // }
-    // return PackageManager.COMPONENT_ENABLED_STATE_DEFAULT;
+    // return CapsuleManager_COMPONENT_ENABLED_STATE_DEFAULT;
     assert(0);
     return E_NOT_IMPLEMENTED;
 }
@@ -2384,7 +2388,7 @@ ECode CContextImpl::CreateCapsuleContext(
     }
 
 //    // Should be a better exception.
-//        throw new PackageManager.NameNotFoundException(
+//        throw new CapsuleManager_NameNotFoundException(
 //            "Application package " + packageName + " not found");
 
     *context = NULL;
@@ -2395,71 +2399,166 @@ ECode CContextImpl::CheckCallingPermission(
     /* [in] */ const String& permission,
     /* [out] */ Int32* value)
 {
-    return E_NOT_IMPLEMENTED;
+    // if (permission == null) {
+    //     throw new IllegalArgumentException("permission is null");
+    // }
+
+    if (!Process::SupportsProcesses()) {
+        *value = CapsuleManager_PERMISSION_GRANTED;
+    }
+
+    Int32 pid = Binder::GetCallingPid();
+    if (pid != Process::MyPid()) {
+        return CheckPermission(permission, pid,
+                Binder::GetCallingUid(), value);
+    }
+
+    *value = CapsuleManager_PERMISSION_DENIED;
+    return NOERROR;
+}
+
+ECode CContextImpl::Enforce(
+    /* [in] */ String permission,
+    /* [in] */ Int32 resultOfCheck,
+    /* [in] */ Boolean selfToo,
+    /* [in] */ Int32 uid,
+    /* [in] */ String message)
+{
+    if (resultOfCheck != CapsuleManager_PERMISSION_GRANTED) {
+        // throw new SecurityException(
+        //         (message != null ? (message + ": ") : "") +
+        //         (selfToo
+        //          ? "Neither user " + uid + " nor current process has "
+        //          : "User " + uid + " does not have ") +
+        //         permission +
+        //         ".");
+        return E_SECURITY_EXCEPTION;
+    }
+
+    return NOERROR;
 }
 
 ECode CContextImpl::EnforceCallingOrSelfPermission(
     /* [in] */ CString permission,
     /* [in] */ CString message)
 {
-    return E_NOT_IMPLEMENTED;
-}
-
-ECode CContextImpl::CheckPermissionEx(
-    /* [in] */ const String& permName,
-    /* [in] */ const String& pkgName,
-    /* [out] */ Int32 * result)
-{
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    // Int32 result;
+    // CheckCallingOrSelfPermission(permission, &result);
+    // return Enforce(permission,
+    //         result,
+    //         TRUE,
+    //         Binder::GetCallingUid(),
+    //         message);
 }
 
 ECode CContextImpl::CheckPermission(
     /* [in] */ const String& permission,
     /* [in] */ Int32 pid,
     /* [in] */ Int32 uid,
-    /* [out] */ Int32 * result)
+    /* [out] */ Int32* result)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    // if (permission == null) {
+    //     throw new IllegalArgumentException("permission is null");
+    // }
+
+    if (!Process::SupportsProcesses()) {
+        *result = CapsuleManager_PERMISSION_GRANTED;
+        return NOERROR;
+    }
+    // try {
+    AutoPtr<IActivityManager> activityManager;
+    FAIL_RETURN(ActivityManagerNative::GetDefault((IActivityManager**)&activityManager));
+    return activityManager->CheckPermission(permission, pid, uid, result);
+    // } catch (RemoteException e) {
+    //     return CapsuleManager_PERMISSION_DENIED;
+    // }
 }
 
 ECode CContextImpl::CheckUriPermission(
-    /* [in] */ IUri * uri,
+    /* [in] */ IUri* uri,
     /* [in] */ const String& readPermission,
     /* [in] */ const String& writePermission,
     /* [in] */ Int32 pid,
     /* [in] */ Int32 uid,
     /* [in] */ Int32 modeFlags,
-    /* [out] */ Int32 * result)
+    /* [out] */ Int32* result)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    // if (DEBUG) {
+    //     Log.i("foo", "checkUriPermission: uri=" + uri + "readPermission="
+    //             + readPermission + " writePermission=" + writePermission
+    //             + " pid=" + pid + " uid=" + uid + " mode" + modeFlags);
+    // }
+    if ((modeFlags & Intent_FLAG_GRANT_READ_URI_PERMISSION) != 0) {
+        if (readPermission == NULL
+                || CheckPermission(readPermission, pid, uid, result)
+                == CapsuleManager_PERMISSION_GRANTED) {
+            *result = CapsuleManager_PERMISSION_GRANTED;
+            return NOERROR;
+        }
+    }
+    if ((modeFlags & Intent_FLAG_GRANT_WRITE_URI_PERMISSION) != 0) {
+        if (writePermission == NULL
+                || CheckPermission(writePermission, pid, uid, result)
+                == CapsuleManager_PERMISSION_GRANTED) {
+            *result = CapsuleManager_PERMISSION_GRANTED;
+            return NOERROR;
+        }
+    }
+
+    if (uri != NULL) {
+        return CheckUriPermissionEx(uri, pid, uid, modeFlags, result);
+    }
+    else {
+        *result = CapsuleManager_PERMISSION_DENIED;
+        return NOERROR;
+    }
 }
 
 ECode CContextImpl::CheckUriPermissionEx(
-    /* [in] */ IUri * uri,
+    /* [in] */ IUri* uri,
     /* [in] */ Int32 pid,
     /* [in] */ Int32 uid,
     /* [in] */ Int32 modeFlags,
-    /* [out] */ Int32 * result)
+    /* [out] */ Int32* result)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    if (!Process::SupportsProcesses()) {
+        *result = CapsuleManager_PERMISSION_GRANTED;
+        return NOERROR;
+    }
+    // try {
+    AutoPtr<IActivityManager> activityManager;
+    FAIL_RETURN(ActivityManagerNative::GetDefault((IActivityManager**)&activityManager));
+    return activityManager->CheckUriPermission(uri, pid, uid, modeFlags, result);
+    // } catch (RemoteException e) {
+    //     return CapsuleManager_PERMISSION_DENIED;
+    // }
+    return NOERROR;
 }
 
 ECode CContextImpl::RevokeUriPermission(
     /* [in] */ IUri* uri,
     /* [in] */ Int32 modeFlags)
 {
-    return E_NOT_IMPLEMENTED;
+    // try {
+    AutoPtr<IActivityManager> activityManager;
+    FAIL_RETURN(ActivityManagerNative::GetDefault((IActivityManager**)&activityManager));
+    return activityManager->RevokeUriPermission(
+            (IApplicationApartment*)mApartment, uri,
+            modeFlags);
+    // } catch (RemoteException e) {
+    // }
 }
 
 ECode CContextImpl::CheckCallingOrSelfPermission(
     /* [in] */ const String& permission,
     /* [out] */ Int32* perm)
 {
-    return E_NOT_IMPLEMENTED;
+    // if (permission == NULL) {
+    //     throw new IllegalArgumentException("permission is null");
+    // }
+
+    return CheckPermission(permission, Binder::GetCallingPid(),
+            Binder::GetCallingUid(), perm);
 }
 
 ECode CContextImpl::GrantUriPermission(
@@ -2467,7 +2566,14 @@ ECode CContextImpl::GrantUriPermission(
     /* [in] */ IUri* uri,
     /* [in] */ Int32 modeFlags)
 {
-    return E_NOT_IMPLEMENTED;
+    // try {
+    AutoPtr<IActivityManager> activityManager;
+    FAIL_RETURN(ActivityManagerNative::GetDefault((IActivityManager**)&activityManager));
+    return activityManager->GrantUriPermission(
+            (IApplicationApartment*)mApartment, toCapsule, uri,
+            modeFlags);
+    // } catch (RemoteException e) {
+    // }
 }
 
 ECode CContextImpl::GetApplicationApartment(

@@ -1062,10 +1062,11 @@ private:
         /* [in] */ Int32 uid,
         /* [in] */ Int32 reqUid);
 
-    CARAPI_(Int32) CheckPermission(
+    CARAPI CheckPermission(
         /* [in] */ const String& permission,
         /* [in] */ Int32 pid,
-        /* [in] */ Int32 uid);
+        /* [in] */ Int32 uid,
+        /* [out] */ Int32* result);
 
     CARAPI_(Int32) CheckCallingPermission(
         /* [in] */ const String& permission);

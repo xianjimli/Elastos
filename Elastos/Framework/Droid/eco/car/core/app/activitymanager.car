@@ -314,5 +314,29 @@ module
             [in] IBinder* token,
             [in] Int32 pid,
             [in] Boolean isForeground);
+
+        CheckPermission(
+            [in] String permission,
+            [in] Int32 pid,
+            [in] Int32 uid,
+            [out] Int32* result);
+
+        CheckUriPermission(
+            [in] IUri* uri,
+            [in] Int32 pid,
+            [in] Int32 uid,
+            [in] Int32 mode,
+            [out] Int32* permission);
+
+        GrantUriPermission(
+            [in] IApplicationApartment* caller,
+            [in] String targetPkg,
+            [in] IUri* uri,
+            [in] Int32 modeFlags);
+
+        RevokeUriPermission(
+            [in] IApplicationApartment* caller,
+            [in] IUri* uri,
+            [in] Int32 modeFlags);
     }
 }

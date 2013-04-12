@@ -3454,15 +3454,19 @@ Int32 CActivityManagerService::CheckComponentPermission(
  *
  * This can be called with or without the global lock held.
  */
-Int32 CActivityManagerService::CheckPermission(
+ECode CActivityManagerService::CheckPermission(
     /* [in] */ const String& permission,
     /* [in] */ Int32 pid,
-    /* [in] */ Int32 uid)
+    /* [in] */ Int32 uid,
+    /* [out] */ Int32* result)
 {
     if (permission.IsNull()) {
-        return CapsuleManager_PERMISSION_GRANTED;
+        *result = CapsuleManager_PERMISSION_GRANTED;
+        return NOERROR;
     }
-    return CheckComponentPermission(permission, pid, uid, -1);
+
+    *result = CheckComponentPermission(permission, pid, uid, -1);
+    return NOERROR;
 }
 
 /**
@@ -3472,9 +3476,12 @@ Int32 CActivityManagerService::CheckPermission(
 Int32 CActivityManagerService::CheckCallingPermission(
     /* [in] */ const String& permission)
 {
-    return CheckPermission(permission,
+    Int32 result;
+    CheckPermission(permission,
             Binder::GetCallingPid(),
-            Binder::GetCallingUid());
+            Binder::GetCallingUid(),
+            &result);
+    return result;
 }
 
 /**
@@ -3638,24 +3645,25 @@ ECode CActivityManagerService::CheckUriPermission(
     /* [in] */ Int32 modeFlags,
     /* [out] */ Int32* permission)
 {
-//    // Another redirected-binder-call permissions check as in
-//    // {@link checkComponentPermission}.
-//    Identity tlsIdentity = sCallerIdentity.get();
-//    if (tlsIdentity != null) {
-//        uid = tlsIdentity.uid;
-//        pid = tlsIdentity.pid;
-//    }
-//
-//    // Our own process gets to do everything.
-//    if (pid == MY_PID) {
-//        return PackageManager.PERMISSION_GRANTED;
-//    }
-//    synchronized(this) {
-//        return checkUriPermissionLocked(uri, uid, modeFlags)
-//                ? PackageManager.PERMISSION_GRANTED
-//                : PackageManager.PERMISSION_DENIED;
-//    }
-    return E_NOT_IMPLEMENTED;
+    // Another redirected-binder-call permissions check as in
+    // {@link checkComponentPermission}.
+    //TODO:
+    Identity* tlsIdentity = NULL;//sCallerIdentity.get();
+    if (tlsIdentity != NULL) {
+       uid = tlsIdentity->mUid;
+       pid = tlsIdentity->mPid;
+    }
+
+    // Our own process gets to do everything.
+    if (pid == Binder::GetCallingPid()) {
+        *permission = CapsuleManager_PERMISSION_GRANTED;
+        return CapsuleManager_PERMISSION_GRANTED;
+    }
+    //synchronized(this) {
+        return CheckUriPermissionLocked(uri, uid, modeFlags)
+               ? CapsuleManager_PERMISSION_GRANTED
+               : CapsuleManager_PERMISSION_DENIED;
+    //}
 }
 
 /**
@@ -9693,9 +9701,10 @@ ECode CActivityManagerService::BroadcastIntentLocked(
 
     // Add to the sticky list if requested.
     if (sticky) {
-        if (CheckPermission(String("elastos.permission.BROADCAST_STICKY")/*android.Manifest.permission.BROADCAST_STICKY*/,
-                callingPid, callingUid)
-                != CapsuleManager_PERMISSION_GRANTED) {
+	Int32 permission;
+	CheckPermission(String("elastos.permission.BROADCAST_STICKY")/*android.Manifest.permission.BROADCAST_STICKY*/,
+                callingPid, callingUid, &permission);
+        if (permission != CapsuleManager_PERMISSION_GRANTED) {
             StringBuffer msg;
             msg = msg + "Permission Denial: broadcastIntent() requesting a sticky broadcast from pid="
                     + callingPid + ", uid=" + callingUid + " requires "

@@ -167,23 +167,13 @@ ECode Activity::CreateCapsuleContext(
     return mBase->CreateCapsuleContext(capsuleName, flags, ctx);
 }
 
-ECode Activity::CheckPermissionEx(
-    /* [in] */ const String& permName,
-    /* [in] */ const String& pkgName,
-    /* [out] */ Int32 * result)
-{
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
-}
-
 ECode Activity::CheckPermission(
     /* [in] */ const String& permission,
     /* [in] */ Int32 pid,
     /* [in] */ Int32 uid,
     /* [out] */ Int32 * result)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return mBase->CheckPermission(permission, pid, uid, result);
 }
 
 ECode Activity::CheckUriPermission(
@@ -195,8 +185,8 @@ ECode Activity::CheckUriPermission(
     /* [in] */ Int32 modeFlags,
     /* [out] */ Int32 * result)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return mBase->CheckUriPermission(uri, readPermission, writePermission,
+                    pid, uid, modeFlags, result);
 }
 
 ECode Activity::CheckUriPermissionEx(
@@ -206,36 +196,35 @@ ECode Activity::CheckUriPermissionEx(
     /* [in] */ Int32 modeFlags,
     /* [out] */ Int32 * result)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return mBase->CheckUriPermissionEx(uri, pid, uid, modeFlags, result);
 }
 
 ECode Activity::CheckCallingPermission(
     /* [in] */ const String& permission,
     /* [out] */ Int32* value)
 {
-    return E_NOT_IMPLEMENTED;
+    return mBase->CheckCallingPermission(permission, value);
 }
 
 ECode Activity::EnforceCallingOrSelfPermission(
     /* [in] */ CString permission,
     /* [in] */ CString message)
 {
-    return E_NOT_IMPLEMENTED;
+    return mBase->EnforceCallingOrSelfPermission(permission, message);
 }
 
 ECode Activity::RevokeUriPermission(
     /* [in] */ IUri* uri,
     /* [in] */ Int32 modeFlags)
 {
-    return E_NOT_IMPLEMENTED;
+    return mBase->RevokeUriPermission(uri, modeFlags);
 }
 
 ECode Activity::CheckCallingOrSelfPermission(
     /* [in] */ const String& permission,
     /* [out] */ Int32* perm)
 {
-    return E_NOT_IMPLEMENTED;
+    return mBase->CheckCallingOrSelfPermission(permission, perm);
 }
 
 ECode Activity::GrantUriPermission(
@@ -243,7 +232,7 @@ ECode Activity::GrantUriPermission(
     /* [in] */ IUri* uri,
     /* [in] */ Int32 modeFlags)
 {
-    return E_NOT_IMPLEMENTED;
+    return mBase->GrantUriPermission(toCapsule, uri, modeFlags);
 }
 
 ECode Activity::GetAssets(
