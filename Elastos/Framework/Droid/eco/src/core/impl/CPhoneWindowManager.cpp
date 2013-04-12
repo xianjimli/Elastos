@@ -1359,55 +1359,78 @@ void CPhoneWindowManager::SetAttachedWindowFrames(
     /* [in] */ Int32 sim,
     /* [in] */ IWindowState* attached,
     /* [in] */ Boolean insetDecors,
-    /* [in] */ IRect* pf,
-    /* [in] */ IRect* df,
-    /* [in] */ IRect* cf,
-    /* [in] */ IRect* vf)
+    /* [in] */ IRect* _pf,
+    /* [in] */ IRect* _df,
+    /* [in] */ IRect* _cf,
+    /* [in] */ IRect* _vf)
 {
-     //if (win.getSurfaceLayer() > mDockLayer && attached.getSurfaceLayer() < mDockLayer) {
-     //    // Here's a special case: if this attached window is a panel that is
-     //    // above the dock window, and the window it is attached to is below
-     //    // the dock window, then the frames we computed for the window it is
-     //    // attached to can not be used because the dock is effectively part
-     //    // of the underlying window and the attached window is floating on top
-     //    // of the whole thing.  So, we ignore the attached window and explicitly
-     //    // compute the frames that would be appropriate without the dock.
-     //    df->mLeft = cf->mLeft = vf->mLeft = mDockLeft;
-     //    df->mTop = cf->mTop = vf->mTop = mDockTop;
-     //    df->mRight = cf->mRight = vf->mRight = mDockRight;
-     //    df->mBottom = cf->mBottom = vf->mBottom = mDockBottom;
-     //} else {
-     //    // The effective display frame of the attached window depends on
-     //    // whether it is taking care of insetting its content.  If not,
-     //    // we need to use the parent's content frame so that the entire
-     //    // window is positioned within that content.  Otherwise we can use
-     //    // the display frame and let the attached window take care of
-     //    // positioning its content appropriately.
-     //    if ((sim & SOFT_INPUT_MASK_ADJUST) != SOFT_INPUT_ADJUST_RESIZE) {
-     //        cf.set(attached.getDisplayFrameLw());
-     //    } else {
-     //        // If the window is resizing, then we want to base the content
-     //        // frame on our attached content frame to resize...  however,
-     //        // things can be tricky if the attached window is NOT in resize
-     //        // mode, in which case its content frame will be larger.
-     //        // Ungh.  So to deal with that, make sure the content frame
-     //        // we end up using is not covering the IM dock.
-     //        cf.set(attached.getContentFrameLw());
-     //        if (attached.getSurfaceLayer() < mDockLayer) {
-     //            if (cf->mLeft < mContentLeft) cf->mLeft = mContentLeft;
-     //            if (cf->mTop < mContentTop) cf->mTop = mContentTop;
-     //            if (cf->mRight > mContentRight) cf->mRight = mContentRight;
-     //            if (cf->mBottom > mContentBottom) cf->mBottom = mContentBottom;
-     //        }
-     //    }
-     //    df.set(insetDecors ? attached.getDisplayFrameLw() : cf);
-     //    vf.set(attached.getVisibleFrameLw());
-     //}
-     //// The LAYOUT_IN_SCREEN flag is used to determine whether the attached
-     //// window should be positioned relative to its parent or the entire
-     //// screen.
-     //pf.set((fl & FLAG_LAYOUT_IN_SCREEN) == 0
-     //    ? attached.getFrameLw() : df);
+    CRect* pf = (CRect*)_pf;
+    CRect* df = (CRect*)_df;
+    CRect* cf = (CRect*)_cf;
+    CRect* vf = (CRect*)_vf;
+    Int32 winLayer, attackedLayer;
+    win->GetSurfaceLayer(&winLayer);
+    attached->GetSurfaceLayer(&attackedLayer);
+    if (winLayer > mDockLayer && attackedLayer < mDockLayer) {
+       // Here's a special case: if this attached window is a panel that is
+       // above the dock window, and the window it is attached to is below
+       // the dock window, then the frames we computed for the window it is
+       // attached to can not be used because the dock is effectively part
+       // of the underlying window and the attached window is floating on top
+       // of the whole thing.  So, we ignore the attached window and explicitly
+       // compute the frames that would be appropriate without the dock.
+       df->mLeft = cf->mLeft = vf->mLeft = mDockLeft;
+       df->mTop = cf->mTop = vf->mTop = mDockTop;
+       df->mRight = cf->mRight = vf->mRight = mDockRight;
+       df->mBottom = cf->mBottom = vf->mBottom = mDockBottom;
+    }
+    else {
+        // The effective display frame of the attached window depends on
+        // whether it is taking care of insetting its content.  If not,
+        // we need to use the parent's content frame so that the entire
+        // window is positioned within that content.  Otherwise we can use
+        // the display frame and let the attached window take care of
+        // positioning its content appropriately.
+        if ((sim & WindowManagerLayoutParams_SOFT_INPUT_MASK_ADJUST)
+            != WindowManagerLayoutParams_SOFT_INPUT_ADJUST_RESIZE) {
+            AutoPtr<IRect> tempRc;
+            attached->GetDisplayFrameLw((IRect**)&tempRc);
+            cf->SetEx(tempRc);
+        }
+        else {
+            // If the window is resizing, then we want to base the content
+            // frame on our attached content frame to resize...  however,
+            // things can be tricky if the attached window is NOT in resize
+            // mode, in which case its content frame will be larger.
+            // Ungh.  So to deal with that, make sure the content frame
+            // we end up using is not covering the IM dock.
+            AutoPtr<IRect> tempRc;
+            attached->GetContentFrameLw((IRect**)&tempRc);
+            cf->SetEx(tempRc);
+            if (attackedLayer < mDockLayer) {
+                if (cf->mLeft < mContentLeft)
+                    cf->mLeft = mContentLeft;
+                if (cf->mTop < mContentTop)
+                    cf->mTop = mContentTop;
+                if (cf->mRight > mContentRight)
+                    cf->mRight = mContentRight;
+                if (cf->mBottom > mContentBottom)
+                    cf->mBottom = mContentBottom;
+            }
+        }
+        AutoPtr<IRect> tempRc;
+        attached->GetDisplayFrameLw((IRect**)&tempRc);
+        df->SetEx(insetDecors ? tempRc : cf);
+        tempRc = NULL;
+        attached->GetVisibleFrameLw((IRect**)&tempRc);
+        vf->SetEx(tempRc);
+    }
+    // The LAYOUT_IN_SCREEN flag is used to determine whether the attached
+    // window should be positioned relative to its parent or the entire
+    // screen.
+    AutoPtr<IRect> tempRc;
+    attached->GetFrameLw((IRect**)&tempRc);
+    pf->SetEx((fl & WindowManagerLayoutParams_FLAG_LAYOUT_IN_SCREEN) == 0 ? tempRc : df);
 }
 
 /** {@inheritDoc} */
