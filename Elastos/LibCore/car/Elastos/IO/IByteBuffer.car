@@ -841,8 +841,25 @@ module
          */
         Slice(
             [out] IByteBuffer** buffer);
+            
+        /**
+         * Checks whether this byte buffer is equal to another object.
+         * <p>
+         * If {@code other} is not a byte buffer then {@code false} is returned. Two
+         * byte buffers are equal if and only if their remaining bytes are exactly
+         * the same. Position, limit, capacity and mark are not considered.
+         *
+         * @param other
+         *            the object to compare with this byte buffer.
+         * @return {@code true} if this byte buffer is equal to {@code other},
+         *         {@code false} otherwise.
+         */
+         Equals(
+            [in]  IInterface* other,
+            [out] Boolean* isEquals);
     }
 
+    [deprecated]
     interface IByteBufferHelper {
         /**
          * Creates a byte buffer based on a newly allocated byte array.
@@ -881,7 +898,7 @@ module
          * @return the created byte buffer.
          */
         Wrap(
-            [in] ArrayOf<Byte> array,
+            [in] ArrayOf<Byte>* array,
             [out] IByteBuffer** buf);
 
         /**
@@ -903,7 +920,7 @@ module
          *                if either {@code start} or {@code len} is invalid.
          */
         WrapEx(
-            [in] ArrayOf<Byte> array,
+            [in] ArrayOf<Byte>* array,
             [in] Int32 start,
             [in] Int32 len,
             [out] IByteBuffer** buf);

@@ -258,6 +258,9 @@ public:
     virtual CARAPI Slice(
         /* [out] */ IByteBuffer** buffer) = 0;
 
+    virtual CARAPI IsDirect(
+        /* [out] */ Boolean* isDirect) = 0;
+
     CARAPI HasArray(
         /* [out] */ Boolean* hasArray);
 
@@ -267,6 +270,22 @@ public:
      * @return a string representing the state of this byte buffer.
      */
     virtual CARAPI_(String) ToString();
+
+    /**
+      * Checks whether this byte buffer is equal to another object.
+      * <p>
+      * If {@code other} is not a byte buffer then {@code false} is returned. Two
+      * byte buffers are equal if and only if their remaining bytes are exactly
+      * the same. Position, limit, capacity and mark are not considered.
+      *
+      * @param other
+      *            the object to compare with this byte buffer.
+      * @return {@code true} if this byte buffer is equal to {@code other},
+      *         {@code false} otherwise.
+      */
+    virtual CARAPI Equals(
+        /* [in]  */ IInterface* other,
+        /* [out] */ Boolean* isEquals);
 
 public:
 	/**

@@ -525,3 +525,10 @@ ECode ReadOnlyDirectByteBuffer::Rewind()
     return DirectByteBuffer::Rewind();
 }
 
+ECode ReadOnlyDirectByteBuffer::Equals(
+    /* [in]  */ IInterface* other,
+    /* [out] */ Boolean* isEquals)
+{
+    ByteBuffer::Equals(other, isEquals);
+    return NOERROR;
+}

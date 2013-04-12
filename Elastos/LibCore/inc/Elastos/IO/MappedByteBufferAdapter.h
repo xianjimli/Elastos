@@ -270,6 +270,10 @@ public:
 
     CARAPI Rewind();
 
+    virtual CARAPI Equals(
+        /* [in]  */ IInterface* other,
+        /* [out] */ Boolean* isEquals);
+
 private:
     static const Int32 CHAR_SIZE = 4;
 

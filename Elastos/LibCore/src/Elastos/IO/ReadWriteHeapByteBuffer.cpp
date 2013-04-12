@@ -601,3 +601,10 @@ ECode ReadWriteHeapByteBuffer::Rewind()
     return HeapByteBuffer::Rewind();
 }
 
+ECode ReadWriteHeapByteBuffer::Equals(
+        /* [in]  */ IInterface* other,
+        /* [out] */ Boolean* isEquals)
+{
+    ByteBuffer::Equals(other, isEquals);
+    return NOERROR;
+}
