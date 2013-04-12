@@ -11,5 +11,12 @@ module
             [in] String volumeName,
             [in] String mimeType,
             [out] IUri** uri);
+
+        SetLocale(
+            [in] String locale);
+
+        ExtractAlbumArt(
+            [in] IFileDescriptor* fd,
+            [out, callee] ArrayOf<Byte>* albumArts);
     }
 }
