@@ -3,22 +3,252 @@ module
 {
     interface IObjectStringMap;
 
+    [deprecated]
     interface IContentValues {
+        
+        /**
+         * Adds a value to the set.
+         *
+         * @param key the name of the value to put
+         * @param value the data for the value to put
+         */
         PutInt32(
             [in] String key,
             [in] Int32 value);
 
+        /**
+         * Adds a value to the set.
+         *
+         * @param key the name of the value to put
+         * @param value the data for the value to put
+         */
         PutString(
             [in] String key,
             [in] String value);
+        
+        /**
+         * Adds all values from the passed in ContentValues.
+         *
+         * @param other the ContentValues from which to copy
+         */    
+        PutAll(
+            [in] IContentValues* contentvalues);
+        
+        /**
+         * Adds a value to the set.
+         *
+         * @param key the name of the value to put
+         * @param value the data for the value to put
+         */    
+        PutByte(
+            [in] String key,
+            [in] Byte value);
+        
+        /**
+         * Adds a value to the set.
+         *
+         * @param key the name of the value to put
+         * @param value the data for the value to put
+         */    
+        PutInt16(
+            [in] String key,
+            [in] Int16 value);
+        
+        /**
+         * Adds a value to the set.
+         *
+         * @param key the name of the value to put
+         * @param value the data for the value to put
+         */    
+        PutInt64(
+            [in] String key,
+            [in] Int64 value);
+        
+        /**
+         * Adds a value to the set.
+         *
+         * @param key the name of the value to put
+         * @param value the data for the value to put
+         */    
+        PutFloat(
+            [in] String key,
+            [in] Float value);
+        /**
+         * Adds a value to the set.
+         *
+         * @param key the name of the value to put
+         * @param value the data for the value to put
+         */    
+        PutDouble(
+            [in] String key,
+            [in] Double value);
+        
+        /**
+         * Adds a value to the set.
+         *
+         * @param key the name of the value to put
+         * @param value the data for the value to put
+         */    
+        PutBoolean(
+            [in] String key,
+            [in] Boolean value);
+            
+        /**
+         * Adds a value to the set.
+         *
+         * @param key the name of the value to put
+         * @param value the data for the value to put
+         */
+        PutByteArray(
+            [in] String key,
+            [in] ArrayOf<Byte>* value);
 
+        /**
+         * Adds a null value to the set.
+         *
+         * @param key the name of the value to make null
+         */            
+        PutNull(
+            [in] String key);
+
+        /**
+         * Returns the number of values.
+         *
+         * @return the number of values
+         */
+        GetSize(
+            [out] Int32* size);
+         
+        /**
+         * Remove a single value.
+         *
+         * @param key the name of the value to remove
+         */   
+        Remove(
+            [in] String key);
+        
+        /**
+         * Removes all values.
+         */    
+        Clear();
+        
+        /**
+         * Returns true if this object has the named value.
+         *
+         * @param key the value to check for
+         * @return {@code true} if the value is present, {@code false} otherwise
+         */
+        ContainsKey(
+            [in] String key,
+            [out] Boolean* result);
+            
+            /**
+         * Gets a value. Valid value types are {@link String}, {@link Boolean}, and
+         * {@link Number} implementations.
+         *
+         * @param key the value to get
+         * @return the data for the value
+         */
+//        public Object get(String key) {
+//            return mValues.get(key);
+//        }
+
+        /**
+         * Gets a value and converts it to a String.
+         *
+         * @param key the value to get
+         * @return the String for the value
+         */
+        GetString(
+            [in] String key,
+            [out] String* value);
+        
+        /**
+         * Gets a value and converts it to a Long.
+         *
+         * @param key the value to get
+         * @return the Long value, or null if the value is missing or cannot be converted
+         */    
+        GetInt64(
+            [in] String key,
+            [out] Int64* value);
+
+        /**
+         * Gets a value and converts it to an Integer.
+         *
+         * @param key the value to get
+         * @return the Integer value, or null if the value is missing or cannot be converted
+         */
         GetInt32(
             [in] String key,
             [out] Int32* value);
+        
+        /**
+         * Gets a value and converts it to a Short.
+         *
+         * @param key the value to get
+         * @return the Short value, or null if the value is missing or cannot be converted
+         */    
+        GetInt16(
+            [in] String key,
+            [out] Int16* value);    
 
-        GetSize(
-            [out] Int32* size);
-
+        /**
+         * Gets a value and converts it to a Byte.
+         *
+         * @param key the value to get
+         * @return the Byte value, or null if the value is missing or cannot be converted
+         */
+        GetByte(
+            [in] String key,
+            [out] Byte* value);
+          
+        /**
+         * Gets a value and converts it to a Double.
+         *
+         * @param key the value to get
+         * @return the Double value, or null if the value is missing or cannot be converted
+         */    
+        GetDouble(
+            [in] String key,
+            [out] Double* value);
+        
+        /**
+         * Gets a value and converts it to a Float.
+         *
+         * @param key the value to get
+         * @return the Float value, or null if the value is missing or cannot be converted
+         */    
+        GetFloat(
+            [in] String key,
+            [out] Float* value);
+        
+        /**
+         * Gets a value and converts it to a Boolean.
+         *
+         * @param key the value to get
+         * @return the Boolean value, or null if the value is missing or cannot be converted
+         */    
+        GetBoolean(
+            [in] String key,
+            [out] Boolean* value);
+        
+        /**
+         * Gets a value that is a byte array. Note that this method will not convert
+         * any other types to byte arrays.
+         *
+         * @param key the value to get
+         * @return the byte[] value, or null is the value is missing or not a byte[]
+         */    
+        GetByteArray(
+            [in] String key,
+            [out, callee] ArrayOf<Byte>* value);
+        
+        /**
+         * Returns a set of all of the keys and values
+         *
+         * @return a set of all of the keys and values
+         */    
         ValueSet(
             [out] IObjectStringMap** values);
     }
