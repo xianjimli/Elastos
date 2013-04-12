@@ -9,6 +9,13 @@ ECode CNativeDecimalFormat::constructor(
     return NativeDecimalFormat::Init(pattern, dfs);
 }
 
+ECode CNativeDecimalFormat::constructor(
+    /* [in] */ const String& pattern,
+    /* [in] */ ILocaleData * data)
+{
+    return NativeDecimalFormat::Init(pattern, data);
+}
+
 ECode CNativeDecimalFormat::Close()
 {
     return NativeDecimalFormat::Close();

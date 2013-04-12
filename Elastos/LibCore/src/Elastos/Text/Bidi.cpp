@@ -1,6 +1,21 @@
 #include "Bidi.h"
+#include "CBidi.h"
+#include "NativeBidi.h"
+
+
+PInterface Bidi::Probe(
+    /* [in]  */ REIID riid)
+{
+    return NULL;
+}
 
 Bidi::Bidi(){}
+
+Bidi::~Bidi(){
+    if (mOffsetLevel != NULL) {
+        ArrayOf<Byte>::Free(mOffsetLevel);
+    }
+}
 
 ECode Bidi::Init(
         /* [in] */ IAttributedCharacterIterator* paragraph)
@@ -30,11 +45,12 @@ ECode Bidi::Init(
         (IAttributedCharacterIteratorAttribute*)(TextAttribute::RUN_DIRECTION),
         (IInterface**)&direction);
     if (direction != NULL /*&& direction instanceof Boolean*/) {
-        //if (direction == TextAttribute::RUN_DIRECTION_LTR) {
-        //    flags = Bidi_DIRECTION_LEFT_TO_RIGHT;
-        //} else {
-        //    flags = Bidi_DIRECTION_RIGHT_TO_LEFT;
-        //}
+        /*
+        if (direction == TextAttribute::RUN_DIRECTION_LTR) {
+            flags = Bidi_DIRECTION_LEFT_TO_RIGHT;
+        } else {
+            flags = Bidi_DIRECTION_RIGHT_TO_LEFT;
+        }*/
     }
 
     // Retrieve the text and gather BIDI_EMBEDDINGS
@@ -81,7 +97,7 @@ ECode Bidi::Init(
         bidi = CreateUBiDi(text, 0, embeddings, 0, length, flags);
         ReadBidiInfo(bidi);
     //} finally {
-        //NativeBidi.ubidi_close(bidi);
+    NativeBidi::Ubidi_close(bidi);
     //}
     return NOERROR;
 }
@@ -121,10 +137,10 @@ ECode Bidi::Init(
 
     Int64 bidi = 0L;
     //try {
-        bidi = CreateUBiDi(text, textStart, embeddings, embStart, paragraphLength, flags);
-        ReadBidiInfo(bidi);
+    bidi = CreateUBiDi(text, textStart, embeddings, embStart, paragraphLength, flags);
+    ReadBidiInfo(bidi);
     //} finally {
-        //NativeBidi.ubidi_close(bidi);
+    NativeBidi::Ubidi_close(bidi);
     //}
     return NOERROR;
 }
@@ -169,7 +185,7 @@ Int64 Bidi::CreateUBiDi(
         }
         if (paragraphLength > 0) {
             AutoPtr<IBidi> temp;
-            //CBidi::New(text, textStart, NULL, 0, paragraphLength, flags, (IBidi**)&temp);
+            CBidi::New(text, textStart, NULL, 0, paragraphLength, flags, (IBidi**)&temp);
             realEmbeddings = ArrayOf<Byte>::Alloc(paragraphLength);
             for (Int32 i = 0; i < paragraphLength; ++i) {
                 ArrayOf<Byte>* offsetLevel;
@@ -179,12 +195,12 @@ Int64 Bidi::CreateUBiDi(
             for (Int32 i = 0; i < paragraphLength; i++) {
                 Byte e = (*embeddings)[i];
                 if (e < 0) {
-                    //(*realEmbeddings)[i] = (Byte) (NativeBidi.UBIDI_LEVEL_OVERRIDE - e);
+                    (*realEmbeddings)[i] = (Byte) (NativeBidi::UBIDI_LEVEL_OVERRIDE - e);
                     (*realEmbeddings)[i] = (Byte) (0x80 - e);
                 } else if (e > 0) {
                     (*realEmbeddings)[i] = e;
                 } else {
-                    //(*realEmbeddings)[i] |= (Byte) NativeBidi.UBIDI_LEVEL_OVERRIDE;
+                    (*realEmbeddings)[i] |= (Byte) NativeBidi::UBIDI_LEVEL_OVERRIDE;
                     (*realEmbeddings)[i] |= (Byte) 0x80;
                 }
             }
@@ -198,13 +214,13 @@ Int64 Bidi::CreateUBiDi(
     Int64 bidi = 0L;
     Boolean needsDeletion = TRUE;
     //try {
-        //bidi = NativeBidi.ubidi_open();
-        //NativeBidi.ubidi_setPara(bidi, realText, paragraphLength, flags, realEmbeddings);
+    bidi = NativeBidi::Ubidi_open();
+    NativeBidi::Ubidi_setPara(bidi, realText, paragraphLength, flags, realEmbeddings);
         needsDeletion = FALSE;
     //} finally {
-        //if (needsDeletion) {
-        //    NativeBidi.ubidi_close(bidi);
-        //}
+    if (needsDeletion) {
+        NativeBidi::Ubidi_close(bidi);
+    }
     //}
     return bidi;
 }
@@ -218,29 +234,31 @@ Bidi::Bidi(
 void Bidi::ReadBidiInfo(
         /* [in] */ Int64 pBidi)
 {
-    //mLength = NativeBidi.ubidi_getLength(pBidi);
+    mLength = NativeBidi::Ubidi_getLength(pBidi);
 
-    //mOffsetLevel = (length == 0) ? NULL : NativeBidi.ubidi_getLevels(pBidi);
+    mOffsetLevel = (mLength == 0) ? NULL : NativeBidi::Ubidi_getLevels(pBidi);
 
-    //mBaseLevel = NativeBidi.ubidi_getParaLevel(pBidi);
+    mBaseLevel = NativeBidi::Ubidi_getParaLevel(pBidi);
 
-    //Int32 runCount = NativeBidi.ubidi_countRuns(pBidi);
-    //if (runCount == 0) {
-    //    unidirectional = TRUE;
-    //    runs = NULL;
-    //} else if (runCount < 0) {
-    //    runs = null;
-    //} else {
-    //    runs = NativeBidi.ubidi_getRuns(pBidi);
+    Int32 runCount = NativeBidi::Ubidi_countRuns(pBidi);
+    if (runCount == 0) {
+        mUnidirectional = TRUE;
+        mRuns = NULL;
+    } else if (runCount < 0) {
+        mRuns = NULL;
+    } else {
+        mRuns = NativeBidi::Ubidi_getRuns(pBidi);
 
         // Simplified case for one run which has the base level
-    //    if (runCount == 1 && runs[0].getLevel() == baseLevel) {
-    //        unidirectional = true;
-    //        runs = null;
-    //    }
-    //}
+        Int32 level;
+        (*mRuns)[0]->GetLevel(&level);
+        if (runCount == 1 &&  level == mBaseLevel) {
+            mUnidirectional = TRUE;
+            mRuns = NULL;
+        }
+    }
 
-    //direction = NativeBidi.ubidi_getDirection(pBidi);
+    mDirection = NativeBidi::Ubidi_getDirection(pBidi);
 }
 
 ECode Bidi::BaseIsLeftToRight(
@@ -275,13 +293,14 @@ ECode Bidi::CreateLineBidi(
     Int32 dir = isLefttoRight ? Bidi_DIRECTION_LEFT_TO_RIGHT : Bidi_DIRECTION_RIGHT_TO_LEFT;
     Int64 parent = 0;
     //try {
-        parent = CreateUBiDi(text, 0, embeddings, 0, mLength, dir);
-        if (lineStart == lineLimit) {
-            return CreateEmptyLineBidi(parent, lineBidi);
-        }
-        //return new Bidi(NativeBidi.ubidi_setLine(parent, lineStart, lineLimit));
+    parent = CreateUBiDi(text, 0, embeddings, 0, mLength, dir);
+    if (lineStart == lineLimit) {
+        return CreateEmptyLineBidi(parent, lineBidi);
+    }
+    Bidi * bidi = new Bidi(NativeBidi::Ubidi_setLine(parent, lineStart, lineLimit));
+    *lineBidi = reinterpret_cast<IBidi*>(bidi->Probe(EIID_IBidi));
     //} finally {
-        //NativeBidi.ubidi_close(parent);
+    NativeBidi::Ubidi_close(parent);
     //}
     return NOERROR;
 }
@@ -291,12 +310,11 @@ ECode Bidi::CreateEmptyLineBidi(
         /* [out] */ IBidi** lineBidi)
 {
     // ICU4C doesn't allow this case, but the RI does.
-    Bidi * bidi = new Bidi(parent);
-    bidi->SetLength(0);
-    bidi->SetOffsetLevel(NULL);
-    //result.runs = null;
-    bidi->SetUnidirectional(TRUE);
-    //*lineBidi = bidi;
+    Bidi * result = new Bidi(parent);
+    result->mLength = 0;
+    result->mOffsetLevel = NULL;
+    result->mRuns = NULL;
+    result->mUnidirectional = TRUE;
     return NOERROR;
 }
 
@@ -350,19 +368,19 @@ ECode Bidi::GetLevelAt(
 {
     VALIDATE_NOT_NULL(level);
     //try {
-//        return (*mOffsetLevel)[offset] & ~NativeBidi.UBIDI_LEVEL_OVERRIDE;
+    *level = (*mOffsetLevel)[offset] & ~NativeBidi::UBIDI_LEVEL_OVERRIDE;
     //} catch (RuntimeException e) {
     //    return baseLevel;
     //}
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode Bidi::GetRunCount(
         /* [out] */ Int32* runCount)
 {
     VALIDATE_NOT_NULL(runCount);
-    //return mUnidirectional ? 1 : runs.length;
-    return E_NOT_IMPLEMENTED;
+    *runCount = mUnidirectional ? 1 : mRuns->GetLength();
+    return NOERROR;
 }
 
 ECode Bidi::GetRunLevel(
@@ -370,16 +388,21 @@ ECode Bidi::GetRunLevel(
         /* [out] */ Int32* runLevel)
 {
     VALIDATE_NOT_NULL(runLevel);
-    //return mUnidirectional ? mBaseLevel : runs[run].getLevel();
-    return E_NOT_IMPLEMENTED;
+    Int32 level;
+    (*mRuns)[run]->GetLevel(&level);
+    *runLevel = mUnidirectional ? mBaseLevel : level;
+    return NOERROR;
 }
 
 ECode Bidi::GetRunLimit(
         /* [in] */ Int32 run,
         /* [out] */ Int32* runLimit)
 {
-    //return unidirectional ? length : runs[run].getLimit();
-    return E_NOT_IMPLEMENTED;
+    assert(runLimit != NULL);
+    Int32 limit;
+    (*mRuns)[run]->GetLimit(&limit);
+    *runLimit = mUnidirectional ? mLength : limit;
+    return NOERROR;
 
 }
 
@@ -387,32 +410,38 @@ ECode Bidi::GetRunStart(
         /* [in] */ Int32 run,
         /* [out] */ Int32* runStart)
 {
-    //return unidirectional ? 0 : runs[run].getStart();
-    return E_NOT_IMPLEMENTED;
+    assert(runStart != NULL);
+    Int32 start;
+    (*mRuns)[run]->GetStart(&start);
+    *runStart = mUnidirectional ? 0 : start;
+    return NOERROR;
 }
 
 ECode Bidi::IsLeftToRight(
         /* [out] */ Boolean* isLefttoRight)
 {
-    //return direction == NativeBidi.UBiDiDirection_UBIDI_LTR;
-    return E_NOT_IMPLEMENTED;
+    assert(isLefttoRight != NULL);
+    *isLefttoRight = (mDirection == NativeBidi::UBiDiDirection_UBIDI_LTR);
+    return NOERROR;
 }
 
 ECode Bidi::IsMixed(
         /* [out] */ Boolean* isMixed)
 {
-    //return direction == NativeBidi.UBiDiDirection_UBIDI_MIXED;
-    return E_NOT_IMPLEMENTED;
+    assert(isMixed != NULL);
+    *isMixed = (mDirection == NativeBidi::UBiDiDirection_UBIDI_MIXED);
+    return NOERROR;
 }
 
 ECode Bidi::IsRightToLeft(
         /* [out] */ Boolean* isRightToLeft)
 {
-    //return direction == NativeBidi.UBiDiDirection_UBIDI_RTL;
-    return E_NOT_IMPLEMENTED;
+    assert(isRightToLeft != NULL);
+    *isRightToLeft = (mDirection == NativeBidi::UBiDiDirection_UBIDI_RTL);
+    return NOERROR;
 }
 
-void Bidi::ReorderVisually(
+ECode Bidi::ReorderVisually(
         /* [in] */ ArrayOf<Byte>* levels,
         /* [in] */ Int32 levelStart,
         /* [in] */ ArrayOf<IInterface*>* objects,
@@ -425,7 +454,7 @@ void Bidi::ReorderVisually(
         //throw new IllegalArgumentException("Invalid ranges (levels=" + levels.length +
         //        ", levelStart=" + levelStart + ", objects=" + objects.length +
         //        ", objectStart=" + objectStart + ", count=" + count + ")");
-        assert(1 == 0);
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
 
     ArrayOf<Byte>* realLevels = ArrayOf<Byte>::Alloc(count);
@@ -444,21 +473,22 @@ void Bidi::ReorderVisually(
     for (Int32 i = 0; i < count; i++, ++it) {
         (*objects)[objectStart + i] = *it;
     }
+    return NOERROR;
 }
 
-Boolean Bidi::RequiresBidi(
-        /* [in] */ ArrayOf<Char32>* text,
-        /* [in] */ Int32 start,
-        /* [in] */ Int32 limit)
+ECode Bidi::RequiresBidi(
+    /* [in] */ ArrayOf<Char32>* text,
+    /* [in] */ Int32 start,
+    /* [in] */ Int32 limit,
+    /* [out] */ Boolean * result)
 {
     if (limit < 0 || start < 0 || start > limit || limit > text->GetLength()) {
-        //throw new IllegalArgumentException();
-        assert(1 == 0);
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
-
     AutoPtr<IBidi> bidi;
-    //CBidi::New(text, start, NULL, 0, limit - start, 0, (IBidi**)&bidi);
+    CBidi::New(text, start, NULL, 0, limit - start, 0, (IBidi**)&bidi);
     Boolean isLefttoRight;
     bidi->IsLeftToRight(&isLefttoRight);
-    return !isLefttoRight;
+    *result = !isLefttoRight;
+    return NOERROR;
 }
