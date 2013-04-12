@@ -56,12 +56,12 @@ public:
             /* [out] */ String* result);
 
         CARAPI GetPreset(
-            /* [out] */ Int16* result);
+            /* [out] */ Int16* preset);
 
         CARAPI SetPreset(
-            /* [in] */ Int16 result);
+            /* [in] */ Int16 preset);
     public:
-        Int16 preset;
+        Int16 mPreset;
     };
 private:
     /**

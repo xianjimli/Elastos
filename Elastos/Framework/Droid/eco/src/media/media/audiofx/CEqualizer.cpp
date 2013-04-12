@@ -335,15 +335,15 @@ ECode CEqualizer::Settings::constructor(
 //        throw new IllegalArgumentException("invalid key name: " + key);
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
-    curPreset = st.NextToken().ToInt32();
+    mCurPreset = st.NextToken().ToInt32();
 
     key = st.NextToken();
     if (!key.Equals("numBands")) {
 //        throw new IllegalArgumentException("invalid key name: " + key);
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
-    numBands = st.NextToken().ToInt32();
-    if (st.NextToken().ToInt32() != numBands*2) {
+    mNumBands = st.NextToken().ToInt32();
+    if (st.NextToken().ToInt32() != mNumBands*2) {
 //        throw new IllegalArgumentException("settings: " + settings);
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
@@ -351,14 +351,14 @@ ECode CEqualizer::Settings::constructor(
 /*
     try {
 */
-    bandLevels = ArrayOf<Int16>::Alloc(numBands);
-    for (int i = 0; i < numBands; i++) {
+    mBandLevels = ArrayOf<Int16>::Alloc(mNumBands);
+    for (int i = 0; i < mNumBands; i++) {
         key = st.NextToken();
         if (!key.Equals(String("band") + String::FromInt32(i+1) + String("Level"))) {
 //            throw new IllegalArgumentException("invalid key name: " + key);
             return E_ILLEGAL_ARGUMENT_EXCEPTION;
         }
-        (*bandLevels)[i] = st.NextToken().ToInt32();
+        (*mBandLevels)[i] = st.NextToken().ToInt32();
     }
 /*
     } catch (NumberFormatException nfe) {
@@ -374,64 +374,57 @@ ECode CEqualizer::Settings::toString(
     VALIDATE_NOT_NULL(result);
 
     *result = String("Equalizer") +
-            String(";curPreset=") + String::FromInt32(curPreset) +
-            String(";numBands=") + String::FromInt32(numBands);
-    for (int i = 0; i < numBands; i++) {
+            String(";curPreset=") + String::FromInt32(mCurPreset) +
+            String(";numBands=") + String::FromInt32(mNumBands);
+    for (int i = 0; i < mNumBands; i++) {
         *result = String(";band") + String::FromInt32(i+1) +
-                    String("Level=") + String::FromInt32((*bandLevels)[i]);
+                    String("Level=") + String::FromInt32((*mBandLevels)[i]);
     }
     return NOERROR;
 }
 
-ECode CEqualizer::Settings::GetParameterInt16(
-    /* [in] */ String param,
-    /* [out] */  Int16* result)
+ECode CEqualizer::Settings::GetCurPreset(
+    /* [out] */ Int16* curPreset)
 {
-    VALIDATE_NOT_NULL(result);
-
-    if (param.Equals("curPreset")) {
-        *result = curPreset;
-    }
-
-    if (param.Equals("numBands")) {
-        *result = numBands;
-    }
+    VALIDATE_NOT_NULL(curPreset);
+    *curPreset = mCurPreset;
     return NOERROR;
 }
 
-ECode CEqualizer::Settings::SetParameterInt16(
-    /* [in] */ String param,
-    /* [in] */ Int16 result)
+ECode CEqualizer::Settings::SetCurPreset(
+    /* [in] */ Int16 curPreset)
 {
-    if (param.Equals("curPreset")) {
-        curPreset = result;
-    }
-
-    if (param.Equals("numBands")) {
-        numBands = result;
-    }
+    mCurPreset = curPreset;
     return NOERROR;
 }
 
-ECode CEqualizer::Settings::GetParameterInt16Array(
-    /* [in] */ String param,
-    /* [out,callee] */  ArrayOf<Int16>* result)
+ECode CEqualizer::Settings::GetNumBands(
+    /* [out] */ Int16* numBands)
 {
-    VALIDATE_NOT_NULL(result);
-
-    if (param.Equals("bandLevels")) {
-        bandLevels = result;
-    }
+    VALIDATE_NOT_NULL(numBands);
+    *numBands = mNumBands;
     return NOERROR;
 }
 
-ECode CEqualizer::Settings::SetParameterInt16Array(
-    /* [in] */ String param,
-    /* [in] */ ArrayOf<Int16> result)
+ECode CEqualizer::Settings::SetNumBands(
+    /* [in] */ Int16 numBands)
 {
-    if (param.Equals("bandLevels")) {
-        bandLevels = &result;
-    }
+    mNumBands = numBands;
+    return NOERROR;
+}
+
+ECode CEqualizer::Settings::GetBandLevels(
+    /* [out] */ ArrayOf<Int16>** bandLevels)
+{
+    VALIDATE_NOT_NULL(bandLevels);
+    *bandLevels = mBandLevels;
+    return NOERROR;
+}
+
+ECode CEqualizer::Settings::SetBandLevels(
+    /* [in] */ ArrayOf<Int16>* bandLevels)
+{
+    mBandLevels = bandLevels;
     return NOERROR;
 }
 

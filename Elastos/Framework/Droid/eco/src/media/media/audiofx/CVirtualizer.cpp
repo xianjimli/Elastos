@@ -163,7 +163,7 @@ ECode CVirtualizer::Settings::constructor(
 //        throw new IllegalArgumentException("invalid key name: " + key);
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
-    strength = st.NextToken().ToInt32();
+    mStrength = st.NextToken().ToInt32();
 /*
      } catch (NumberFormatException nfe) {
         throw new IllegalArgumentException("invalid value for key: " + key);
@@ -178,23 +178,23 @@ ECode CVirtualizer::Settings::toString(
     VALIDATE_NOT_NULL(result);
 
     *result = String("Virtualizer") +
-            String(";strength=") + String::FromInt32(strength);
+            String(";strength=") + String::FromInt32(mStrength);
     return NOERROR;
 }
 
 ECode CVirtualizer::Settings::GetStrength(
-    /* [out] */  Int16* result)
+    /* [out] */  Int16* strength)
 {
-    VALIDATE_NOT_NULL(result);
+    VALIDATE_NOT_NULL(strength);
 
-    *result = strength;
+    *strength = mStrength;
     return NOERROR;
 }
 
 ECode CVirtualizer::Settings::SetStrength(
-    /* [in] */ Int16 result)
+    /* [in] */ Int16 strength)
 {
-    strength = result;
+    mStrength = strength;
     return NOERROR;
 }
 

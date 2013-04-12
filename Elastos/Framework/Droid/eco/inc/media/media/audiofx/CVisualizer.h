@@ -79,6 +79,8 @@ private:
 public:
     CVisualizer();
 
+    virtual ~CVisualizer();
+
     //--------------------------------------------------------------------------
     // Constructor, Finalize
     //--------------------
@@ -245,8 +247,6 @@ public:
         /* [in] */ Boolean waveform,
         /* [in] */ Boolean fft,
         /* [out] */ Int32* result);
-protected:
-    CARAPI_(void) Finalize();
 private:
     //---------------------------------------------------------
     // Interface definitions

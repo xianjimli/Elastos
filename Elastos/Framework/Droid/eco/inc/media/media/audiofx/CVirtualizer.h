@@ -46,12 +46,12 @@ public:
             /* [out] */ String* result);
 
         CARAPI GetStrength(
-            /* [out] */ Int16* result);
+            /* [out] */ Int16* strength);
 
         CARAPI SetStrength(
-            /* [in] */ Int16 result);
+            /* [in] */ Int16 strength);
     public:
-        Int16 strength;
+        Int16 mStrength;
     };
 private:
     /**

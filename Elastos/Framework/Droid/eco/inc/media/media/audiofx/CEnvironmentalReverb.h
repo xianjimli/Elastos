@@ -55,32 +55,76 @@ public:
         CARAPI toString(
             /* [out] */ String* result);
 
-        CARAPI GetParameterInt32(
-            /* [in] */ String param,
-            /* [out] */  Int32* result);
+        CARAPI GetRoomLevel(
+            /* [out] */ Int16* roomLevel);
 
-        CARAPI SetParameterInt32(
-            /* [in] */ String param,
-            /* [in] */ Int32 result);
+        CARAPI SetRoomLevel(
+            /* [in] */ Int16 roomLevel);
 
-        CARAPI GetParameterInt16(
-            /* [in] */ String param,
-            /* [out] */  Int16* result);
+        CARAPI GetRoomHFLevel(
+            /* [out] */ Int16* roomHFLevel);
 
-        CARAPI SetParameterInt16(
-            /* [in] */ String param,
-            /* [in] */ Int16 result);
+        CARAPI SetRoomHFLevel(
+            /* [in] */ Int16 roomHFLevel);
+
+        CARAPI GetDecayTime(
+            /* [out] */ Int32* decayTime);
+
+        CARAPI SetDecayTime(
+            /* [in] */ Int32 decayTime);
+
+        CARAPI GetDecayHFRatio(
+            /* [out] */ Int16* decayHFRatio);
+
+        CARAPI SetDecayHFRatio(
+            /* [in] */ Int16 decayHFRatio);
+
+        CARAPI GetReflectionsLevel(
+            /* [out] */ Int16* reflectionsLevel);
+
+        CARAPI SetReflectionsLevel(
+            /* [in] */ Int16 reflectionsLevel);
+
+        CARAPI GetReflectionsDelay(
+            /* [out] */ Int32* reflectionsDelay);
+
+        CARAPI SetReflectionsDelay(
+            /* [in] */ Int32 reflectionsDelay);
+
+        CARAPI GetReverbLevel(
+            /* [out] */ Int16* reverbLevel);
+
+        CARAPI SetReverbLevel(
+            /* [in] */ Int16 reverbLevel);
+
+        CARAPI GetReverbDelay(
+            /* [out] */ Int16* reverbDelay);
+
+        CARAPI SetReverbDelay(
+            /* [in] */ Int16 reverbDelay);
+
+        CARAPI GetDiffusion(
+            /* [out] */ Int16* diffusion);
+
+        CARAPI SetDiffusion(
+            /* [in] */ Int16 diffusion);
+
+        CARAPI GetDensity(
+            /* [out] */ Int16* density);
+
+        CARAPI SetDensity(
+            /* [in] */ Int16 density);
     public:
-        Int16 roomLevel;
-        Int16 roomHFLevel;
-        Int32 decayTime;
-        Int16 decayHFRatio;
-        Int16 reflectionsLevel;
-        Int32 reflectionsDelay;
-        Int16 reverbLevel;
-        Int32 reverbDelay;
-        Int16 diffusion;
-        Int16 density;
+        Int16 mRoomLevel;
+        Int16 mRoomHFLevel;
+        Int32 mDecayTime;
+        Int16 mDecayHFRatio;
+        Int16 mReflectionsLevel;
+        Int32 mReflectionsDelay;
+        Int16 mReverbLevel;
+        Int32 mReverbDelay;
+        Int16 mDiffusion;
+        Int16 mDensity;
     };
 private:
     /**
