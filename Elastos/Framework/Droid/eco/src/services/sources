@@ -56,6 +56,7 @@ SOURCES += FileUtils.cpp
 SOURCES += FileObserver.cpp
 SOURCES += Environment.cpp
 SOURCES += Build.cpp
+SOURCES += UEventObserver.cpp
 SOURCES += ServiceManager.cpp
 SOURCES += frameworkext.cpp
 SOURCES += Animation.cpp
@@ -97,5 +98,5 @@ else
 LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.eco
 LIBRARIES += $(XDK_TARGETS)/Elastos.Core.eco
 LIBRARIES += $(XDK_USER_LIB)/crt0.lib
-LIBRARIES += -llog -lutils -lui -lcutils -lbinder
+LIBRARIES += -llog -lutils -lui -lcutils -lbinder -lhardware_legacy
 endif
