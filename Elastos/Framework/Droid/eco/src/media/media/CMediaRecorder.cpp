@@ -686,7 +686,6 @@ ECode CMediaRecorder::EventHandler::GetInterfaceID(
     return E_NOT_IMPLEMENTED;
 }
 
-
 void CMediaRecorder::PostEventFromNative(
     /* [in] */ IInterface* mediarecorder_ref,
     /* [in] */ Int32 what,
@@ -709,4 +708,22 @@ ECode CMediaRecorder::ReleaseResources()
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
+}
+
+
+void CMediaRecorder::native_setup(
+    /* [in] */ IInterface* mediarecorder_this)
+{
+
+}
+
+void CMediaRecorder::native_finalize()
+{
+
+}
+
+void CMediaRecorder::SetParameter(
+    /* [in] */ String nameValuePair)
+{
+
 }

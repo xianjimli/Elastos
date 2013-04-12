@@ -4,29 +4,193 @@
 
 #include "_CSoundPool.h"
 
-#include "media/SoundPool.h"
+#include "ext/frameworkext.h"
+#include <elastos/AutoPtr.h>
+#include <elastos/ElRefBase.h>
 
-CarClass(CSoundPool), public SoundPool
+/**
+ * The SoundPool class manages and plays audio resources for applications.
+ *
+ * <p>A SoundPool is a collection of samples that can be loaded into memory
+ * from a resource inside the APK or from a file in the file system. The
+ * SoundPool library uses the MediaPlayer service to decode the audio
+ * into a raw 16-bit PCM mono or stereo stream. This allows applications
+ * to ship with compressed streams without having to suffer the CPU load
+ * and latency of decompressing during playback.</p>
+ *
+ * <p>In addition to low-latency playback, SoundPool can also manage the number
+ * of audio streams being rendered at once. When the SoundPool object is
+ * constructed, the maxStreams parameter sets the maximum number of streams
+ * that can be played at a time from this single SoundPool. SoundPool tracks
+ * the number of active streams. If the maximum number of streams is exceeded,
+ * SoundPool will automatically stop a previously playing stream based first
+ * on priority and then by age within that priority. Limiting the maximum
+ * number of streams helps to cap CPU loading and reducing the likelihood that
+ * audio mixing will impact visuals or UI performance.</p>
+ *
+ * <p>Sounds can be looped by setting a non-zero loop value. A value of -1
+ * causes the sound to loop forever. In this case, the application must
+ * explicitly call the stop() function to stop the sound. Any other non-zero
+ * value will cause the sound to repeat the specified number of times, e.g.
+ * a value of 3 causes the sound to play a total of 4 times.</p>
+ *
+ * <p>The playback rate can also be changed. A playback rate of 1.0 causes
+ * the sound to play at its original frequency (resampled, if necessary,
+ * to the hardware output frequency). A playback rate of 2.0 causes the
+ * sound to play at twice its original frequency, and a playback rate of
+ * 0.5 causes it to play at half its original frequency. The playback
+ * rate range is 0.5 to 2.0.</p>
+ *
+ * <p>Priority runs low to high, i.e. higher numbers are higher priority.
+ * Priority is used when a call to play() would cause the number of active
+ * streams to exceed the value established by the maxStreams parameter when
+ * the SoundPool was created. In this case, the stream allocator will stop
+ * the lowest priority stream. If there are multiple streams with the same
+ * low priority, it will choose the oldest stream to stop. In the case
+ * where the priority of the new stream is lower than all the active
+ * streams, the new sound will not play and the play() function will return
+ * a streamID of zero.</p>
+ *
+ * <p>Let's examine a typical use case: A game consists of several levels of
+ * play. For each level, there is a set of unique sounds that are used only
+ * by that level. In this case, the game logic should create a new SoundPool
+ * object when the first level is loaded. The level data itself might contain
+ * the list of sounds to be used by this level. The loading logic iterates
+ * through the list of sounds calling the appropriate SoundPool.load()
+ * function. This should typically be done early in the process to allow time
+ * for decompressing the audio to raw PCM format before they are needed for
+ * playback.</p>
+ *
+ * <p>Once the sounds are loaded and play has started, the application can
+ * trigger sounds by calling SoundPool.play(). Playing streams can be
+ * paused or resumed, and the application can also alter the pitch by
+ * adjusting the playback rate in real-time for doppler or synthesis
+ * effects.</p>
+ *
+ * <p>Note that since streams can be stopped due to resource constraints, the
+ * streamID is a reference to a particular instance of a stream. If the stream
+ * is stopped to allow a higher priority stream to play, the stream is no
+ * longer be valid. However, the application is allowed to call methods on
+ * the streamID without error. This may help simplify program logic since
+ * the application need not concern itself with the stream lifecycle.</p>
+ *
+ * <p>In our example, when the player has completed the level, the game
+ * logic should call SoundPool.release() to release all the native resources
+ * in use and then set the SoundPool reference to NULL. If the player starts
+ * another level, a new SoundPool is created, sounds are loaded, and play
+ * resumes.</p>
+ */
+CarClass(CSoundPool)
 {
+private:
+    class EventHandler : public IHandler, public ElRefBase
+    {
+    public:
+        //EventHandler(SoundPool soundPool, Looper looper);
+
+        virtual CARAPI HandleMessage(
+            /* [in] */ IMessage* msg);
+
+        CARAPI_(PInterface) Probe(
+            /* [in]  */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
+    private:
+        CSoundPool* mSoundPool;
+    };
 public:
+    CSoundPool();
+
+    virtual ~CSoundPool();
+
+    /**
+     * Constructor. Constructs a SoundPool object with the following
+     * characteristics:
+     *
+     * @param maxStreams the maximum number of simultaneous streams for this
+     *                   SoundPool object
+     * @param streamType the audio stream type as described in AudioManager
+     *                   For example, game applications will normally use
+     *                   {@link AudioManager#STREAM_MUSIC}.
+     * @param srcQuality the sample-rate converter quality. Currently has no
+     *                   effect. Use 0 for the default.
+     * @return a SoundPool object, or NULL if creation failed
+     */
+    CARAPI constructor(
+        /* [in] */ Int32 maxStreams,
+        /* [in] */ Int32 streamType,
+        /* [in] */ Int32 srcQuality);
+
+    /**
+     * Load the sound from the specified path.
+     *
+     * @param path the path to the audio file
+     * @param priority the priority of the sound. Currently has no effect. Use
+     *                 a value of 1 for future compatibility.
+     * @return a sound ID. This value can be used to play or unload the sound.
+     */
     CARAPI Load(
         /* [in] */ const String& path,
         /* [in] */ Int32 priority,
         /* [out] */ Int32 * pID);
 
+    /**
+     * Load the sound from the specified APK resource.
+     *
+     * Note that the extension is dropped. For example, if you want to load
+     * a sound from the raw resource file "explosion.mp3", you would specify
+     * "R.raw.explosion" as the resource ID. Note that this means you cannot
+     * have both an "explosion.wav" and an "explosion.mp3" in the res/raw
+     * directory.
+     *
+     * @param context the application context
+     * @param resId the resource ID
+     * @param priority the priority of the sound. Currently has no effect. Use
+     *                 a value of 1 for future compatibility.
+     * @return a sound ID. This value can be used to play or unload the sound.
+     */
     CARAPI LoadEx(
-        /* [in] */ IContext * pContext,
+        /* [in] */ IContext* context,
         /* [in] */ Int32 resId,
         /* [in] */ Int32 priority,
         /* [out] */ Int32 * pID);
 
+    /**
+     * Load the sound from an asset file descriptor.
+     *
+     * @param afd an asset file descriptor
+     * @param priority the priority of the sound. Currently has no effect. Use
+     *                 a value of 1 for future compatibility.
+     * @return a sound ID. This value can be used to play or unload the sound.
+     */
     CARAPI LoadEx2(
-        /* [in] */ IAssetFileDescriptor * pAfd,
+        /* [in] */ IAssetFileDescriptor* afd,
         /* [in] */ Int32 priority,
         /* [out] */ Int32 * pID);
 
+    /**
+     * Load the sound from a FileDescriptor.
+     *
+     * This version is useful if you store multiple sounds in a single
+     * binary. The offset specifies the offset from the start of the file
+     * and the length specifies the length of the sound within the file.
+     *
+     * @param fd a FileDescriptor object
+     * @param offset offset to the start of the sound
+     * @param length length of the sound
+     * @param priority the priority of the sound. Currently has no effect. Use
+     *                 a value of 1 for future compatibility.
+     * @return a sound ID. This value can be used to play or unload the sound.
+     */
     CARAPI LoadEx3(
-        /* [in] */ IFileDescriptor * pFd,
+        /* [in] */ IFileDescriptor* fd,
         /* [in] */ Int64 offset,
         /* [in] */ Int64 length,
         /* [in] */ Int32 priority,
@@ -200,8 +364,11 @@ public:
         /* [in] */ Int32 streamID,
         /* [in] */ Float rate);
 
+    /**
+     * Sets the callback hook for the OnLoadCompleteListener.
+     */
     CARAPI SetOnLoadCompleteListener(
-        /* [in] */ IOnLoadCompleteListener * pListener);
+        /* [in] */ IOnLoadCompleteListener* listener);
 
     /**
      * Release the SoundPool resources.
@@ -211,14 +378,47 @@ public:
      * should be set to null.
      */
     CARAPI ReleaseResources();
+private:
+    CARAPI_(Int32) _load(
+        /* [in] */ String uri,
+        /* [in] */ Int32 priority);
 
-    CARAPI constructor(
+    CARAPI_(Int32) _load(
+        /* [in] */ IFileDescriptor* fd,
+        /* [in] */ Int64 offset,
+        /* [in] */ Int64 length,
+        /* [in] */ Int32 priority);
+
+    // post event from native code to message handler
+    CARAPI_(void) PostEventFromNative(
+        /* [in] */ IInterface* weakRef,
+        /* [in] */ Int32 msg,
+        /* [in] */ Int32 arg1,
+        /* [in] */ Int32 arg2,
+        /* [in] */ IInterface* obj);
+
+    CARAPI_(Int32) native_setup(
+        /* [in] */ IInterface* weakRef,
         /* [in] */ Int32 maxStreams,
         /* [in] */ Int32 streamType,
         /* [in] */ Int32 srcQuality);
-
 private:
-    // TODO: Add your private member variables here.
+    //static { System.loadLibrary("soundpool"); }
+
+    static const CString TAG;// = "SoundPool";
+    Boolean DEBUG;// = FALSE;
+
+    Int32 mNativeContext; // accessed by native methods
+
+    EventHandler* mEventHandler;
+    AutoPtr<IOnLoadCompleteListener> mOnLoadCompleteListener;
+
+    //Object mLock;
+
+    // SoundPool messages
+    //
+    // must match SoundPool.h
+    Int32 SAMPLE_LOADED;
 };
 
 #endif // __CSOUNDPOOL_H__

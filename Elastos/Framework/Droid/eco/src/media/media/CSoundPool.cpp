@@ -1,43 +1,142 @@
 
 #include "media/CSoundPool.h"
+const CString CSoundPool::TAG = "SoundPool"; 
+
+CSoundPool::CSoundPool()
+    :DEBUG(FALSE)
+    ,SAMPLE_LOADED(1)
+{
+
+}
+
+CSoundPool::~CSoundPool()
+{
+    ReleaseResources();
+}
+
+ECode CSoundPool::constructor(
+    /* [in] */ Int32 maxStreams,
+    /* [in] */ Int32 streamType,
+    /* [in] */ Int32 srcQuality)
+{
+
+    // do native setup
+    //if (native_setup(new WeakReference(this), maxStreams, streamType, srcQuality) != 0) {
+    //    throw new RuntimeException("Native setup failed");
+    //}
+    //mLock = new Object();
+
+    //// setup message handler
+    //Looper looper;
+    //if ((looper = Looper.myLooper()) != NULL) {
+    //    mEventHandler = new EventHandler(this, looper);
+    //} else if ((looper = Looper.getMainLooper()) != NULL) {
+    //    mEventHandler = new EventHandler(this, looper);
+    //} else {
+    //    mEventHandler = NULL;
+    //}
+    return E_NOT_IMPLEMENTED;
+}
 
 ECode CSoundPool::Load(
     /* [in] */ const String& path,
     /* [in] */ Int32 priority,
     /* [out] */ Int32 * pID)
 {
-    // TODO: Add your code here
+    // pass network streams to player
+    //if (path.startsWith("http:"))
+    //    return _load(path, priority);
+
+    //// try local path
+    //Int32 id = 0;
+    //try {
+    //    File f = new File(path);
+    //    if (f != NULL) {
+    //        ParcelFileDescriptor fd = ParcelFileDescriptor.open(f, ParcelFileDescriptor.MODE_READ_ONLY);
+    //        if (fd != NULL) {
+    //            id = _load(fd.getFileDescriptor(), 0, f.length(), priority);
+    //            fd.close();
+    //        }
+    //    }
+    //} catch (java.io.IOException e) {
+    //    Log.e(TAG, "error loading " + path);
+    //}
+    //return id;
+
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CSoundPool::LoadEx(
-    /* [in] */ IContext * pContext,
+    /* [in] */ IContext* context,
     /* [in] */ Int32 resId,
     /* [in] */ Int32 priority,
     /* [out] */ Int32 * pID)
 {
-    // TODO: Add your code here
+    //AssetFileDescriptor afd = context.getResources().openRawResourceFd(resId);
+    //Int32 id = 0;
+    //if (afd != NULL) {
+    //    id = _load(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength(), priority);
+    //    try {
+    //        afd.close();
+    //    } catch (java.io.IOException ex) {
+    //        //Log.d(TAG, "close failed:", ex);
+    //    }
+    //}
+    //return id;
+
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CSoundPool::LoadEx2(
-    /* [in] */ IAssetFileDescriptor * pAfd,
+    /* [in] */ IAssetFileDescriptor* afd,
     /* [in] */ Int32 priority,
     /* [out] */ Int32 * pID)
 {
-    // TODO: Add your code here
+    //if (afd != NULL) {
+    //    Int64 len;
+    //    afd->GetLength(&len);
+    //    if (len < 0) {
+    //        //throw new AndroidRuntimeException("no length for fd");
+    //    }
+
+    //    AutoPtr<IFileDescriptor> fd;
+    //    afd->GetFileDescriptor((IFileDescriptor**)&fd);
+
+    //    Int64 offset;
+    //    afd->GetStartOffset(&offset);
+
+    //    return _load(fd, offset, len, priority);
+    //} else {
+    //    return 0;
+    //}
+
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CSoundPool::LoadEx3(
-    /* [in] */ IFileDescriptor * pFd,
+    /* [in] */ IFileDescriptor* fd,
     /* [in] */ Int64 offset,
     /* [in] */ Int64 length,
     /* [in] */ Int32 priority,
     /* [out] */ Int32 * pID)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return _load(fd, offset, length, priority);
+}
+
+Int32 CSoundPool::_load(
+    /* [in] */ String uri,
+    /* [in] */ Int32 priority)
+{
+    return 0;
+}
+
+Int32 CSoundPool::_load(
+    /* [in] */ IFileDescriptor* fd,
+    /* [in] */ Int64 offset,
+    /* [in] */ Int64 length,
+    /* [in] */ Int32 priority)
+{
+    return 0;
 }
 
 /**
@@ -248,15 +347,87 @@ ECode CSoundPool::SetRate(
     /* [in] */ Int32 streamID,
     /* [in] */ Float rate)
 {
-    // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CSoundPool::SetOnLoadCompleteListener(
-    /* [in] */ IOnLoadCompleteListener * pListener)
+    /* [in] */ IOnLoadCompleteListener* listener)
 {
-    // TODO: Add your code here
+    //synchronized(mLock) {
+        mOnLoadCompleteListener = listener;
+    //}
     return E_NOT_IMPLEMENTED;
+}
+
+//public EventHandler(SoundPool soundPool, Looper looper) {
+//    super(looper);
+//    mSoundPool = soundPool;
+//}
+
+
+ECode CSoundPool::EventHandler::HandleMessage(
+    /* [in] */ IMessage* msg)
+{
+    /*switch(msg.what) {
+    case SAMPLE_LOADED:
+        if (DEBUG) Log.d(TAG, "Sample " + msg.arg1 + " loaded");
+        synchronized(mLock) {
+            if (mOnLoadCompleteListener != NULL) {
+                mOnLoadCompleteListener.onLoadComplete(mSoundPool, msg.arg1, msg.arg2);
+            }
+        }
+        break;
+    default:
+        Log.e(TAG, "Unknown message type " + msg.what);
+        return;
+    }*/
+
+    return NOERROR;
+}
+
+
+PInterface CSoundPool::EventHandler::Probe(
+    /* [in] */ REIID riid)
+{
+    if (riid == EIID_IInterface) {
+        return (IInterface*)this;
+    }
+
+    return NULL;
+}
+
+UInt32 CSoundPool::EventHandler::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 CSoundPool::EventHandler::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode CSoundPool::EventHandler::GetInterfaceID(
+    /* [in] */ IInterface* pObject,
+    /* [out] */ InterfaceID* pIID)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+void CSoundPool::PostEventFromNative(
+    /* [in] */ IInterface* weakRef,
+    /* [in] */ Int32 msg,
+    /* [in] */ Int32 arg1,
+    /* [in] */ Int32 arg2,
+    /* [in] */ IInterface* obj)
+{
+    /*SoundPool soundPool = (SoundPool)((WeakReference)weakRef).get();
+    if (soundPool == NULL)
+        return;
+
+    if (soundPool.mEventHandler != NULL) {
+        Message m = soundPool.mEventHandler.obtainMessage(msg, arg1, arg2, obj);
+        soundPool.mEventHandler.sendMessage(m);
+    }*/
 }
 
 /**
@@ -272,12 +443,11 @@ ECode CSoundPool::ReleaseResources()
     return E_NOT_IMPLEMENTED;
 }
 
-ECode CSoundPool::constructor(
+Int32 CSoundPool::native_setup(
+    /* [in] */ IInterface* weakRef,
     /* [in] */ Int32 maxStreams,
     /* [in] */ Int32 streamType,
     /* [in] */ Int32 srcQuality)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return 0;
 }
-
