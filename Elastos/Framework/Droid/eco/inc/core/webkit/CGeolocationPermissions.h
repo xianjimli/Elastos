@@ -6,6 +6,7 @@
 #include "ext/frameworkext.h"
 #include <elastos/AutoPtr.h>
 #include <elastos/Vector.h>
+#include <elastos/ElRefBase.h>
 
 CarClass(CGeolocationPermissions)
 {
@@ -91,6 +92,27 @@ private:
 
     // A queue to store messages until the handler is ready.
     Vector<AutoPtr<IMessage> > mQueuedMessages;
+};
+
+class GeolocationPermissionsCallback: public ElRefBase, public IGeolocationPermissionsCallback
+{
+public: 
+    CARAPI_(PInterface) Probe(
+        /* [in] */ REIID riid);
+
+    CARAPI_(UInt32) AddRef();
+
+    CARAPI_(UInt32) Release();
+
+    CARAPI GetInterfaceID(
+        /* [in] */ IInterface* Object,
+        /* [out] */ InterfaceID* iID);
+
+    virtual CARAPI Invoke(
+        /* [in] */ const String& origin, 
+        /* [in] */ Boolean allow, 
+        /* [in] */ Boolean remember) = 0;
+
 };
 
 #endif // __CGEOLOCATIONPERMISSIONS_H__

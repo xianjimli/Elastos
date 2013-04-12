@@ -10,6 +10,8 @@
 #include "CCacheManager.h"
 #include "LoadListener.h"
 
+#include <elastos/ElRefBase.h>
+
 using namespace Core;
 using namespace Core::Threading;
 
@@ -18,7 +20,7 @@ using namespace Core::Threading;
  * avoid blocking UI or WebKit's execution, the caller can send a message to
  * WebViewWorker.getHandler() and it will be handled in the WebViewWorkerThread.
  */
-class WebViewWorker// : public Handler 
+class WebViewWorker: public ElRefBase//, public Handler 
 {
 
 public:
@@ -86,7 +88,7 @@ public:
 		/* [in] */ IMessage* msg);
 
 protected:
-    static Mutex mMutex;
+    static Mutex mMutexClass;
 
 private:
 	WebViewWorker(
@@ -99,7 +101,7 @@ private:
 
 	static const CString THREAD_NAME;// = "WebViewWorkerThread";
 
-	static WebViewWorker* sWorkerHandler;
+	static AutoPtr<WebViewWorker> sWorkerHandler;
 
 	static Map<AutoPtr<LoadListener>, AutoPtr<ICacheManagerCacheResult> > mCacheResultMap;
 };

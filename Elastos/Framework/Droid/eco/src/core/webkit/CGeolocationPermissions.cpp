@@ -102,3 +102,45 @@ CARAPI_(void) CGeolocationPermissions::NativeAllow(
 
 CARAPI_(void) CGeolocationPermissions::NativeClearAll()
 {}
+
+
+/*****************************GeolocationPermissionsCallback*****************************/
+PInterface GeolocationPermissionsCallback::Probe(
+    /* [in] */ REIID riid)
+{
+    if (riid == EIID_IGeolocationPermissionsCallback) {
+        return (IInterface*)(IGeolocationPermissionsCallback*)this;
+    }
+    else if (riid == EIID_IGeolocationPermissionsCallback) {
+        return (IGeolocationPermissionsCallback*)this;
+    }
+    return NULL;
+}
+
+UInt32 GeolocationPermissionsCallback::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 GeolocationPermissionsCallback::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode GeolocationPermissionsCallback::GetInterfaceID(
+    /* [in] */ IInterface* Object,
+    /* [out] */ InterfaceID* iID)
+{
+    VALIDATE_NOT_NULL(iID);
+    if (iID == NULL) {
+        return E_INVALID_ARGUMENT;
+    }
+
+    if (Object == (IInterface*)(IGeolocationPermissionsCallback*)this) {
+        *iID = EIID_IGeolocationPermissionsCallback;
+    }
+    else {
+        return E_INVALID_ARGUMENT;
+    }
+    return NOERROR;
+}

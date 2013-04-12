@@ -6,6 +6,8 @@
 #include "ext/frameworkext.h"
 #include <elastos/AutoPtr.h>
 #include <elastos/Vector.h>
+#include <elastos/ElRefBase.h>
+
 
 CarClass(CWebStorage)
 {
@@ -57,7 +59,7 @@ public:
     static const Int32 RETURN_USAGE_ORIGIN = 1;
     static const Int32 RETURN_QUOTA_ORIGIN = 2;
 
-    class Origin
+    class Origin : public ElRefBase
     {
     public:
         Origin(
@@ -91,7 +93,7 @@ public:
      * should only be called from WebViewCore.
      */
     CARAPI_(void) GetOriginsSync(
-        /* [out] */ Vector<Origin>& list);
+        /* [out] */ Vector< AutoPtr<Origin> >* list);
 
 
 private:
@@ -152,6 +154,25 @@ private:
 
     AutoPtr<IHandler> mHandler;
     AutoPtr<IHandler> mUIHandler;
+};
+
+class WebStorageQuotaUpdater: public ElRefBase, public IWebStorageQuotaUpdater
+{
+public:
+    CARAPI_(PInterface) Probe(
+        /* [in] */ REIID riid);
+
+    CARAPI_(UInt32) AddRef();
+
+    CARAPI_(UInt32) Release();
+
+    CARAPI GetInterfaceID(
+        /* [in] */ IInterface* Object,
+        /* [out] */ InterfaceID* iID);
+
+    virtual CARAPI UpdateQuota(
+        /* [in] */  Int64 newQuota) = 0;
+
 };
 
 #endif // __CWEBSTORAGE_H__
