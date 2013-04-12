@@ -1096,12 +1096,13 @@ Boolean ActivityStack::ResumeTopActivityLocked(
             next->mInfo->GetApplicationInfo((IApplicationInfo**)&appInfo);
             appInfo->GetUid(&uid);
             const Int32 nextUid = uid;
+            Int32 permission;
+            mService->CheckPermission(
+                            String("elastos.permission.STOP_APP_SWITCHES")/*android.Manifest.permission.STOP_APP_SWITCHES*/,
+                            -1, next->mLaunchedFromUid, &permission);
             if (inTime && lastUid != nextUid
                     && lastUid != next->mLaunchedFromUid
-                    && mService->CheckPermission(
-                            String("elastos.permission.STOP_APP_SWITCHES")/*android.Manifest.permission.STOP_APP_SWITCHES*/,
-                            -1, next->mLaunchedFromUid)
-                    != CapsuleManager_PERMISSION_GRANTED) {
+                    && permission != CapsuleManager_PERMISSION_GRANTED) {
                 mService->ShowLaunchWarningLocked(mLastStartedActivity, next);
             }
             else {

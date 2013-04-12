@@ -209,14 +209,6 @@ ECode ContextWrapper::GrantUriPermission(
     return mBase->GrantUriPermission(toCapsule, uri, modeFlags);
 }
 
-ECode ContextWrapper::CheckPermissionEx(
-    /* [in] */ const String& permName,
-    /* [in] */ const String& pkgName,
-    /* [out] */ Int32 * result)
-{
-    return mBase->CheckPermissionEx(permName, pkgName, result);
-}
-
 ECode ContextWrapper::CheckPermission(
     /* [in] */ const String& permission,
     /* [in] */ Int32 pid,

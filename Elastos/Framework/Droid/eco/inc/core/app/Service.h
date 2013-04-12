@@ -121,11 +121,6 @@ public:
         /* [in] */ Int32 flags,
         /* [out] */ IContext** ctx);
 
-    CARAPI CheckPermissionEx(
-        /* [in] */ const String& permName,
-        /* [in] */ const String& pkgName,
-        /* [out] */ Int32 * result);
-
     CARAPI CheckPermission(
         /* [in] */ const String& permission,
         /* [in] */ Int32 pid,

@@ -623,7 +623,7 @@ public:
         /* [out] */ IFile** dir);
 
     CARAPI StartActivity(
-        /* [in] */ IIntent *intent);
+        /* [in] */ IIntent* intent);
 
     CARAPI StartIntentSender(
         /* [in] */ IIntentSender* intent,
@@ -633,7 +633,7 @@ public:
         /* [in] */ Int32 extraFlags);
 
     CARAPI SendBroadcast(
-        /* [in] */ IIntent *pIntent);
+        /* [in] */ IIntent* pIntent);
 
     CARAPI StartService(
         /* [in] */ IIntent* service,
@@ -669,32 +669,27 @@ public:
         /* [in] */ CString permission,
         /* [in] */ CString message);
 
-    CARAPI CheckPermissionEx(
-        /* [in] */ const String& permName,
-        /* [in] */ const String& pkgName,
-        /* [out] */ Int32 * result);
-
     CARAPI CheckPermission(
         /* [in] */ const String& permission,
         /* [in] */ Int32 pid,
         /* [in] */ Int32 uid,
-        /* [out] */ Int32 * result);
+        /* [out] */ Int32* result);
 
     CARAPI CheckUriPermission(
-        /* [in] */ IUri * uri,
+        /* [in] */ IUri* uri,
         /* [in] */ const String& readPermission,
         /* [in] */ const String& writePermission,
         /* [in] */ Int32 pid,
         /* [in] */ Int32 uid,
         /* [in] */ Int32 modeFlags,
-        /* [out] */ Int32 * result);
+        /* [out] */ Int32* result);
 
     CARAPI CheckUriPermissionEx(
-        /* [in] */ IUri * uri,
+        /* [in] */ IUri* uri,
         /* [in] */ Int32 pid,
         /* [in] */ Int32 uid,
         /* [in] */ Int32 modeFlags,
-        /* [out] */ Int32 * result);
+        /* [out] */ Int32* result);
 
     CARAPI RevokeUriPermission(
         /* [in] */ IUri* uri,
@@ -757,6 +752,13 @@ private:
         /* [in] */ IFile* base,
         /* [in] */ const String& name,
         /* [out] */ IFile** file);
+
+    CARAPI Enforce(
+        /* [in] */ String permission,
+        /* [in] */ Int32 resultOfCheck,
+        /* [in] */ Boolean selfToo,
+        /* [in] */ Int32 uid,
+        /* [in] */ String message);
 
 private:
     static const char* TAG;

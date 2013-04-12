@@ -140,11 +140,6 @@
         /* [in] */ IUri* uri,                                               \
         /* [in] */ Int32 modeFlags);                                        \
                                                                             \
-    CARAPI CheckPermissionEx(                                               \
-        /* [in] */ const String& permName,                                  \
-        /* [in] */ const String& pkgName,                                   \
-        /* [out] */ Int32 * result);                                        \
-                                                                            \
     CARAPI CheckPermission(                                                 \
         /* [in] */ const String& permission,                                \
         /* [in] */ Int32 pid,                                               \
@@ -411,14 +406,6 @@ ECode className::GrantUriPermission(                                        \
     /* [in] */ Int32 modeFlags)                                             \
 {                                                                           \
     return superClass::GrantUriPermission(toCapsule, uri, modeFlags);       \
-}                                                                           \
-                                                                            \
-ECode className::CheckPermissionEx(                                         \
-    /* [in] */ const String& permName,                                      \
-    /* [in] */ const String& pkgName,                                       \
-    /* [out] */ Int32 * result)                                             \
-{                                                                           \
-    return superClass::CheckPermissionEx(permName, pkgName, result);        \
 }                                                                           \
                                                                             \
 ECode className::CheckPermission(                                           \

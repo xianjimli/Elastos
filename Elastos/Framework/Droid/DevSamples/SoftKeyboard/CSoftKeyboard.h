@@ -153,11 +153,6 @@ public:
         /* [in] */ const String& permission,
         /* [out] */ Int32* perm);
 
-    CARAPI CheckPermissionEx(
-        /* [in] */ const String& permName,
-        /* [in] */ const String& pkgName,
-        /* [out] */ Int32 * result);
-
     CARAPI CheckPermission(
         /* [in] */ const String& permission,
         /* [in] */ Int32 pid,

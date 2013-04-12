@@ -842,11 +842,6 @@ module
          * @see PackageManager#checkPermission(String, String)
          * @see #checkCallingPermission
          */
-        CheckPermissionEx(
-            [in] String permName,
-            [in] String pkgName,
-            [out] Int32* result);
-
         CheckPermission(
             [in] String permission,
             [in] Int32 pid,

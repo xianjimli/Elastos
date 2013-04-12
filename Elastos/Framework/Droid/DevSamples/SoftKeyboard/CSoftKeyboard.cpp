@@ -304,14 +304,6 @@ ECode CSoftKeyboard::CheckCallingOrSelfPermission(
     return InputMethodService::CheckCallingOrSelfPermission(permission, perm);
 }
 
-ECode CSoftKeyboard::CheckPermissionEx(
-	/* [in] */ const String& permName,
-	/* [in] */ const String& pkgName,
-	/* [out] */ Int32 * result)
-{
-	return InputMethodService::CheckPermissionEx(permName, pkgName, result);
-}
-
 ECode CSoftKeyboard::CheckPermission(
 	/* [in] */ const String& permission,
 	/* [in] */ Int32 pid,
