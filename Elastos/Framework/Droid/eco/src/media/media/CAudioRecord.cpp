@@ -4,7 +4,7 @@
 #include <media/AudioTrack.h>
 #include <media/AudioRecord.h>
 #include "media/CAudioRecord.h"
-#include "media/MediaRecorder.h"
+#include "media/CMediaRecorder.h"
 
 
 //AudioRecord::NativeEventHandler::NativeEventHandler(
@@ -97,7 +97,7 @@ CAudioRecord::CAudioRecord()
     , mChannels(AudioFormat_CHANNEL_IN_MONO)
     , mChannelConfiguration(AudioFormat_CHANNEL_IN_MONO)
     , mAudioFormat(AudioFormat_ENCODING_PCM_16BIT)
-    , mRecordSource(MediaRecorder::AudioSource::DEFAULT)
+    , mRecordSource(CMediaRecorder::AudioSource::DEFAULT)
     , mState(AudioRecord_STATE_UNINITIALIZED)
     , mRecordingState(AudioRecord_RECORDSTATE_STOPPED)
     , mNativeBufferSizeInBytes(0)
@@ -157,8 +157,8 @@ ECode CAudioRecord::AudioParamCheck(
 {
     //--------------
     // audio source
-    if ( (audioSource < MediaRecorder::AudioSource::DEFAULT) ||
-        (audioSource > MediaRecorder::AudioSource::VOICE_COMMUNICATION) )  {
+    if ( (audioSource < CMediaRecorder::AudioSource::DEFAULT) ||
+        (audioSource > CMediaRecorder::AudioSource::VOICE_COMMUNICATION) )  {
             //(audioSource > MediaRecorder.getAudioSourceMax()) )  {
         //throw (new IllegalArgumentException("Invalid audio source."));
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
