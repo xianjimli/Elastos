@@ -12,6 +12,10 @@ public:
         /* [in] */ const String& pattern,
         /* [in] */ IDecimalFormatSymbols* dfs);
 
+    CARAPI constructor(
+        /* [in] */ const String& pattern,
+        /* [in] */ ILocaleData * data);
+
     CARAPI Close();
 
     CARAPI SetDecimalFormatSymbols(

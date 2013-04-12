@@ -27,7 +27,7 @@ ECode ICURuleBasedCollator::Init(
 }
 
 ECode ICURuleBasedCollator::Init(
-    /* [in] */ String rules, 
+    /* [in] */ String rules,
     /* [in] */ Int32 strength)
 {
     m_hashcode_ = 0;
@@ -40,8 +40,8 @@ ECode ICURuleBasedCollator::Init(
 }
 
 ECode ICURuleBasedCollator::Init(
-    /* [in] */ String rules, 
-    /* [in] */ Int32 normalizationMode, 
+    /* [in] */ String rules,
+    /* [in] */ Int32 normalizationMode,
     /* [in] */ Int32 strength)
 {
     m_hashcode_ = 0;

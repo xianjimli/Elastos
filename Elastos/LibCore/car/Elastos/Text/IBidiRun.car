@@ -1,0 +1,12 @@
+module {
+    interface IBidiRun {
+        GetLevel(
+            [out] Int32 * level);
+
+        GetLimit(
+            [out] Int32 * limit);
+
+        GetStart(
+            [out] Int32 * start);
+    }
+}

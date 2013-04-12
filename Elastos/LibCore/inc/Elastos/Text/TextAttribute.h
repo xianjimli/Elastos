@@ -13,6 +13,8 @@ using namespace Elastos;
 class TextAttribute : public AttributedCharacterIteratorAttribute
 {
 protected:
+    CARAPI_(PInterface) Probe(
+        /* [in] */ REIID riid);
     /**
      * Instantiates a new TextAttribute with the specified name.
      *

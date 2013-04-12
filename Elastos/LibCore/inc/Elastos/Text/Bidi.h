@@ -11,7 +11,12 @@ using namespace Elastos;
 
 class Bidi {
 public:
+    CARAPI_(PInterface) Probe(
+        /* [in]  */ REIID riid);
+
     Bidi();
+
+    virtual ~Bidi();
     /**
      * Creates a {@code Bidi} object from the {@code
      * AttributedCharacterIterator} of a paragraph text. The RUN_DIRECTION
@@ -259,7 +264,7 @@ public:
      *             is negative; if {@code count > levels.length - levelStart} or
      *             if {@code count > objects.length - objectStart}.
      */
-    static CARAPI_(void) ReorderVisually(
+    static CARAPI ReorderVisually(
         /* [in] */ ArrayOf<Byte>* levels,
         /* [in] */ Int32 levelStart,
         /* [in] */ ArrayOf<IInterface*>* objects,
@@ -283,10 +288,11 @@ public:
      *             limit} or {@code limit} is greater than the length of this
      *             object's paragraph text.
      */
-    static CARAPI_(Boolean) RequiresBidi(
+    static CARAPI RequiresBidi(
         /* [in] */ ArrayOf<Char32>* text,
         /* [in] */ Int32 start,
-        /* [in] */ Int32 limit);
+        /* [in] */ Int32 limit,
+        /* [out] */ Boolean * result);
 
     /**
      * Returns the internal message of the {@code Bidi} object, used in
@@ -328,9 +334,9 @@ private:
 
     Int32 mLength;
 
-    ArrayOf<Byte>* mOffsetLevel;
+    ArrayOf<Byte> * mOffsetLevel;
 
-//    ArrayOf<IBidiRun* >* mRuns;
+    ArrayOf<IBidiRun * > * mRuns;
 
     Int32 mDirection;
 

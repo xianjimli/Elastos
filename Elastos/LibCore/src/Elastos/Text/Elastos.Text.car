@@ -17,24 +17,25 @@ module
     merge("../../../car/Elastos/Text/IChoiceFormat.car");
     merge("../../../car/Elastos/Text/IDecimalFormatSymbols.car");
     merge("../../../car/Elastos/Text/INativeDecimalFormat.car");
-    merge("../../../car/Elastos/Text/CollationAttribute.car");
-    merge("../../../car/Elastos/Text/ICUCollationElementIterator.car");
+    merge("../../../car/Elastos/Text/ICollationAttribute.car");
+    merge("../../../car/Elastos/Text/IICUCollationElementIterator.car");
     merge("../../../car/Elastos/Text/IDecimalFormat.car");
     merge("../../../car/Elastos/Text/ISimpleDateFormat.car");
     merge("../../../car/Elastos/Text/IBreakIterator.car");
-    merge("../../../car/Elastos/Text/RuleBasedBreakIterator.car");
-    merge("../../../car/Elastos/Text/CollationKey.car");
-    merge("../../../car/Elastos/Text/Collator.car");
-    merge("../../../car/Elastos/Text/Annotation.car");
-    merge("../../../car/Elastos/Text/StringCharacterIterator.car");
-    merge("../../../car/Elastos/Text/ICUCollationKey.car");
-    merge("../../../car/Elastos/Text/ICUCollator.car");
-    merge("../../../car/Elastos/Text/ICURuleBasedCollator.car");
-    merge("../../../car/Elastos/Text/CollationElementIterator.car");
-    merge("../../../car/Elastos/Text/RuleBasedCollator.car");
-    merge("../../../car/Elastos/Text/TextAttribute.car");
-    merge("../../../car/Elastos/Text/Bidi.car");
-    merge("../../../car/Elastos/Text/AttributedString.car");
+    merge("../../../car/Elastos/Text/IRuleBasedBreakIterator.car");
+    merge("../../../car/Elastos/Text/ICollationKey.car");
+    merge("../../../car/Elastos/Text/ICollator.car");
+    merge("../../../car/Elastos/Text/IAnnotation.car");
+    merge("../../../car/Elastos/Text/IStringCharacterIterator.car");
+    merge("../../../car/Elastos/Text/IICUCollationKey.car");
+    merge("../../../car/Elastos/Text/IICUCollator.car");
+    merge("../../../car/Elastos/Text/IICURuleBasedCollator.car");
+    merge("../../../car/Elastos/Text/ICollationElementIterator.car");
+    merge("../../../car/Elastos/Text/IRuleBasedCollator.car");
+    merge("../../../car/Elastos/Text/ITextAttribute.car");
+    merge("../../../car/Elastos/Text/IBidiRun.car");
+    merge("../../../car/Elastos/Text/IBidi.car");
+    merge("../../../car/Elastos/Text/IAttributedString.car");
 
     class CAttributedCharacterIteratorAttribute {
         constructor(
@@ -129,9 +130,9 @@ module
             [in] IDecimalFormatSymbols* dfs);
 
         // Used so java.util.Formatter doesn't need to allocate DecimalFormatSymbols instances.
-//        constructor(
-//            [in] String pattern,
-//            [in] LocaleData* data);
+        constructor(
+            [in] String pattern,
+            [in] ILocaleData * data);
 
         interface INativeDecimalFormat;
     }
@@ -259,6 +260,15 @@ module
             [in] String name);
 
         interface ITextAttribute;
+    }
+
+    class CBidiRun {
+        constructor(
+            [in] Int32 start,
+            [in] Int32 limit,
+            [in] Int32 level);
+
+        interface IBidiRun;
     }
 
     [deprecated]
