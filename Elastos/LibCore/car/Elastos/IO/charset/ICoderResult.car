@@ -128,8 +128,4 @@ module
         ToString(
             [out] String* toString);
     }
-
-    class CCoderResult {
-        interface ICoderResult;
-    }
 }

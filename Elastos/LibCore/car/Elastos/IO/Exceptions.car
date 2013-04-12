@@ -39,4 +39,7 @@ module
     const E_INVALID_OBJECT_EXCEPTION                    = 0xA21D0000;
     const E_ILLEGAL_CHARSET_NAME_EXCEPTION              = 0xA21E0000;
     const E_UNSUPPORTED_CHARSET_EXCEPTION               = 0xA21F0000;
+    const E_CHARACTER_CODING_EXCEPTION                  = 0xA2200000;
+    const E_UNMAPPABLE_CHARACTER_EXCEPTION              = 0xA2210000;
+    const E_MALFORMED_INPUT_EXCEPTION                   = 0xA2220000;
 }

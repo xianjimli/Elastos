@@ -793,13 +793,8 @@ module
         interface ICharsetHelper;
     }
 
-    class CCharsetDecoder {
-        constructor(
-            [in] ICharset* charset,
-            [in] Float averageCharsPerByte,
-            [in] Float maxCharsPerByte);
-
-        interface ICharsetDecoder;
+    class CCoderResult {
+        interface ICoderResult;
     }
 
     class CCodingErrorAction {

@@ -1,5 +1,6 @@
 
 #include "CCoderResult.h"
+#include "cmdef.h"
 
 AutoPtr<ICoderResult> CreateCoderResult(
     /* [in] */ Int32 type,
@@ -20,7 +21,19 @@ ECode CCoderResult::MalformedForLength(
     /* [in] */ Int32 length,
     /* [out] */ ICoderResult** result)
 {
-    // TODO: Add your code here
+    // TODO:
+    // if (length > 0) {
+    //     Integer key = Integer.valueOf(length);
+    //     synchronized (_malformedErrors) {
+    //         CoderResult r = _malformedErrors.get(key);
+    //         if (null == r) {
+    //             r = new CoderResult(TYPE_MALFORMED_INPUT, length);
+    //             _malformedErrors.put(key, r);
+    //         }
+    //         return r;
+    //     }
+    // }
+    // throw new IllegalArgumentException("Length must be greater than 0; was " + length);
     return E_NOT_IMPLEMENTED;
 }
 
@@ -28,62 +41,132 @@ ECode CCoderResult::UnmappableForLength(
     /* [in] */ Int32 length,
     /* [out] */ ICoderResult** result)
 {
-    // TODO: Add your code here
+    // TODO:
+    // if (length > 0) {
+    //     Integer key = Integer.valueOf(length);
+    //     synchronized (_unmappableErrors) {
+    //         CoderResult r = _unmappableErrors.get(key);
+    //         if (null == r) {
+    //             r = new CoderResult(TYPE_UNMAPPABLE_CHAR, length);
+    //             _unmappableErrors.put(key, r);
+    //         }
+    //         return r;
+    //     }
+    // }
+    // throw new IllegalArgumentException("Length must be greater than 0; was " + length);
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CCoderResult::IsUnderflow(
     /* [out] */ Boolean* result)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(result);
+
+    *result = mType == TYPE_UNDERFLOW ? TRUE : FALSE;
+    return NOERROR;
 }
 
 ECode CCoderResult::IsError(
     /* [out] */ Boolean* result)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(result);
+
+    *result = (mType == TYPE_MALFORMED_INPUT ? TRUE : FALSE)
+        || (mType == TYPE_UNMAPPABLE_CHAR ? TRUE : FALSE);
+    return NOERROR;
 }
 
 ECode CCoderResult::IsMalformed(
     /* [out] */ Boolean* result)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(result);
+
+    *result = mType == TYPE_MALFORMED_INPUT ? TRUE : FALSE;
+    return NOERROR;
 }
 
 ECode CCoderResult::IsOverflow(
     /* [out] */ Boolean* result)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(result);
+
+    *result = mType == TYPE_OVERFLOW ? TRUE : FALSE;
+    return NOERROR;
 }
 
 ECode CCoderResult::IsUnmappable(
     /* [out] */ Boolean* result)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(result);
+
+    *result = mType == TYPE_UNMAPPABLE_CHAR ? TRUE : FALSE;
+    return NOERROR;
 }
 
 ECode CCoderResult::Length(
     /* [out] */ Int32* length)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(length);
+
+    if (mType == TYPE_MALFORMED_INPUT || mType == TYPE_UNMAPPABLE_CHAR) {
+        *length = mLength;
+        return NOERROR;
+    }
+    return E_UNSUPPORTED_OPERATION_EXCEPTION;
 }
 
 ECode CCoderResult::ThrowException()
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    switch (mType) {
+        case TYPE_UNDERFLOW:
+            return E_BUFFER_UNDER_FLOW_EXCEPTION;
+        case TYPE_OVERFLOW:
+            return E_BUFFER_OVER_FLOW_EXCEPTION;
+        case TYPE_UNMAPPABLE_CHAR:
+            return E_UNMAPPABLE_CHARACTER_EXCEPTION;
+        case TYPE_MALFORMED_INPUT:
+            return E_MALFORMED_INPUT_EXCEPTION;
+    }
+
+    return E_CHARACTER_CODING_EXCEPTION;
 }
 
 ECode CCoderResult::ToString(
     /* [out] */ String* toString)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
-}
+    VALIDATE_NOT_NULL(toString);
 
+    String dsc;
+    switch (mType) {
+        case TYPE_UNDERFLOW: {
+            dsc = String("UNDERFLOW error");
+            break;
+        }
+        case TYPE_OVERFLOW: {
+            dsc = String("OVERFLOW error");
+            break;
+        }
+        case TYPE_UNMAPPABLE_CHAR: {
+            dsc = String("Unmappable-character error with erroneous input length ");
+            dsc.Append(String::FromInt32(mLength));
+            break;
+        }
+        case TYPE_MALFORMED_INPUT: {
+            dsc = String("Malformed-input error with erroneous input length ");
+            dsc.Append(String::FromInt32(mLength));
+            break;
+        }
+        default: {
+            dsc = String("");            
+            break;
+        }
+    }
+
+    *toString = __FILE__;
+    toString->Append(__FUNCTION__);
+    toString->Append("[");
+    toString->Append(dsc);
+    toString->Append("]");
+
+    return NOERROR;
+}
