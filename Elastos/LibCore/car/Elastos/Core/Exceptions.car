@@ -28,5 +28,4 @@ module
     const E_ILLEGAL_MONITOR_STATE_EXCEPTION            = 0xA00C0000;
     const E_INTERRUPTED_EXCEPTION                       = 0xA00D0000;
     const E_ARITHMETIC_EXCEPTION                        = 0xA00E0000;
-    const E_ACTION_EXCEPTION                            = 0xA00F0000;
 }
