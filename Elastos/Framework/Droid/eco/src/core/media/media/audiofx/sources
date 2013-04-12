@@ -2,16 +2,16 @@
 TARGET_NAME= audiofx
 TARGET_TYPE= lib
 
-include $(MAKEDIR)/../../../../../sources.inc
+include $(MAKEDIR)/../../../../../../sources.inc
 
-INCLUDES += $(MAKEDIR)/../../../../inc/core
-INCLUDES += $(MAKEDIR)/../../../../inc/media
-INCLUDES += $(MAKEDIR)/../../../../inc/media/audiofx
-INCLUDES += ../../
+INCLUDES += $(MAKEDIR)/../../../../../inc/core
+INCLUDES += $(MAKEDIR)/../../../../../inc/core/media
+INCLUDES += $(MAKEDIR)/../../../../../inc/core/media/audiofx
+INCLUDES += ../../../
 INCLUDES += $(PREBUILD_INC)/skia/utils
 INCLUDES += $(PREBUILD_INC)/skia/core
 
-C_DEFINES += -D_FRAMEWORK_MEDIA
+C_DEFINES += -D_FRAMEWORK_CORE
 
 SOURCES = CAudioEffect.cpp
 SOURCES += AudioEffect.cpp

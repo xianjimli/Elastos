@@ -1,12 +1,13 @@
 #ifndef __CEQUALIZER_H__
 #define __CEQUALIZER_H__
+
 #include "_CEqualizer.h"
-#include "media/audiofx/CAudioEffect.h"
+#include "media/audiofx/AudioEffect.h"
 #include "ext/frameworkext.h"
 #include "os/Runnable.h"
 #include <elastos/AutoPtr.h>
 #include <elastos/ElRefBase.h>
-#include <media/audiofx/AudioEffect.h>
+
 using namespace Elastos::Core::Threading;
 
 /**

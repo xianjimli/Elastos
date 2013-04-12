@@ -1,6 +1,8 @@
 
 #include "media/CMediaScanner.h"
 #include "media/MediaFile.h"
+#include "content/CContentValues.h"
+#include "graphics/CBitmapFactoryOptions.h"
 #include <elastos/System.h>
 // #include "os/SystemClock.h"
 // #include "os/SystemProperties.h"

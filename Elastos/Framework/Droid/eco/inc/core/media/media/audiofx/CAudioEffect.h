@@ -2,11 +2,12 @@
 #define __CAUDIOEFFECT_H__
 
 #include "_CAudioEffect.h"
+#include "media/audiofx/AudioEffect.h"
 #include "ext/frameworkext.h"
 #include "os/Runnable.h"
 #include <elastos/List.h>
 #include <elastos/AutoPtr.h>
-#include <media/audiofx/AudioEffect.h>
+
 
 /**
  * AudioEffect is the base class for controlling audio effects provided by the android audio

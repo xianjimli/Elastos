@@ -2,16 +2,16 @@
 TARGET_NAME= media
 TARGET_TYPE= lib
 
-include $(MAKEDIR)/../../../../sources.inc
+include $(MAKEDIR)/../../../../../sources.inc
 
-INCLUDES += $(MAKEDIR)/../../../inc/core
-INCLUDES += $(MAKEDIR)/../../../inc/core/graphics
-INCLUDES += $(MAKEDIR)/../../../inc/media
-INCLUDES += ../
+INCLUDES += $(MAKEDIR)/../../../../inc/core
+INCLUDES += $(MAKEDIR)/../../../../inc/core/graphics
+INCLUDES += $(MAKEDIR)/../../../../inc/core/media
+INCLUDES += ../../
 INCLUDES += $(PREBUILD_INC)/skia/utils
 INCLUDES += $(PREBUILD_INC)/skia/core
 
-C_DEFINES += -D_FRAMEWORK_MEDIA
+C_DEFINES += -D_FRAMEWORK_CORE
 
 SOURCES = AudioTrack.cpp
 SOURCES += CAudioTrack.cpp
@@ -55,3 +55,4 @@ SOURCES += CResampleInputStream.cpp
 SOURCES += MiniThumbFile.cpp
 SOURCES += CMiniThumbFile.cpp
 
+LIBRARIES += audiofx/audiofx.lib

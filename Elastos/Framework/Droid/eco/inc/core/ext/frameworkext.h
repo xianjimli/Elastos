@@ -8,8 +8,6 @@
 #include "Elastos.Framework.Core_server.h"
 #elif defined(_FRAMEWORK_SERVER)
 #include "Elastos.Framework.Server_server.h"
-#elif defined(_FRAMEWORK_MEDIA)
-#include "Elastos.Framework.Media_server.h"
 #endif
 #include "_frameworkext.h"
 

@@ -1,0 +1,6 @@
+
+TARGET_NAME= media
+TARGET_TYPE= lib
+
+LIBRARIES += drm/mobile1/mobile1.lib
+LIBRARIES += media/media.lib

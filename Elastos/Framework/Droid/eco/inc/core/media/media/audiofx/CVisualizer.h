@@ -1,12 +1,14 @@
 #ifndef __CVISUALIZER_H__
 #define __CVISUALIZER_H__
+
 #include "_CVisualizer.h"
+#include "media/audiofx/AudioEffect.h"
 #include "ext/frameworkext.h"
 #include "os/Runnable.h"
 #include <elastos/List.h>
 #include <elastos/AutoPtr.h>
 #include <elastos/ElRefBase.h>
-#include <media/audiofx/AudioEffect.h>
+
 using namespace Elastos::Core::Threading;
 
 /**

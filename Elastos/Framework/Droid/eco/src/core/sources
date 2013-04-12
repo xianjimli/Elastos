@@ -45,6 +45,10 @@ INCLUDES += $(MAKEDIR)/../../inc/core/gesture
 INCLUDES += $(MAKEDIR)/../../inc/core/accessibilityservice
 INCLUDES += $(MAKEDIR)/../../inc/core/appwidget
 INCLUDES += $(MAKEDIR)/../../inc/core/accounts
+INCLUDES += $(MAKEDIR)/../../inc/core/media/
+INCLUDES += $(MAKEDIR)/../../inc/core/media/media
+INCLUDES += $(MAKEDIR)/../../inc/core/media/media/audiofx
+INCLUDES += $(MAKEDIR)/../../inc/core/media/drm/mobile1
 
 ifeq "$(XDK_TARGET_PLATFORM)" "linux"
 INCLUDES += $(PREBUILD_INC)/skia/utils
@@ -88,6 +92,7 @@ LIBRARIES += gesture/gesture.lib
 LIBRARIES += accessibilityservice/accessibilityservice.lib
 LIBRARIES += appwidget/appwidget.lib
 LIBRARIES += accounts/accounts.lib
+LIBRARIES += media/media.lib
 
 LIBRARIES += $(XDK_USER_LIB)/Elastos.Utility.Logging.lib
 ifeq "$(XDK_TARGET_PLATFORM)" "win32"
@@ -101,5 +106,6 @@ else
 LIBRARIES += $(XDK_TARGETS)/Elastos.Runtime.eco
 LIBRARIES += $(XDK_TARGETS)/Elastos.Core.eco
 LIBRARIES += $(XDK_USER_LIB)/crt0.lib
-LIBRARIES += -lexpat -llog -lutils -lbinder -lskia -lskiagl -lsurfaceflinger_client -lui -lcutils -lsqlite -ljpeg
+LIBRARIES += -lexpat -llog -lutils -lbinder -lskia -lskiagl -lsurfaceflinger_client -lui
+LIBRARIES += -lcutils -lsqlite -ljpeg -ldrm1 -lmedia -lstagefright_amrnbenc -lstagefright_amrnb_common
 endif

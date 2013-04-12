@@ -1,52 +1,37 @@
-#ifndef __CPRESETREVERB_H__
-#define __CPRESETREVERB_H__
-#include "_CPresetReverb.h"
-#include "media/audiofx/CAudioEffect.h"
+
+#ifndef __CBASSBOOST_H__
+#define __CBASSBOOST_H__
+
+#include "_CBassBoost.h"
+#include "media/audiofx/AudioEffect.h"
 #include "ext/frameworkext.h"
 #include "os/Runnable.h"
 #include <elastos/AutoPtr.h>
 #include <elastos/ElRefBase.h>
-#include <media/audiofx/AudioEffect.h>
+
 using namespace Elastos::Core::Threading;
 
 /**
- * A sound generated within a room travels in many directions. The listener first hears the
- * direct sound from the source itself. Later, he or she hears discrete echoes caused by sound
- * bouncing off nearby walls, the ceiling and the floor. As sound waves arrive after
- * undergoing more and more reflections, individual reflections become indistinguishable and
- * the listener hears continuous reverberation that decays over time.
- * Reverb is vital for modeling a listener's environment. It can be used in music applications
- * to simulate music being played back in various environments, or in games to immerse the
- * listener within the game's environment.
- * The PresetReverb class allows an application to configure the global reverb using a reverb preset.
- * This is primarily used for adding some reverb in a music playback context. Applications
- * requiring control over a more advanced environmental reverb are advised to use the
- * {@link android.media.audiofx.EnvironmentalReverb} class.
- * <p>An application creates a PresetReverb object to instantiate and control a reverb engine in the
- * audio framework.
- * <p>The methods, parameter types and units exposed by the PresetReverb implementation are
- * directly mapping those defined by the OpenSL ES 1.0.1 Specification
- * (http://www.khronos.org/opensles/) for the SLPresetReverbItf interface.
- * Please refer to this specification for more details.
- * <p>The PresetReverb is an output mix auxiliary effect and should be created on
- * Audio session 0. In order for a MediaPlayer or AudioTrack to be fed into this effect,
- * they must be explicitely attached to it and a send level must be specified. Use the effect ID
- * returned by getId() method to designate this particular effect when attaching it to the
- * MediaPlayer or AudioTrack.
- * <p>Creating a reverb on the output mix (audio session 0) requires permission
+ * Bass boost is an audio effect to boost or amplify low frequencies of the sound. It is comparable
+ * to a simple equalizer but limited to one band amplification in the low frequency range.
+ * <p>An application creates a BassBoost object to instantiate and control a bass boost engine in
+ * the audio framework.
+ * <p>The methods, parameter types and units exposed by the BassBoost implementation are directly
+ * mapping those defined by the OpenSL ES 1.0.1 Specification (http://www.khronos.org/opensles/)
+ * for the SLBassBoostItf interface. Please refer to this specification for more details.
+ * <p>To attach the BassBoost to a particular AudioTrack or MediaPlayer, specify the audio session
+ * ID of this AudioTrack or MediaPlayer when constructing the BassBoost.
+ * If the audio session ID 0 is specified, the BassBoost applies to the main audio output mix.
+ * <p>Creating a BassBoost on the output mix (audio session 0) requires permission
  * {@link android.Manifest.permission#MODIFY_AUDIO_SETTINGS}
- * <p>See {@link android.media.audiofx.AudioEffect} class for more details on controlling
- * audio effects.
+ * <p>See {@link android.media.MediaPlayer#getAudioSessionId()} for details on audio sessions.
+ * <p>See {@link android.media.audiofx.AudioEffect} class for more details on
+ * controlling audio effects.
  */
 
-CarClass(CPresetReverb), public AudioEffect
+CarClass(CBassBoost), public AudioEffect
 {
 public:
-    /**
-     * The Settings class regroups all preset reverb parameters. It is used in
-     * conjuntion with getProperties() and setProperties() methods to backup and restore
-     * all parameters in a single call.
-     */
     class Settings{
     public:
         CARAPI constructor(
@@ -55,13 +40,13 @@ public:
         CARAPI toString(
             /* [out] */ String* result);
 
-        CARAPI GetPreset(
-            /* [out] */ Int16* preset);
+        CARAPI GetStrength(
+            /* [out] */ Int16* result);
 
-        CARAPI SetPreset(
-            /* [in] */ Int16 preset);
+        CARAPI SetStrength(
+            /* [in] */ Int16 result);
     public:
-        Int16 mPreset;
+        Int16 strength;
     };
 private:
     /**
@@ -74,7 +59,7 @@ private:
     {
     public:
         CARAPI_(PInterface) Probe(
-            /* [in]  */ REIID riid);
+            /* [in] */ REIID riid);
 
         CARAPI_(UInt32) AddRef();
 
@@ -90,23 +75,23 @@ private:
             /* [in] */ const ArrayOf<Byte>& param,
             /* [in] */ const ArrayOf<Byte>& value);
     private:
-        CPresetReverb* mHost;
+        CBassBoost* mHost;
     };
+
 public:
-    CPresetReverb();
+    CBassBoost();
 
     /**
      * Class constructor.
-     * @param priority the priority level requested by the application for controlling the
-     * PresetReverb engine. As the same engine can be shared by several applications, this
-     * parameter indicates how much the requesting application needs control of effect parameters.
-     * The normal priority is 0, above normal is a positive number, below normal a negative number.
-     * @param audioSession  system wide unique audio session identifier. If audioSession
-     *  is not 0, the PresetReverb will be attached to the MediaPlayer or AudioTrack in the
-     *  same audio session. Otherwise, the PresetReverb will apply to the output mix.
-     *  As the PresetReverb is an auxiliary effect it is recommended to instantiate it on
-     *  audio session 0 and to attach it to the MediaPLayer auxiliary output.
+     * @param priority the priority level requested by the application for controlling the BassBoost
+     * engine. As the same engine can be shared by several applications, this parameter indicates
+     * how much the requesting application needs control of effect parameters. The normal priority
+     * is 0, above normal is a positive number, below normal a negative number.
+     * @param audioSession system wide unique audio session identifier. If audioSession
+     *  is not 0, the BassBoost will be attached to the MediaPlayer or AudioTrack in the
+     *  same audio session. Otherwise, the BassBoost will apply to the output mix.
      *
+     * @throws java.lang.IllegalStateException
      * @throws java.lang.IllegalArgumentException
      * @throws java.lang.UnsupportedOperationException
      * @throws java.lang.RuntimeException
@@ -116,57 +101,66 @@ public:
         /* [in] */ Int32 audioSession);
 
     /**
-     *  Enables a preset on the reverb.
-     *  <p>The reverb PRESET_NONE disables any reverb from the current output but does not free the
-     *  resources associated with the reverb. For an application to signal to the implementation
-     *  to free the resources, it must call the release() method.
-     * @param preset this must be one of the the preset constants defined in this class.
-     * e.g. {@link #PRESET_SMALLROOM}
-     * @throws IllegalStateException
-     * @throws IllegalArgumentException
-     * @throws UnsupportedOperationException
+     * Indicates whether setting strength is supported. If this method returns false, only one
+     * strength is supported and the setStrength() method always rounds to that value.
+     * @return true is strength parameter is supported, false otherwise
      */
-    CARAPI SetPreset(
-        /* [in] */ Int16 preset);
+    CARAPI GetStrengthSupported(
+        /* [out] */ Boolean* isSupported);
 
     /**
-     * Gets current reverb preset.
-     * @return the preset that is set at the moment.
+     * Sets the strength of the bass boost effect. If the implementation does not support per mille
+     * accuracy for setting the strength, it is allowed to round the given strength to the nearest
+     * supported value. You can use the {@link #getRoundedStrength()} method to query the
+     * (possibly rounded) value that was actually set.
+     * @param strength strength of the effect. The valid range for strength strength is [0, 1000],
+     * where 0 per mille designates the mildest effect and 1000 per mille designates the strongest.
      * @throws IllegalStateException
      * @throws IllegalArgumentException
      * @throws UnsupportedOperationException
      */
-    CARAPI GetPreset(
-        /* [out] */ Int16* preset);
+    CARAPI SetStrength(
+        /* [in] */ Int16 strength);
+
+    /**
+     * Gets the current strength of the effect.
+     * @return the strength of the effect. The valid range for strength is [0, 1000], where 0 per
+     * mille designates the mildest effect and 1000 per mille the strongest
+     * @throws IllegalStateException
+     * @throws IllegalArgumentException
+     * @throws UnsupportedOperationException
+     */
+    CARAPI GetRoundedStrength(
+        /* [out] */ Int16* strength);
 
     /**
      * Registers an OnParameterChangeListener interface.
      * @param listener OnParameterChangeListener interface registered
      */
     CARAPI SetParameterListenerEx(
-        /* [in] */ IPresetReverbOnParameterChangeListener* listener);
+        /* [in] */ IBassBoostOnParameterChangeListener* listener);
 
     /**
-     * Gets the preset reverb properties. This method is useful when a snapshot of current
-     * preset reverb settings must be saved by the application.
-     * @return a PresetReverb.Settings object containing all current parameters values
+     * Gets the bass boost properties. This method is useful when a snapshot of current
+     * bass boost settings must be saved by the application.
+     * @return a BassBoost.Settings object containing all current parameters values
      * @throws IllegalStateException
      * @throws IllegalArgumentException
      * @throws UnsupportedOperationException
      */
     CARAPI GetProperties(
-        /* [out] */ IPresetReverbSettings** properties);
+        /* [out] */ IBassBoostSettings** properties);
 
     /**
-     * Sets the preset reverb properties. This method is useful when preset reverb settings have to
+     * Sets the bass boost properties. This method is useful when bass boost settings have to
      * be applied from a previous backup.
-     * @param settings a PresetReverb.Settings object containing the properties to apply
+     * @param settings a BassBoost.Settings object containing the properties to apply
      * @throws IllegalStateException
      * @throws IllegalArgumentException
      * @throws UnsupportedOperationException
      */
     CARAPI SetProperties(
-        /* [in] */ IPresetReverbSettings* settings);
+        /* in */ IBassBoostSettings* settings);
 
     // IAudioEffect
     CARAPI ReleaseResources();
@@ -313,9 +307,14 @@ private:
     static const CString TAG;
 
     /**
+     * Indicates if strength parameter is supported by the bass boost engine
+     */
+    Boolean mStrengthSupported;
+
+    /**
      * Registered listener for parameter changes.
      */
-    AutoPtr<IPresetReverbOnParameterChangeListener> mParamListener;
+    AutoPtr<IBassBoostOnParameterChangeListener> mParamListener;
 
     /**
      * Listener used internally to to receive raw parameter change event from AudioEffect super class
@@ -330,4 +329,4 @@ private:
     AutoPtr<IAudioEffect> obj;
 };
 
-#endif //__CPRESETREVERB_H__
+#endif //__CBASSBOOST_H__

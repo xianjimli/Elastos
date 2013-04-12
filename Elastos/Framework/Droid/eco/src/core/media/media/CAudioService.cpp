@@ -4,6 +4,8 @@
 #include "media/CAudioManager.h"
 #include "media/CSoundPool.h"
 #include "os/SystemProperties.h"
+#include "provider/CSettingsSystem.h"
+#include "content/CIntent.h"
 
 
 CAudioService::VolumeStreamState::VolumeDeathHandler::VolumeDeathHandler(

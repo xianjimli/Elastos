@@ -1,12 +1,14 @@
 
 #include "media/ThumbnailUtils.h"
 #include "media/MediaFile.h"
-//#include "graphics/CMatrix.h"
-//#include "graphics/CBitmapFactory.h"
-//#include "graphics/CBitmapFactoryOptions.h"
-#include <elastos/Math.h>
 #include "media/CExifInterface.h"
 #include "media/MediaMetadataRetriever.h"
+#include "graphics/CMatrix.h"
+#include "graphics/CCanvas.h"
+#include "graphics/CRect.h"
+#include "graphics/CBitmapFactoryOptions.h"
+#include <elastos/Math.h>
+
 
 using namespace Elastos::Core;
 
@@ -25,7 +27,7 @@ using namespace Elastos::Core;
  * @hide This method is only used by media framework and media provider internally.
  */
 AutoPtr<IBitmap> ThumbnailUtils::CreateImageThumbnail(
-    /* [in] */ String filePath, 
+    /* [in] */ String filePath,
     /* [in] */ Int32 kind)
 {
     Boolean wantMini;// = (kind == Images.Thumbnails.MINI_KIND);
@@ -83,7 +85,7 @@ AutoPtr<IBitmap> ThumbnailUtils::CreateImageThumbnail(
  * @param kind could be MINI_KIND or MICRO_KIND
  */
 AutoPtr<IBitmap> ThumbnailUtils::CreateVideoThumbnail(
-    /* [in] */ String filePath, 
+    /* [in] */ String filePath,
     /* [in] */ Int32 kind)
 {
     AutoPtr<IBitmap> bitmap = NULL;
@@ -119,8 +121,8 @@ AutoPtr<IBitmap> ThumbnailUtils::CreateVideoThumbnail(
  * @param height targeted height
  */
 AutoPtr<IBitmap> ThumbnailUtils::ExtractThumbnail(
-    /* [in] */ IBitmap* source, 
-    /* [in] */ Int32 width, 
+    /* [in] */ IBitmap* source,
+    /* [in] */ Int32 width,
     /* [in] */ Int32 height)
 {
     return ExtractThumbnail(source, width, height, OPTIONS_NONE);
@@ -135,9 +137,9 @@ AutoPtr<IBitmap> ThumbnailUtils::ExtractThumbnail(
  * @param options options used during thumbnail extraction
  */
 AutoPtr<IBitmap> ThumbnailUtils::ExtractThumbnail(
-    /* [in] */ IBitmap* source, 
-    /* [in] */ Int32 width, 
-    /* [in] */ Int32 height, 
+    /* [in] */ IBitmap* source,
+    /* [in] */ Int32 width,
+    /* [in] */ Int32 height,
     /* [in] */ Int32 options)
 {
     if (source == NULL) {
@@ -186,7 +188,7 @@ AutoPtr<IBitmap> ThumbnailUtils::ExtractThumbnail(
  */
 Int32 ThumbnailUtils::ComputeSampleSize(
     /* [in] */ IBitmapFactoryOptions* options,
-    /* [in] */ Int32 minSideLength, 
+    /* [in] */ Int32 minSideLength,
     /* [in] */ Int32 maxNumOfPixels)
 {
     Int32 initialSize = ComputeInitialSampleSize(options, minSideLength,
@@ -207,7 +209,7 @@ Int32 ThumbnailUtils::ComputeSampleSize(
 
 Int32 ThumbnailUtils::ComputeInitialSampleSize(
     /* [in] */ IBitmapFactoryOptions* options,
-    /* [in] */ Int32 minSideLength, 
+    /* [in] */ Int32 minSideLength,
     /* [in] */ Int32 maxNumOfPixels)
 {
     Double w;// = ((CBitmapFactoryOptions*)options)->mOutWidth;
@@ -243,12 +245,12 @@ Int32 ThumbnailUtils::ComputeInitialSampleSize(
  * new BitmapFactory.Options will be created if options is NULL.
  */
 AutoPtr<IBitmap> ThumbnailUtils::MakeBitmap(
-    /* [in] */ Int32 minSideLength, 
+    /* [in] */ Int32 minSideLength,
     /* [in] */ Int32 maxNumOfPixels,
-    /* [in] */ IUri* uri, 
-    /* [in] */ IContentResolver* cr, 
+    /* [in] */ IUri* uri,
+    /* [in] */ IContentResolver* cr,
     /* [in] */ IParcelFileDescriptor* pfd,
-    /* [in] */ IBitmapFactoryOptions* options) 
+    /* [in] */ IBitmapFactoryOptions* options)
 {
         AutoPtr<IBitmap> b = NULL;
     //try {
@@ -296,7 +298,7 @@ void ThumbnailUtils::CloseSilently(
 }
 
 AutoPtr<IParcelFileDescriptor> ThumbnailUtils::MakeInputStream(
-    /* [in] */ IUri* uri, 
+    /* [in] */ IUri* uri,
     /* [in] */ IContentResolver* cr)
 {
     //try {
@@ -430,9 +432,9 @@ AutoPtr<IBitmap> ThumbnailUtils::Transform(
  * which contains a downsampled bitmap and the thumbnail data in EXIF if exists.
  */
 void ThumbnailUtils::CreateThumbnailFromEXIF(
-    /* [in] */ String filePath, 
+    /* [in] */ String filePath,
     /* [in] */ Int32 targetSize,
-    /* [in] */ Int32 maxPixels, 
+    /* [in] */ Int32 maxPixels,
     /* [in] */ SizedThumbnailBitmap* sizedThumbBitmap)
 {
     if (filePath == NULL) return;
@@ -462,7 +464,7 @@ void ThumbnailUtils::CreateThumbnailFromEXIF(
     if (thumbData != NULL) {
         //((CBitmapFactoryOptions*)exifOptions)->inJustDecodeBounds = TRUE;
 
-        
+
         //bf->DecodeByteArray(thumbData, 0, thumbData->GetLength(), exifOptions);
         /*((CBitmapFactoryOptions*)exifOptions)->inSampleSize = ComputeSampleSize(exifOptions, targetSize, maxPixels);
         exifThumbWidth = ((CBitmapFactoryOptions*)exifOptions)->outWidth / ((CBitmapFactoryOptions*)exifOptions)->inSampleSize;*/
