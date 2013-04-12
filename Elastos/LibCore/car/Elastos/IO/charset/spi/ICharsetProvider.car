@@ -1,0 +1,29 @@
+module
+{
+    /**
+     * The service provider class for character sets.
+     */
+    interface ICharsetProvider {
+        /**
+         * Returns an iterator over all the available charsets.
+         *
+         * @return the iterator.
+         */
+        // Charsets(
+        //     [out] Iterator<ICharset>** charset);
+
+        /**
+         * Returns the named charset.
+         * <p>
+         * If the charset is unavailable the method returns <code>null</code>.
+         * </p>
+         *
+         * @param charsetName
+         *            the canonical or alias name of a character set.
+         * @return the charset, or <code>null</code> if unavailable.
+         */
+        charsetForName(
+            [in] String charsetName,
+            [out] ICharset** charset);
+    }
+}
