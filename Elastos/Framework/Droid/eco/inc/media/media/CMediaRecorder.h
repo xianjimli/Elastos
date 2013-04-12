@@ -60,27 +60,27 @@ public:
          */
         AudioSource();
     public:
-        Int32 DEFAULT;
+        static const Int32 DEFAULT = 0;
 
         /** Microphone audio source */
-        Int32 MIC;
+        static const Int32 MIC = 1;
 
         /** Voice call uplink (Tx) audio source */
-        Int32 VOICE_UPLINK;
+        static const Int32 VOICE_UPLINK = 2;
 
         /** Voice call downlink (Rx) audio source */
-        Int32 VOICE_DOWNLINK;
+        static const Int32 VOICE_DOWNLINK = 3;
 
         /** Voice call uplink + downlink audio source */
-        Int32 VOICE_CALL;
+        static const Int32 VOICE_CALL = 4;
 
         /** Microphone audio source with same orientation as camera if available, the main
          *  device microphone otherwise */
-        Int32 CAMCORDER;
+        static const Int32 CAMCORDER = 5;
 
         /** Microphone audio source tuned for voice recognition if available, behaves like
          *  {@link #DEFAULT} otherwise. */
-        Int32 VOICE_RECOGNITION;
+        static const Int32 VOICE_RECOGNITION = 6;
 
         /**
          * @hide
@@ -89,7 +89,7 @@ public:
          * if available. It otherwise behaves like {@link #DEFAULT} if no voice processing
          * is available.
          */
-        Int32 VOICE_COMMUNICATION;
+        static const Int32 VOICE_COMMUNICATION = 7;
     private:
         CMediaRecorder* mMediaRecorder;
     };

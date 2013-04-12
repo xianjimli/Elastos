@@ -84,14 +84,6 @@ ECode CMediaRecorder::AudioSource::GetInterfaceID(
 }
 
 CMediaRecorder::AudioSource::AudioSource()
-    :DEFAULT(0)
-    ,MIC(1)
-    ,VOICE_UPLINK(2)
-    ,VOICE_DOWNLINK(3)
-    ,VOICE_CALL(4)
-    ,CAMCORDER(5)
-    ,VOICE_RECOGNITION(6)
-    ,VOICE_COMMUNICATION(7)
 {
 }
 
