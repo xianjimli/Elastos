@@ -36,7 +36,6 @@ SOURCES += JetPlayer.cpp
 SOURCES += CJetPlayer.cpp
 SOURCES += MediaScannerConnection.cpp
 SOURCES += CMediaScannerConnection.cpp
-SOURCES += SoundPool.cpp
 SOURCES += CSoundPool.cpp
 SOURCES += ExifInterface.cpp
 SOURCES += CExifInterface.cpp
