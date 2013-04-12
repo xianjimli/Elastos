@@ -2,32 +2,21 @@
 #include "os/Process.h"
 #include <elastos/Thread.h>
 #include <elastos/Vector.h>
-#include <Elastos.IO.h>
-#include <Elastos.Core.h>
-#include <unistd.h>
+#include <StringBuffer.h>
 #include <sys/resource.h>
 #include <pwd.h>
 #include <grp.h>
-#include <pthread.h>
-#include <utils/Errors.h>
-#include "utils/threads.h"
 #include <errno.h>
 #include <binder/ProcessState.h>
 #include <fcntl.h>
-#include <utils/String8.h>
 #include <dirent.h>
+#include <stdio.h>
 
 #ifdef _FRAMEWORK_CORE
 #include "net/CLocalSocket.h"
 #include "net/CLocalSocketAddress.h"
 #endif
 
-#define GUARD_THREAD_PRIORITY 0
-
-#if GUARD_THREAD_PRIORITY
-static Mutex gKeyCreateMutex;
-static pthread_key_t gBgKey = -1;
-#endif
 
 AutoPtr<ILocalSocket> Process::sZygoteSocket;
 AutoPtr<IDataInputStream> Process::sZygoteInputStream;
@@ -36,7 +25,7 @@ AutoPtr<IBufferedWriter> Process::sZygoteWriter;
 /** true if previous zygote open failed */
 Boolean Process::sPreviousZygoteOpenFailed;
 
-Mutex Process::mProcessClassLock;
+Mutex Process::sProcessClassLock;
 
 Process::ProcessRunnable::ProcessRunnable(
     /* [in] */ const String& processClass)
@@ -78,18 +67,6 @@ ECode Process::ProcessRunnable::Run()
     return InvokeStaticMain(mProcessClass);
 }
 
-// Int32 Process::GetCallingPid()
-// {
-//     //not implemented;
-//     return -1;
-// }
-
-// Int32 Process::GetCallingUid()
-// {
-//     //not implemented;
-//     return -1;
-// }
-
 /**
 * Start a new process.
 *
@@ -120,7 +97,6 @@ ECode Process::ProcessRunnable::Run()
 *
 * {@hide}
 */
-
 ECode Process::Start(
     /* [in] */ const String& processClass,
     /* [in] */ const String& niceName,
@@ -242,7 +218,7 @@ ECode Process::OpenZygoteSocketIfNeeded()
         if (retry > 0) {
             // try {
             //     Log.i("Zygote", "Zygote not up yet, sleeping...");
-                Thread::Sleep(ZYGOTE_RETRY_MILLIS);
+            Thread::Sleep(ZYGOTE_RETRY_MILLIS);
             // } catch (InterruptedException ex) {
             //     // should never happen
             // }
@@ -265,7 +241,6 @@ ECode Process::OpenZygoteSocketIfNeeded()
 
         AutoPtr<IOutputStreamWriter> streamWrite;
         FAIL_RETURN(COutputStreamWriter::New(outputStream, (IOutputStreamWriter**)&streamWrite));
-
         FAIL_RETURN(CBufferedWriter::New(streamWrite, 256, (IBufferedWriter**)&sZygoteWriter));
 
         //Log.i("Zygote", "Process: zygote socket opened");
@@ -288,7 +263,7 @@ ECode Process::OpenZygoteSocketIfNeeded()
     if (sZygoteSocket == NULL) {
         sPreviousZygoteOpenFailed = TRUE;
         //throw new ZygoteStartFailedEx("connect failed");
-        return E_FAIL;
+        return E_ZYGOTE_START_FAILED;
     }
     return NOERROR;
 }
@@ -301,11 +276,10 @@ ECode Process::OpenZygoteSocketIfNeeded()
  * @return PID of new child process
  * @throws ZygoteStartFailedEx if process start failed for any reason
  */
-Int32 Process::ZygoteSendArgsAndGetPid(
-    /* [in] */ List<String>* args)
+ECode Process::ZygoteSendArgsAndGetPid(
+    /* [in] */ List<String>& args,
+    /* [out] */ Int32* pid)
 {
-    Int32 pid;
-
     OpenZygoteSocketIfNeeded();
 
     // try {
@@ -318,31 +292,30 @@ Int32 Process::ZygoteSendArgsAndGetPid(
          * After the zygote process reads these it will write the pid of
          * the child or -1 on failure.
          */
-        Int32 sz = args->GetSize();
-        sZygoteWriter->Write(sz/*String::FromInt32(sz)*/);
+        Int32 sz = args.GetSize();
+        sZygoteWriter->WriteString(String::FromInt32(sz));
         sZygoteWriter->NewLine();
 
         List<String>::Iterator it;
-        for (it = args->Begin(); it != args->End(); it++) {
+        for (it = args.Begin(); it != args.End(); ++it) {
             String arg = *it;
-            const char argChar = '\n';
-            if (arg.Find(String(&argChar).string()) >= 0) {
+            if (arg.IndexOf('\n') >= 0) {
                 // throw new ZygoteStartFailedEx(
                 //         "embedded newlines not allowed");
-                return 0;
+                return E_ZYGOTE_START_FAILED;
             }
-            sZygoteWriter->Write(arg.ToInt32());
+            sZygoteWriter->WriteString(arg);
             sZygoteWriter->NewLine();
         }
 
         sZygoteWriter->Flush();
 
         // Should there be a timeout on this?
-        ((IInputStream*)sZygoteInputStream)->Read(&pid);
+        sZygoteInputStream->Read(pid);
 
-        if (pid < 0) {
+        if (*pid < 0) {
             //throw new ZygoteStartFailedEx("fork() failed");
-            return 0;
+            return E_ZYGOTE_START_FAILED;
         }
     // } catch (IOException ex) {
     //     try {
@@ -359,7 +332,7 @@ Int32 Process::ZygoteSendArgsAndGetPid(
     //     throw new ZygoteStartFailedEx(ex);
     // }
 
-    return pid;
+    return NOERROR;
 }
 
 /**
@@ -386,24 +359,25 @@ ECode Process::StartViaZygote(
     /* [in] */ const ArrayOf<String>& extraArgs,
     /* [out] */ Int32* pid)
 {
-    Mutex::Autolock lock(mProcessClassLock);
-    List<String>* argsForZygote = new List<String>();
+    Mutex::Autolock lock(sProcessClassLock);
+
+    List<String> argsForZygote;
     // --runtime-init, --setuid=, --setgid=,
     // and --setgroups= must go first
-    argsForZygote->PushBack(String("--runtime-init"));
-    argsForZygote->PushBack(String("--setuid=" + uid));
-    argsForZygote->PushBack(String("--setgid=" + gid));
+    argsForZygote.PushBack(String("--runtime-init"));
+    argsForZygote.PushBack(String("--setuid=" + uid));
+    argsForZygote.PushBack(String("--setgid=" + gid));
     if ((debugFlags & (1)/*Zygote.DEBUG_ENABLE_SAFEMODE*/) != 0) {
-        argsForZygote->PushBack(String("--enable-safemode"));
+        argsForZygote.PushBack(String("--enable-safemode"));
     }
     if ((debugFlags & (1 << 1)/*Zygote.DEBUG_ENABLE_DEBUGGER*/) != 0) {
-        argsForZygote->PushBack(String("--enable-debugger"));
+        argsForZygote.PushBack(String("--enable-debugger"));
     }
     if ((debugFlags & (1 << 2)/*Zygote.DEBUG_ENABLE_CHECKJNI*/) != 0) {
-        argsForZygote->PushBack(String("--enable-checkjni"));
+        argsForZygote.PushBack(String("--enable-checkjni"));
     }
     if ((debugFlags & (1 << 3)/*Zygote.DEBUG_ENABLE_ASSERT*/) != 0) {
-        argsForZygote->PushBack(String("--enable-assert"));
+        argsForZygote.PushBack(String("--enable-assert"));
     }
 
     //TODO optionally enable debuger
@@ -412,187 +386,47 @@ ECode Process::StartViaZygote(
     // --setgroups is a comma-separated list
     Int32 sz = gids.GetLength();
     if (sz > 0) {
-        StringBuf* sb = StringBuf::Alloc(0);
-        sb->Append("--setgroups=");
+        StringBuffer sb;
+        sb += "--setgroups=";
 
         for (Int32 i = 0; i < sz; i++) {
             if (i != 0) {
-                sb->Append(',');
+                sb += ',';
             }
-            sb->Append(gids[i]);
+            sb += gids[i];
         }
 
-        argsForZygote->PushBack(String(sb->GetPayload()));
-        StringBuf::Free(sb);
+        argsForZygote.PushBack(String(sb));
     }
 
     if (niceName != NULL) {
-        argsForZygote->PushBack(String("--nice-name=") + niceName);
+        argsForZygote.PushBack(String("--nice-name=") + niceName);
     }
 
-    argsForZygote->PushBack(processClass);
+    argsForZygote.PushBack(processClass);
 
     sz = extraArgs.GetLength();
     for (Int32 i = 0; i < sz; i++) {
         String arg = extraArgs[i];
-        argsForZygote->PushBack(arg);
+        argsForZygote.PushBack(arg);
     }
 
-    *pid = ZygoteSendArgsAndGetPid(argsForZygote);
-    delete argsForZygote;
+    FAIL_RETURN(ZygoteSendArgsAndGetPid(argsForZygote, pid));
 
     if (*pid <= 0) {
         //throw new ZygoteStartFailedEx("zygote start failed:" + pid);
-        return E_FAIL;
+        return E_ZYGOTE_START_FAILED;
     }
 
     return NOERROR;
 }
 
-/**
- * Returns elapsed milliseconds of the time this process has run.
- * @return  Returns the number of milliseconds this process has return.
- */
-Int64 Process::GetElapsedCpuTime()
-{
-    struct timespec ts;
-    Int32 res = clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts);
-    if (res != 0) {
-        return (Int64) 0;
-    }
+#define GUARD_THREAD_PRIORITY 0
 
-    nsecs_t when = seconds_to_nanoseconds(ts.tv_sec) + ts.tv_nsec;
-    return (Int64) nanoseconds_to_milliseconds(when);
-}
-
-/**
- * Returns the identifier of this process, which can be used with
- * {@link #killProcess} and {@link #sendSignal}.
- */
-Int32 Process::MyPid()
-{
-    return getpid();
-}
-
-/**
- * Returns the identifier of the calling thread, which be used with
- * {@link #setThreadPriority(int, int)}.
- */
-Int32 Process::MyTid()
-{
-    //TODO:
-    return androidGetTid();
-}
-
-/**
- * Returns the identifier of this process's user.
- */
-Int32 Process::MyUid()
-{
-    return getuid();
-}
-
-/**
- * Returns the UID assigned to a particular user name, or -1 if there is
- * none.  If the given string consists of only numbers, it is converted
- * directly to a uid.
- */
-Int32 Process::GetUidForName(
-    /* [in] */ const String& name)
-{
-    if (name == NULL) {
-        //jniThrowException(env, "java/lang/NullPointerException", NULL);
-        return E_NULL_POINTER_EXCEPTION;
-    }
-
-    //const jchar* str16 = env->GetStringCritical(name, 0);
-    android::String8 name8(name.string());
-    // if (str16) {
-    //     name8 = String8(str16, env->GetStringLength(name));
-    //     env->ReleaseStringCritical(name, str16);
-    // }
-
-    const size_t N = name8.size();
-    if (N > 0) {
-        const char* str = name8.string();
-        for (size_t i = 0; i < N; i++) {
-            if (str[i] < '0' || str[i] > '9') {
-                struct passwd* pwd = getpwnam(str);
-                if (pwd == NULL) {
-                    return -1;
-                }
-                return pwd->pw_uid;
-            }
-        }
-        return atoi(str);
-    }
-    return -1;
-
-}
-
-/**
- * Returns the GID assigned to a particular user name, or -1 if there is
- * none.  If the given string consists of only numbers, it is converted
- * directly to a gid.
- */
-Int32 Process::GetGidForName(
-    /* [in] */ const String& name)
-{
-    if (name == NULL) {
-        //jniThrowException(env, "java/lang/NullPointerException", NULL);
-        return E_NULL_POINTER_EXCEPTION;
-    }
-
-    // const jchar* str16 = env->GetStringCritical(name, 0);
-    android::String8 name8(name.string());
-    // if (str16) {
-    //     name8 = String8(str16, env->GetStringLength(name));
-    //     env->ReleaseStringCritical(name, str16);
-    // }
-
-    const size_t N = name8.size();
-    if (N > 0) {
-        const char* str = name8.string();
-        for (size_t i = 0; i < N; i++) {
-            if (str[i] < '0' || str[i] > '9') {
-                struct group* grp = getgrnam(str);
-                if (grp == NULL) {
-                    return -1;
-                }
-                return grp->gr_gid;
-            }
-        }
-        return atoi(str);
-    }
-    return -1;
-}
-
-/**
- * Returns a uid for a currently running process.
- * @param pid the process id
- * @return the uid of the process, or -1 if the process is not running.
- * @hide pending API council review
- */
-Int32 Process::GetUidForPid(
-    /* [in] */ Int32 pid)
-{
-    ArrayOf<String>* procStatusLabels = ArrayOf<String>::Alloc(1);
-    procStatusLabels->GetPayload()[0] = "Uid";
-    ArrayOf<Int64>* procStatusValues = ArrayOf<Int64>::Alloc(1);
-    procStatusValues->GetPayload()[0] = -1;
-
-    StringBuf* sbuf = StringBuf::Alloc(0);
-    sbuf->Append("/proc/");
-    sbuf->Append(pid);
-    sbuf->Append("/status");
-    ReadProcLines(String(sbuf->GetPayload()), *procStatusLabels, *procStatusValues);
-
-    Int32 value = procStatusValues->GetPayload()[0];
-    StringBuf::Free(sbuf);
-    ArrayOf<String>::Free(procStatusLabels);
-    ArrayOf<Int64>::Free(procStatusValues);
-    return value;
-}
+#if GUARD_THREAD_PRIORITY
+static Mutex gKeyCreateMutex;
+static pthread_key_t gBgKey = -1;
+#endif
 
 static ECode SignalExceptionForPriorityError(Int32 err)
 {
@@ -637,6 +471,132 @@ static ECode SignalExceptionForGroupError(Int32 err)
 }
 
 /**
+ * Returns elapsed milliseconds of the time this process has run.
+ * @return  Returns the number of milliseconds this process has return.
+ */
+Int64 Process::GetElapsedCpuTime()
+{
+    struct timespec ts;
+    Int32 res = clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts);
+    if (res != 0) {
+        return (Int64)0;
+    }
+
+    nsecs_t when = seconds_to_nanoseconds(ts.tv_sec) + ts.tv_nsec;
+    return (Int64)nanoseconds_to_milliseconds(when);
+}
+
+/**
+ * Returns the identifier of this process, which can be used with
+ * {@link #killProcess} and {@link #sendSignal}.
+ */
+Int32 Process::MyPid()
+{
+    return getpid();
+}
+
+/**
+ * Returns the identifier of the calling thread, which be used with
+ * {@link #setThreadPriority(int, int)}.
+ */
+Int32 Process::MyTid()
+{
+    //TODO:
+    return androidGetTid();
+}
+
+/**
+ * Returns the identifier of this process's user.
+ */
+Int32 Process::MyUid()
+{
+    return getuid();
+}
+
+/**
+ * Returns the UID assigned to a particular user name, or -1 if there is
+ * none.  If the given string consists of only numbers, it is converted
+ * directly to a uid.
+ */
+Int32 Process::GetUidForName(
+    /* [in] */ const String& name)
+{
+    if (name.IsNull()) {
+        //jniThrowException(env, "java/lang/NullPointerException", NULL);
+        return -1;
+    }
+
+    const size_t N = name.GetSize();
+    if (N > 0) {
+        const char* str = name.string();
+        for (size_t i = 0; i < N; i++) {
+            if (str[i] < '0' || str[i] > '9') {
+                struct passwd* pwd = getpwnam(str);
+                if (pwd == NULL) {
+                    return -1;
+                }
+                return pwd->pw_uid;
+            }
+        }
+        return atoi(str);
+    }
+    return -1;
+}
+
+/**
+ * Returns the GID assigned to a particular user name, or -1 if there is
+ * none.  If the given string consists of only numbers, it is converted
+ * directly to a gid.
+ */
+Int32 Process::GetGidForName(
+    /* [in] */ const String& name)
+{
+    if (name.IsNull()) {
+        //jniThrowException(env, "java/lang/NullPointerException", NULL);
+        return -1;
+    }
+
+    const size_t N = name.GetSize();
+    if (N > 0) {
+        const char* str = name.string();
+        for (size_t i = 0; i < N; i++) {
+            if (str[i] < '0' || str[i] > '9') {
+                struct group* grp = getgrnam(str);
+                if (grp == NULL) {
+                    return -1;
+                }
+                return grp->gr_gid;
+            }
+        }
+        return atoi(str);
+    }
+    return -1;
+}
+
+/**
+ * Returns a uid for a currently running process.
+ * @param pid the process id
+ * @return the uid of the process, or -1 if the process is not running.
+ * @hide pending API council review
+ */
+Int32 Process::GetUidForPid(
+    /* [in] */ Int32 pid)
+{
+    ArrayOf_<String, 1> procStatusLabels;
+    procStatusLabels[0] = "Uid";
+    ArrayOf_<Int64, 1> procStatusValues;
+    procStatusValues[0] = -1;
+
+    StringBuffer sb;
+    sb += "/proc/";
+    sb += pid;
+    sb += "/status";
+    ReadProcLines(String(sb), procStatusLabels, &procStatusValues);
+
+    return (Int32)procStatusValues[0];
+}
+
+/**
  * Set the priority of a thread, based on Linux priorities.
  *
  * @param tid The identifier of the thread/process to change.
@@ -672,7 +632,8 @@ ECode Process::SetThreadPriority(
     if (rc != 0) {
         if (rc == android::INVALID_OPERATION) {
             return SignalExceptionForPriorityError(errno);
-        } else {
+        }
+        else {
             return SignalExceptionForGroupError(errno);
         }
     }
@@ -723,10 +684,83 @@ ECode Process::SetThreadGroup(
 {
     Int32 res = androidSetThreadSchedulingGroup(tid, group);
     if (res != android::NO_ERROR) {
-        SignalExceptionForGroupError(res == android::BAD_VALUE ? EINVAL : errno);
+        return SignalExceptionForGroupError(res == android::BAD_VALUE ? EINVAL : errno);
     }
 
     return NOERROR;
+}
+
+ECode Process::SetProcessGroup(
+    /* [in] */ Int32 pid,
+    /* [in] */ Int32 group)
+{
+//    DIR *d;
+//    FILE *fp;
+//    char proc_path[255];
+//    struct dirent *de;
+//
+//    if (grp > ANDROID_TGROUP_MAX || grp < 0) {
+//        signalExceptionForGroupError(env, clazz, EINVAL);
+//        return;
+//    }
+//
+//#if POLICY_DEBUG
+//    char cmdline[32];
+//    int fd;
+//
+//    strcpy(cmdline, "unknown");
+//
+//    sprintf(proc_path, "/proc/%d/cmdline", pid);
+//    fd = open(proc_path, O_RDONLY);
+//    if (fd >= 0) {
+//        int rc = read(fd, cmdline, sizeof(cmdline)-1);
+//        cmdline[rc] = 0;
+//        close(fd);
+//    }
+//
+//    if (grp == ANDROID_TGROUP_BG_NONINTERACT) {
+//        LOGD("setProcessGroup: vvv pid %d (%s)", pid, cmdline);
+//    } else {
+//        LOGD("setProcessGroup: ^^^ pid %d (%s)", pid, cmdline);
+//    }
+//#endif
+//    sprintf(proc_path, "/proc/%d/task", pid);
+//    if (!(d = opendir(proc_path))) {
+//        // If the process exited on us, don't generate an exception
+//        if (errno != ENOENT)
+//            signalExceptionForGroupError(env, clazz, errno);
+//        return;
+//    }
+//
+//    while ((de = readdir(d))) {
+//        int t_pid;
+//        int t_pri;
+//
+//        if (de->d_name[0] == '.')
+//            continue;
+//        t_pid = atoi(de->d_name);
+//
+//        if (!t_pid) {
+//            LOGE("Error getting pid for '%s'\n", de->d_name);
+//            continue;
+//        }
+//
+//        t_pri = getpriority(PRIO_PROCESS, t_pid);
+//
+//        if (grp == ANDROID_TGROUP_DEFAULT &&
+//            t_pri >= ANDROID_PRIORITY_BACKGROUND) {
+//            // This task wants to stay at background
+//            continue;
+//        }
+//
+//        if (androidSetThreadSchedulingGroup(t_pid, grp) != NO_ERROR) {
+//            signalExceptionForGroupError(env, clazz, errno);
+//            break;
+//        }
+//    }
+//    closedir(d);
+
+    return E_NOT_IMPLEMENTED;
 }
 
 ECode Process::SetThreadPriority(
@@ -734,18 +768,6 @@ ECode Process::SetThreadPriority(
 {
     Int32 tid = MyTid();
     return SetThreadPriority(tid, priority);
-}
-
-ECode Process::SetProcessGroup(
-    /* [in] */ Int32 pid,
-    /* [in] */ Int32 group)
-{
-    Int32 res = androidSetThreadSchedulingGroup(pid, group);
-    if (res != android::NO_ERROR) {
-        return SignalExceptionForGroupError(res == android::BAD_VALUE ? EINVAL : errno);
-    }
-
-    return NOERROR;
 }
 
 /**
@@ -766,7 +788,7 @@ Int32 Process::GetThreadPriority(
     errno = 0;
     Int32 pri = getpriority(PRIO_PROCESS, tid);
     if (errno != 0) {
-        SignalExceptionForPriorityError(errno);
+        return SignalExceptionForPriorityError(errno);
     }
     //LOGI("Returning priority of %d: %d\n", pid, pri);
     return pri;
@@ -808,20 +830,13 @@ Boolean Process::SetOomAdj(
 ECode Process::SetArgV0(
     /* [in] */ const String& name)
 {
-    if (name == NULL) {
+    if (name.IsNull()) {
         //jniThrowException(env, "java/lang/NullPointerException", NULL);
         return E_NULL_POINTER_EXCEPTION;
     }
 
-    // const jchar* str = env->GetStringCritical(name, 0);
-    android::String8 name8;
-    // if (str) {
-    //     name8 = String8(str, env->GetStringLength(name));
-    //     env->ReleaseStringCritical(name, str);
-    // }
-
-    if (name8.size() > 0) {
-        android::ProcessState::self()->setArgV0(name8.string());
+    if (name.GetSize() > 0) {
+        android::ProcessState::self()->setArgV0(name.string());
     }
 
     return NOERROR;
@@ -868,16 +883,14 @@ ECode Process::SendSignal(
     if (pid > 0) {
         //LOGI("Sending signal. PID: %d SIG: %d", pid, sig);
         kill(pid, signal);
-        return NOERROR;
     }
-
-    return E_FAIL;
+    return NOERROR;
 }
 
 ECode Process::KillProcessQuiet(
     /* [in] */ Int32 pid)
 {
-    return SendSignalQuiet(pid, SIGNAL_KILL);;
+    return SendSignalQuiet(pid, SIGNAL_KILL);
 }
 
 /**
@@ -892,10 +905,9 @@ ECode Process::SendSignalQuiet(
 {
     if (pid > 0) {
         kill(pid, signal);
-        return NOERROR;
-    }
 
-    return E_FAIL;
+    }
+    return NOERROR;
 }
 
 /** @hide */
@@ -953,53 +965,42 @@ Int64 Process::GetFreeMemory()
 ECode Process::ReadProcLines(
     /* [in] */ const String& path,
     /* [in] */ const ArrayOf<String>& reqFields,
-    /* [in] */ const ArrayOf<Int64>& outSizes)
+    /* [out] */ ArrayOf<Int64>* outSizes)
 {
     //LOGI("getMemInfo: %p %p", reqFields, outFields);
 
-    if (path == NULL) {// || reqFields == NULL || outFields == NULL) {
+    if (path.IsNull() || outSizes == NULL) {
         //jniThrowException(env, "java/lang/NullPointerException", NULL);
         return E_NULL_POINTER_EXCEPTION;
     }
 
-    const char* file8 = (const char *)path;
-    android::String8 file(file8);
+    const char* file = (const char *)path;
 
     Int32 count = reqFields.GetLength();
-    if (count > outSizes.GetLength()) {
+    if (count > outSizes->GetLength()) {
         //jniThrowException(env, "java/lang/IllegalArgumentException", "Array lengths differ");
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
 
-    android::Vector<android::String8> fields;
+    Vector<String> fields;
     Int32 i;
     for (i = 0; i < count; i++) {
-        String obj = reqFields.GetPayload()[i];
-        if (obj != NULL) {
-            const char* str8 = (const char*)obj;
-            //LOGI("String at %d: %p = %s", i, obj, str8);
-            if (str8 == NULL) {
-                //jniThrowException(env, "java/lang/NullPointerException", "Element in reqFields");
-                return E_NULL_POINTER_EXCEPTION;
-            }
-            fields.add(android::String8(str8));
-        } else {
+        String str = reqFields[i];
+        if (!str.IsNull()) {
+            fields.PushBack(str);
+        }
+        else {
             //jniThrowException(env, "java/lang/NullPointerException", "Element in reqFields");
             return E_NULL_POINTER_EXCEPTION;
         }
     }
 
-    Int64* sizesArray = outSizes.GetPayload();
-    if (sizesArray == NULL) {
-        return E_NULL_POINTER_EXCEPTION;
-    }
-
     //LOGI("Clearing %d sizes", count);
     for (i = 0; i < count; i++) {
-        sizesArray[i] = 0;
+        (*outSizes)[i] = 0;
     }
 
-    Int32 fd = open(file.string(), O_RDONLY);
+    int fd = open(file, O_RDONLY);
 
     if (fd >= 0) {
         const size_t BUFFER_SIZE = 2048;
@@ -1020,9 +1021,9 @@ ECode Process::ReadProcLines(
             Boolean skipToEol = TRUE;
             //LOGI("Parsing at: %s", p);
             for (i = 0; i < count; i++) {
-                const android::String8& field = fields[i];
-                if (strncmp(p, field.string(), field.length()) == 0) {
-                    p += field.length();
+                const String& field = fields[i];
+                if (strncmp(p, field.string(), field.GetLength()) == 0) {
+                    p += field.GetLength();
                     while (*p == ' ' || *p == '\t') p++;
                     char* num = p;
                     while (*p >= '0' && *p <= '9') p++;
@@ -1032,7 +1033,7 @@ ECode Process::ReadProcLines(
                         p++;
                     }
                     char* end;
-                    sizesArray[i] = strtoll(num, &end, 10);
+                    (*outSizes)[i] = strtoll(num, &end, 10);
                     //LOGI("Field %s = %d", field.string(), sizesArray[i]);
                     foundCount++;
                     break;
@@ -1048,12 +1049,11 @@ ECode Process::ReadProcLines(
             }
         }
         free(buffer);
-    } else {
+    }
+    else {
         //LOGW("Unable to open %s", file.string());
-        return E_FAIL;
     }
     //LOGI("Done!");
-    //env->ReleaseLongArrayElements(outFields, sizesArray, 0);
 
     return NOERROR;
 }
@@ -1069,31 +1069,30 @@ static Int32 Pid_compare(
 /** @hide */
 ECode Process::GetPids(
     /* [in] */ const String& path,
-    /* [in] */ const ArrayOf<Int32>& lastArray,
-    /* [out] */ ArrayOf<Int32>** newArray)
+    /* [in] */ ArrayOf<Int32>* lastArray,
+    /* [out, callee] */ ArrayOf<Int32>** pids)
 {
-    if (path == NULL) {
+    if (path.IsNull()) {
         //jniThrowException(env, "java/lang/NullPointerException", NULL);
         return E_NULL_POINTER_EXCEPTION;
     }
 
-    const char* file8 = (const char*)path;
-    if (file8 == NULL) {
-        //jniThrowException(env, "java/lang/OutOfMemoryError", NULL);
-        return E_NULL_POINTER_EXCEPTION;
-    }
-
-    DIR* dirp = opendir(file8);
+    DIR* dirp = opendir(path.string());
 
     if(dirp == NULL) {
-        return E_FAIL;
+        *pids = NULL;
+        return NOERROR;
     }
 
     Int32 curCount = 0;
     Int32* curData = NULL;
-    curCount = lastArray.GetLength();
-    curData = lastArray.GetPayload();
+    if (lastArray != NULL) {
+        curCount = lastArray->GetLength();
+        curData = lastArray->GetPayload();
+    }
+
     Int32 curPos = 0;
+
     struct dirent* entry;
     while ((entry = readdir(dirp)) != NULL) {
         const char* p = entry->d_name;
@@ -1113,18 +1112,17 @@ ECode Process::GetPids(
         //LOGI("File %s pid=%d\n", entry->d_name, pid);
         if (curPos >= curCount) {
             Int32 newCount = (curCount == 0) ? 10 : (curCount*2);
-            *newArray = ArrayOf<Int32>::Alloc(newCount);
-            if (*newArray == NULL) {
+            *pids = ArrayOf<Int32>::Alloc(newCount);
+            if (*pids == NULL) {
                 closedir(dirp);
                 //jniThrowException(env, "java/lang/OutOfMemoryError", NULL);
                 return E_OUT_OF_MEMORY_ERROR;
             }
-            Int32* newData = (*newArray)->GetPayload();
+            Int32* newData = (*pids)->GetPayload();
             if (curData != NULL) {
                 memcpy(newData, curData, sizeof(Int32) * curCount);
-                //ArrayOf<Int32>::Free(lastArray);
             }
-            //lastArray = newArray;
+            // lastArray = newArray;
             curCount = newCount;
             curData = newData;
         }
@@ -1158,28 +1156,30 @@ enum {
     PROC_OUT_FLOAT = 0x4000,
 };
 
-Boolean ParseProcLineArray(
+ECode ParseProcLineArray(
     /* [in] */ char* buffer,
     /* [in] */ Int32 startIndex,
     /* [in] */ Int32 endIndex,
     /* [in] */ const ArrayOf<Int32>& format,
-    /* [in] */ const ArrayOf<String>& outStrings,
-    /* [in] */ const ArrayOf<Int64>& outLongs,
-    /* [in] */ const ArrayOf<Float>& outFloats)
+    /* [out] */ ArrayOf<String>* outStrings,
+    /* [out] */ ArrayOf<Int64>* outLongs,
+    /* [out] */ ArrayOf<Float>* outFloats,
+    /* [out] */ Boolean* result)
 {
 
     const Int32 NF = format.GetLength();
-    const Int32 NS = outStrings.GetLength();
-    const Int32 NL = outLongs.GetLength();
-    const Int32 NR = outFloats.GetLength();
+    const Int32 NS = outStrings ? outStrings->GetLength() : 0;
+    const Int32 NL = outLongs ? outLongs->GetLength() : 0;
+    const Int32 NR = outFloats ? outFloats->GetLength() : 0;
 
     Int32* formatData = format.GetPayload();
-    Int64* longsData = outLongs.GetPayload();
-    Float* floatsData = outFloats.GetPayload();
+    Int64* longsData = outLongs ? outLongs->GetPayload() : NULL;
+    Float* floatsData = outFloats ? outFloats->GetPayload() : NULL;
     if (formatData == NULL || (NL > 0 && longsData == NULL)
             || (NR > 0 && floatsData == NULL)) {
         //jniThrowException(env, "java/lang/OutOfMemoryError", NULL);
-        return FALSE;
+        *result = FALSE;
+        return E_OUT_OF_MEMORY_ERROR;
     }
 
     Int32 i = startIndex;
@@ -1187,7 +1187,7 @@ Boolean ParseProcLineArray(
     Boolean res = TRUE;
     for (Int32 fi = 0; fi < NF; fi++) {
         const Int32 mode = formatData[fi];
-        if ((mode&PROC_PARENS) != 0) {
+        if ((mode & PROC_PARENS) != 0) {
             i++;
         }
         const char term = (char)(mode & PROC_TERM_MASK);
@@ -1214,7 +1214,7 @@ Boolean ParseProcLineArray(
 
         if (i < endIndex) {
             i++;
-            if ((mode&PROC_COMBINE) != 0) {
+            if ((mode & PROC_COMBINE) != 0) {
                 while (buffer[i] == term && i < endIndex) {
                     i++;
                 }
@@ -1235,44 +1235,38 @@ Boolean ParseProcLineArray(
             }
             if ((mode & PROC_OUT_STRING) != 0 && di < NS) {
                 String str(buffer + start);
-                outStrings.GetPayload()[di] = str;
+                outStrings->GetPayload()[di] = str;
             }
             buffer[end] = c;
             di++;
         }
     }
 
-    return res;
+    *result = res;
+    return NOERROR;
 }
 
 /** @hide */
 ECode Process::ReadProcFile(
     /* [in] */ const String& file,
     /* [in] */ const ArrayOf<Int32>& format,
-    /* [in] */ const ArrayOf<String>& outStrings,
-    /* [in] */ const ArrayOf<Int64>& outLongs,
-    /* [in] */ const ArrayOf<Float>& outFloats,
+    /* [out] */ ArrayOf<String>* outStrings,
+    /* [out] */ ArrayOf<Int64>* outLongs,
+    /* [out] */ ArrayOf<Float>* outFloats,
     /* [out] */ Boolean* result)
 {
-    if (file == NULL) {
+    if (file.IsNull()) {
         //jniThrowException(env, "java/lang/NullPointerException", NULL);
         *result = FALSE;
         return E_NULL_POINTER_EXCEPTION;
     }
 
-    const char* file8 = (const char*)file;
-    if (file8 == NULL) {
-        //jniThrowException(env, "java/lang/OutOfMemoryError", NULL);
-        *result = FALSE;
-        return E_OUT_OF_MEMORY_ERROR;
-    }
-
-    Int32 fd = open(file8, O_RDONLY);
+    int fd = open(file.string(), O_RDONLY);
 
     if (fd < 0) {
         //LOGW("Unable to open process file: %s\n", file8);
         *result = FALSE;
-        return E_FAIL;
+        return NOERROR;
     }
 
     char buffer[256];
@@ -1282,30 +1276,29 @@ ECode Process::ReadProcFile(
     if (len < 0) {
         //LOGW("Unable to open process file: %s fd=%d\n", file8, fd);
         *result = FALSE;
-        return E_FAIL;
+        return NOERROR;
     }
     buffer[len] = 0;
 
-    *result = ParseProcLineArray(buffer, 0, len,
-                format, outStrings, outLongs, outFloats);
-
-    return NOERROR;
+    return ParseProcLineArray(buffer, 0, len,
+                format, outStrings, outLongs, outFloats, result);
 }
 
 /** @hide */
-Boolean Process::ParseProcLine(
+ECode Process::ParseProcLine(
     /* [in] */ const ArrayOf<Byte>& buffer,
     /* [in] */ Int32 startIndex,
     /* [in] */ Int32 endIndex,
     /* [in] */ const ArrayOf<Int32>& format,
-    /* [in] */ const ArrayOf<String>& outStrings,
-    /* [in] */ const ArrayOf<Int64>& outLongs,
-    /* [in] */ const ArrayOf<Float>& outFloats)
+    /* [out] */ ArrayOf<String>* outStrings,
+    /* [out] */ ArrayOf<Int64>* outLongs,
+    /* [out] */ ArrayOf<Float>* outFloats,
+    /* [out] */ Boolean* result)
 {
     Byte* bufferArray = buffer.GetPayload();
 
     return ParseProcLineArray((char*)bufferArray, startIndex,
-            endIndex, format, outStrings, outLongs, outFloats);
+            endIndex, format, outStrings, outLongs, outFloats, result);
 }
 
 /**
