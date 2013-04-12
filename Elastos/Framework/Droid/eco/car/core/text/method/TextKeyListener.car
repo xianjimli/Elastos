@@ -15,4 +15,14 @@ module
             [in] IContext* context,
             [out] Int32* prefs);
     }
+    
+    interface ITextKeyListenerHelper {
+        GetInstance(
+            [out] ITextKeyListener** textKeyListener);
+        
+        GetInstanceEx(
+            [in]  Boolean autotext,
+            [in]  Capitalize cap,
+            [out] ITextKeyListener** textKeyListener);
+    }
 }

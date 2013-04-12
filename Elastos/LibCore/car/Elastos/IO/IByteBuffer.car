@@ -8,7 +8,14 @@ module
     interface IInt16Buffer;
     interface IInt32Buffer;
     interface IInt64Buffer;
-
+    
+    /**
+     * A buffer for bytes
+     * A byte buffer can be created by either one of following ways:
+     * allocate(int) allcoate a new byte array and create a buffer base on it;
+     * allocateDirect() allocate a memory block and create a direct buffer base on it;
+     * wrap(byte[]) wrap an existing byte array to create a new buffer; 
+     */
     interface IByteBuffer extends IBuffer {
         /**
          * Returns the byte array which this buffer is based on, if there is one.
