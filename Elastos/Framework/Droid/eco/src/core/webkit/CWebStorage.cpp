@@ -335,7 +335,6 @@ ECode CWebStorage::Update()
     return NOERROR;
 }
 
-
 /**
  * Utility function to send a message to our handler
  */
@@ -400,6 +399,11 @@ CARAPI_(void) CWebStorage::NativeSetAppCacheMaximumSize(
     /* [in] */ Int64 size)
 {}
 
+CARAPI_(void) CWebStorage::GetOriginsSync(
+        /* [out] */ Vector< AutoPtr<Origin> >* list)
+{    
+}
+
 /*****************************Origin*********************************/
 CWebStorage::Origin::Origin(
     /* [in] */ const String& origin,
@@ -433,4 +437,46 @@ CARAPI_(Int64) CWebStorage::Origin::GetQuota()
 CARAPI_(Int64) CWebStorage::Origin::GetUsage()
 {
     return mUsage;
+}
+
+/*****************************WebStorageQuotaUpdater*****************************/
+
+PInterface WebStorageQuotaUpdater::Probe(
+    /* [in] */ REIID riid)
+{
+    if (riid == EIID_IInterface) {
+        return (IInterface*)(IWebStorageQuotaUpdater*)this;
+    }
+    else if (riid == EIID_IWebStorageQuotaUpdater) {
+        return (IWebStorageQuotaUpdater*)this;
+    }
+    return NULL;
+}
+
+UInt32 WebStorageQuotaUpdater::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 WebStorageQuotaUpdater::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode WebStorageQuotaUpdater::GetInterfaceID(
+    /* [in] */ IInterface* Object,
+    /* [out] */ InterfaceID* iID)
+{
+    VALIDATE_NOT_NULL(iID);
+    if (iID == NULL) {
+        return E_INVALID_ARGUMENT;
+    }
+
+    if (Object == (IInterface*)(IWebStorageQuotaUpdater*)this) {
+        *iID = EIID_IWebStorageQuotaUpdater;
+    }
+    else {
+        return E_INVALID_ARGUMENT;
+    }
+    return NOERROR;
 }

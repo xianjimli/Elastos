@@ -7,35 +7,35 @@
 #include <elastos/Mutex.h>
 
 const CString WebViewWorker::THREAD_NAME = "WebViewWorkerThread";
-WebViewWorker* WebViewWorker::sWorkerHandler;
+AutoPtr<WebViewWorker> WebViewWorker::sWorkerHandler;
 //Map<LoadListener*, CCacheManager::CacheResult*> WebViewWorker::mCacheResultMap;
+Map<AutoPtr<LoadListener>, AutoPtr<ICacheManagerCacheResult> > WebViewWorker::mCacheResultMap;
 
-Mutex WebViewWorker::mMutex;
+Mutex WebViewWorker::mMutexClass;
 
 WebViewWorker::WebViewWorker(
-	/* [in] */ /*Looper* looper*/)
+	/* [in] */ /*Looper* looper*/)//:Handler(looper)
 {}
 
 /* synchronized */
 CARAPI_(WebViewWorker*) WebViewWorker::GetHandler()
 {
-	Mutex::Autolock lock(mMutex);
+	Mutex::Autolock lock(mMutexClass);
 
-#if 0
-	if (sWorkerHandler == NULL) {
-        HandlerThread thread = new HandlerThread(THREAD_NAME,
-                android.os.Process.THREAD_PRIORITY_DEFAULT
-                        + android.os.Process.THREAD_PRIORITY_LESS_FAVORABLE);
-        thread.start();
-        sWorkerHandler = new WebViewWorker(thread.getLooper());
+	if (sWorkerHandler.Get() == NULL) {
+        /*
+        AutoPtr<IHandlerThread> thread;
+        CHandlerThread::New(THREAD_NAME, Process::THREAD_PRIORITY_DEFAULT + Process::THREAD_PRIORITY_LESS_FAVORABLE, (IHandlerThread**)&thread);
+        thread -> Start();
+        sWorkerHandler = new WebViewWorker(thread -> GetLooper());
+        */
     }
-#endif
 
     return sWorkerHandler;
 }
 
 //@Override
-CARAPI_(void) WebViewWorker::HandleMessage(
+void WebViewWorker::HandleMessage(
 	/* [in] */ IMessage* msg)
 {
 	assert(msg != NULL);

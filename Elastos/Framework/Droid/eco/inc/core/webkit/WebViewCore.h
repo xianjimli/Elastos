@@ -6,12 +6,48 @@
 
 #include "ViewManager.h"
 #include "WebSettings.h"
-
 #include <elastos/Mutex.h>
+#include "webkit/CWebStorage.h"
+#include "os/Runnable.h"
+#include <elastos/List.h>
+#include "graphics/CPoint.h"
+#include "graphics/CRegion.h"
 
 class WebViewCore : public ElRefBase
 {
 public:
+    class WvcWebStorageQuotaUpdater: public WebStorageQuotaUpdater
+    {
+    public:
+        virtual CARAPI UpdateQuota(
+            /* [in] */  Int64 newQuota);
+
+        WvcWebStorageQuotaUpdater(
+            /* [in] */  WebViewCore* webViewCore);
+
+    private:
+        WebViewCore* mWebViewCore;
+    };
+
+private:
+    // Class for providing Handler creation inside the WebCore thread.
+    /*static*/ 
+    class WebCoreThread: public Runnable 
+    {
+    public:
+        virtual CARAPI Run();
+
+    private:
+        // Message id for initializing a new WebViewCore.
+        static const Int32 INITIALIZE = 0;
+        static const Int32 REDUCE_PRIORITY = 1;
+        static const Int32 RESUME_PRIORITY = 2;
+    };
+
+public:
+    friend class WvcWebStorageQuotaUpdater;
+    friend class WebCoreThread;
+
 	struct BaseUrlData 
 	{
         String mBaseUrl;
@@ -132,13 +168,12 @@ public:
 
 	struct DrawData 
 	{
-        DrawData();
-
-        Region mInvalRegion;
-        Point mViewPoint;
-        Point mWidthHeight;
+        //DrawData(){};
+        AutoPtr<CRegion> mInvalRegion;
+        AutoPtr<CPoint> mViewPoint;
+        AutoPtr<CPoint> mWidthHeight;
         Int32 mMinPrefWidth;
-        RestoreState mRestoreState; // only non-null if it is for the first
+        RestoreState* mRestoreState; // only non-null if it is for the first
                                     // picture set after the first layout
         Boolean mFocusSizeChanged;
     };
@@ -158,9 +193,30 @@ public:
         Float mYPercentInView;
     };
 
-    class EventHub 
+    class EventHub: public ElRefBase
     {
+    public:        
+        class WvcEhHandler//:public Handler
+        {
+        public:
+            CARAPI HandleMessage(
+                /* [in] */ IMessage* msg);
+
+            WvcEhHandler(
+                /* [in] */ WebViewCore* webViewCore,
+                /* [in] */ EventHub* eventHub);
+
+        private:
+            WebViewCore* mWebViewCore;
+            EventHub* mEventHub;
+        };
+    public:
         friend class WebViewCore;
+        friend class WvcEhHandler;
+
+        EventHub(
+            /* [in] */ WebViewCore* webViewCore);
+
     public:
         // Message Ids
         static const Int32 REQUEST_LABEL = 97;
@@ -256,13 +312,13 @@ public:
     private:
 
         // private message ids
-		static const Int32 DESTROY =     200;
+		static const Int32 DESTROY = 200;
 
         // Private handler for WebCore messages.
 		AutoPtr<IHandler> mHandler;
         // Message queue for containing messages before the WebCore thread is
         // ready.
-//		ArrayList<Message> mMessages;
+		List< AutoPtr<IMessage> >* mMessages;
         // Flag for blocking messages. This is used during DESTROY to avoid
         // posting more messages to the EventHub or to WebView's event handler.
 		Boolean mBlockMessages;
@@ -271,6 +327,8 @@ public:
 		Int32 mSavedPriority;
 
         Core::Threading::Mutex mutexThis;
+
+        WebViewCore* mWebViewCore;
 
 	private:
 
@@ -325,8 +383,11 @@ public:
          *
          * synchronized
          */
-		CARAPI_(void) blockMessages();
+		CARAPI_(void) BlockMessages();
     };
+
+public:
+    friend class EventHub::WvcEhHandler;
 
 public:
     /*static {
@@ -336,16 +397,13 @@ public:
         System.loadLibrary("webcore");
     }*/
 
-    // The thread name used to identify the WebCore thread and for use in
-    // debugging other classes that require operation within the WebCore thread.
-    /* package */ 
-	static const CString THREAD_NAME;// = "WebViewCoreThread";
-
 	WebViewCore(
 		/* [in] */ IContext* context, 
 		/* [in] */ IWebView* w, 
 		/* [in] */ ICallbackProxy* proxy,
 		/* [in] */ IObjectStringMap* javascriptInterfaces);
+
+    ~WebViewCore();
 
     /* Initialize private data within the WebCore thread.
      */
@@ -395,7 +453,7 @@ public:
     //-------------------------------------------------------------------------
 
 	/* native*/
-    static CARAPI_(CString) NativeFindAddress(
+    static CARAPI_(String) NativeFindAddress(
     	/* [in] */ const String& addr, 
     	/* [in] */ Boolean caseInsensitive);
 
@@ -658,7 +716,7 @@ protected:
      * @return The input from the user or null to indicate the user cancelled
      *         the dialog.
      */
-	virtual CARAPI_(CString) JsPrompt(
+	virtual CARAPI_(String) JsPrompt(
 		/* [in] */ const String& url, 
 		/* [in] */ const String& message, 
 		/* [in] */ const String& defaultValue);
@@ -683,7 +741,6 @@ protected:
 	virtual CARAPI_(Boolean) JsInterrupt();
 
 private:
-
 
 	//-------------------------------------------------------------------------
     // WebViewCore private methods
@@ -732,7 +789,7 @@ private:
 
     // mRestoreState is set in didFirstLayout(), and reset in the next
     // webkitDraw after passing it to the UI thread.
-	RestoreState mRestoreState;
+	RestoreState* mRestoreState;
 
     
 	CARAPI_(void) WebkitDraw();
@@ -803,7 +860,7 @@ private:
 
     /*native*/
 	CARAPI_(void) NativeSendListBoxChoices(
-		/* [in] */ ArrayOf<Boolean> choices, 
+		/* [in] */ ArrayOf<Boolean>* choices, 
 		/* [in] */ Int32 size);
 
     /*native*/
@@ -881,12 +938,12 @@ private:
 		/* [in] */ Int32 y);
 
     /*native*/
-	CARAPI_(CString) NativeRetrieveHref(
+	CARAPI_(String) NativeRetrieveHref(
 		/* [in] */ Int32 framePtr, 
 		/* [in] */ Int32 nodePtr);
 
 	/*native*/
-	CARAPI_(CString) NativeRetrieveAnchorText(
+	CARAPI_(String) NativeRetrieveAnchorText(
 		/* [in] */ Int32 framePtr, 
 		/* [in] */ Int32 nodePtr);
 
@@ -990,25 +1047,13 @@ private:
      */
     /* native */
 	CARAPI_(void) NativeProvideVisitedHistory(
-		/* [in] */ ArrayOf<String>& history);
+		/* [in] */ ArrayOf<String>* history);
 
 
     // EventHub for processing messages
-	/*const*/ EventHub mEventHub;
+	/*const*/ AutoPtr<EventHub> mEventHub;
     // WebCore thread handler
 	static AutoPtr<IHandler> sWebCoreHandler;
-    // Class for providing Handler creation inside the WebCore thread.
-    class WebCoreThread// : public Runnable 
-    {
-	public:
-		virtual CARAPI_(void) Run();
-
-	private:
-        // Message id for initializing a new WebViewCore.
-		static const Int32 INITIALIZE = 0;
-		static const Int32 REDUCE_PRIORITY = 1;
-		static const Int32 RESUME_PRIORITY = 2;
-    };
 
 	/**
      * Called by JNI.  Open a file chooser to upload a file.
@@ -1138,14 +1183,14 @@ private:
 
     // called by JNI
 	CARAPI_(void) RequestListBox(
-		/* [in] */ ArrayOf<String>& array, 
-		/* [in] */ ArrayOf<Int32> enabledArray,
-		/* [in] */ ArrayOf<Int32> selectedArray);
+		/* [in] */ ArrayOf<String>* array, 
+		/* [in] */ ArrayOf<Int32>* enabledArray,
+		/* [in] */ ArrayOf<Int32>* selectedArray);
 
     // called by JNI
 	CARAPI_(void) RequestListBox(
-		/* [in] */ ArrayOf<String> array, 
-		/* [in] */ ArrayOf<Int32> enabledArray,
+		/* [in] */ ArrayOf<String>* array, 
+		/* [in] */ ArrayOf<Int32>* enabledArray,
 		/* [in] */ Int32 selection);
 
     // called by JNI
@@ -1193,7 +1238,7 @@ private:
 		/* [in] */ Int32 height);
 
 	CARAPI_(void) DestroySurface(
-		/* [in] */ ViewManager::ChildView childView);
+		/* [in] */ ViewManager::ChildView* childView);
 
 
 
@@ -1240,6 +1285,12 @@ private:
 		/* [in] */ Int32 node,
 		/* [in] */ IRect* bounds);
 
+public:
+    // The thread name used to identify the WebCore thread and for use in
+    // debugging other classes that require operation within the WebCore thread.
+    /* package */ 
+    static const CString THREAD_NAME;// = "WebViewCoreThread";
+
 private:
 
 	static Boolean mRepaintScheduled;
@@ -1253,11 +1304,11 @@ private:
     // The WebView that corresponds to this WebViewCore.
 	AutoPtr<IWebView> mWebView;
     // Proxy for handling callbacks from native code
-	const AutoPtr<ICallbackProxy> mCallbackProxy;
+	/*const*/ AutoPtr<ICallbackProxy> mCallbackProxy;
     // Settings object for maintaining all settings
-	const WebSettings mSettings;
+	/*const*/ AutoPtr<WebSettings> mSettings;
     // Context for initializing the BrowserFrame with the proper assets.
-	const AutoPtr<IContext> mContext;
+	/*const*/ AutoPtr<IContext> mContext;
     // The pointer to a native view object.
 	Int32 mNativeClass;
     // The BrowserFrame is an interface to the native Frame component.
@@ -1310,7 +1361,9 @@ private:
 	Int32 mWebkitScrollX;
 	Int32 mWebkitScrollY;
 
-    static Core::Threading::Mutex mutexThis;
+    Core::Threading::Mutex mEventHubLock;
+    Core::Threading::Mutex mutexThis;
+    static Core::Threading::Mutex mMutexClass;
 };
 
 #endif //__WEBVIEWCORE_H__

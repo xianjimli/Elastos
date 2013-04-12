@@ -125,7 +125,7 @@ CARAPI_(void) JWebCoreJavaBridge::SetNetworkType(
 
 /* native */
 CARAPI_(void) JWebCoreJavaBridge::AddPackageNames(
-	/* [in] */ /*Set<String> packageNames*/)
+	/* [in] */ Set<String>* packageNames)
 {}
 
 /* native */

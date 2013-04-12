@@ -344,7 +344,7 @@ String WebSettings::GetCurrentUserAgent()
     AutoPtr<ICharSequence> base;
     resT -> GetText(R::string::web_user_agent,(ICharSequence**)&base);
     String retVal;
-    // retVal.AppendFormat((char*)(base.Get()), buffer);
+    retVal.AppendFormat((char*)(base.Get()), (String(buffer)).string());
     return retVal;
 }
 

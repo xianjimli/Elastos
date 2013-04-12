@@ -6,6 +6,7 @@
 #include <elastos/ElRefBase.h>
 #include <elastos/AutoPtr.h>
 #include <elastos/Vector.h>
+#include <elastos/Set.h>
 
 #include "CWebView.h"
 
@@ -72,7 +73,7 @@ public:
 
 	/* native */
 	virtual CARAPI_(void) AddPackageNames(
-		/* [in] */ /*Set<String> packageNames*/);
+		/* [in] */ Set<String>* packageNames);
 
 	/* native */
 	virtual CARAPI_(void) AddPackageName(
