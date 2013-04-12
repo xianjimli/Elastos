@@ -1,0 +1,14 @@
+
+
+module
+{
+    interface IOnAccountsUpdateListener {
+        /**
+         * This invoked when the AccountMonitor starts up and whenever the account
+         * set changes.
+         * @param accounts the current accounts
+         */
+        OnAccountsUpdated(
+            [in] IObjectContainer* accounts);
+    }
+}

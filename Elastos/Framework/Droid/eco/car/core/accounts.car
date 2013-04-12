@@ -1,0 +1,33 @@
+
+module
+{
+    merge("accounts/IAccountManager.car");
+    merge("accounts/IAccountAuthenticatorResponse.car");
+    merge("accounts/IAccountManagerResponse.car");
+    merge("accounts/IAccountAuthenticator.car");
+    merge("accounts/Account.car");
+    merge("accounts/AuthenticatorDescription.car");
+    merge("accounts/AccountManager.car");
+    merge("accounts/AccountManagerFuture.car");
+    merge("accounts/AccountManagerCallback.car");
+    merge("accounts/OnAccountsUpdateListener.car");
+
+    class CAccountManager {
+        /**
+         * @hide
+         */
+        constructor(
+            [in] IContext* context,
+            [in] IAccountManager* service);
+
+        /**
+         * @hide used for testing only
+         */
+        constructor(
+            [in] IContext* context,
+            [in] IAccountManager* service,
+            [in] IApartment* handler);
+
+        interface ILocalAccountManager;
+    }
+}

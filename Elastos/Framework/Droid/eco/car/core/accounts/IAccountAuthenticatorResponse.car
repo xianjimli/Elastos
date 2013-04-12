@@ -1,0 +1,18 @@
+
+/**
+ * The interface used to return responses from an {@link IAccountAuthenticator}
+ * @hide
+ */
+module
+{
+    interface IAccountAuthenticatorResponse {
+        OnResult(
+            [in] IBundle* value);
+
+        OnRequestContinued();
+
+        OnError(
+            [in] Int32 errorCode,
+            [in] String errorMessage);
+    }
+}

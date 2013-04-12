@@ -1,0 +1,11 @@
+
+
+module
+{
+    interface IAccountManagerFuture;
+
+    interface IAccountManagerCallback {
+        Run(
+            [in] IAccountManagerFuture* accountManagerFuture);
+    }
+}
