@@ -14,8 +14,8 @@ class VideoView : public SurfaceView
 {
 private:
     class VVOnVideoSizeChangedListener
-        : public IMediaPlayerOnVideoSizeChangedListener
-        , public ElRefBase
+        : public ElRefBase
+        , public IMediaPlayerOnVideoSizeChangedListener
     {
     public:
         VVOnVideoSizeChangedListener(
@@ -44,8 +44,8 @@ private:
     };
 
     class VVOnPreparedListener
-      : public IMediaPlayerOnPreparedListener
-      , public ElRefBase
+      : public ElRefBase
+      , public IMediaPlayerOnPreparedListener
     {
     public:
         VVOnPreparedListener(
@@ -72,8 +72,8 @@ private:
     };
 
     class VVOnCompletionListener
-        : public IMediaPlayerOnCompletionListener
-        , public ElRefBase
+        : public ElRefBase
+        , public IMediaPlayerOnCompletionListener
     {
     public:
         VVOnCompletionListener(
@@ -100,8 +100,8 @@ private:
     };
 
     class VVOnErrorListener
-        : public IMediaPlayerOnErrorListener
-        , public ElRefBase
+        : public ElRefBase
+        , public IMediaPlayerOnErrorListener
     {
     public:
         VVOnErrorListener(
@@ -160,8 +160,8 @@ private:
     };
 
     class VVOnBufferingUpdateListener
-        : public IMediaPlayerOnBufferingUpdateListener
-        , public ElRefBase
+        : public ElRefBase
+        , public IMediaPlayerOnBufferingUpdateListener
     {
     public:
         VVOnBufferingUpdateListener(
@@ -189,8 +189,8 @@ private:
     };
 
     class VVSurfaceHodlerCallback
-        : public ISurfaceHolderCallback
-        , public ElRefBase
+        : public ElRefBase
+        , public ISurfaceHolderCallback
     {
     public:
         VVSurfaceHodlerCallback(

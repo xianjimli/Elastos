@@ -2,17 +2,18 @@
 #ifndef __MediaController_h__
 #define __MediaController_h__
 
+
 #include "FrameLayout.h"
 #include <elastos/AutoPtr.h>
-#include "ext/frameworkdef.h"
+#include <elastos/ElRefBase.h>
 
-using namespace Elastos;
 
 class MediaController : public FrameLayout
 {
 private:
-    class MCTouchListener : public IViewOnTouchListener
-                          , public ElRefBase
+    class MCTouchListener
+        :  public ElRefBase
+        ,  public IViewOnTouchListener
     {
     public:
         MCTouchListener(
@@ -40,8 +41,9 @@ private:
         MediaController* mHost;
     };
 
-    class MCClickListener : public IViewOnClickListener
-                          , public ElRefBase
+    class MCClickListener
+        : public ElRefBase
+        , public IViewOnClickListener
     {
     public:
         MCClickListener(
@@ -59,9 +61,6 @@ private:
         CARAPI GetInterfaceID(
             /* [in] */ IInterface *pObject,
             /* [out] */ InterfaceID *pIID);
-
-        virtual CARAPI OnClick(
-            /* [in] */ IView* v);
 
     protected:
         MediaController* mHost;
@@ -103,10 +102,9 @@ private:
             /* [in] */ IView* v);
     };
 
-
     class MCOnSeekBarChangeListener
-        : public IOnSeekBarChangeListener
-        , public ElRefBase
+        : public ElRefBase
+        , public IOnSeekBarChangeListener
     {
     public:
         MCOnSeekBarChangeListener(
@@ -143,7 +141,12 @@ private:
 public:
     MediaController();
 
-    CARAPI SetMediaPlayer(
+    virtual ~MediaController();
+
+    //@Override
+    CARAPI OnFinishInflate();
+
+    virtual CARAPI SetMediaPlayer(
         /* [in] */ IMediaPlayerControl* player);
 
     /**
@@ -151,14 +154,14 @@ public:
      * This can for example be a VideoView, or your Activity's main view.
      * @param view The view to which to anchor the controller when it is visible.
      */
-    CARAPI SetAnchorView(
+    virtual CARAPI SetAnchorView(
         /* [in] */ IView* view);
 
     /**
      * Show the controller on screen. It will go away
      * automatically after 3 seconds of inactivity.
      */
-    CARAPI Show();
+    virtual CARAPI Show();
 
     /**
      * Show the controller on screen. It will go away
@@ -166,49 +169,46 @@ public:
      * @param timeout The timeout in milliseconds. Use 0 to show
      * the controller until hide() is called.
      */
-    CARAPI Show(
+    virtual CARAPI Show(
         /* [in] */ Int32 timeout);
 
-    CARAPI IsShowing(
-        /* [out] */ Boolean* isShowing);
+    virtual CARAPI_(Boolean) IsShowing();
 
     /**
      * Remove the controller from the screen.
      */
-    CARAPI Hide();
+    virtual CARAPI Hide();
 
-    CARAPI SetPrevNextListeners(
+    //@Override
+    CARAPI_(Boolean) OnTouchEvent(
+        /* [in] */ IMotionEvent* event);
+
+    //@Override
+    CARAPI_(Boolean) OnTrackballEvent(
+        /* [in] */ IMotionEvent* event);
+
+    //@Override
+    CARAPI_(Boolean) DispatchKeyEvent(
+        /* [in] */ IKeyEvent* event);
+
+    //@Override
+    CARAPI SetEnabled(
+        /* [in] */ Boolean enabled);
+
+    virtual CARAPI SetPrevNextListeners(
         /* [in] */ IViewOnClickListener* next,
         /* [in] */ IViewOnClickListener* prev);
 
-    virtual CARAPI OnFinishInflate();
-
-    virtual CARAPI_(Boolean) OnTouchEvent(
-        /* [in] */ IMotionEvent* event);
-
-    virtual CARAPI_(Boolean) OnTrackballEvent(
-        /* [in] */ IMotionEvent* event);
-
-    virtual CARAPI_(Boolean) DispatchKeyEvent(
-        /* [in] */ IKeyEvent* event);
-
-    virtual CARAPI SetEnabled(
-        /* [in] */ Boolean enabled);
-
 protected:
-    CARAPI MakeControllerView(
-        /* [out] */ IView** view);
-
-    CARAPI Init(
-        /* [in] */ IContext* context);
-
     CARAPI Init(
         /* [in] */ IContext* context,
         /* [in] */ IAttributeSet* attrs);
 
     CARAPI Init(
         /* [in] */ IContext* context,
-        /* [in] */ Boolean useFastForward);
+        /* [in] */ Boolean useFastForward = TRUE);
+
+    virtual CARAPI_(AutoPtr<IView>) MakeControllerView();
 
 private:
     CARAPI InitFloatingWindow();
@@ -216,58 +216,57 @@ private:
     CARAPI InitControllerView(
         /* [in] */ IView* view);
 
-    CARAPI DisableUnsupportedButtons();
+    CARAPI_(void) DisableUnsupportedButtons();
 
     CARAPI_(String) StringForTime(
         /* [in] */ Int32 timeMs);
 
     CARAPI_(Int32) SetProgress();
 
-    CARAPI_(Void) UpdatePausePlay();
+    CARAPI_(void) UpdatePausePlay();
 
-    CARAPI_(Void) DoPauseResume();
+    CARAPI_(void) DoPauseResume();
 
-    CARAPI_(Void) InstallPrevNextListeners();
+    CARAPI_(void) InstallPrevNextListeners();
 
-    Void HandleFadeOut();
+    CARAPI HandleFadeOut();
 
-    Void HandleShowProgress();
+    CARAPI HandleShowProgress();
 
 private:
-    AutoPtr<IMediaPlayerControl>  mPlayer;
-    AutoPtr<IContext>             mContext;
-    AutoPtr<IView>                mAnchor;
-    AutoPtr<IView>                mRoot;
-    AutoPtr<ILocalWindowManager>  mWindowManager;
-    AutoPtr<IWindow>              mWindow;
-    AutoPtr<IView>                mDecor;
-    AutoPtr<IProgressBar>         mProgress;
-    AutoPtr<ITextView>            mEndTime;
-    AutoPtr<ITextView>            mCurrentTime;
-    Boolean                       mShowing;
-    Boolean                       mDragging;
+    AutoPtr<IMediaPlayerControl> mPlayer;
+    AutoPtr<IContext> mContext;
+    AutoPtr<IView> mAnchor;
+    AutoPtr<IView> mRoot;
+    AutoPtr<ILocalWindowManager> mWindowManager;
+    AutoPtr<IWindow> mWindow;
+    AutoPtr<IView> mDecor;
+    AutoPtr<IProgressBar> mProgress;
+    AutoPtr<ITextView> mEndTime;
+    AutoPtr<ITextView> mCurrentTime;
+    Boolean mShowing;
+    Boolean mDragging;
 
-    static const Int32            sDefaultTimeout = 3000;
-    static const Int32            FADE_OUT = 1;
-    static const Int32            SHOW_PROGRESS = 2;
-    Boolean                       mUseFastForward;
-    Boolean                       mFromXml;
-    Boolean                       mListenersSet;
-
+    static const Int32 sDefaultTimeout = 3000;
+    static const Int32 FADE_OUT = 1;
+    static const Int32 SHOW_PROGRESS = 2;
+    Boolean mUseFastForward;
+    Boolean mFromXml;
+    Boolean mListenersSet;
     AutoPtr<IViewOnClickListener> mNextListener;
     AutoPtr<IViewOnClickListener> mPrevListener;
     //StringBuilder               mFormatBuilder;
     //Formatter                   mFormatter;
-    AutoPtr<IImageButton>         mPauseButton;
-    AutoPtr<IImageButton>         mFfwdButton;
-    AutoPtr<IImageButton>         mRewButton;
-    AutoPtr<IImageButton>         mNextButton;
-    AutoPtr<IImageButton>         mPrevButton;
+    AutoPtr<IImageButton> mPauseButton;
+    AutoPtr<IImageButton> mFfwdButton;
+    AutoPtr<IImageButton> mRewButton;
+    AutoPtr<IImageButton> mNextButton;
+    AutoPtr<IImageButton> mPrevButton;
 
-    AutoPtr<MCTouchListener>      mTouchListener;
-    AutoPtr<PauseListener>        mPauseListener;
-    AutoPtr<RewListener>          mRewListener;
-    AutoPtr<FfwdListener>         mFfwdListener;
+    AutoPtr<MCTouchListener> mTouchListener;
+    AutoPtr<PauseListener> mPauseListener;
+    AutoPtr<RewListener> mRewListener;
+    AutoPtr<FfwdListener> mFfwdListener;
 
     // There are two scenarios that can trigger the seekbar listener to trigger:
     //
@@ -282,7 +281,7 @@ private:
     // we will simply apply the updated position without suspending regular updates.
     AutoPtr<MCOnSeekBarChangeListener> mSeekListener;
 
-    AutoPtr<IApartment>           mApartment;
+    AutoPtr<IApartment> mApartment;
 };
 
 #endif //__MediaController_h__
