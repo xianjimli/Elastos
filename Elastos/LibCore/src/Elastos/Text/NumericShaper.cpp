@@ -100,7 +100,7 @@ INumericShaper* NumericShaper::GetContextualShaper(
 {
     ranges &= ALL_RANGES;
     NumericShaper * ns = new NumericShaper(ranges, EUROPEAN, TRUE);
-    INumericShaper * ins = reinterpret_cast<INumericShaper*>(ns->Probe(EIID_INumericShaper));    
+    INumericShaper * ins = reinterpret_cast<INumericShaper*>(ns->Probe(EIID_INumericShaper));
     return ins;
 }
 
@@ -117,7 +117,7 @@ INumericShaper* NumericShaper::GetShaper(
 {
     singleRange &= ALL_RANGES;
     NumericShaper * ns = new NumericShaper(singleRange, EUROPEAN, FALSE);
-    INumericShaper * ins = reinterpret_cast<INumericShaper*>(ns->Probe(EIID_INumericShaper));    
+    INumericShaper * ins = reinterpret_cast<INumericShaper*>(ns->Probe(EIID_INumericShaper));
     return ins;
 }
 

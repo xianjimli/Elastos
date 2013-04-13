@@ -198,7 +198,7 @@ public:
 
         AttributedString* attrString;
 
-        HashSet<IAttributedCharacterIteratorAttribute*>* attributesAllowed;
+        Set<IAttributedCharacterIteratorAttribute*>* attributesAllowed;
 
     };
 

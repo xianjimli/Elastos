@@ -37,22 +37,22 @@ AttributedString::AttributedIterator::AttributedIterator(
 {
     if (begin < 0 || end > (Int32)((attrString->text).GetLength()) || begin > end) {
         //throw new IllegalArgumentException();
-        assert(1 == 0);
+        assert(0);
     }
     this->begin = begin;
     this->end = end;
     this->offset = begin;
     this->attrString = attrString;
-/*
+
     if (attributes != NULL) {
-        HashSet<IAttributedCharacterIteratorAttribute* >* set =
-                new HashSet<IAttributedCharacterIteratorAttribute*>(
-                    (attributes->GetLength() * 4 / 3) + 1 );
+        Set<IAttributedCharacterIteratorAttribute* >* set;// =
+                //new HashSet<IAttributedCharacterIteratorAttribute*>(
+                //    (attributes->GetLength() * 4 / 3) + 1 );
         for (Int32 i = attributes->GetLength(); --i >= 0;) {
             set->Insert((*attributes)[i]);
         }
         attributesAllowed = set;
-    }*/
+    }
 }
 
 ECode AttributedString::AttributedIterator::Current(
@@ -60,8 +60,7 @@ ECode AttributedString::AttributedIterator::Current(
 {
     VALIDATE_NOT_NULL(value);
     if (offset == end) {
-        //return DONE;
-        *value = '0xffff';
+        *value = DONE;
         return NULL;
     }
     *value = attrString->text.GetChar(offset);
@@ -73,8 +72,7 @@ ECode AttributedString::AttributedIterator::First(
 {
     VALIDATE_NOT_NULL(value);
     if (begin == end) {
-        //return DONE;
-        *value = '0xffff';
+        *value = DONE;
         return NULL;
     }
     offset = begin;
@@ -164,15 +162,15 @@ ECode AttributedString::AttributedIterator::GetAllAttributeKeys(
         }
         return NOERROR;
     }
-/*
-    Set<IAttributedCharacterIteratorAttribute* >* result =
-            new HashSet<IAttributedCharacterIteratorAttribute* >(
-            ( (attrString->attributeMap)->GetSize() * 4 / 3) + 1);
+
+    Set<IAttributedCharacterIteratorAttribute* >* result;// =
+            //new HashSet<IAttributedCharacterIteratorAttribute* >(
+            //( (attrString->attributeMap)->GetSize() * 4 / 3) + 1);
 
     map_it1 = attrString->attributeMap->Begin();
     while (map_it1 != map_it2) {
-        HashSet<IAttributedCharacterIteratorAttribute*>::Iterator set_it1 = attributesAllowed->Begin();
-        HashSet<IAttributedCharacterIteratorAttribute*>::Iterator set_it2 = attributesAllowed->End();
+        Set<IAttributedCharacterIteratorAttribute*>::Iterator set_it1 = attributesAllowed->Begin();
+        Set<IAttributedCharacterIteratorAttribute*>::Iterator set_it2 = attributesAllowed->End();
         if (attributesAllowed == NULL
                 || attributesAllowed->Find(map_it1->mFirst) != set_it2) {
             List<Range*>* ranges = map_it1->mSecond;
@@ -184,7 +182,7 @@ ECode AttributedString::AttributedIterator::GetAllAttributeKeys(
         }
         ++map_it1;
     }
-    allAttributedKeys = result; */
+    allAttributedKeys = result; 
     return NOERROR;
 }
 
@@ -212,8 +210,7 @@ ECode AttributedString::AttributedIterator::GetAttribute(
                 /* [in] */ IAttributedCharacterIteratorAttribute* attribute,
                 /* [out] */ IInterface** instance)
 {
-/*
-    HashSet<IAttributedCharacterIteratorAttribute*>::Iterator iter =
+    Set<IAttributedCharacterIteratorAttribute*>::Iterator iter =
                     attributesAllowed->Find(attribute);
     Boolean result = iter != attributesAllowed->End();
     if (attributesAllowed != NULL && !result) {
@@ -226,32 +223,41 @@ ECode AttributedString::AttributedIterator::GetAttribute(
         return NOERROR;
     }
     return CurrentValue(ranges, instance);
-*/
-    return E_NOT_IMPLEMENTED;
 }
 
-/* CARAPI Map<Attribute, Object> GetAttributes() {
-Map<Attribute, Object> result = new HashMap<Attribute, Object>(
-    (attrString.attributeMap.size() * 4 / 3) + 1);
-Iterator<Map.Entry<Attribute, List<Range>>> it = attrString.attributeMap
-    .entrySet().iterator();
-while (it.hasNext()) {
-Map.Entry<Attribute, List<Range>> entry = it.next();
-if (attributesAllowed == null
-        || attributesAllowed.contains(entry.getKey())) {
-    Object value = currentValue(entry.getValue());
-    if (value != null) {
-        result.put(entry.getKey(), value);
+ECode AttributedString::AttributedIterator::GetAttributes(
+    /* [out] */ Map<IAttributedCharacterIteratorAttribute*, IInterface*>* attributes)
+{
+    Map<IAttributedCharacterIteratorAttribute *, IInterface * > result;// = new HashMap<Attribute, Object>(
+        //(attrString.attributeMap.size() * 4 / 3) + 1);
+
+    Map<IAttributedCharacterIteratorAttribute*, List<Range*>* >::Iterator itb = attrString->attributeMap->Begin();
+    Map<IAttributedCharacterIteratorAttribute*, List<Range*>* >::Iterator ite = attrString->attributeMap->End();
+    while (itb != ite) {
+        Set<IAttributedCharacterIteratorAttribute*>::Iterator e = attributesAllowed->End();
+        if (attributesAllowed == NULL
+                || attributesAllowed->Find(itb->mFirst) != e) {
+            AutoPtr<IInterface> value;
+            CurrentValue(itb->mSecond, (IInterface**)&value);
+            if (value != NULL) {
+                Pair<IAttributedCharacterIteratorAttribute *, IInterface * > p(itb->mFirst, value);
+                result.Insert(p);
+            }
+        }
+        ++itb;
     }
+    attributes = &result;
+    return NOERROR;
 }
-}
-return result;
-}*/
 
 ECode AttributedString::AttributedIterator::GetRunLimit(
-        /* [out] */ Int32* runLimit)
+    /* [out] */ Int32* runLimit)
 {
-    //return getRunLimit(getAllAttributeKeys());
+    assert(0);
+    //Set<IAttributedCharacterIteratorAttribute* >* allAttributedKeys;
+    //GetAllAttributeKeys(allAttributedKeys);
+    //Int32 runLimit;
+    //return GetRunLimit(allAttributedKeys, &runLimit);
     return E_NOT_IMPLEMENTED;
 }
 
@@ -288,9 +294,8 @@ ECode AttributedString::AttributedIterator::GetRunLimit(
         /* [in] */ IAttributedCharacterIteratorAttribute* attribute,
         /* [out] */ Int32* runLimit)
 {
-/*
     VALIDATE_NOT_NULL(runLimit);
-    HashSet<IAttributedCharacterIteratorAttribute*>::Iterator iter =
+    Set<IAttributedCharacterIteratorAttribute*>::Iterator iter =
                     attributesAllowed->Find(attribute);
     Boolean result = iter != attributesAllowed->End();
     if (attributesAllowed != NULL && !result) {
@@ -303,8 +308,7 @@ ECode AttributedString::AttributedIterator::GetRunLimit(
         return NOERROR;
     }
     return RunLimit(ranges, runLimit);
-*/
-    return NOERROR;
+
 }
 
 /*
@@ -324,6 +328,7 @@ public int getRunLimit(Set<? extends Attribute> attributes) {
 ECode AttributedString::AttributedIterator::GetRunStart(
         /* [out] */ Int32* runStart)
 {
+    assert(0);
     //return getRunStart(getAllAttributeKeys());
     return E_NOT_IMPLEMENTED;
 }
@@ -360,11 +365,10 @@ ECode AttributedString::AttributedIterator::GetRunStart(
         /* [in] */ IAttributedCharacterIteratorAttribute* attribute,
         /* [out] */ Int32* runStart)
 {
-/*
     VALIDATE_NOT_NULL(runStart);
-    HashSet<IAttributedCharacterIteratorAttribute*>::Iterator iter =
+    Set<IAttributedCharacterIteratorAttribute*>::Iterator iter =
                     attributesAllowed->Find(attribute);
-    Boolean result = (iter != attributesAllowed->End()) ? TRUE : FALSE;
+    Boolean result = iter != attributesAllowed->End();
     if (attributesAllowed != NULL && !result) {
         *runStart = begin;
         return NOERROR;
@@ -375,8 +379,6 @@ ECode AttributedString::AttributedIterator::GetRunStart(
         return NOERROR;
     }
     return RunStart(ranges, runStart);
-*/
-    return E_NOT_IMPLEMENTED;
 }
 
 /*
@@ -399,7 +401,7 @@ ECode AttributedString::AttributedIterator::Last(
 {
     VALIDATE_NOT_NULL(lastValue);
     if (begin == end) {
-        *lastValue = '0xffff';
+        *lastValue = DONE;
         return NOERROR;
     }
     offset = end - 1;
@@ -413,7 +415,7 @@ ECode AttributedString::AttributedIterator::Next(
     VALIDATE_NOT_NULL(nextValue);
     if (offset >= (end - 1)) {
         offset = end;
-        *nextValue = '0xffff';
+        *nextValue = DONE;
         return NOERROR;
     }
     *nextValue = (attrString->text).GetChar(++offset);
@@ -425,7 +427,7 @@ ECode AttributedString::AttributedIterator::Previous(
 {
     VALIDATE_NOT_NULL(previousValue);
     if (offset == begin) {
-        *previousValue = '0xffff';
+        *previousValue = DONE;
         return NOERROR;
     }
 
@@ -444,7 +446,7 @@ ECode AttributedString::AttributedIterator::SetIndex(
     }
     offset = location;
     if (offset == end) {
-        *newIndex = '0xffff';
+        *newIndex = DONE;
         return NOERROR;
     }
 
@@ -480,9 +482,9 @@ ECode AttributedString::Init(
     if (attributes == NULL) {
         return E_NULL_POINTER_EXCEPTION;
     }
-/*
-    attributeMap = new HashMap<IAttributedCharacterIteratorAttribute*, List<Range*>* >(
-            (attributes->GetSize() * 4 / 3) + 1);
+
+    //attributeMap = new HashMap<IAttributedCharacterIteratorAttribute*, List<Range*>* >(
+    //        (attributes->GetSize() * 4 / 3) + 1);
 
     Set<IAttributedCharacterIteratorAttribute* >::Iterator it1 = attributes->Begin();
     Set<IAttributedCharacterIteratorAttribute* >::Iterator it2 = attributes->End();
@@ -504,7 +506,7 @@ ECode AttributedString::Init(
             }
             iterator->SetIndex(limit, &ch);
         }
-    }  */
+    }
     return NOERROR;
 }
 
@@ -704,6 +706,7 @@ ECode AttributedString::GetIterator(
         /* [out] */ IAttributedCharacterIterator** iterator)
 {
     //return new AttributedIterator(this);
+    assert(0);
     return NOERROR;
 }
 
@@ -712,6 +715,7 @@ ECode AttributedString::GetIteratorEx(
         /* [out] */ IAttributedCharacterIterator** iterator)
 {
     //return new AttributedIterator(this, attributes, 0, text.length());
+    assert(0);
     return NOERROR;
 }
 
@@ -737,11 +741,11 @@ AttributedString::AttributedString(
     if (start < bi || end > ei
             || start > end) {
         //throw new IllegalArgumentException();
-        assert(1 == 0);
+        assert(0);
     }
 
     if (attributes == NULL) {
-        assert(1 == 0);
+        assert(0);
     }
 
     StringBuffer* buffer = new StringBuffer();
@@ -757,7 +761,6 @@ AttributedString::AttributedString(
     text = buffer->Substring(0, buffer->GetLength());
 //    attributeMap = new HashMap<IAttributedCharacterIteratorAttribute*, List<Range*>*>(
 //            (attributes->GetSize() * 4 / 3) + 1);
-
     Set<IAttributedCharacterIteratorAttribute* >::Iterator it = attributes->Begin();
     Set<IAttributedCharacterIteratorAttribute* >::Iterator itEnd = attributes->End();
     while (it != itEnd) {
