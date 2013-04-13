@@ -15,6 +15,9 @@ Bidi::~Bidi(){
     if (mOffsetLevel != NULL) {
         ArrayOf<Byte>::Free(mOffsetLevel);
     }
+    if (mRuns != NULL) {
+        ArrayOf<IBidiRun * >::Free(mRuns);
+    }
 }
 
 ECode Bidi::Init(
@@ -88,14 +91,15 @@ ECode Bidi::Init(
     paragraph->GetAttribute(
         (IAttributedCharacterIteratorAttribute*)(TextAttribute::NUMERIC_SHAPING),
         (IInterface**)&numericShaper);
-    if (numericShaper != NULL /*&& numericShaper instanceof NumericShaper*/) {
-        //((NumericShaper) numericShaper).shape(text, 0, length);
+    if (numericShaper != NULL && (numericShaper->Probe(EIID_INumericShaper)) != NULL ) {
+        AutoPtr<INumericShaper> ns = reinterpret_cast<INumericShaper*>(numericShaper->Probe(EIID_INumericShaper));
+        ns->ShapeEx(text, 0, length);
     }
 
     Int64 bidi = 0L;
     //try {
-        bidi = CreateUBiDi(text, 0, embeddings, 0, length, flags);
-        ReadBidiInfo(bidi);
+    bidi = CreateUBiDi(text, 0, embeddings, 0, length, flags);
+    ReadBidiInfo(bidi);
     //} finally {
     NativeBidi::Ubidi_close(bidi);
     //}
@@ -216,7 +220,7 @@ Int64 Bidi::CreateUBiDi(
     //try {
     bidi = NativeBidi::Ubidi_open();
     NativeBidi::Ubidi_setPara(bidi, realText, paragraphLength, flags, realEmbeddings);
-        needsDeletion = FALSE;
+    needsDeletion = FALSE;
     //} finally {
     if (needsDeletion) {
         NativeBidi::Ubidi_close(bidi);

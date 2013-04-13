@@ -19,10 +19,8 @@ SOURCES += CParsePosition.cpp
 SOURCES += CFieldPosition.cpp
 SOURCES += DateFormat.cpp
 SOURCES += NumberFormat.cpp
-
 SOURCES += DecimalFormat.cpp
 SOURCES += CDecimalFormat.cpp
-
 SOURCES += MessageFormat.cpp
 SOURCES += CMessageFormat.cpp
 SOURCES += ChoiceFormat.cpp
@@ -38,15 +36,16 @@ SOURCES += RuleBasedBreakIterator.cpp
 SOURCES += CRuleBasedBreakIterator.cpp
 SOURCES += DecimalFormatSymbols.cpp
 SOURCES += CDecimalFormatSymbols.cpp
-
 SOURCES += SimpleDateFormat.cpp
 SOURCES += CSimpleDateFormat.cpp
+
 SOURCES += CollationKey.cpp
 SOURCES += Collator.cpp
 SOURCES += Annotation.cpp
 SOURCES += CAnnotation.cpp
 SOURCES += StringCharacterIterator.cpp
 SOURCES += CStringCharacterIterator.cpp
+
 SOURCES += NativeCollation.cpp
 SOURCES += ICUCollationElementIterator.cpp
 SOURCES += CICUCollationElementIterator.cpp
@@ -55,6 +54,7 @@ SOURCES += ICUCollationKey.cpp
 SOURCES += CICUCollationKey.cpp
 SOURCES += ICURuleBasedCollator.cpp
 SOURCES += CICURuleBasedCollator.cpp
+
 SOURCES += CollationElementIterator.cpp
 SOURCES += CCollationElementIterator.cpp
 SOURCES += RuleBasedCollator.cpp
@@ -62,11 +62,15 @@ SOURCES += CRuleBasedCollator.cpp
 SOURCES += TextNormalizer.cpp
 SOURCES += TextAttribute.cpp
 SOURCES += CTextAttribute.cpp
+
 SOURCES += BidiRun.cpp
 SOURCES += CBidiRun.cpp
 SOURCES += NativeBidi.cpp
+SOURCES += NumericShaper.cpp
+SOURCES += CNumericShaper.cpp
 SOURCES += Bidi.cpp
 SOURCES += CBidi.cpp
+
 SOURCES += AttributedString.cpp
 SOURCES += CAttributedString.cpp
 SOURCES += CDateFormatField.cpp

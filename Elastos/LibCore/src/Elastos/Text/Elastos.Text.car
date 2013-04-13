@@ -34,6 +34,7 @@ module
     merge("../../../car/Elastos/Text/IRuleBasedCollator.car");
     merge("../../../car/Elastos/Text/ITextAttribute.car");
     merge("../../../car/Elastos/Text/IBidiRun.car");
+    merge("../../../car/Elastos/Text/INumericShaper.car");
     merge("../../../car/Elastos/Text/IBidi.car");
     merge("../../../car/Elastos/Text/IAttributedString.car");
 
@@ -269,6 +270,10 @@ module
             [in] Int32 level);
 
         interface IBidiRun;
+    }
+
+    class CNumericShaper {
+        interface INumericShaper;
     }
 
     [deprecated]

@@ -1,0 +1,53 @@
+module {
+    [deprecated]
+    interface INumericShaper {
+        /**
+         * Gets the masks for all of the ranges supported by this NumericShaper,
+         * packed into an int value using the logical OR logical operation
+         * for multiple ranges:
+         * NumericShaper.DEVANAGARI | NumericShaper.BENGALI.
+         *
+         * @return all ranges of this NumericShaper.
+         */
+        GetRanges(
+            [out] Int32 * ranges);
+
+        /**
+         * Checks if this NumericShaper is contextual (supporting
+         * multiple script ranges) or not.
+         *
+         * @return true, if this NumericShaper is contextual, false otherwise.
+         */
+        IsContextual(
+            [out] Boolean * isContextual);
+
+        /**
+         * Transforms the encoding of the text, starting from the character
+         * at index start and transforming count characters,
+         * using the specified context.
+         *
+         * @param text the text to be shaped.
+         * @param start the start offset of the text.
+         * @param count the number of characters to be shaped.
+         * @param context the context to be used for shaping.
+         */
+        Shape(
+            [in] ArrayOf<Char32> * text,
+            [in] Int32 start,
+            [in] Int32 count,
+            [in] Int32 context);
+
+        /**
+         * Transforms the encoding of the text, starting from the character
+         * at index start and transforming count characters.
+         *
+         * @param text the text to be shaped.
+         * @param start the start offset of the text.
+         * @param count the number of characters to be shaped.
+         */
+        ShapeEx(
+            [in] ArrayOf<Char32> * text,
+            [in] Int32 start,
+            [in] Int32 count);
+    }
+}
