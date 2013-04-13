@@ -1,6 +1,6 @@
 
 #include "widget/CVideoView.h"
-#include "view/SurfaceView.h"
+
 
 IVIEW_METHODS_IMPL(CVideoView, VideoView, VideoView);
 
@@ -9,6 +9,27 @@ IDrawableCallback_METHODS_IMPL(CVideoView, VideoView, VideoView);
 IKeyEventCallback_METHODS_IMPL(CVideoView, VideoView, VideoView);
 
 IAccessibilityEventSource_METHODS_IMPL(CVideoView, VideoView, VideoView);
+
+ECode CVideoView::constructor(
+    /* [in] */ IContext* context)
+{
+    return VideoView::Init(context);
+}
+
+ECode CVideoView::constructor(
+    /* [in] */ IContext* context,
+    /* [in] */ IAttributeSet* attrs)
+{
+    return VideoView::Init(context, attrs);
+}
+
+ECode CVideoView::constructor(
+    /* [in] */ IContext* context,
+    /* [in] */ IAttributeSet* attrs,
+    /* [in] */ Int32 defStyle)
+{
+    return VideoView::Init(context, attrs, defStyle);
+}
 
 PInterface CVideoView::Probe(
     /* [in] */ REIID riid)
@@ -26,7 +47,8 @@ ECode CVideoView::ResolveAdjustedSize(
 {
     VALIDATE_NOT_NULL(size);
 
-    return VideoView::ResolveAdjustedSize(desiredSize, measureSpec, size);
+    *size = VideoView::ResolveAdjustedSize(desiredSize, measureSpec);
+    return NOERROR;
 }
 
 ECode CVideoView::SetVideoPath(
@@ -52,23 +74,23 @@ ECode CVideoView::SetMediaController(
     return VideoView::SetMediaController(controller);
 }
 
-// ECode CVideoView::SetOnPreparedListener(
-//     /* [in] */ IOnPreparedListener* l)
-// {
-//     return VideoView::SetOnPreparedListener(l);
-// }
+ECode CVideoView::SetOnPreparedListener(
+    /* [in] */ IMediaPlayerOnPreparedListener* l)
+{
+    return VideoView::SetOnPreparedListener(l);
+}
 
-// ECode CVideoView::SetOnCompletionListener(
-//     /* [in] */ IOnCompletionListener* l)
-// {
-//     return VideoView::SetOnCompletionListener(l);
-// }
+ECode CVideoView::SetOnCompletionListener(
+    /* [in] */ IMediaPlayerOnCompletionListener* l)
+{
+    return VideoView::SetOnCompletionListener(l);
+}
 
-// ECode CVideoView::SetOnErrorListener(
-//     /* [in] */ IOnErrorListener* l)
-// {
-//     return VideoView::SetOnErrorListener(l);
-// }
+ECode CVideoView::SetOnErrorListener(
+    /* [in] */ IMediaPlayerOnErrorListener* l)
+{
+    return VideoView::SetOnErrorListener(l);
+}
 
 ECode CVideoView::Suspend()
 {
@@ -80,28 +102,6 @@ ECode CVideoView::Resume()
     return VideoView::Resume();
 }
 
-ECode CVideoView::constructor(
-    /* [in] */ IContext* context)
-{
-    return E_NOT_IMPLEMENTED;
-}
-
-ECode CVideoView::constructor(
-    /* [in] */ IContext* context,
-    /* [in] */ IAttributeSet* attrs)
-{
-    return E_NOT_IMPLEMENTED;
-}
-
-ECode CVideoView::constructor(
-    /* [in] */ IContext* context,
-    /* [in] */ IAttributeSet* attrs,
-    /* [in] */ Int32 defStyle)
-{
-    return E_NOT_IMPLEMENTED;
-}
-
-//IMediaPlayerControl
 ECode CVideoView::Start()
 {
     return VideoView::Start();
@@ -117,7 +117,8 @@ ECode CVideoView::GetDuration(
 {
     VALIDATE_NOT_NULL(duration);
 
-    return VideoView::GetDuration(duration);
+    *duration = VideoView::GetDuration();
+    return NOERROR;
 }
 
 ECode CVideoView::GetCurrentPosition(
@@ -125,7 +126,8 @@ ECode CVideoView::GetCurrentPosition(
 {
     VALIDATE_NOT_NULL(position);
 
-    return VideoView::GetCurrentPosition(position);
+    *position = VideoView::GetCurrentPosition();
+    return NOERROR;
 }
 
 ECode CVideoView::SeekTo(
@@ -139,7 +141,8 @@ ECode CVideoView::IsPlaying(
 {
     VALIDATE_NOT_NULL(isPlaying);
 
-    return VideoView::IsPlaying(isPlaying);
+    *isPlaying = VideoView::IsPlaying();
+    return NOERROR;
 }
 
 ECode CVideoView::GetBufferPercentage(
@@ -147,7 +150,8 @@ ECode CVideoView::GetBufferPercentage(
 {
     VALIDATE_NOT_NULL(percentage);
 
-    return VideoView::GetBufferPercentage(percentage);
+    *percentage = VideoView::GetBufferPercentage();
+    return NOERROR;
 }
 
 ECode CVideoView::CanPause(
@@ -155,7 +159,8 @@ ECode CVideoView::CanPause(
 {
     VALIDATE_NOT_NULL(canPause);
 
-    return VideoView::CanPause(canPause);
+    *canPause = VideoView::CanPause();
+    return NOERROR;
 }
 
 ECode CVideoView::CanSeekBackward(
@@ -163,7 +168,8 @@ ECode CVideoView::CanSeekBackward(
 {
     VALIDATE_NOT_NULL(canSeekBackward);
 
-    return VideoView::CanSeekBackward(canSeekBackward);
+    *canSeekBackward = VideoView::CanSeekBackward();
+    return NOERROR;
 }
 
 ECode CVideoView::CanSeekForward(
@@ -171,7 +177,8 @@ ECode CVideoView::CanSeekForward(
 {
     VALIDATE_NOT_NULL(canSeekForward);
 
-    return VideoView::CanSeekForward(canSeekForward);
+    *canSeekForward = VideoView::CanSeekForward();
+    return NOERROR;
 }
 
 //ISurfaceView
@@ -183,7 +190,6 @@ ECode CVideoView::GetHolder(
     AutoPtr<ISurfaceHolder> _holder = SurfaceView::GetHolder();
     *holder = _holder;
     if (*holder) (*holder)->AddRef();
-
     return NOERROR;
 }
 
@@ -211,6 +217,5 @@ ECode CVideoView::IsFixedSize(
     VALIDATE_NOT_NULL(size);
 
     *size = SurfaceView::IsFixedSize();
-
     return NOERROR;
 }

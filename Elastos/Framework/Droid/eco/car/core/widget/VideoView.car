@@ -1,8 +1,13 @@
 
 module
 {
-    interface IVideoView extends ISurfaceView
-    {
+    interface IUri;
+    interface IMediaController;
+    interface IMediaPlayerOnPreparedListener;
+    interface IMediaPlayerOnCompletionListener;
+    interface IMediaPlayerOnErrorListener;
+
+    interface IVideoView extends ISurfaceView {
         ResolveAdjustedSize(
             [in] Int32 desiredSize,
             [in] Int32 measureSpec,
@@ -25,8 +30,8 @@ module
          *
          * @param l The callback that will be run
          */
-        //SetOnPreparedListener(
-        //    [in] IOnPreparedListener* l);
+        SetOnPreparedListener(
+            [in] IMediaPlayerOnPreparedListener* l);
 
          /**
          * Register a callback to be invoked when the end of a media file
@@ -34,8 +39,8 @@ module
          *
          * @param l The callback that will be run
          */
-        //SetOnCompletionListener(
-        //    [in] IOnCompletionListener* l);
+        SetOnCompletionListener(
+            [in] IMediaPlayerOnCompletionListener* l);
 
         /**
          * Register a callback to be invoked when an error occurs
@@ -45,8 +50,8 @@ module
          *
          * @param l The callback that will be run
          */
-        //SetOnErrorListener(
-        //    [in] IOnErrorListener* l);
+        SetOnErrorListener(
+            [in] IMediaPlayerOnErrorListener* l);
 
         Suspend();
 

@@ -3,12 +3,27 @@
 #define __CVIDEOVIEW_H__
 
 #include "_CVideoView.h"
-#include "VideoView.h"
+#include "widget/VideoView.h"
 #include "view/ViewMacro.h"
 
 CarClass(CVideoView), public VideoView
 {
 public:
+    CARAPI constructor(
+        /* [in] */ IContext* context);
+
+    CARAPI constructor(
+        /* [in] */ IContext* context,
+        /* [in] */ IAttributeSet* attrs);
+
+    CARAPI constructor(
+        /* [in] */ IContext* context,
+        /* [in] */ IAttributeSet* attrs,
+        /* [in] */ Int32 defStyle);
+
+    CARAPI_(PInterface) Probe(
+        /* [in] */ REIID riid);
+
     IVIEW_METHODS_DECL();
 
     IDrawableCallback_METHODS_DECL();
@@ -16,9 +31,6 @@ public:
     IKeyEventCallback_METHODS_DECL();
 
     IAccessibilityEventSource_METHODS_DECL();
-
-    CARAPI_(PInterface) Probe(
-        /* [in] */ REIID riid);
 
     CARAPI ResolveAdjustedSize(
         /* [in] */ Int32 desiredSize,
@@ -36,32 +48,19 @@ public:
     CARAPI SetMediaController(
         /* [in] */ IMediaController* controller);
 
-    // CARAPI SetOnPreparedListener(
-    //     /* [in] */ IOnPreparedListener* l);
+    CARAPI SetOnPreparedListener(
+        /* [in] */ IMediaPlayerOnPreparedListener* l);
 
-    // CARAPI SetOnCompletionListener(
-    //     /* [in] */ IOnCompletionListener* l);
+    CARAPI SetOnCompletionListener(
+        /* [in] */ IMediaPlayerOnCompletionListener* l);
 
-    // CARAPI SetOnErrorListener(
-    //     /* [in] */ IOnErrorListener* l);
+    CARAPI SetOnErrorListener(
+        /* [in] */ IMediaPlayerOnErrorListener* l);
 
     CARAPI Suspend();
 
     CARAPI Resume();
 
-    CARAPI constructor(
-        /* [in] */ IContext* context);
-
-    CARAPI constructor(
-        /* [in] */ IContext* context,
-        /* [in] */ IAttributeSet* attrs);
-
-    CARAPI constructor(
-        /* [in] */ IContext* context,
-        /* [in] */ IAttributeSet* attrs,
-        /* [in] */ Int32 defStyle);
-
-public: //IMediaPlayerControl
     CARAPI Start();
 
     CARAPI Pause();
@@ -90,7 +89,6 @@ public: //IMediaPlayerControl
     CARAPI CanSeekForward(
         /* [out] */ Boolean* canSeekForward);
 
-public: //ISurfaceView
     CARAPI GetHolder(
         /* [out] */ ISurfaceHolder** holder);
 
@@ -105,9 +103,6 @@ public: //ISurfaceView
 
     CARAPI IsFixedSize(
         /* [out] */ Boolean* size);
-
-private:
-    // TODO: Add your private member variables here.
 };
 
 #endif //__CVIDEOVIEW_H__
