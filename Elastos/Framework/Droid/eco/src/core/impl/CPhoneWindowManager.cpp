@@ -515,10 +515,11 @@ ECode CPhoneWindowManager::CheckAddPermission(
     }
 
     if (permission.IsNullOrEmpty()) {
-        //if (mContext->CheckCallingOrSelfPermission(permission)
-        //    != PackageManager.PERMISSION_GRANTED) {
-        //        return WindowManagerImpl.ADD_PERMISSION_DENIED;
-        //}
+        Int32 perm;
+        mContext->CheckCallingOrSelfPermission(permission, &perm);
+        if (perm != CapsuleManager_PERMISSION_GRANTED) {
+                return WindowManagerImpl_ADD_PERMISSION_DENIED;
+        }
     }
 
     *addPermisssion = WindowManagerImpl_ADD_OKAY;

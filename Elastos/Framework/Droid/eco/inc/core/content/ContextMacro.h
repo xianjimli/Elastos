@@ -124,8 +124,8 @@
         /* [out] */ Int32* value);                                          \
                                                                             \
     CARAPI EnforceCallingOrSelfPermission(                                  \
-        /* [in] */ CString permission,                                      \
-        /* [in] */ CString message);                                        \
+        /* [in] */ const String& permission,                                      \
+        /* [in] */ const String& message);                                        \
                                                                             \
     CARAPI RevokeUriPermission(                                             \
         /* [in] */ IUri* uri,                                               \
@@ -380,8 +380,8 @@ ECode className::CheckCallingPermission(                                    \
 }                                                                           \
                                                                             \
 ECode className::EnforceCallingOrSelfPermission(                            \
-    /* [in] */ CString permission,                                          \
-    /* [in] */ CString message)                                             \
+    /* [in] */ const String& permission,                                          \
+    /* [in] */ const String& message)                                             \
 {                                                                           \
     return superClass::EnforceCallingOrSelfPermission(permission, message); \
 }                                                                           \

@@ -182,22 +182,22 @@ ECode CStatusBarManagerService::RemoveIcon(
 void CStatusBarManagerService::EnforceStatusBar()
 {
     mContext->EnforceCallingOrSelfPermission(
-            "elastos.Manifest.permission.STATUS_BAR"/*android.Manifest.permission.STATUS_BAR*/,
-            "StatusBarManagerService");
+            String("elastos.Manifest.permission.STATUS_BAR")/*android.Manifest.permission.STATUS_BAR*/,
+            String("StatusBarManagerService"));
 }
 
 void CStatusBarManagerService::EnforceExpandStatusBar()
 {
     mContext->EnforceCallingOrSelfPermission(
-            "elastos.Manifest.permission.EXPAND_STATUS_BAR"/*android.Manifest.permission.EXPAND_STATUS_BAR*/,
-            "StatusBarManagerService");
+            String("elastos.Manifest.permission.EXPAND_STATUS_BAR")/*android.Manifest.permission.EXPAND_STATUS_BAR*/,
+            String("StatusBarManagerService"));
 }
 
 void CStatusBarManagerService::EnforceStatusBarService()
 {
     mContext->EnforceCallingOrSelfPermission(
-            "android.Manifest.permission.STATUS_BAR_SERVICE"/*android.Manifest.permission.STATUS_BAR_SERVICE*/,
-            "StatusBarManagerService");
+            String("android.Manifest.permission.STATUS_BAR_SERVICE")/*android.Manifest.permission.STATUS_BAR_SERVICE*/,
+            String("StatusBarManagerService"));
 }
 
 // ================================================================================
