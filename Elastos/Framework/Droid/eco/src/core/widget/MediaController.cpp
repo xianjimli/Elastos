@@ -1,11 +1,14 @@
 
+#include "ext/frameworkdef.h"
 #include "widget/MediaController.h"
-#include "impl/CPolicyManager.h"
 #include "widget/CFrameLayoutLayoutParams.h"
 #include "view/CWindowManagerLayoutParams.h"
+#include "graphics/ElPixelFormat.h"
+#include "impl/CPolicyManager.h"
 #include "os/CApartment.h"
 
-using namespace Elastos::Core;
+// using namespace Elastos::Core;
+
 
 PInterface MediaController::MCTouchListener::Probe(
             /* [in]  */ REIID riid)
@@ -42,6 +45,8 @@ ECode MediaController::MCTouchListener::GetInterfaceID(
     else {
         return E_INVALID_ARGUMENT;
     }
+
+    return NOERROR;
 }
 
 ECode MediaController::MCTouchListener::OnTouch(
@@ -62,6 +67,7 @@ ECode MediaController::MCTouchListener::OnTouch(
 
     return NOERROR;
 }
+
 
 PInterface MediaController::MCClickListener::Probe(
             /* [in]  */ REIID riid)
@@ -98,13 +104,10 @@ ECode MediaController::MCClickListener::GetInterfaceID(
     else {
         return E_INVALID_ARGUMENT;
     }
+
+    return NOERROR;
 }
 
-ECode MediaController::MCClickListener::OnClick(
-    /* [in] */ IView* v)
-{
-    return E_NOT_IMPLEMENTED;
-}
 
 ECode MediaController::PauseListener::OnClick(
     /* [in] */ IView* v)
@@ -114,6 +117,7 @@ ECode MediaController::PauseListener::OnClick(
 
     return NOERROR;
 }
+
 
 ECode MediaController::RewListener::OnClick(
     /* [in] */ IView* v)
@@ -142,6 +146,7 @@ ECode MediaController::FfwdListener::OnClick(
 
     return NOERROR;
 }
+
 
 PInterface MediaController::MCOnSeekBarChangeListener::Probe(
             /* [in]  */ REIID riid)
@@ -178,6 +183,29 @@ ECode MediaController::MCOnSeekBarChangeListener::GetInterfaceID(
     else {
         return E_INVALID_ARGUMENT;
     }
+
+    return NOERROR;
+}
+
+ECode MediaController::MCOnSeekBarChangeListener::OnStartTrackingTouch(
+    /* [in] */ ISeekBar* seekBar)
+{
+    mHost->Show(3600000);
+
+    mHost->mDragging = TRUE;
+
+    // By removing these pending progress messages we make sure
+    // that a) we won't update the progress while the user adjusts
+    // the seekbar and b) once the user is done dragging the thumb
+    // we will post one of these messages to the queue again and
+    // this ensures that there will be exactly one message queued up.
+    //mHandler.removeMessages(SHOW_PROGRESS);
+    ECode (STDCALL MediaController::*pHandlerFunc)();
+    pHandlerFunc = &MediaController::HandleShowProgress;
+    mHost->mApartment->RemoveCppCallbacks(
+                (Handle32)mHost, *(Handle32*)&pHandlerFunc);
+
+    return NOERROR;
 }
 
 ECode MediaController::MCOnSeekBarChangeListener::OnProgressChanged(
@@ -205,27 +233,6 @@ ECode MediaController::MCOnSeekBarChangeListener::OnProgressChanged(
     return NOERROR;
 }
 
-ECode MediaController::MCOnSeekBarChangeListener::OnStartTrackingTouch(
-    /* [in] */ ISeekBar* seekBar)
-{
-    mHost->Show(3600000);
-
-    mHost->mDragging = TRUE;
-
-    // By removing these pending progress messages we make sure
-    // that a) we won't update the progress while the user adjusts
-    // the seekbar and b) once the user is done dragging the thumb
-    // we will post one of these messages to the queue again and
-    // this ensures that there will be exactly one message queued up.
-    //mHandler.removeMessages(SHOW_PROGRESS);
-    Void (STDCALL MediaController::*pHandlerFunc)();
-    pHandlerFunc = &MediaController::HandleShowProgress;
-    mHost->mApartment->RemoveCppCallbacks(
-                (Handle32)mHost, *(Handle32*)&pHandlerFunc);
-
-    return NOERROR;
-}
-
 ECode MediaController::MCOnSeekBarChangeListener::OnStopTrackingTouch(
     /* [in] */ ISeekBar* seekBar)
 {
@@ -238,13 +245,18 @@ ECode MediaController::MCOnSeekBarChangeListener::OnStopTrackingTouch(
     // the call to show() does not guarantee this because it is a
     // no-op if we are already showing.
     //mHandler.sendEmptyMessage(SHOW_PROGRESS);
-    Void (STDCALL MediaController::*pHandlerShowProgress)();
+    ECode (STDCALL MediaController::*pHandlerShowProgress)();
     pHandlerShowProgress = &MediaController::HandleShowProgress;
     mHost->mApartment->PostCppCallback(
             (Handle32)mHost, *(Handle32*)&pHandlerShowProgress, NULL, 0);
 
     return NOERROR;
 }
+
+
+const Int32 MediaController::sDefaultTimeout;
+const Int32 MediaController::FADE_OUT;
+const Int32 MediaController::SHOW_PROGRESS;
 
 MediaController::MediaController()
     : mShowing(FALSE)
@@ -254,19 +266,72 @@ MediaController::MediaController()
     , mListenersSet(FALSE)
 {
     mTouchListener = new MCTouchListener(this);
-    assert(mTouchListener);
     mPauseListener = new PauseListener(this);
-    assert(mPauseListener);
     mRewListener = new RewListener(this);
-    assert(mRewListener);
     mFfwdListener = new FfwdListener(this);
-    assert(mFfwdListener);
-
     mSeekListener = new MCOnSeekBarChangeListener(this);
-    assert(mSeekListener);
+    CApartment::GetMyApartment((IApartment**)&mApartment);
+    assert(mApartment != NULL);
+}
 
-    ASSERT_SUCCEEDED(CApartment::New(TRUE, (IApartment**)&mApartment));
-    mApartment->Start(ApartmentAttr_New);
+MediaController::~MediaController()
+{}
+
+ECode MediaController::Init(
+    /* [in] */ IContext* context,
+    /* [in] */ IAttributeSet* attrs)
+{
+    FAIL_RETURN(FrameLayout::Init(context, attrs));
+    mRoot = (IView*)this->Probe(EIID_IView);
+    mContext = context;
+    mUseFastForward = TRUE;
+    mFromXml = TRUE;
+    return NOERROR;
+}
+
+ECode MediaController::Init(
+    /* [in] */ IContext* context,
+    /* [in] */ Boolean useFastForward)
+{
+    FAIL_RETURN(FrameLayout::Init(context));
+    mContext = context;
+    mUseFastForward = useFastForward;
+    return InitFloatingWindow();
+}
+
+ECode MediaController::OnFinishInflate()
+{
+    if (mRoot != NULL) {
+        return InitControllerView(mRoot);
+    }
+
+    return NOERROR;
+}
+
+ECode MediaController::InitFloatingWindow()
+{
+    FAIL_RETURN(mContext->GetSystemService(Context_WINDOW_SERVICE, (IInterface**)&mWindowManager));
+    AutoPtr<IPolicyManager> policy;
+    FAIL_RETURN(CPolicyManager::AcquireSingleton((IPolicyManager**)&policy));
+    FAIL_RETURN(policy->MakeNewWindow(mContext, (IWindow**)&mWindow));
+    mWindow->SetWindowManager(mWindowManager, NULL, String(NULL));
+    Boolean result;
+    mWindow->RequestFeature(Window_FEATURE_NO_TITLE, &result);
+    FAIL_RETURN(mWindow->GetDecorView((IView**)&mDecor));
+    mDecor->SetOnTouchListener(mTouchListener);
+    mWindow->SetContentViewEx((IView*)this->Probe(EIID_IView));
+    FAIL_RETURN(mWindow->SetBackgroundDrawableResource(0x0106000d)); //android.R.color.transparent
+
+    // While the media controller is up, the volume control keys should
+    // affect the media stream type
+    mWindow->SetVolumeControlStream(AudioManager_STREAM_MUSIC);
+
+    SetFocusable(TRUE);
+    SetFocusableInTouchMode(TRUE);
+    SetDescendantFocusability(ViewGroup_FOCUS_AFTER_DESCENDANTS);
+    View::RequestFocus();
+
+    return NOERROR;
 }
 
 ECode MediaController::SetMediaPlayer(
@@ -284,20 +349,111 @@ ECode MediaController::SetAnchorView(
     mAnchor = view;
 
     AutoPtr<IFrameLayoutLayoutParams> frameParams;
-    ASSERT_SUCCEEDED(CFrameLayoutLayoutParams::New(
+    FAIL_RETURN(CFrameLayoutLayoutParams::New(
             ViewGroupLayoutParams_MATCH_PARENT,
             ViewGroupLayoutParams_MATCH_PARENT,
             (IFrameLayoutLayoutParams**)&frameParams));
-    RemoveAllViews();
-    AutoPtr<IView> v;
-    ASSERT_SUCCEEDED(MakeControllerView((IView**)&v));
 
+    RemoveAllViews();
+    AutoPtr<IView> v = MakeControllerView();
     return AddView(v, frameParams);
+}
+
+AutoPtr<IView> MediaController::MakeControllerView()
+{
+    AutoPtr<ILayoutInflater> inflate;
+    ASSERT_SUCCEEDED(mContext->GetSystemService(
+            Context_LAYOUT_INFLATER_SERVICE, (IInterface**)&inflate));
+    ASSERT_SUCCEEDED(inflate->Inflate(0x01090041, NULL, (IView**)&mRoot)); //com.android.internal.R.layout.media_controller
+
+    ASSERT_SUCCEEDED(InitControllerView(mRoot));
+
+    return mRoot;
+}
+
+ECode MediaController::InitControllerView(
+    /* [in] */ IView* view)
+{
+    FAIL_RETURN(view->FindViewById(0x010201f3, (IView**)&mPauseButton)); //com.android.internal.R.id.pause
+    if (mPauseButton != NULL) {
+        Boolean result;
+        mPauseButton->RequestFocus(&result);
+        mPauseButton->SetOnClickListener(mPauseListener);
+    }
+
+    FAIL_RETURN(view->FindViewById(0x010201f4, (IView**)&mFfwdButton)); //com.android.internal.R.id.ffwd
+    if (mFfwdButton != NULL) {
+        mFfwdButton->SetOnClickListener(mFfwdListener);
+        if (!mFromXml) {
+            mFfwdButton->SetVisibility(mUseFastForward ? View_VISIBLE : View_GONE);
+        }
+    }
+
+    FAIL_RETURN(view->FindViewById(0x010201f2, (IView**)&mRewButton)); //com.android.internal.R.id.rew
+    if (mRewButton != NULL) {
+        mRewButton->SetOnClickListener(mRewListener);
+        if (!mFromXml) {
+            mRewButton->SetVisibility(mUseFastForward ? View_VISIBLE : View_GONE);
+        }
+    }
+
+    // By default these are hidden. They will be enabled when setPrevNextListeners() is called
+    FAIL_RETURN(view->FindViewById(0x010201f5, (IView**)&mNextButton)); //com.android.internal.R.id.next
+    if (mNextButton != NULL && !mFromXml && !mListenersSet) {
+        mNextButton->SetVisibility(View_GONE);
+    }
+    FAIL_RETURN(view->FindViewById(0x010201f1, (IView**)&mPrevButton)); //com.android.internal.R.id.prev
+    if (mPrevButton != NULL && !mFromXml && !mListenersSet) {
+        mPrevButton->SetVisibility(View_GONE);
+    }
+
+    FAIL_RETURN(view->FindViewById(0x010201f7, (IView**)&mProgress)); //com.android.internal.R.id.mediacontroller_progress
+    if (mProgress != NULL) {
+        ISeekBar* pSeekBar = (ISeekBar*)mProgress->Probe(EIID_ISeekBar);
+        if (pSeekBar) {
+            pSeekBar->SetOnSeekBarChangeListener(mSeekListener);
+        }
+        mProgress->SetMax(1000);
+    }
+
+    FAIL_RETURN(view->FindViewById(0x0102005b, (IView**)&mEndTime)); //com.android.internal.R.id.time
+    FAIL_RETURN(view->FindViewById(0x010201f6, (IView**)&mCurrentTime)); //com.android.internal.R.id.time_current
+    //mFormatBuilder = new StringBuilder();
+    //mFormatter = new Formatter(mFormatBuilder, Locale.getDefault());
+
+    InstallPrevNextListeners();
+
+    return NOERROR;
 }
 
 ECode MediaController::Show()
 {
     return Show(sDefaultTimeout);
+}
+
+void MediaController::DisableUnsupportedButtons()
+{
+    //try {
+    Boolean canPause;
+    if (mPauseButton != NULL && (mPlayer->CanPause(&canPause), !canPause)) {
+        mPauseButton->SetEnabled(FALSE);
+    }
+
+    Boolean canSeekBackward;
+    if (mRewButton != NULL && (mPlayer->CanSeekBackward(&canSeekBackward), !canSeekBackward)) {
+        mRewButton->SetEnabled(FALSE);
+    }
+
+    Boolean canSeekForward;
+    if (mFfwdButton != NULL && (mPlayer->CanSeekForward(&canSeekForward), !canSeekForward)) {
+        mFfwdButton->SetEnabled(FALSE);
+    }
+    //} catch (IncompatibleClassChangeError ex) {
+        // We were given an old version of the interface, that doesn't have
+        // the canPause/canSeekXYZ methods. This is OK, it just means we
+        // assume the media can be paused and seeked, and so we don't disable
+        // the buttons.
+    //}
 }
 
 ECode MediaController::Show(
@@ -324,9 +480,8 @@ ECode MediaController::Show(
         p->SetX(0);
         mAnchor->GetHeight(&height);
         p->SetY(y + height - ViewGroupLayoutParams_WRAP_CONTENT);
-        p->SetFormat(-3); //PixelFormat.TRANSLUCENT
+        p->SetFormat(ElPixelFormat::TRANSLUCENT);
         p->SetType(WindowManagerLayoutParams_TYPE_APPLICATION_PANEL);
-
         Int32 flags;
         p->GetFlags(&flags);
         p->SetFlags(flags | WindowManagerLayoutParams_FLAG_ALT_FOCUSABLE_IM);
@@ -347,13 +502,13 @@ ECode MediaController::Show(
 //        mHandler.removeMessages(FADE_OUT);
 //        mHandler.sendMessageDelayed(msg, timeout);
 //    }
-    Void (STDCALL MediaController::*pHandlerShowProgress)();
+    ECode (STDCALL MediaController::*pHandlerShowProgress)();
     pHandlerShowProgress = &MediaController::HandleShowProgress;
     mApartment->PostCppCallback(
             (Handle32)this, *(Handle32*)&pHandlerShowProgress, NULL, 0);
 
     if (timeout != 0) {
-        Void (STDCALL MediaController::*pHandlerFadeOut)();
+        ECode (STDCALL MediaController::*pHandlerFadeOut)();
         pHandlerFadeOut = &MediaController::HandleFadeOut;
 
         mApartment->RemoveCppCallbacks((Handle32)this, *(Handle32*)&pHandlerFadeOut);
@@ -365,13 +520,9 @@ ECode MediaController::Show(
     return NOERROR;
 }
 
-ECode MediaController::IsShowing(
-    /* [out] */ Boolean* isShowing)
+Boolean MediaController::IsShowing()
 {
-    VALIDATE_NOT_NULL(isShowing);
-
-    *isShowing = mShowing;
-    return NOERROR;
+    return mShowing;
 }
 
 ECode MediaController::Hide()
@@ -382,297 +533,16 @@ ECode MediaController::Hide()
     if (mShowing) {
         //try {
             //mHandler.removeMessages(SHOW_PROGRESS);
-            Void (STDCALL MediaController::*pHandlerFunc)();
-            pHandlerFunc = &MediaController::HandleShowProgress;
-            mApartment->RemoveCppCallbacks(
-                        (Handle32)this, *(Handle32*)&pHandlerFunc);
-
-            mWindowManager->RemoveView(mDecor);
+        ECode (STDCALL MediaController::*pHandlerFunc)();
+        pHandlerFunc = &MediaController::HandleShowProgress;
+        mApartment->RemoveCppCallbacks(
+                    (Handle32)this, *(Handle32*)&pHandlerFunc);
+        mWindowManager->RemoveView(mDecor);
         //} catch (IllegalArgumentException ex) {
         //    Log.w("MediaController", "already removed");
         //}
         mShowing = FALSE;
     }
-
-    return NOERROR;
-}
-
-ECode MediaController::SetPrevNextListeners(
-    /* [in] */ IViewOnClickListener* next,
-    /* [in] */ IViewOnClickListener* prev)
-{
-    mNextListener = next;
-    mPrevListener = prev;
-    mListenersSet = TRUE;
-
-    if (mRoot != NULL) {
-        InstallPrevNextListeners();
-
-        if (mNextButton != NULL && !mFromXml) {
-            mNextButton->SetVisibility(View_VISIBLE);
-        }
-        if (mPrevButton != NULL && !mFromXml) {
-            mPrevButton->SetVisibility(View_VISIBLE);
-        }
-    }
-
-    return NOERROR;
-}
-
-ECode MediaController::OnFinishInflate()
-{
-    if (mRoot != NULL)
-        return InitControllerView(mRoot);
-
-    return NOERROR;
-}
-
-Boolean MediaController::OnTouchEvent(
-    /* [in] */ IMotionEvent* event)
-{
-    Show(sDefaultTimeout);
-
-    return TRUE;
-}
-
-Boolean MediaController::OnTrackballEvent(
-    /* [in] */ IMotionEvent* event)
-{
-    Show(sDefaultTimeout);
-
-    return FALSE;
-}
-
-Boolean MediaController::DispatchKeyEvent(
-    /* [in] */ IKeyEvent* event)
-{
-    Int32 keyCode, repeatCount;
-    Boolean isDown;
-    ASSERT_SUCCEEDED(event->GetKeyCode(&keyCode));
-    ASSERT_SUCCEEDED(event->GetRepeatCount(&repeatCount));
-    ASSERT_SUCCEEDED(event->IsDown(&isDown));
-    if (repeatCount == 0 && isDown && (
-            keyCode ==  KeyEvent_KEYCODE_HEADSETHOOK ||
-            keyCode ==  KeyEvent_KEYCODE_MEDIA_PLAY_PAUSE ||
-            keyCode ==  KeyEvent_KEYCODE_SPACE)) {
-        DoPauseResume();
-        Show(sDefaultTimeout);
-        if (mPauseButton != NULL) {
-            Boolean result;
-            mPauseButton->RequestFocus(&result);
-        }
-        return TRUE;
-    }
-    else if (keyCode ==  KeyEvent_KEYCODE_MEDIA_STOP) {
-        Boolean isPlaying;
-        mPlayer->IsPlaying(&isPlaying);
-        if (isPlaying) {
-            mPlayer->Pause();
-            UpdatePausePlay();
-        }
-        return TRUE;
-    }
-    else if (keyCode == KeyEvent_KEYCODE_VOLUME_DOWN ||
-            keyCode == KeyEvent_KEYCODE_VOLUME_UP) {
-        // don't show the controls for volume adjustment
-        return FrameLayout::DispatchKeyEvent(event);
-    }
-    else if (keyCode == KeyEvent_KEYCODE_BACK ||
-             keyCode == KeyEvent_KEYCODE_MENU) {
-        Hide();
-
-        return TRUE;
-    }
-    else {
-        Show(sDefaultTimeout);
-    }
-
-    return FrameLayout::DispatchKeyEvent(event);
-}
-
-ECode MediaController::SetEnabled(
-    /* [in] */ Boolean enabled)
-{
-    if (mPauseButton != NULL) {
-        mPauseButton->SetEnabled(enabled);
-    }
-    if (mFfwdButton != NULL) {
-        mFfwdButton->SetEnabled(enabled);
-    }
-    if (mRewButton != NULL) {
-        mRewButton->SetEnabled(enabled);
-    }
-    if (mNextButton != NULL) {
-        mNextButton->SetEnabled(enabled && mNextListener != NULL);
-    }
-    if (mPrevButton != NULL) {
-        mPrevButton->SetEnabled(enabled && mPrevListener != NULL);
-    }
-    if (mProgress != NULL) {
-        mProgress->SetEnabled(enabled);
-    }
-    DisableUnsupportedButtons();
-
-    return FrameLayout::SetEnabled(enabled);
-}
-
-ECode MediaController::MakeControllerView(
-    /* [out] */ IView** view)
-{
-    VALIDATE_NOT_NULL(view);
-
-    AutoPtr<ILayoutInflater> inflate;
-    ASSERT_SUCCEEDED(mContext->GetSystemService(
-            Context_LAYOUT_INFLATER_SERVICE, (IInterface**)&inflate));
-
-    FAIL_RETURN(inflate->Inflate(0x01090041, NULL, (IView**)&mRoot)); //com.android.internal.R.layout.media_controller
-
-    FAIL_RETURN(InitControllerView(mRoot));
-    *view = mRoot;
-    if (*view) (*view)->AddRef();
-
-    return NOERROR;
-}
-
-ECode MediaController::Init(
-    /* [in] */ IContext* context)
-{
-    return Init(context, TRUE);
-}
-
-ECode MediaController::Init(
-    /* [in] */ IContext* context,
-    /* [in] */ IAttributeSet* attrs)
-{
-    ASSERT_SUCCEEDED(FrameLayout::Init(context, attrs));
-    mRoot = (IView*)Probe(EIID_IView);
-    mContext = context;
-
-    return NOERROR;
-}
-
-ECode MediaController::Init(
-    /* [in] */ IContext* context,
-    /* [in] */ Boolean useFastForward)
-{
-    ASSERT_SUCCEEDED(FrameLayout::Init(context));
-    mContext = context;
-    mUseFastForward = useFastForward;
-
-    return InitFloatingWindow();
-}
-
-ECode MediaController::InitFloatingWindow()
-{
-    ASSERT_SUCCEEDED(mContext->GetSystemService(Context_WINDOW_SERVICE, (IInterface**)&mWindowManager));
-
-    AutoPtr<IPolicyManager> policy;
-    ASSERT_SUCCEEDED(CPolicyManager::AcquireSingleton((IPolicyManager**)&policy));
-    FAIL_RETURN(policy->MakeNewWindow(mContext, (IWindow**)&mWindow));
-
-    mWindow->SetWindowManager(mWindowManager, NULL, String(NULL));
-    Boolean result;
-    mWindow->RequestFeature(Window_FEATURE_NO_TITLE, &result);
-
-    FAIL_RETURN(mWindow->GetDecorView((IView**)&mDecor));
-    mDecor->SetOnTouchListener(mTouchListener);
-    mWindow->SetContentViewEx((IView*)Probe(EIID_IView));
-    FAIL_RETURN(mWindow->SetBackgroundDrawableResource(0x0106000d)); //android.R.color.transparent
-
-    // While the media controller is up, the volume control keys should
-    // affect the media stream type
-    mWindow->SetVolumeControlStream(3); //AudioManager::STREAM_MUSIC
-
-    SetFocusable(TRUE);
-    SetFocusableInTouchMode(TRUE);
-    SetDescendantFocusability(ViewGroup_FOCUS_AFTER_DESCENDANTS);
-    View::RequestFocus();
-
-    return NOERROR;
-}
-
-ECode MediaController::InitControllerView(
-    /* [in] */ IView* view)
-{
-    ASSERT_SUCCEEDED(view->FindViewById(0x010201f3, (IView**)&mPauseButton)); //com.android.internal.R.id.pause
-    if (mPauseButton != NULL) {
-        Boolean result;
-        mPauseButton->RequestFocus(&result);
-        mPauseButton->SetOnClickListener(mPauseListener);
-    }
-
-    ASSERT_SUCCEEDED(view->FindViewById(0x010201f4, (IView**)&mFfwdButton)); //com.android.internal.R.id.ffwd
-    if (mFfwdButton != NULL) {
-        mFfwdButton->SetOnClickListener(mFfwdListener);
-        if (!mFromXml) {
-            mFfwdButton->SetVisibility(mUseFastForward ? View_VISIBLE : View_GONE);
-        }
-    }
-
-    ASSERT_SUCCEEDED(view->FindViewById(0x010201f2, (IView**)&mRewButton)); //com.android.internal.R.id.rew
-    if (mRewButton != NULL) {
-        mRewButton->SetOnClickListener(mRewListener);
-        if (!mFromXml) {
-            mRewButton->SetVisibility(mUseFastForward ? View_VISIBLE : View_GONE);
-        }
-    }
-
-    // By default these are hidden. They will be enabled when setPrevNextListeners() is called
-    ASSERT_SUCCEEDED(view->FindViewById(0x010201f5, (IView**)&mNextButton)); //com.android.internal.R.id.next
-    if (mNextButton != NULL && !mFromXml && !mListenersSet) {
-        mNextButton->SetVisibility(View_GONE);
-    }
-    ASSERT_SUCCEEDED(view->FindViewById(0x010201f1, (IView**)&mPrevButton)); //com.android.internal.R.id.prev
-    if (mPrevButton != NULL && !mFromXml && !mListenersSet) {
-        mPrevButton->SetVisibility(View_GONE);
-    }
-
-    ASSERT_SUCCEEDED(view->FindViewById(0x010201f7, (IView**)&mProgress)); //com.android.internal.R.id.mediacontroller_progress
-    if (mProgress != NULL) {
-        ISeekBar* pSeekBar = (ISeekBar*)mProgress->Probe(EIID_ISeekBar);
-        if (pSeekBar) {
-            pSeekBar->SetOnSeekBarChangeListener(mSeekListener);
-        }
-        mProgress->SetMax(1000);
-    }
-
-    ASSERT_SUCCEEDED(view->FindViewById(0x0102005b, (IView**)&mEndTime)); //com.android.internal.R.id.time
-    ASSERT_SUCCEEDED(view->FindViewById(0x010201f6, (IView**)&mCurrentTime)); //com.android.internal.R.id.time_current
-
-    //mFormatBuilder = new StringBuilder();
-    //mFormatter = new Formatter(mFormatBuilder, Locale.getDefault());
-
-    InstallPrevNextListeners();
-
-    return NOERROR;
-}
-
-ECode MediaController::DisableUnsupportedButtons()
-{
-    //try {
-        Boolean canPause;
-        mPlayer->CanPause(&canPause);
-        if (mPauseButton != NULL && !canPause) {
-            mPauseButton->SetEnabled(FALSE);
-        }
-
-        Boolean canSeekBackward;
-        mPlayer->CanSeekBackward(&canSeekBackward);
-        if (mRewButton != NULL && !canSeekBackward) {
-            mRewButton->SetEnabled(FALSE);
-        }
-
-        Boolean canSeekForward;
-        mPlayer->CanSeekForward(&canSeekForward);
-        if (mFfwdButton != NULL && !canSeekForward) {
-            mFfwdButton->SetEnabled(FALSE);
-        }
-    //} catch (IncompatibleClassChangeError ex) {
-        // We were given an old version of the interface, that doesn't have
-        // the canPause/canSeekXYZ methods. This is OK, it just means we
-        // assume the media can be paused and seeked, and so we don't disable
-        // the buttons.
-    //}
 
     return NOERROR;
 }
@@ -716,8 +586,8 @@ Int32 MediaController::SetProgress()
         return 0;
     }
     Int32 position, duration;
-    FAIL_RETURN(mPlayer->GetCurrentPosition(&position));
-    FAIL_RETURN(mPlayer->GetDuration(&duration));
+    mPlayer->GetCurrentPosition(&position);
+    mPlayer->GetDuration(&duration);
     if (mProgress != NULL) {
         if (duration > 0) {
             // use long to avoid overflow
@@ -725,7 +595,7 @@ Int32 MediaController::SetProgress()
             mProgress->SetProgress(pos);
         }
         Int32 percent;
-        FAIL_RETURN(mPlayer->GetBufferPercentage(&percent));
+        mPlayer->GetBufferPercentage(&percent);
         mProgress->SetSecondaryProgress(percent * 10);
     }
 
@@ -735,7 +605,6 @@ Int32 MediaController::SetProgress()
                 StringForTime(duration), (ICharSequence**)&charS));
         mEndTime->SetText(charS);
     }
-
     if (mCurrentTime != NULL) {
         AutoPtr<ICharSequence> charS;
         ASSERT_SUCCEEDED(CStringWrapper::New(
@@ -744,6 +613,67 @@ Int32 MediaController::SetProgress()
     }
 
     return position;
+}
+
+Boolean MediaController::OnTouchEvent(
+    /* [in] */ IMotionEvent* event)
+{
+    Show(sDefaultTimeout);
+    return TRUE;
+}
+
+Boolean MediaController::OnTrackballEvent(
+    /* [in] */ IMotionEvent* event)
+{
+    Show(sDefaultTimeout);
+    return FALSE;
+}
+
+Boolean MediaController::DispatchKeyEvent(
+    /* [in] */ IKeyEvent* event)
+{
+    Int32 keyCode, repeatCount;
+    Boolean isDown;
+    event->GetKeyCode(&keyCode);
+    event->GetRepeatCount(&repeatCount);
+    event->IsDown(&isDown);
+    if (repeatCount == 0 && isDown && (
+            keyCode ==  KeyEvent_KEYCODE_HEADSETHOOK ||
+            keyCode ==  KeyEvent_KEYCODE_MEDIA_PLAY_PAUSE ||
+            keyCode ==  KeyEvent_KEYCODE_SPACE)) {
+        DoPauseResume();
+        Show(sDefaultTimeout);
+        if (mPauseButton != NULL) {
+            Boolean result;
+            mPauseButton->RequestFocus(&result);
+        }
+        return TRUE;
+    }
+    else if (keyCode ==  KeyEvent_KEYCODE_MEDIA_STOP) {
+        Boolean isPlaying;
+        mPlayer->IsPlaying(&isPlaying);
+        if (isPlaying) {
+            mPlayer->Pause();
+            UpdatePausePlay();
+        }
+        return TRUE;
+    }
+    else if (keyCode == KeyEvent_KEYCODE_VOLUME_DOWN ||
+            keyCode == KeyEvent_KEYCODE_VOLUME_UP) {
+        // don't show the controls for volume adjustment
+        return FrameLayout::DispatchKeyEvent(event);
+    }
+    else if (keyCode == KeyEvent_KEYCODE_BACK ||
+             keyCode == KeyEvent_KEYCODE_MENU) {
+        Hide();
+
+        return TRUE;
+    }
+    else {
+        Show(sDefaultTimeout);
+    }
+
+    return FrameLayout::DispatchKeyEvent(event);
 }
 
 Void MediaController::UpdatePausePlay()
@@ -774,7 +704,32 @@ Void MediaController::DoPauseResume()
     UpdatePausePlay();
 }
 
-Void MediaController::InstallPrevNextListeners()
+ECode MediaController::SetEnabled(
+    /* [in] */ Boolean enabled)
+{
+    if (mPauseButton != NULL) {
+        mPauseButton->SetEnabled(enabled);
+    }
+    if (mFfwdButton != NULL) {
+        mFfwdButton->SetEnabled(enabled);
+    }
+    if (mRewButton != NULL) {
+        mRewButton->SetEnabled(enabled);
+    }
+    if (mNextButton != NULL) {
+        mNextButton->SetEnabled(enabled && mNextListener != NULL);
+    }
+    if (mPrevButton != NULL) {
+        mPrevButton->SetEnabled(enabled && mPrevListener != NULL);
+    }
+    if (mProgress != NULL) {
+        mProgress->SetEnabled(enabled);
+    }
+    DisableUnsupportedButtons();
+    return FrameLayout::SetEnabled(enabled);
+}
+
+void MediaController::InstallPrevNextListeners()
 {
     if (mNextButton != NULL) {
         mNextButton->SetOnClickListener(mNextListener);
@@ -787,12 +742,35 @@ Void MediaController::InstallPrevNextListeners()
     }
 }
 
-Void MediaController::HandleFadeOut()
+ECode MediaController::SetPrevNextListeners(
+    /* [in] */ IViewOnClickListener* next,
+    /* [in] */ IViewOnClickListener* prev)
 {
-    Hide();
+    mNextListener = next;
+    mPrevListener = prev;
+    mListenersSet = TRUE;
+
+    if (mRoot != NULL) {
+        InstallPrevNextListeners();
+
+        if (mNextButton != NULL && !mFromXml) {
+            mNextButton->SetVisibility(View_VISIBLE);
+        }
+        if (mPrevButton != NULL && !mFromXml) {
+            mPrevButton->SetVisibility(View_VISIBLE);
+        }
+    }
+
+    return NOERROR;
 }
 
-Void MediaController::HandleShowProgress()
+ECode MediaController::HandleFadeOut()
+{
+    Hide();
+    return NOERROR;
+}
+
+ECode MediaController::HandleShowProgress()
 {
 //    pos = setProgress();
 //    if (!mDragging && mShowing && mPlayer.isPlaying()) {
@@ -802,13 +780,13 @@ Void MediaController::HandleShowProgress()
 
     Int32 pos = SetProgress();
     Boolean isPlaying;
-    mPlayer->IsPlaying(&isPlaying);
-    if (!mDragging && mShowing && isPlaying) {
-        Void (STDCALL MediaController::*pHandlerFunc)();
+    if (!mDragging && mShowing && (mPlayer->IsPlaying(&isPlaying), isPlaying)) {
+        ECode (STDCALL MediaController::*pHandlerFunc)();
         pHandlerFunc = &MediaController::HandleShowProgress;
 
         mApartment->PostCppCallbackDelayed(
             (Handle32)this, *(Handle32*)&pHandlerFunc,
             NULL, 0, 1000 - (pos % 1000));
     }
+    return NOERROR;
 }

@@ -1,6 +1,6 @@
 
 #include "widget/CMediaController.h"
-#include "widget/FrameLayout.h"
+
 
 IVIEW_METHODS_IMPL(CMediaController, MediaController, MediaController);
 
@@ -15,6 +15,26 @@ IDrawableCallback_METHODS_IMPL(CMediaController, MediaController, MediaControlle
 IKeyEventCallback_METHODS_IMPL(CMediaController, MediaController, MediaController);
 
 IAccessibilityEventSource_METHODS_IMPL(CMediaController, MediaController, MediaController);
+
+ECode CMediaController::constructor(
+    /* [in] */ IContext* context)
+{
+    return MediaController::Init(context);
+}
+
+ECode CMediaController::constructor(
+    /* [in] */ IContext* context,
+    /* [in] */ IAttributeSet* attrs)
+{
+    return MediaController::Init(context, attrs);
+}
+
+ECode CMediaController::constructor(
+    /* [in] */ IContext* context,
+    /* [in] */ Boolean useFastForward)
+{
+    return MediaController::Init(context, useFastForward);
+}
 
 PInterface CMediaController::Probe(
         /* [in] */ REIID riid)
@@ -53,7 +73,8 @@ ECode CMediaController::IsShowing(
 {
     VALIDATE_NOT_NULL(isShowing);
 
-    return MediaController::IsShowing(isShowing);
+    *isShowing = MediaController::IsShowing();
+    return NOERROR;
 }
 
 ECode CMediaController::Hide()
@@ -66,27 +87,6 @@ ECode CMediaController::SetPrevNextListeners(
     /* [in] */ IViewOnClickListener* prev)
 {
     return MediaController::SetPrevNextListeners(next, prev);
-}
-
-
-ECode CMediaController::constructor(
-    /* [in] */ IContext* context)
-{
-    return MediaController::Init(context);
-}
-
-ECode CMediaController::constructor(
-    /* [in] */ IContext* context,
-    /* [in] */ IAttributeSet* attrs)
-{
-    return MediaController::Init(context, attrs);
-}
-
-ECode CMediaController::constructor(
-    /* [in] */ IContext* context,
-    /* [in] */ Boolean useFastForward)
-{
-    return MediaController::Init(context, useFastForward);
 }
 
 ECode CMediaController::SetForegroundGravity(

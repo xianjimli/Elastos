@@ -1363,6 +1363,11 @@ module
             [in] Boolean useFastForward);
 
         interface IMediaController;
+        interface IViewParent;
+        interface IViewManager;
+        interface IDrawableCallback;
+        interface IKeyEventCallback;
+        interface IAccessibilityEventSource;
     }
 
     class CVideoView {
