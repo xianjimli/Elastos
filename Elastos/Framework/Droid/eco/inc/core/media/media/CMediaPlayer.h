@@ -1131,7 +1131,7 @@ private:
     Int32 mListenerContext; // accessed by native methods
 
     AutoPtr<ISurfaceHolder> mSurfaceHolder;
-    AutoPtr<EventHandler> mEventHandler;
+    AutoPtr<IApartment> mEventHandler;
     //PowerManager.WakeLock mWakeLock = NULL;
     Boolean mScreenOnWhilePlaying;
     Boolean mStayAwake;

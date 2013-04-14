@@ -2,8 +2,10 @@
 #include <media/mediaplayer.h>
 #include <binder/Parcel.h>
 #include <surfaceflinger/Surface.h>
+#include <utils/String8.h>
 #include "media/CMediaPlayer.h"
 #include "media/CMetadata.h"
+#include "os/CApartment.h"
 
 
 //MediaPlayer::EventHandler::EventHandler(
@@ -131,14 +133,10 @@ CMediaPlayer::CMediaPlayer()
     : mScreenOnWhilePlaying(FALSE)
     , mStayAwake(FALSE)
 {
-    //Looper looper;
-    //if ((looper = Looper.myLooper()) != NULL) {
-    //    mEventHandler = new EventHandler(this, looper);
-    //} else if ((looper = Looper.getMainLooper()) != NULL) {
-    //    mEventHandler = new EventHandler(this, looper);
-    //} else {
-    //    mEventHandler = NULL;
-    //}
+    CApartment::GetMyApartment((IApartment**)&mEventHandler);
+    if (mEventHandler == NULL) {
+         CApartment::GetMainApartment((IApartment**)&mEventHandler);
+    }
 
     ///* Native setup requires a weak reference to our object.
     // * It's easier to create it here than in C++.
@@ -457,26 +455,22 @@ ECode CMediaPlayer::SetDataSourceEx3(
     /* [in] */ const String& path,
     /* [in] */ IObjectStringMap* headers)
 {
-//    android::sp<android::MediaPlayer> mp = getMediaPlayer(env, thiz);
-//    if (mp == NULL ) {
-//        jniThrowException(env, "java/lang/IllegalStateException", NULL);
-//        return;
-//    }
-//
-//    if (path == NULL) {
-//        jniThrowException(env, "java/lang/IllegalArgumentException", NULL);
-//        return;
-//    }
-//
-//    const char *pathStr = env->GetStringUTFChars(path, NULL);
-//    if (pathStr == NULL) {  // Out of memory
-//        jniThrowException(env, "java/lang/RuntimeException", "Out of memory");
-//        return;
-//    }
-//
-//    // headers is a Map<String, String>.
-//    // We build a similar KeyedVector out of it.
-//    KeyedVector<String8, String8> headersVector;
+    android::sp<android::MediaPlayer> mp = getMediaPlayer(this);
+    if (mp == NULL ) {
+        // jniThrowException(env, "java/lang/IllegalStateException", NULL);
+        return E_ILLEGAL_STATE_EXCEPTION;
+    }
+
+    if (path.IsNull()) {
+        // jniThrowException(env, "java/lang/IllegalArgumentException", NULL);
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
+    }
+
+    const char *pathStr = path.string();
+
+    // headers is a Map<String, String>.
+    // We build a similar KeyedVector out of it.
+    android::KeyedVector<android::String8, android::String8> headersVector;
 //    if (headers) {
 //        // Get the Map's entry Set.
 //        jclass mapClass = env->FindClass("java/util/Map");
@@ -545,19 +539,11 @@ ECode CMediaPlayer::SetDataSourceEx3(
 //      env->DeleteLocalRef(mapClass);
 //    }
 //
-//    LOGV("setDataSource: path %s", pathStr);
-//    status_t opStatus =
-//        mp->setDataSource(
-//                String8(pathStr),
-//                headers ? &headersVector : NULL);
-//
-//    // Make sure that local ref is released before a potential exception
-//    env->ReleaseStringUTFChars(path, pathStr);
-//
-//    process_media_player_call(
-//            env, thiz, opStatus, "java/io/IOException",
-//            "setDataSource failed." );
-    return E_NOT_IMPLEMENTED;
+    // LOGV("setDataSource: path %s", pathStr);
+    android::status_t opStatus =
+        mp->setDataSource(
+            android::String8(pathStr), headers ? &headersVector : NULL);
+    return process_media_player_call(this, opStatus, E_IO_EXCEPTION);
 }
 
 /**
