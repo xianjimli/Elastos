@@ -53,6 +53,6 @@ ECode CModifiedUtf8::Decode(
     }
 
     *outChars = out;
-    *string = String((*out)->GetPayload(), s);
+    *string = String(out->GetPayload(), s);
     return NOERROR;
 }

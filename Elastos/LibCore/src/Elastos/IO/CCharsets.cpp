@@ -14,13 +14,14 @@
 AutoPtr<ICharset> CreateCharSet(
     /* [in] */ String name)
 {
-    AutoPtr<ICharsetHelper> helper;
-    CCharsetHelper::AcquireSingleton((ICharsetHelper **)&helper);
+    // AutoPtr<ICharsetHelper> helper;
+    // CCharsetHelper::AcquireSingleton((ICharsetHelper **)&helper);
 
-    ICharset* charset;
-    helper->ForName(name, &charset);
+    // ICharset* charset;
+    // helper->ForName(name, &charset);
 
-    return charset;
+    // return charset;
+    return NULL;
 }
 
 const AutoPtr<ICharset> CCharsets::ISO_8859_1 = CreateCharSet(String("ISO-8859-1"));
