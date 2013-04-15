@@ -1311,7 +1311,7 @@ ECode CBackupManagerService::ActiveRestoreSession::GetAvailableRestoreSets(
         *error = 0;
         mHost->mContext->EnforceCallingOrSelfPermission(
                 String("android.Manifest.permission.BACKUP"),
-                "getAvailableRestoreSets");
+                String("getAvailableRestoreSets"));
         if (observer == NULL) {
             //throw new IllegalArgumentException("Observer must not be NULL");
             return E_INVALID_ARGUMENT;
@@ -1363,7 +1363,7 @@ ECode CBackupManagerService::ActiveRestoreSession::RestoreAll(
     *error = 0;
     mHost->mContext->EnforceCallingOrSelfPermission(
             String("android.Manifest.permission.BACKUP"),
-            "performRestore");
+            String("performRestore"));
 
     if (DEBUG) Slogger::D(TAG, StringBuffer("restoreAll token=")
             + token
