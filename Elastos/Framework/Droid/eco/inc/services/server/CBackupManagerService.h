@@ -66,19 +66,20 @@ private:
         RestoreGetSetsParams(
             /* [in] */ IBackupTransport* _transport,
             /* [in] */ ActiveRestoreSession* _session,
-            /* [in] */ IRestoreObserver* _observer);
+            /* [in] */ IRestoreObserverStub* _observer);
 
     public:
         AutoPtr<IBackupTransport> mTransport;
         ActiveRestoreSession* mSession;
-        AutoPtr<IRestoreObserver> mObserver;
+        AutoPtr<IRestoreObserverStub> mObserver;
+        Mutex mSessionLock;
     };
 
     class RestoreParams {
     public:
         RestoreParams(
             /* [in] */ IBackupTransport* _transport,
-            /* [in] */ IRestoreObserver* _obs,
+            /* [in] */ IRestoreObserverStub* _obs,
             /* [in] */ Int64 _token,
             /* [in] */ ICapsuleInfo* _cap,
             /* [in] */ Int32 _pmToken,
@@ -86,13 +87,13 @@ private:
 
         RestoreParams(
             /* [in] */ IBackupTransport* _transport,
-            /* [in] */ IRestoreObserver* _obs,
+            /* [in] */ IRestoreObserverStub* _obs,
             /* [in] */ Int64 _token,
             /* [in] */ Boolean _needFullBackup);
 
     public:
         AutoPtr<IBackupTransport> mTransport;
-        AutoPtr<IRestoreObserver> mObserver;
+        AutoPtr<IRestoreObserverStub> mObserver;
         Int64 mToken;
         AutoPtr<ICapsuleInfo>  mCapInfo;
         Int32 mPmToken; // in post-install restore, the PM's token for this transaction
@@ -128,10 +129,17 @@ private:
     class RunInitializeReceiver
         : public BroadcastReceiver
     {
+    public:
+        RunInitializeReceiver(
+            /* [in] */ CBackupManagerService* host);
+
     protected:
         CARAPI OnReceive(
             /* [in] */ IContext* context,
             /* [in] */ IIntent* intent);
+
+    private:
+        CBackupManagerService* mHost;
     };
 
     class ClearDataObserver
@@ -149,6 +157,13 @@ private:
         CARAPI_(UInt32) AddRef();
 
         CARAPI_(UInt32) Release();
+
+        CARAPI_(PInterface) Probe(
+            /* [in] */ REIID riid);
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
 
     private:
         CBackupManagerService*  mHost;
@@ -216,11 +231,12 @@ private:
     public:
         PerformRestoreTask(
             /* [in] */ IBackupTransport* transport,
-            /* [in] */ IRestoreObserver* observer,
+            /* [in] */ IRestoreObserverStub* observer,
             /* [in] */ Int64 restoreSetToken,
             /* [in] */ ICapsuleInfo* targetPackage,
             /* [in] */ Int32 pmToken,
-            /* [in] */ Boolean needFullBackup);
+            /* [in] */ Boolean needFullBackup,
+            /* [in] */ CBackupManagerService* host);
 
         CARAPI Run();
 
@@ -235,14 +251,22 @@ private:
 
         CARAPI_(UInt32) Release();
 
+        CARAPI_(PInterface) Probe(
+            /* [in] */ REIID riid);
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
     private:
         AutoPtr<IBackupTransport> mTransport;
-        AutoPtr<IRestoreObserver> mObserver;
+        AutoPtr<IRestoreObserverStub> mObserver;
         Int64 mToken;
         AutoPtr<ICapsuleInfo> mTargetPackage;
         AutoPtr<IFile> mStateDir;
         Int32 mPmToken;
         Boolean mNeedFullBackup;
+        CBackupManagerService*  mHost;
     };
 
     class PerformClearTask
@@ -252,7 +276,8 @@ private:
     public:
         PerformClearTask(
             /* [in] */ IBackupTransport* transport,
-            /* [in] */ ICapsuleInfo* capInfo);
+            /* [in] */ ICapsuleInfo* capInfo,
+            /* [in] */ CBackupManagerService* host);
 
         CARAPI Run();
 
@@ -260,9 +285,17 @@ private:
 
         CARAPI_(UInt32) Release();
 
+        CARAPI_(PInterface) Probe(
+            /* [in] */ REIID riid);
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
     private:
         AutoPtr<IBackupTransport> mTransport;
         AutoPtr<ICapsuleInfo> mCapsule;
+        CBackupManagerService*  mHost;
     };
 
     class PerformInitializeTask
@@ -271,7 +304,8 @@ private:
     {
     public:
         PerformInitializeTask(
-            /* [in] */ HashSet<String>* transportNames);
+            /* [in] */ HashSet<String>* transportNames,
+            /* [in] */ CBackupManagerService* host);
 
         CARAPI Run();
 
@@ -288,6 +322,7 @@ private:
 
     private:
         HashSet<String>* mQueue;
+        CBackupManagerService*  mHost;
     };
 
     // ----- Restore session -----
@@ -319,26 +354,48 @@ private:
 
         CARAPI EndRestoreSession();
 
+        CARAPI RestoreCapsule(
+            /* [in] */ const String& capsuleName,
+            /* [in] */ IRestoreObserverStub* observer,
+            /* [out] */ Int32* error);
+
         CARAPI_(UInt32) AddRef();
 
         CARAPI_(UInt32) Release();
+
+        CARAPI_(PInterface) Probe(
+            /* [in] */ REIID riid);
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
 
     private:
         static CString TAG;
 
         String mPackageName;
         AutoPtr<IBackupTransport> mRestoreTransport;
-        List<IRestoreSet>* mRestoreSets;
+        ArrayOf<IRestoreSet*>* mRestoreSets;
         CBackupManagerService* mHost;
+        Mutex mActivieRSLock;
+
+        friend class CBackupManagerService;
     };
 
     class TrackCapsuleInstallAndRemoval
         : public BroadcastReceiver
     {
+    public:
+        TrackCapsuleInstallAndRemoval(
+            /* [in] */ CBackupManagerService* host);
+
     protected:
         CARAPI OnReceive(
             /* [in] */ IContext* context,
             /* [in] */ IIntent* intent);
+
+    private:
+        CBackupManagerService*  mHost;
     };
 
     // ----- Track connection to GoogleBackupTransport service -----
@@ -347,6 +404,9 @@ private:
         , public IServiceConnection
     {
     public:
+        GroupServiceConnection(
+            /* [in] */ CBackupManagerService* host);
+
         CARAPI OnServiceConnected(
             /* [in] */ IComponentName* name,
             /* [in] */ IBinder* service);
@@ -364,6 +424,38 @@ private:
         CARAPI GetInterfaceID(
             /* [in] */ IInterface *pObject,
             /* [out] */ InterfaceID *pIID);
+
+    private:
+        CBackupManagerService*  mHost;
+    };
+
+    class DataChangedRunable
+        : public ElRefBase
+        , public IRunnable
+    {
+    public:
+        DataChangedRunable(
+            /* [in] */ const String& name,
+            /* [in] */ HashSet<AutoPtr<IApplicationInfo> >* targets,
+            /* [in] */ CBackupManagerService* host);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI_(PInterface) Probe(
+            /* [in] */ REIID riid);
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
+        CARAPI Run();
+
+    private:
+        String      mCapsuleName;
+        HashSet<AutoPtr<IApplicationInfo> >* mTargets;
+        CBackupManagerService*  mHost;
     };
 
 public:
@@ -408,7 +500,7 @@ public:
 
     // Report all known, available backup transports
     CARAPI ListAllTransports(
-        /*[out, callee]*/ BufferOf<String>** transports);
+        /*[out, callee]*/ ArrayOf<String>** transports);
 
     // Select which transport to use for the next backup operation.  If the given
     // name is not one of the available transports, no action is taken and the method
@@ -569,6 +661,15 @@ private:
     CARAPI_(void) HandleMSGTimeout(
         /* [in] */ Int32 token);
 
+    CARAPI_(void) HandleGetRestoreSets(
+        /* [in] */ RestoreGetSetsParams* params);
+
+    CARAPI_(void) HandleRestore(
+        /* [in] */ RestoreParams* params);
+
+    CARAPI_(void) HandleClear(
+        /* [in] */ ClearParams* params);
+
     CARAPI_(ArrayOf<Byte>*) StringToByteArray(
         /* [in] */ const String& str);
 
@@ -660,6 +761,7 @@ private:
 
     // Transport bookkeeping
     HashMap<String, AutoPtr<IBackupTransport> > mTransports;
+    Mutex mTransportsLock;
 
     String mCurrentTransport;
     AutoPtr<IBackupTransport> mLocalTransport, mGoogleTransport;
@@ -688,6 +790,7 @@ private:
     // the ancestral dataset.
     AutoPtr<IFile> mEverStored;
     HashSet<String> mEverStoredApps;
+    Mutex mEverStoredAppsLock;
 
     static const Int32 CURRENT_ANCESTRAL_RECORD_VERSION = 1;  // increment when the schema changes
     AutoPtr<IFile> mTokenFile;
@@ -704,6 +807,8 @@ private:
 
     // ----- Track connection to GoogleBackupTransport service -----
     AutoPtr<IServiceConnection> mGoogleConnection;
+
+    Mutex mBackupServiceLock;
 
 private:
     friend class RunBackupReceiver;

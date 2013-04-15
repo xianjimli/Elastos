@@ -150,6 +150,9 @@ public:
     CARAPI SetPublicSourceDir(
         /* [in] */ const String& pubicSourceDir);
 
+    CARAPI GetSharedLibraryFiles(
+        /* [out, callee] */ ArrayOf<String>** sharedLibraryFiles);
+
     CARAPI SetSharedLibraryFiles(
         /* [in] */ ArrayOf<String>* sharedLibraryFiles);
 

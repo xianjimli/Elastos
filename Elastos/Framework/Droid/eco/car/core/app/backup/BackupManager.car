@@ -128,7 +128,7 @@ module
          * hold the android.permission.BACKUP permission to use this method.
          */
         ListAllTransports(
-            [out, callee] BufferOf<String>* transports);
+            [out, callee] ArrayOf<String>* transports);
 
         /**
          * Specify the current backup transport.  Callers must hold the

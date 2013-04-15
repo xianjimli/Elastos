@@ -7,7 +7,9 @@
 #include <Settings.h>
 #include "os/Environment.h"
 #include <elastos/System.h>
+#include "os/SystemClock.h"
 #include "os/Binder.h"
+#include "os/Process.h"
 
 using namespace Elastos::Core;
 using namespace Elastos::Utility::Logging;
@@ -53,7 +55,7 @@ CBackupManagerService::BackupRequest::BackupRequest(
 CBackupManagerService::RestoreGetSetsParams::RestoreGetSetsParams(
     /* [in] */ IBackupTransport* _transport,
     /* [in] */ ActiveRestoreSession* _session,
-    /* [in] */ IRestoreObserver* _observer)
+    /* [in] */ IRestoreObserverStub* _observer)
     : mTransport(_transport)
     , mSession(_session)
     , mObserver(_observer)
@@ -62,7 +64,7 @@ CBackupManagerService::RestoreGetSetsParams::RestoreGetSetsParams(
 
 CBackupManagerService::RestoreParams::RestoreParams(
     /* [in] */ IBackupTransport* _transport,
-    /* [in] */ IRestoreObserver* _obs,
+    /* [in] */ IRestoreObserverStub* _obs,
     /* [in] */ Int64 _token,
     /* [in] */ ICapsuleInfo* _cap,
     /* [in] */ Int32 _pmToken,
@@ -78,7 +80,7 @@ CBackupManagerService::RestoreParams::RestoreParams(
 
 CBackupManagerService::RestoreParams::RestoreParams(
     /* [in] */ IBackupTransport* _transport,
-    /* [in] */ IRestoreObserver* _obs,
+    /* [in] */ IRestoreObserverStub* _obs,
     /* [in] */ Int64 _token,
     /* [in] */ Boolean _needFullBackup)
     : mTransport(_transport)
@@ -156,37 +158,37 @@ ECode CBackupManagerService::RunBackupReceiver::OnReceive(
     return NOERROR;
 }
 
+CBackupManagerService::RunInitializeReceiver::RunInitializeReceiver(
+    /* [in] */ CBackupManagerService* host)
+    : mHost(host)
+{}
 
-
-
-
-//TODO: could't porting.
 ECode CBackupManagerService::RunInitializeReceiver::OnReceive(
     /* [in] */ IContext* context,
     /* [in] */ IIntent* intent)
 {
-    // String action;
-    // assert(intent != NULL);
-    // intent->GetAction(&action);
+    String action;
+    assert(intent != NULL);
+    intent->GetAction(&action);
 
-    // if (RUN_INITIALIZE_ACTION.Equals(action)) {
-    //     {
-    //         Mutex::Autolock lock(mQueueLock);
-    //         if (DEBUG) Slog.v(TAG, "Running a device init");
+    if (RUN_INITIALIZE_ACTION.Equals(action)) {
+        {
+            Mutex::Autolock lock(mHost->mQueueLock);
+            if (DEBUG) Slogger::V(TAG, "Running a device init");
 
-    //         // Acquire the wakelock and pass it to the init thread.  it will
-    //         // be released once init concludes.
-    //         //TODO
-    //         //mWakelock.acquire();
+            // Acquire the wakelock and pass it to the init thread.  it will
+            // be released once init concludes.
+            //TODO
+            //mWakelock.acquire();
 
-    //         void (STDCALL CBackupManagerService::*pHandlerFunc)();
+            void (STDCALL CBackupManagerService::*pHandlerFunc)();
 
-    //         pHandlerFunc = &CBackupManagerService::HandleRunInitilize;
-    //         mHost->mBackupHandler->PostCppCallbackDelayed(
-    //             (Handle32)mHost, *(Handle32*)&pHandlerFunc,
-    //             NULL, 0, 0);
-    //     }
-    // }
+            pHandlerFunc = &CBackupManagerService::HandleRunInitilize;
+            mHost->mBackupHandler->PostCppCallbackDelayed(
+                (Handle32)mHost, *(Handle32*)&pHandlerFunc,
+                NULL, 0, 0);
+        }
+    }
 
     return NOERROR;
 }
@@ -201,13 +203,15 @@ ECode CBackupManagerService::ClearDataObserver::OnRemoveCompleted(
     /* [in] */ const String& packageName,
     /* [in] */ Boolean succeeded)
 {
-    // {
-    //     Mutex::Autolock lock(mHost->mClearDataLock);
-    //     mClearingData = FALSE;
-    //     mClearDataLock.notifyAll();
-    // }
+    {
+        Mutex::Autolock lock(mHost->mClearDataLock);
+        mHost->mClearingData = FALSE;
 
-    return E_NOT_IMPLEMENTED;
+        // TODO
+        //mClearDataLock.notifyAll();
+    }
+
+    return NOERROR;
 }
 
 UInt32 CBackupManagerService::ClearDataObserver::AddRef()
@@ -220,6 +224,33 @@ UInt32 CBackupManagerService::ClearDataObserver::Release()
     return ElRefBase::Release();
 }
 
+PInterface CBackupManagerService::ClearDataObserver::Probe(
+    /* [in] */ REIID riid)
+{
+    if (riid == EIID_ICapsuleDataObserver) {
+        return (PInterface)this;
+    }
+
+    return NULL;
+}
+
+ECode CBackupManagerService::ClearDataObserver::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{
+    if (pIID == NULL) {
+        return E_INVALID_ARGUMENT;
+    }
+
+    if (pObject == (IInterface*)(ICapsuleDataObserver*)this) {
+        *pIID = EIID_ICapsuleDataObserver;
+    }
+    else {
+        return E_INVALID_ARGUMENT;
+    }
+    return NOERROR;
+}
+
 CBackupManagerService::PerformBackupTask::PerformBackupTask(
     /* [in] */ IBackupTransport* transport,
     /* [in] */ List<BackupRequest*>* queue,
@@ -230,157 +261,184 @@ CBackupManagerService::PerformBackupTask::PerformBackupTask(
     , mJournal(journal)
     , mHost(host)
 {
-    // String dirName;
-    // assert(transport != NULL);
-    // transport->TransportDirName(&dirName);
-    // CFile::New(mBaseStateDir, dirName, (IFile**) &mStateDir);
-    // // } catch (RemoteException e) {
-    // //     // can't happen; the transport is local
-    // // }
+    String dirName;
+    assert(transport != NULL);
+    transport->TransportDirName(&dirName);
+    CFile::New(mHost->mBaseStateDir, dirName, (IFile**) &mStateDir);
+    // } catch (RemoteException e) {
+    //     // can't happen; the transport is local
+    // }
 }
 
 ECode CBackupManagerService::PerformBackupTask::Run()
 {
-    // Int32 status = BackupConstants_TRANSPORT_OK;
-    // Int64 startRealtime = SystemClock.elapsedRealtime();
-    // if (DEBUG) Slog.v(TAG, "Beginning backup of " + mQueue.size() + " targets");
+    Int32 status = BackupConstants::TRANSPORT_OK;
+    //Int64 startRealtime = SystemClock::GetElapsedRealtime();
+    assert(mQueue != NULL);
+    if (DEBUG) Slogger::V(TAG, StringBuffer("Beginning backup of ") + mQueue->GetSize() + " targets");
 
-    // // Backups run at background priority
-    // Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
+    // Backups run at background priority
+    Process::SetThreadPriority(Process::THREAD_PRIORITY_BACKGROUND);
 
-    // try {
-    //     EventLog.writeEvent(EventLogTags.BACKUP_START, mTransport.transportDirName());
+    //EventLog.writeEvent(EventLogTags.BACKUP_START, mTransport.transportDirName());
 
-    //     // If we haven't stored package manager metadata yet, we must init the transport.
-    //     File pmState = new File(mStateDir, PACKAGE_MANAGER_SENTINEL);
-    //     if (status == BackupConstants.TRANSPORT_OK && pmState.length() <= 0) {
-    //         Slog.i(TAG, "Initializing (wiping) backup state and transport storage");
-    //         resetBackupState(mStateDir);  // Just to make sure.
-    //         status = mTransport.initializeDevice();
-    //         if (status == BackupConstants.TRANSPORT_OK) {
-    //             EventLog.writeEvent(EventLogTags.BACKUP_INITIALIZE);
-    //         } else {
-    //             EventLog.writeEvent(EventLogTags.BACKUP_TRANSPORT_FAILURE, "(initialize)");
-    //             Slog.e(TAG, "Transport error in initializeDevice()");
-    //         }
-    //     }
+    // If we haven't stored package manager metadata yet, we must init the transport.
+    AutoPtr<IFile> pmState;
+    CFile::New(mStateDir, String((const char*)PACKAGE_MANAGER_SENTINEL),
+            (IFile**) &pmState);
+    assert(pmState != NULL);
 
-    //     // The package manager doesn't have a proper <application> etc, but since
-    //     // it's running here in the system process we can just set up its agent
-    //     // directly and use a synthetic BackupRequest.  We always run this pass
-    //     // because it's cheap and this way we guarantee that we don't get out of
-    //     // step even if we're selecting among various transports at run time.
-    //     if (status == BackupConstants.TRANSPORT_OK) {
-    //         PackageManagerBackupAgent pmAgent = new PackageManagerBackupAgent(
-    //                 mPackageManager, allAgentPackages());
-    //         BackupRequest pmRequest = new BackupRequest(new ApplicationInfo(), FALSE);
-    //         pmRequest.appInfo.packageName = PACKAGE_MANAGER_SENTINEL;
-    //         status = processOneBackup(pmRequest,
-    //                 IBackupAgent.Stub.asInterface(pmAgent.onBind()), mTransport);
-    //     }
+    Int64 len = 0;
+    pmState->GetLength(&len);
+    if (status == BackupConstants::TRANSPORT_OK && len <= 0) {
+        Slogger::I(TAG, "Initializing (wiping) backup state and transport storage");
+        mHost->ResetBackupState(mStateDir);  // Just to make sure.
 
-    //     if (status == BackupConstants.TRANSPORT_OK) {
-    //         // Now run all the backups in our queue
-    //         status = doQueuedBackups(mTransport);
-    //     }
+        Int32 error = 0;
+        status = mTransport->InitializeDevice(&error);
+        if (status == BackupConstants::TRANSPORT_OK) {
+            //EventLog.writeEvent(EventLogTags.BACKUP_INITIALIZE);
+        } else {
+            //EventLog.writeEvent(EventLogTags.BACKUP_TRANSPORT_FAILURE, "(initialize)");
+            Slogger::E(TAG, "Transport error in initializeDevice()");
+        }
+    }
 
-    //     if (status == BackupConstants.TRANSPORT_OK) {
-    //         // Tell the transport to finish everything it has buffered
-    //         status = mTransport.finishBackup();
-    //         if (status == BackupConstants.TRANSPORT_OK) {
-    //             Int32 millis = (Int32) (SystemClock.elapsedRealtime() - startRealtime);
-    //             EventLog.writeEvent(EventLogTags.BACKUP_SUCCESS, mQueue.size(), millis);
-    //         } else {
-    //             EventLog.writeEvent(EventLogTags.BACKUP_TRANSPORT_FAILURE, "(finish)");
-    //             Slog.e(TAG, "Transport error in finishBackup()");
-    //         }
-    //     }
+    // The package manager doesn't have a proper <application> etc, but since
+    // it's running here in the system process we can just set up its agent
+    // directly and use a synthetic BackupRequest.  We always run this pass
+    // because it's cheap and this way we guarantee that we don't get out of
+    // step even if we're selecting among various transports at run time.
+    if (status == BackupConstants::TRANSPORT_OK) {
+        assert(0);
+        //TODO
+        // PackageManagerBackupAgent pmAgent = new PackageManagerBackupAgent(
+        //         mPackageManager, allAgentPackages());
+        // BackupRequest pmRequest = new BackupRequest(new ApplicationInfo(), FALSE);
+        // pmRequest.appInfo.packageName = PACKAGE_MANAGER_SENTINEL;
+        // status = processOneBackup(pmRequest,
+        //         IBackupAgent.Stub.asInterface(pmAgent.onBind()), mTransport);
+    }
 
-    //     if (status == BackupConstants.TRANSPORT_NOT_INITIALIZED) {
-    //         // The backend reports that our dataset has been wiped.  We need to
-    //         // reset all of our bookkeeping and instead run a new backup pass for
-    //         // everything.
-    //         EventLog.writeEvent(EventLogTags.BACKUP_RESET, mTransport.transportDirName());
-    //         resetBackupState(mStateDir);
-    //     }
-    // } catch (Exception e) {
+    if (status == BackupConstants::TRANSPORT_OK) {
+        // Now run all the backups in our queue
+        status = DoQueuedBackups(mTransport);
+    }
+
+    if (status == BackupConstants::TRANSPORT_OK) {
+        // Tell the transport to finish everything it has buffered
+        mTransport->FinishBackup(&status);
+        if (status == BackupConstants::TRANSPORT_OK) {
+            //Int32 millis = (Int32) (SystemClock::GetElapsedRealtime() - startRealtime);
+            //EventLog.writeEvent(EventLogTags.BACKUP_SUCCESS, mQueue.size(), millis);
+        } else {
+            //EventLog.writeEvent(EventLogTags.BACKUP_TRANSPORT_FAILURE, "(finish)");
+            Slogger::E(TAG, "Transport error in finishBackup()");
+        }
+    }
+
+    if (status == BackupConstants::TRANSPORT_NOT_INITIALIZED) {
+        // The backend reports that our dataset has been wiped.  We need to
+        // reset all of our bookkeeping and instead run a new backup pass for
+        // everything.
+        //EventLog.writeEvent(EventLogTags.BACKUP_RESET, mTransport.transportDirName());
+        mHost->ResetBackupState(mStateDir);
+    }
+
+    // catch (Exception e) {
     //     Slog.e(TAG, "Error in backup thread", e);
     //     status = BackupConstants.TRANSPORT_ERROR;
-    // } finally {
-    //     // If everything actually went through and this is the first time we've
-    //     // done a backup, we can now record what the current backup dataset token
-    //     // is.
-    //     if ((mCurrentToken == 0) && (status == BackupConstants.TRANSPORT_OK)) {
-    //         try {
-    //             mCurrentToken = mTransport.getCurrentRestoreSet();
-    //         } catch (RemoteException e) { /* cannot happen */ }
-    //         writeRestoreTokens();
-    //     }
-
-    //     // If things went wrong, we need to re-stage the apps we had expected
-    //     // to be backing up in this pass.  This journals the package names in
-    //     // the current active pending-backup file, not in the we are holding
-    //     // here in mJournal.
-    //     if (status != BackupConstants.TRANSPORT_OK) {
-    //         Slog.w(TAG, "Backup pass unsuccessful, restaging");
-    //         for (BackupRequest req : mQueue) {
-    //             dataChangedImpl(req.appInfo.packageName);
-    //         }
-
-    //         // We also want to reset the backup schedule based on whatever
-    //         // the transport suggests by way of retry/backoff time.
-    //         try {
-    //             startBackupAlarmsLocked(mTransport.requestBackupTime());
-    //         } catch (RemoteException e) { /* cannot happen */ }
-    //     }
-
-    //     // Either backup was successful, in which case we of course do not need
-    //     // this pass's journal any more; or it failed, in which case we just
-    //     // re-enqueued all of these packages in the current active journal.
-    //     // Either way, we no longer need this pass's journal.
-    //     if (mJournal != NULL && !mJournal.delete()) {
-    //         Slog.e(TAG, "Unable to remove backup journal file " + mJournal);
-    //     }
-
-    //     // Only once we're entirely finished do we release the wakelock
-    //     if (status == BackupConstants.TRANSPORT_NOT_INITIALIZED) {
-    //         backupNow();
-    //     }
-
-    //     mWakelock.release();
     // }
+    //finally {
+    // If everything actually went through and this is the first time we've
+    // done a backup, we can now record what the current backup dataset token
+    // is.
+    if ((mHost->mCurrentToken == 0) && (status == BackupConstants::TRANSPORT_OK)) {
+        //try {
+        mTransport->GetCurrentRestoreSet(&(mHost->mCurrentToken));
+        //} catch (RemoteException e) { /* cannot happen */ }
+        mHost->WriteRestoreTokens();
+    }
 
-    return E_NOT_IMPLEMENTED;
+    // If things went wrong, we need to re-stage the apps we had expected
+    // to be backing up in this pass.  This journals the package names in
+    // the current active pending-backup file, not in the we are holding
+    // here in mJournal.
+    if (status != BackupConstants::TRANSPORT_OK) {
+        Slogger::W(TAG, "Backup pass unsuccessful, restaging");
+        if (mQueue != NULL) {
+            List<BackupRequest*>::Iterator req = mQueue->Begin();
+            for (; req != mQueue->End(); ++req) {
+                assert((*req)->mAppInfo != NULL);
+
+                String name;
+                (*req)->mAppInfo->GetCapsuleName(&name);
+                mHost->DataChangedImpl(name);
+            }
+        }
+
+        // We also want to reset the backup schedule based on whatever
+        // the transport suggests by way of retry/backoff time.
+        //try {
+        Int64 t = 0;
+        mTransport->RequestBackupTime(&t);
+        mHost->StartBackupAlarmsLocked(t);
+        //} catch (RemoteException e) { /* cannot happen */ }
+    }
+
+    // Either backup was successful, in which case we of course do not need
+    // this pass's journal any more; or it failed, in which case we just
+    // re-enqueued all of these packages in the current active journal.
+    // Either way, we no longer need this pass's journal.
+    Boolean df = FALSE;
+    if (mJournal != NULL && (mJournal->Delete(&df), !df)) {
+        Slogger::E(TAG, "Unable to remove backup journal file " + mJournal);
+    }
+
+    // Only once we're entirely finished do we release the wakelock
+    if (status == BackupConstants::TRANSPORT_NOT_INITIALIZED) {
+        mHost->BackupNow();
+    }
+
+    //TODO
+    //mWakelock.release();
+
+    return NOERROR;
 }
 
 Int32 CBackupManagerService::PerformBackupTask::DoQueuedBackups(
     /* [in] */ IBackupTransport* transport)
 {
-    // for (BackupRequest request : mQueue) {
-    //     Slog.d(TAG, "starting agent for backup of " + request);
+    assert(mQueue != NULL);
+    List<BackupRequest*>::Iterator request = mQueue->Begin();
+    for (; request != mQueue->End(); ++ request) {
+        //Slogger::D(TAG, StringBuffer("starting agent for backup of ") + request);
+        AutoPtr<IBackupAgent> agent;
+        Int32 mode = ((*request)->mFullBackup)
+                ? ApplicationApartment_BACKUP_MODE_FULL
+                : ApplicationApartment_BACKUP_MODE_INCREMENTAL;
+        //try {
+        //TODO
+        //mWakelock.setWorkSource(new WorkSource((*request)->mAppInfo.uid));
+        agent = mHost->BindToAgentSynchronous((*request)->mAppInfo, mode);
+        if (agent != NULL) {
+            Int32 result = ProcessOneBackup((*request), agent, transport);
+            if (result != BackupConstants::TRANSPORT_OK) {
+                return result;
+            }
+        }
+        // } catch (SecurityException ex) {
+        //     // Try for the next one.
+        //     Slog.d(TAG, "error in bind/backup", ex);
+        // } finally {
+        //try {  // unbind even on timeout, just in case
+        mHost->mActivityManager->UnbindBackupAgent((*request)->mAppInfo);
+        //} catch (RemoteException e) {}
+        //}
+    }
 
-    //     IBackupAgent agent = NULL;
-    //     Int32 mode = (request.fullBackup)
-    //             ? IApplicationThread.BACKUP_MODE_FULL
-    //             : IApplicationThread.BACKUP_MODE_INCREMENTAL;
-    //     try {
-    //         mWakelock.setWorkSource(new WorkSource(request.appInfo.uid));
-    //         agent = bindToAgentSynchronous(request.appInfo, mode);
-    //         if (agent != NULL) {
-    //             Int32 result = processOneBackup(request, agent, transport);
-    //             if (result != BackupConstants.TRANSPORT_OK) return result;
-    //         }
-    //     } catch (SecurityException ex) {
-    //         // Try for the next one.
-    //         Slog.d(TAG, "error in bind/backup", ex);
-    //     } finally {
-    //         try {  // unbind even on timeout, just in case
-    //             mActivityManager.unbindBackupAgent(request.appInfo);
-    //         } catch (RemoteException e) {}
-    //     }
-    // }
-
-    // mWakelock.setWorkSource(NULL);
+    //TODO
+    //mWakelock.setWorkSource(NULL);
 
     return BackupConstants::TRANSPORT_OK;
 }
@@ -390,64 +448,80 @@ Int32 CBackupManagerService::PerformBackupTask::ProcessOneBackup(
     /* [in] */ IBackupAgent* agent,
     /* [in] */ IBackupTransport* transport)
 {
-    // final String packageName = request.appInfo.packageName;
-    // if (DEBUG) Slog.d(TAG, "processOneBackup doBackup() on " + packageName);
+    assert(request != NULL && request->mAppInfo != NULL);
+    String packageName;
 
-    // File savedStateName = new File(mStateDir, packageName);
-    // File backupDataName = new File(mDataDir, packageName + ".data");
-    // File newStateName = new File(mStateDir, packageName + ".new");
+    request->mAppInfo->GetCapsuleName(&packageName);
+    if (DEBUG) Slogger::D(TAG, "processOneBackup doBackup() on " + packageName);
 
-    // ParcelFileDescriptor savedState = NULL;
-    // ParcelFileDescriptor backupData = NULL;
-    // ParcelFileDescriptor newState = NULL;
+    AutoPtr<IFile> savedStateName;
+    CFile::New(mStateDir, packageName, (IFile**) &savedStateName);
 
-    // PackageInfo packInfo;
+    AutoPtr<IFile> backupDataName;
+    CFile::New(mHost->mDataDir, packageName + ".data", (IFile**) &backupDataName);
+    AutoPtr<IFile> newStateName;
+    CFile::New(mStateDir, packageName + ".new", (IFile**) &newStateName);
 
-    // srand(time(NULL));
-    // Int32 token = rand();
-    // try {
-    //     // Look up the package info & signatures.  This is first so that if it
-    //     // throws an exception, there's no file setup yet that would need to
-    //     // be unraveled.
-    //     if (packageName.equals(PACKAGE_MANAGER_SENTINEL)) {
-    //         // The metadata 'package' is synthetic
-    //         packInfo = new PackageInfo();
-    //         packInfo.packageName = packageName;
-    //     } else {
-    //         packInfo = mPackageManager.getPackageInfo(packageName,
-    //             PackageManager.GET_SIGNATURES);
-    //     }
+    AutoPtr<IParcelFileDescriptorHelper> helper;
+    FAIL_RETURN(CParcelFileDescriptorHelper::AcquireSingleton(
+        (IParcelFileDescriptorHelper**)&helper));
 
-    //     // In a full backup, we pass a NULL ParcelFileDescriptor as
-    //     // the saved-state "file"
-    //     if (!request.fullBackup) {
-    //         savedState = ParcelFileDescriptor.open(savedStateName,
-    //                 ParcelFileDescriptor.MODE_READ_ONLY |
-    //                 ParcelFileDescriptor.MODE_CREATE);  // Make an empty file if necessary
-    //     }
+    AutoPtr<IParcelFileDescriptor> savedState;
+    AutoPtr<IParcelFileDescriptor> backupData;
+    AutoPtr<IParcelFileDescriptor> newState;
 
-    //     backupData = ParcelFileDescriptor.open(backupDataName,
-    //             ParcelFileDescriptor.MODE_READ_WRITE |
-    //             ParcelFileDescriptor.MODE_CREATE |
-    //             ParcelFileDescriptor.MODE_TRUNCATE);
+    AutoPtr<ICapsuleInfo> packInfo;
 
-    //     newState = ParcelFileDescriptor.open(newStateName,
-    //             ParcelFileDescriptor.MODE_READ_WRITE |
-    //             ParcelFileDescriptor.MODE_CREATE |
-    //             ParcelFileDescriptor.MODE_TRUNCATE);
+    srand(time(NULL));
+    Int32 token = rand();
+    //try {
+    // Look up the package info & signatures.  This is first so that if it
+    // throws an exception, there's no file setup yet that would need to
+    // be unraveled.
+    if (packageName.Equals((const char*)PACKAGE_MANAGER_SENTINEL)) {
+        // The metadata 'package' is synthetic
+        CCapsuleInfo::New((ICapsuleInfo**) &packInfo);
+        assert(packInfo != NULL);
+        packInfo->SetCapsuleName(packageName);
+    } else {
+        mHost->mPackageManager->GetCapsuleInfo(packageName, CapsuleManager_GET_SIGNATURES,
+            (ICapsuleInfo**) &packInfo);
+    }
 
-    //     // Initiate the target's backup pass
-    //     prepareOperationTimeout(token, TIMEOUT_BACKUP_INTERVAL);
-    //     agent.doBackup(savedState, backupData, newState, token, mBackupManagerBinder);
-    //     Boolean success = waitUntilOperationComplete(token);
+    // In a full backup, we pass a NULL ParcelFileDescriptor as
+    // the saved-state "file"
+    if (!request->mFullBackup) {
+        helper->Open(savedStateName,
+                ParcelFileDescriptor_MODE_READ_ONLY |
+                ParcelFileDescriptor_MODE_CREATE,
+                (IParcelFileDescriptor**)&savedState);  // Make an empty file if necessary
+    }
 
-    //     if (!success) {
-    //         // timeout -- bail out into the failed-transaction logic
-    //         throw new RuntimeException("Backup timeout");
-    //     }
+    helper->Open(backupDataName,
+            ParcelFileDescriptor_MODE_READ_WRITE |
+            ParcelFileDescriptor_MODE_CREATE |
+            ParcelFileDescriptor_MODE_TRUNCATE,
+            (IParcelFileDescriptor**) &backupData);
 
-    //     logBackupComplete(packageName);
-    //     if (DEBUG) Slog.v(TAG, "doBackup() success");
+    helper->Open(newStateName,
+            ParcelFileDescriptor_MODE_READ_WRITE |
+            ParcelFileDescriptor_MODE_CREATE |
+            ParcelFileDescriptor_MODE_TRUNCATE,
+            (IParcelFileDescriptor**) &newState);
+
+    // Initiate the target's backup pass
+    mHost->PrepareOperationTimeout(token, TIMEOUT_BACKUP_INTERVAL);
+    agent->DoBackup(savedState, backupData, newState, token, mHost->mBackupManagerBinder);
+    Boolean success = mHost->WaitUntilOperationComplete(token);
+
+    if (!success) {
+        // timeout -- bail out into the failed-transaction logic
+        //throw new RuntimeException("Backup timeout");
+        assert(0);
+    }
+
+    mHost->LogBackupComplete(packageName);
+    if (DEBUG) Slogger::V(TAG, "doBackup() success");
     // } catch (Exception e) {
     //     Slog.e(TAG, "Error backing up " + packageName, e);
     //     EventLog.writeEvent(EventLogTags.BACKUP_AGENT_FAILURE, packageName, e.toString());
@@ -455,60 +529,82 @@ Int32 CBackupManagerService::PerformBackupTask::ProcessOneBackup(
     //     newStateName.delete();
     //     return BackupConstants.TRANSPORT_ERROR;
     // } finally {
-    //     try { if (savedState != NULL) savedState.close(); } catch (IOException e) {}
-    //     try { if (backupData != NULL) backupData.close(); } catch (IOException e) {}
-    //     try { if (newState != NULL) newState.close(); } catch (IOException e) {}
-    //     savedState = backupData = newState = NULL;
-    //     synchronized (mCurrentOpLock) {
-    //         mCurrentOperations.clear();
-    //     }
-    // }
+    //try {
+    if (savedState != NULL) {
+        savedState->Close();
+    }
+    //} catch (IOException e) {}
 
-    // // Now propagate the newly-backed-up data to the transport
-    // Int32 result = BackupConstants.TRANSPORT_OK;
-    // try {
-    //     Int32 size = (Int32) backupDataName.length();
-    //     if (size > 0) {
-    //         if (result == BackupConstants.TRANSPORT_OK) {
-    //             backupData = ParcelFileDescriptor.open(backupDataName,
-    //                     ParcelFileDescriptor.MODE_READ_ONLY);
-    //             result = transport.performBackup(packInfo, backupData);
-    //         }
+    //try {
+    if (backupData != NULL) {
+        backupData->Close();
+    }
+    //} catch (IOException e) {}
 
-    //         // TODO - We call finishBackup() for each application backed up, because
-    //         // we need to know now whether it succeeded or failed.  Instead, we should
-    //         // hold off on finishBackup() until the end, which implies holding off on
-    //         // renaming *all* the output state files (see below) until that happens.
+    //try {
+    if (newState != NULL) {
+        newState->Close();
+    }
+    //} catch (IOException e) {}
 
-    //         if (result == BackupConstants.TRANSPORT_OK) {
-    //             result = transport.finishBackup();
-    //         }
-    //     } else {
-    //         if (DEBUG) Slog.i(TAG, "no backup data written; not calling transport");
-    //     }
+    savedState = backupData = newState = NULL;
 
-    //     // After successful transport, delete the now-stale data
-    //     // and juggle the files so that next time we supply the agent
-    //     // with the new state file it just created.
-    //     if (result == BackupConstants.TRANSPORT_OK) {
-    //         backupDataName.delete();
-    //         newStateName.renameTo(savedStateName);
-    //         EventLog.writeEvent(EventLogTags.BACKUP_PACKAGE, packageName, size);
-    //     } else {
-    //         EventLog.writeEvent(EventLogTags.BACKUP_TRANSPORT_FAILURE, packageName);
-    //     }
+    {
+        Mutex::Autolock lock(mHost->mCurrentOpLock);
+        mHost->mCurrentOperations->Clear();
+    }
+    //}
+
+    // Now propagate the newly-backed-up data to the transport
+    Int32 result = BackupConstants::TRANSPORT_OK;
+    //try {
+    Int32 size = 0;
+    backupDataName->GetLength((Int64*) &size);
+    if (size > 0) {
+        if (result == BackupConstants::TRANSPORT_OK) {
+            helper->Open(backupDataName,
+                    ParcelFileDescriptor_MODE_READ_ONLY,
+                    (IParcelFileDescriptor**) &backupData);
+
+            transport->PerformBackup(packInfo, backupData, &result);
+        }
+
+        // TODO - We call finishBackup() for each application backed up, because
+        // we need to know now whether it succeeded or failed.  Instead, we should
+        // hold off on finishBackup() until the end, which implies holding off on
+        // renaming *all* the output state files (see below) until that happens.
+
+        if (result == BackupConstants::TRANSPORT_OK) {
+            transport->FinishBackup(&result);
+        }
+    } else {
+        if (DEBUG) Slogger::I(TAG, "no backup data written; not calling transport");
+    }
+
+    // After successful transport, delete the now-stale data
+    // and juggle the files so that next time we supply the agent
+    // with the new state file it just created.
+    if (result == BackupConstants::TRANSPORT_OK) {
+        Boolean t = FALSE;
+        backupDataName->Delete(&t);
+        newStateName->RenameTo(savedStateName, &t);
+        //EventLog.writeEvent(EventLogTags.BACKUP_PACKAGE, packageName, size);
+    } else {
+        //EventLog.writeEvent(EventLogTags.BACKUP_TRANSPORT_FAILURE, packageName);
+    }
     // } catch (Exception e) {
     //     Slog.e(TAG, "Transport error backing up " + packageName, e);
     //     EventLog.writeEvent(EventLogTags.BACKUP_TRANSPORT_FAILURE, packageName);
     //     result = BackupConstants.TRANSPORT_ERROR;
     // } finally {
-    //     try { if (backupData != NULL) backupData.close(); } catch (IOException e) {}
-    // }
+    //try {
+    if (backupData != NULL) {
+        backupData->Close();
+    }
+   // } catch (IOException e) {}
+    //}
 
-    // return result;
-
-    //TODO
-    return 0xffff;
+    return result;
 }
 
 UInt32 CBackupManagerService::PerformBackupTask::AddRef()
@@ -558,20 +654,24 @@ CBackupManagerService::PerformRestoreTask::RestoreRequest::RestoreRequest(
 
 CBackupManagerService::PerformRestoreTask::PerformRestoreTask(
     /* [in] */ IBackupTransport* transport,
-    /* [in] */ IRestoreObserver* observer,
+    /* [in] */ IRestoreObserverStub* observer,
     /* [in] */ Int64 restoreSetToken,
     /* [in] */ ICapsuleInfo* targetPackage,
     /* [in] */ Int32 pmToken,
-    /* [in] */ Boolean needFullBackup)
+    /* [in] */ Boolean needFullBackup,
+    /* [in] */ CBackupManagerService* host)
     : mTransport(transport)
     , mObserver(observer)
     , mToken(restoreSetToken)
     , mTargetPackage(targetPackage)
     , mPmToken(pmToken)
     , mNeedFullBackup(needFullBackup)
+    , mHost(host)
 {
-    // try {
-    //     mStateDir = new File(mBaseStateDir, transport.transportDirName());
+    String name;
+    transport->TransportDirName(&name);
+    //try {
+    CFile::New(mHost->mBaseStateDir, name, (IFile**) &mStateDir);
     // } catch (RemoteException e) {
     //     // can't happen; the transport is local
     // }
@@ -579,10 +679,11 @@ CBackupManagerService::PerformRestoreTask::PerformRestoreTask(
 
 ECode CBackupManagerService::PerformRestoreTask::Run()
 {
-    // Int64 startRealtime = SystemClock.elapsedRealtime();
-    // if (DEBUG) Slog.v(TAG, "Beginning restore process mTransport=" + mTransport
-    //         + " mObserver=" + mObserver + " mToken=" + Long.toHexString(mToken)
-    //         + " mTargetPackage=" + mTargetPackage + " mPmToken=" + mPmToken);
+    assert(0);
+    // Int64 startRealtime = SystemClock::GetElapsedRealtime();
+    // // if (DEBUG) Slogger::V(TAG, "Beginning restore process mTransport=" + mTransport
+    // //         + " mObserver=" + mObserver + " mToken=" + Long.toHexString(mToken)
+    // //         + " mTargetPackage=" + mTargetPackage + " mPmToken=" + mPmToken);
 
     // PackageManagerBackupAgent pmAgent = NULL;
     // Int32 error = -1; // assume error
@@ -823,71 +924,93 @@ void CBackupManagerService::PerformRestoreTask::ProcessOneRestore(
     /* [in] */ IBackupAgent* agent,
     /* [in] */ Boolean needFullBackup)
 {
-    // // !!! TODO: actually run the restore through mTransport
-    // final String packageName = app.packageName;
+    // !!! TODO: actually run the restore through mTransport
+    assert(app != NULL);
+    String packageName;
+    app->GetCapsuleName(&packageName);
 
-    // if (DEBUG) Slog.d(TAG, "processOneRestore packageName=" + packageName);
+    if (DEBUG) Slogger::D(TAG, "processOneRestore packageName=" + packageName);
 
-    // // !!! TODO: get the dirs from the transport
-    // File backupDataName = new File(mDataDir, packageName + ".restore");
-    // File newStateName = new File(mStateDir, packageName + ".new");
-    // File savedStateName = new File(mStateDir, packageName);
+    // !!! TODO: get the dirs from the transport
+    AutoPtr<IFile> backupDataName;
+    CFile::New(mHost->mDataDir, packageName + ".restore", (IFile**) &backupDataName);
 
-    // ParcelFileDescriptor backupData = NULL;
-    // ParcelFileDescriptor newState = NULL;
+    AutoPtr<IFile> newStateName;
+    CFile::New(mStateDir, packageName + ".new", (IFile**) &newStateName);
 
-    // srand(time(NULL));
-    // Int32 token = rand();
+    AutoPtr<IFile> savedStateName;
+    CFile::New(mStateDir, packageName, (IFile**) &savedStateName);
+
+    AutoPtr<IParcelFileDescriptor> backupData;
+    AutoPtr<IParcelFileDescriptor> newState;
+
+    AutoPtr<IParcelFileDescriptorHelper> helper;
+    CParcelFileDescriptorHelper::AcquireSingleton(
+        (IParcelFileDescriptorHelper**)&helper);
+    assert(helper != NULL);
+
+    srand(time(NULL));
+    Int32 token = rand();
     // try {
-    //     // Run the transport's restore pass
-    //     backupData = ParcelFileDescriptor.open(backupDataName,
-    //                 ParcelFileDescriptor.MODE_READ_WRITE |
-    //                 ParcelFileDescriptor.MODE_CREATE |
-    //                 ParcelFileDescriptor.MODE_TRUNCATE);
+    // Run the transport's restore pass
+    helper->Open(backupDataName,
+                ParcelFileDescriptor_MODE_READ_WRITE |
+                ParcelFileDescriptor_MODE_CREATE |
+                ParcelFileDescriptor_MODE_TRUNCATE,
+                (IParcelFileDescriptor**) &backupData);
 
-    //     if (mTransport.getRestoreData(backupData) != BackupConstants.TRANSPORT_OK) {
-    //         Slog.e(TAG, "Error getting restore data for " + packageName);
-    //         EventLog.writeEvent(EventLogTags.RESTORE_TRANSPORT_FAILURE);
-    //         return;
-    //     }
+    Int32 data = 0, error = 0;
+    mTransport->GetRestoreData(backupData, &error);
+    if (data != BackupConstants::TRANSPORT_OK) {
+        Slogger::E(TAG, "Error getting restore data for " + packageName);
+        //EventLog.writeEvent(EventLogTags.RESTORE_TRANSPORT_FAILURE);
+        return;
+    }
 
-    //     // Okay, we have the data.  Now have the agent do the restore.
-    //     backupData.close();
-    //     backupData = ParcelFileDescriptor.open(backupDataName,
-    //                 ParcelFileDescriptor.MODE_READ_ONLY);
+    // Okay, we have the data.  Now have the agent do the restore.
+    backupData->Close();
+    helper->Open(backupDataName,
+                ParcelFileDescriptor_MODE_READ_ONLY,
+                (IParcelFileDescriptor**) &backupData);
 
-    //     newState = ParcelFileDescriptor.open(newStateName,
-    //                 ParcelFileDescriptor.MODE_READ_WRITE |
-    //                 ParcelFileDescriptor.MODE_CREATE |
-    //                 ParcelFileDescriptor.MODE_TRUNCATE);
+    helper->Open(newStateName,
+                ParcelFileDescriptor_MODE_READ_WRITE |
+                ParcelFileDescriptor_MODE_CREATE |
+                ParcelFileDescriptor_MODE_TRUNCATE,
+                (IParcelFileDescriptor**) &newState);
 
-    //     // Kick off the restore, checking for hung agents
-    //     prepareOperationTimeout(token, TIMEOUT_RESTORE_INTERVAL);
-    //     agent.doRestore(backupData, appVersionCode, newState, token, mBackupManagerBinder);
-    //     Boolean success = waitUntilOperationComplete(token);
+    // Kick off the restore, checking for hung agents
+    mHost->PrepareOperationTimeout(token, TIMEOUT_RESTORE_INTERVAL);
+    agent->DoRestore(backupData, appVersionCode, newState, token,
+            mHost->mBackupManagerBinder);
 
-    //     if (!success) {
-    //         throw new RuntimeException("restore timeout");
-    //     }
+    Boolean success = mHost->WaitUntilOperationComplete(token);
 
-    //     // if everything went okay, remember the recorded state now
-    //     //
-    //     // !!! TODO: the restored data should be migrated on the server
-    //     // side into the current dataset.  In that case the new state file
-    //     // we just created would reflect the data already extant in the
-    //     // backend, so there'd be nothing more to do.  Until that happens,
-    //     // however, we need to make sure that we record the data to the
-    //     // current backend dataset.  (Yes, this means shipping the data over
-    //     // the wire in both directions.  That's bad, but consistency comes
-    //     // first, then efficiency.)  Once we introduce server-side data
-    //     // migration to the newly-restored device's dataset, we will change
-    //     // the following from a discard of the newly-written state to the
-    //     // "correct" operation of renaming into the canonical state blob.
-    //     newStateName.delete();                      // TODO: remove; see above comment
-    //     //newStateName.renameTo(savedStateName);    // TODO: replace with this
+    if (!success) {
+        assert(0);
+        //throw new RuntimeException("restore timeout");
+    }
 
-    //     Int32 size = (Int32) backupDataName.length();
-    //     EventLog.writeEvent(EventLogTags.RESTORE_PACKAGE, packageName, size);
+    // if everything went okay, remember the recorded state now
+    //
+    // !!! TODO: the restored data should be migrated on the server
+    // side into the current dataset.  In that case the new state file
+    // we just created would reflect the data already extant in the
+    // backend, so there'd be nothing more to do.  Until that happens,
+    // however, we need to make sure that we record the data to the
+    // current backend dataset.  (Yes, this means shipping the data over
+    // the wire in both directions.  That's bad, but consistency comes
+    // first, then efficiency.)  Once we introduce server-side data
+    // migration to the newly-restored device's dataset, we will change
+    // the following from a discard of the newly-written state to the
+    // "correct" operation of renaming into the canonical state blob.
+    Boolean tmpFlag = FALSE;
+    newStateName->Delete(&tmpFlag);                      // TODO: remove; see above comment
+    //newStateName.renameTo(savedStateName);    // TODO: replace with this
+
+    Int32 size = 0;
+    backupDataName->GetLength((Int64*) &size);
+    //EventLog.writeEvent(EventLogTags.RESTORE_PACKAGE, packageName, size);
     // } catch (Exception e) {
     //     Slog.e(TAG, "Error restoring data for " + packageName, e);
     //     EventLog.writeEvent(EventLogTags.RESTORE_AGENT_FAILURE, packageName, e.toString());
@@ -897,20 +1020,30 @@ void CBackupManagerService::PerformRestoreTask::ProcessOneRestore(
     //     // again in this case before propagating the exception
     //     clearApplicationDataSynchronous(packageName);
     // } finally {
-    //     backupDataName.delete();
-    //     try { if (backupData != NULL) backupData.close(); } catch (IOException e) {}
-    //     try { if (newState != NULL) newState.close(); } catch (IOException e) {}
-    //     backupData = newState = NULL;
-    //     mCurrentOperations.delete(token);
+    backupDataName->Delete(&tmpFlag);
+    //try {
+    if (backupData != NULL) {
+        backupData->Close();
+    }
+    //} catch (IOException e) {}
 
-    //     // If we know a priori that we'll need to perform a full post-restore backup
-    //     // pass, clear the new state file data.  This means we're discarding work that
-    //     // was just done by the app's agent, but this way the agent doesn't need to
-    //     // take any special action based on global device state.
-    //     if (needFullBackup) {
-    //         newStateName.delete();
-    //     }
-    // }
+    //try {
+    if (newState != NULL) {
+        newState->Close();
+    }
+    //} catch (IOException e) {}
+
+    backupData = newState = NULL;
+    mHost->mCurrentOperations->Delete(token);
+
+    // If we know a priori that we'll need to perform a full post-restore backup
+    // pass, clear the new state file data.  This means we're discarding work that
+    // was just done by the app's agent, but this way the agent doesn't need to
+    // take any special action based on global device state.
+    if (needFullBackup) {
+        newStateName->Delete(&tmpFlag);
+    }
+    //}
 }
 
 UInt32 CBackupManagerService::PerformRestoreTask::AddRef()
@@ -923,40 +1056,78 @@ UInt32 CBackupManagerService::PerformRestoreTask::Release()
     return ElRefBase::Release();
 }
 
+PInterface CBackupManagerService::PerformRestoreTask::Probe(
+    /* [in] */ REIID riid)
+{
+    if (riid == EIID_IRunnable) {
+        return (PInterface)this;
+    }
+
+    return NULL;
+}
+
+ECode CBackupManagerService::PerformRestoreTask::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{
+    if (pIID == NULL) {
+        return E_INVALID_ARGUMENT;
+    }
+
+    if (pObject == (IInterface*)(IRunnable*)this) {
+        *pIID = EIID_IRunnable;
+    }
+    else {
+        return E_INVALID_ARGUMENT;
+    }
+    return NOERROR;
+}
+
 CBackupManagerService::PerformClearTask::PerformClearTask(
     /* [in] */ IBackupTransport* transport,
-    /* [in] */ ICapsuleInfo* capInfo)
+    /* [in] */ ICapsuleInfo* capInfo,
+    /* [in] */ CBackupManagerService* host)
     : mTransport(transport)
     , mCapsule(capInfo)
+    , mHost(host)
 {
 }
 
 ECode CBackupManagerService::PerformClearTask::Run()
 {
-    // try {
-    //     // Clear the on-device backup state to ensure a full backup next time
-    //     File stateDir = new File(mBaseStateDir, mTransport.transportDirName());
-    //     File stateFile = new File(stateDir, mPackage.packageName);
-    //     stateFile.delete();
+    // /try {
+    // Clear the on-device backup state to ensure a full backup next time
+    AutoPtr<IFile> stateDir;
+    String name;
+    mTransport->TransportDirName(&name);
+    CFile::New(mHost->mBaseStateDir, name, (IFile**) &stateDir);
 
-    //     // Tell the transport to remove all the persistent storage for the app
-    //     // TODO - need to handle failures
-    //     mTransport.clearBackupData(mPackage);
+    AutoPtr<IFile> stateFile;
+    mCapsule->GetCapsuleName(&name);
+    CFile::New(stateDir, name, (IFile**) &stateFile);
+    Boolean tmpFlag = FALSE;
+    stateFile->Delete(&tmpFlag);
+
+    // Tell the transport to remove all the persistent storage for the app
+    // TODO - need to handle failures
+    Int32 error = 0;
+    mTransport->ClearBackupData(mCapsule, &error);
     // } catch (RemoteException e) {
     //     // can't happen; the transport is local
     // } finally {
-    //     try {
-    //         // TODO - need to handle failures
-    //         mTransport.finishBackup();
-    //     } catch (RemoteException e) {
-    //         // can't happen; the transport is local
-    //     }
+        // try {
+            // TODO - need to handle failures
+    mTransport->FinishBackup(&error);
+        // } catch (RemoteException e) {
+        //     // can't happen; the transport is local
+        // }
 
-    //     // Last but not least, release the cpu
-    //     mWakelock.release();
-    // }
+    // Last but not least, release the cpu
+    //TODO
+    //mWakelock.release();
+    //}
 
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 UInt32 CBackupManagerService::PerformClearTask::AddRef()
@@ -969,69 +1140,113 @@ UInt32 CBackupManagerService::PerformClearTask::Release()
     return ElRefBase::Release();
 }
 
+PInterface CBackupManagerService::PerformClearTask::Probe(
+    /* [in] */ REIID riid)
+{
+    if (riid == EIID_IRunnable) {
+        return (PInterface)this;
+    }
+
+    return NULL;
+}
+
+ECode CBackupManagerService::PerformClearTask::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{
+    if (pIID == NULL) {
+        return E_INVALID_ARGUMENT;
+    }
+
+    if (pObject == (IInterface*)(IRunnable*)this) {
+        *pIID = EIID_IRunnable;
+    }
+    else {
+        return E_INVALID_ARGUMENT;
+    }
+    return NOERROR;
+}
+
 CBackupManagerService::PerformInitializeTask::PerformInitializeTask(
-    /* [in] */ HashSet<String>* transportNames)
+    /* [in] */ HashSet<String>* transportNames,
+    /* [in] */ CBackupManagerService* host)
     : mQueue(transportNames)
+    , mHost(host)
 {
 }
 
 ECode CBackupManagerService::PerformInitializeTask::Run()
 {
-    // try {
-    //     for (String transportName : mQueue) {
-    //         IBackupTransport transport = getTransport(transportName);
-    //         if (transport == NULL) {
-    //             Slog.e(TAG, "Requested init for " + transportName + " but not found");
-    //             continue;
-    //         }
+    if (mQueue != NULL) {
+        HashSet<String>::Iterator transportName = mQueue->Begin();
+        //try {
+        for (; transportName != mQueue->End(); ++transportName) {
+            AutoPtr<IBackupTransport> transport = mHost->GetTransport(*transportName);
+            if (transport == NULL) {
+                Slogger::E(TAG, StringBuffer("Requested init for ")
+                     + *transportName + " but not found");
+                continue;
+            }
 
-    //         Slog.i(TAG, "Initializing (wiping) backup transport storage: " + transportName);
-    //         EventLog.writeEvent(EventLogTags.BACKUP_START, transport.transportDirName());
-    //         Int64 startRealtime = SystemClock.elapsedRealtime();
-    //         Int32 status = transport.initializeDevice();
+            Slogger::I(TAG, StringBuffer("Initializing (wiping) backup transport storage: ")
+                 + *transportName);
 
-    //         if (status == BackupConstants.TRANSPORT_OK) {
-    //             status = transport.finishBackup();
-    //         }
+            //EventLog.writeEvent(EventLogTags.BACKUP_START, transport.transportDirName());
+            //Int64 startRealtime = SystemClock::GetElapsedRealtime();
+            Int32 status = 0;
+            transport->InitializeDevice(&status);
 
-    //         // Okay, the wipe really happened.  Clean up our local bookkeeping.
-    //         if (status == BackupConstants.TRANSPORT_OK) {
-    //             Slog.i(TAG, "Device init successful");
-    //             Int32 millis = (Int32) (SystemClock.elapsedRealtime() - startRealtime);
-    //             EventLog.writeEvent(EventLogTags.BACKUP_INITIALIZE);
-    //             resetBackupState(new File(mBaseStateDir, transport.transportDirName()));
-    //             EventLog.writeEvent(EventLogTags.BACKUP_SUCCESS, 0, millis);
-    //             {
-    //                 Mutex::Autolock lock(mQueueLock);
-    //                 recordInitPendingLocked(FALSE, transportName);
-    //             }
-    //         } else {
-    //             // If this didn't work, requeue this one and try again
-    //             // after a suitable interval
-    //             Slog.e(TAG, "Transport error in initializeDevice()");
-    //             EventLog.writeEvent(EventLogTags.BACKUP_TRANSPORT_FAILURE, "(initialize)");
-    //             {
-    //                 Mutex::Autolock lock(mQueueLock);
-    //                 recordInitPendingLocked(TRUE, transportName);
-    //             }
-    //             // do this via another alarm to make sure of the wakelock states
-    //             Int64 delay = transport.requestBackupTime();
-    //             if (DEBUG) Slog.w(TAG, "init failed on "
-    //                     + transportName + " resched in " + delay);
-    //             mAlarmManager.set(AlarmManager.RTC_WAKEUP,
-    //                     System.currentTimeMillis() + delay, mRunInitIntent);
-    //         }
-    //     }
+            if (status == BackupConstants::TRANSPORT_OK) {
+                transport->FinishBackup(&status);
+            }
+
+            // Okay, the wipe really happened.  Clean up our local bookkeeping.
+            if (status == BackupConstants::TRANSPORT_OK) {
+                Slogger::I(TAG, "Device init successful");
+                //Int32 millis = (Int32) (SystemClock::GetElapsedRealtime() - startRealtime);
+                //EventLog.writeEvent(EventLogTags.BACKUP_INITIALIZE);
+                AutoPtr<IFile> tmpF;
+                String name;
+                transport->TransportDirName(&name);
+                CFile::New(mHost->mBaseStateDir, name, (IFile**) &tmpF);
+                mHost->ResetBackupState(tmpF);
+                //EventLog.writeEvent(EventLogTags.BACKUP_SUCCESS, 0, millis);
+                {
+                    Mutex::Autolock lock(mHost->mQueueLock);
+                    mHost->RecordInitPendingLocked(FALSE, *transportName);
+                }
+            } else {
+                // If this didn't work, requeue this one and try again
+                // after a suitable interval
+                Slogger::E(TAG, "Transport error in initializeDevice()");
+                //EventLog.writeEvent(EventLogTags.BACKUP_TRANSPORT_FAILURE, "(initialize)");
+                {
+                    Mutex::Autolock lock(mHost->mQueueLock);
+                    mHost->RecordInitPendingLocked(TRUE, *transportName);
+                }
+                // do this via another alarm to make sure of the wakelock states
+                Int64 delay = 0;
+                transport->RequestBackupTime(&delay);
+                if (DEBUG) Slogger::W(TAG, StringBuffer("init failed on ")
+                        + *transportName + " resched in " + delay);
+
+                //TODO
+                // mAlarmManager.set(AlarmManager.RTC_WAKEUP,
+                //         System.currentTimeMillis() + delay, mRunInitIntent);
+            }
+        }
+    }
     // } catch (RemoteException e) {
     //     // can't happen; the transports are local
     // } catch (Exception e) {
     //     Slog.e(TAG, "Unexpected error performing init", e);
     // } finally {
     //     // Done; release the wakelock
+    //     //TODO
     //     mWakelock.release();
     // }
 
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 UInt32 CBackupManagerService::PerformInitializeTask::AddRef()
@@ -1089,34 +1304,53 @@ ECode CBackupManagerService::ActiveRestoreSession::GetAvailableRestoreSets(
     /* [in] */ IRestoreObserverStub* observer,
     /* [out] */ Int32* error)
 {
-    // synchronized(this) {
-    //     mContext.enforceCallingOrSelfPermission(android.Manifest.permission.BACKUP,
-    //             "getAvailableRestoreSets");
-    //     if (observer == NULL) {
-    //         throw new IllegalArgumentException("Observer must not be NULL");
-    //     }
+    {
+        Mutex::Autolock lock(mActivieRSLock);
+        assert(error != NULL);
 
-    //     Int64 oldId = Binder.clearCallingIdentity();
-    //     try {
-    //         if (mRestoreTransport == NULL) {
-    //             Slog.w(TAG, "Null transport getting restore sets");
-    //             return -1;
-    //         }
-    //         // spin off the transport request to our service thread
-    //         mWakelock.acquire();
-    //         Message msg = mBackupHandler.obtainMessage(MSG_RUN_GET_RESTORE_SETS,
-    //                 new RestoreGetSetsParams(mRestoreTransport, this, observer));
-    //         mBackupHandler.sendMessage(msg);
-    //         return 0;
-    //     } catch (Exception e) {
-    //         Slog.e(TAG, "Error in getAvailableRestoreSets", e);
-    //         return -1;
-    //     } finally {
-    //         Binder.restoreCallingIdentity(oldId);
-    //     }
-    // }
+        *error = 0;
+        mHost->mContext->EnforceCallingOrSelfPermission(
+                String("android.Manifest.permission.BACKUP"),
+                "getAvailableRestoreSets");
+        if (observer == NULL) {
+            //throw new IllegalArgumentException("Observer must not be NULL");
+            return E_INVALID_ARGUMENT;
+        }
 
-    return E_NOT_IMPLEMENTED;
+        Int64 oldId = Binder::ClearCallingIdentity();
+        //try {
+        if (mRestoreTransport == NULL) {
+            Slogger::W(TAG, "Null transport getting restore sets");
+            *error = -1;
+            return NOERROR;
+        }
+
+        // spin off the transport request to our service thread
+        //TODO
+        //mWakelock.acquire();
+
+
+        void (STDCALL CBackupManagerService::*pHandlerFunc)(RestoreGetSetsParams*);
+        pHandlerFunc = &CBackupManagerService::HandleGetRestoreSets;
+
+        AutoPtr<IParcel> params;
+        CCallbackParcel::New((IParcel**)&params);
+        CBackupManagerService::RestoreGetSetsParams data(mRestoreTransport, this, observer);
+        params->WriteInt32((Handle32)(Handle32*) &data);
+
+        mHost->mBackupHandler->PostCppCallbackDelayed(
+            (Handle32)mHost, *(Handle32*)&pHandlerFunc,
+            params, 0, 0);
+
+        // } catch (Exception e) {
+        //     Slog.e(TAG, "Error in getAvailableRestoreSets", e);
+        //     return -1;
+        // } finally {
+        Binder::RestoreCallingIdentity(oldId);
+        // }
+    }
+
+    return NOERROR;
 }
 
 ECode CBackupManagerService::ActiveRestoreSession::RestoreAll(
@@ -1124,43 +1358,66 @@ ECode CBackupManagerService::ActiveRestoreSession::RestoreAll(
     /* [in] */ IRestoreObserverStub* observer,
     /* [out] */ Int32* error)
 {
-    // synchronized(this) {
-    //     mContext.enforceCallingOrSelfPermission(android.Manifest.permission.BACKUP,
-    //             "performRestore");
+    Mutex::Autolock lock(mActivieRSLock);
+    assert(error != NULL);
+    *error = 0;
+    mHost->mContext->EnforceCallingOrSelfPermission(
+            String("android.Manifest.permission.BACKUP"),
+            "performRestore");
 
-    //     if (DEBUG) Slog.d(TAG, "restoreAll token=" + Long.toHexString(token)
-    //             + " observer=" + observer);
+    if (DEBUG) Slogger::D(TAG, StringBuffer("restoreAll token=")
+            + token
+            + " observer=" + observer);
 
-    //     if (mRestoreTransport == NULL || mRestoreSets == NULL) {
-    //         Slog.e(TAG, "Ignoring restoreAll() with no restore set");
-    //         return -1;
-    //     }
+    if (mRestoreTransport == NULL || mRestoreSets == NULL) {
+        Slogger::E(TAG, "Ignoring restoreAll() with no restore set");
+        *error = -1;
+        return NOERROR;
+    }
 
-    //     if (mPackageName != NULL) {
-    //         Slog.e(TAG, "Ignoring restoreAll() on single-package session");
-    //         return -1;
-    //     }
+    if (mPackageName != NULL) {
+        Slogger::E(TAG, "Ignoring restoreAll() on single-package session");
+        *error = -1;
+        return NOERROR;
+    }
 
-    //     {
-    //         Mutex::Autolock lock(mQueueLock);
-    //         for (Int32 i = 0; i < mRestoreSets.length; i++) {
-    //             if (token == mRestoreSets[i].token) {
-    //                 Int64 oldId = Binder.clearCallingIdentity();
-    //                 mWakelock.acquire();
-    //                 Message msg = mBackupHandler.obtainMessage(MSG_RUN_RESTORE);
-    //                 msg.obj = new RestoreParams(mRestoreTransport, observer, token, TRUE);
-    //                 mBackupHandler.sendMessage(msg);
-    //                 Binder.restoreCallingIdentity(oldId);
-    //                 return 0;
-    //             }
-    //         }
-    //     }
+    {
+        Mutex::Autolock lock(mHost->mQueueLock);
+        if (mRestoreSets != NULL) {
+            for (Int32 i = 0; i < mRestoreSets->GetLength(); i++) {
+                AutoPtr<IRestoreSet> set = (*mRestoreSets)[i];
+                assert(set != NULL);
+                Int64 token = 0;
+                set->GetToken(&token);
+                if (token == token) {
+                    Int64 oldId = Binder::ClearCallingIdentity();
 
-    //     Slog.w(TAG, "Restore token " + Long.toHexString(token) + " not found");
-    //     return -1;
-    // }
+                    //TODO
+                    //mWakelock.acquire();
+                    void (STDCALL CBackupManagerService::*pHandlerFunc)(RestoreParams*);
+                    pHandlerFunc = &CBackupManagerService::HandleRestore;
 
-    return E_NOT_IMPLEMENTED;
+                    AutoPtr<IParcel> params;
+                    CCallbackParcel::New((IParcel**)&params);
+                    CBackupManagerService::RestoreParams data(mRestoreTransport, observer
+                            , token, TRUE);
+
+                    params->WriteInt32((Handle32)(Handle32*) &data);
+
+                    mHost->mBackupHandler->PostCppCallbackDelayed(
+                        (Handle32)mHost, *(Handle32*)&pHandlerFunc,
+                        params, 0, 0);
+
+                    Binder::RestoreCallingIdentity(oldId);
+                    return NOERROR;
+                }
+            }
+        }
+    }
+
+    Slogger::W(TAG, StringBuffer("Restore token ") + token + " not found");
+    *error = -1;
+    return NOERROR;
 }
 
 ECode CBackupManagerService::ActiveRestoreSession::RestorePackage(
@@ -1168,94 +1425,143 @@ ECode CBackupManagerService::ActiveRestoreSession::RestorePackage(
     /* [in] */ IRestoreObserverStub* observer,
     /* [out] */ Int32* error)
 {
-    // synchronized(this) {
-    //     if (DEBUG) Slog.v(TAG, "restorePackage pkg=" + packageName + " obs=" + observer);
+    {
+        Mutex::Autolock lock(mActivieRSLock);
+        assert(error != NULL);
+        *error = 0;
 
-    //     if (mPackageName != NULL) {
-    //         if (! mPackageName.equals(packageName)) {
-    //             Slog.e(TAG, "Ignoring attempt to restore pkg=" + packageName
-    //                     + " on session for package " + mPackageName);
-    //             return -1;
-    //         }
-    //     }
+        if (DEBUG) Slogger::V(TAG, StringBuffer("restorePackage pkg=")
+             + packageName + " obs=" + observer);
 
-    //     PackageInfo app = NULL;
-    //     try {
-    //         app = mPackageManager.getPackageInfo(packageName, 0);
-    //     } catch (NameNotFoundException nnf) {
-    //         Slog.w(TAG, "Asked to restore nonexistent pkg " + packageName);
-    //         return -1;
-    //     }
+        if (!mPackageName.IsNull()) {
+            if (! mPackageName.Equals(packageName)) {
+                Slogger::E(TAG, StringBuffer("Ignoring attempt to restore pkg=") + packageName
+                        + " on session for package " + mPackageName);
+                *error = -1;
+                return NOERROR;
+            }
+        }
 
-    //     // If the caller is not privileged and is not coming from the target
-    //     // app's uid, throw a permission exception back to the caller.
-    //     Int32 perm = mContext.checkPermission(android.Manifest.permission.BACKUP,
-    //             Binder.getCallingPid(), Binder.getCallingUid());
-    //     if ((perm == PackageManager.PERMISSION_DENIED) &&
-    //             (app.applicationInfo.uid != Binder.getCallingUid())) {
-    //         Slog.w(TAG, "restorePackage: bad packageName=" + packageName
-    //                 + " or calling uid=" + Binder.getCallingUid());
-    //         throw new SecurityException("No permission to restore other packages");
-    //     }
+        AutoPtr<ICapsuleInfo> app;
+        //try {
+        mHost->mPackageManager->GetCapsuleInfo(packageName, 0, (ICapsuleInfo**) &app);
+        assert(app != NULL);
+        // } catch (NameNotFoundException nnf) {
+        //     Slog.w(TAG, "Asked to restore nonexistent pkg " + packageName);
+        //     *error = -1;
+        //     return NOERROR;
+        // }
 
-    //     // If the package has no backup agent, we obviously cannot proceed
-    //     if (app.applicationInfo.backupAgentName == NULL) {
-    //         Slog.w(TAG, "Asked to restore package " + packageName + " with no agent");
-    //         return -1;
-    //     }
+        // If the caller is not privileged and is not coming from the target
+        // app's uid, throw a permission exception back to the caller.
+        Int32 perm = 0;
+        mHost->mContext->CheckPermission(String("android.Manifest.permission.BACKUP"),
+                Binder::GetCallingPid(), Binder::GetCallingUid(), &perm);
 
-    //     // So far so good; we're allowed to try to restore this package.  Now
-    //     // check whether there is data for it in the current dataset, falling back
-    //     // to the ancestral dataset if not.
-    //     Int64 token = getAvailableRestoreToken(packageName);
+        AutoPtr<IApplicationInfo> info;
+        app->GetApplicationInfo((IApplicationInfo**) &info);
+        assert(info != NULL);
+        Int32 uid = 0;
+        info->GetUid(&uid);
 
-    //     // If we didn't come up with a place to look -- no ancestral dataset and
-    //     // the app has never been backed up from this device -- there's nothing
-    //     // to do but return failure.
-    //     if (token == 0) {
-    //         if (DEBUG) Slog.w(TAG, "No data available for this package; not restoring");
-    //         return -1;
-    //     }
+        if ((perm == CapsuleManager_PERMISSION_DENIED) &&
+                (uid != Binder::GetCallingUid())) {
+            Slogger::W(TAG, StringBuffer("restorePackage: bad packageName=") + packageName
+                    + " or calling uid=" + Binder::GetCallingUid());
+            //throw new SecurityException("No permission to restore other packages");
+            assert(0);
+        }
 
-    //     // Ready to go:  enqueue the restore request and claim success
-    //     Int64 oldId = Binder.clearCallingIdentity();
-    //     mWakelock.acquire();
-    //     Message msg = mBackupHandler.obtainMessage(MSG_RUN_RESTORE);
-    //     msg.obj = new RestoreParams(mRestoreTransport, observer, token, app, 0, FALSE);
-    //     mBackupHandler.sendMessage(msg);
-    //     Binder.restoreCallingIdentity(oldId);
-    //     return 0;
-    // }
+        String backupAgentName;
+        info->GetBackupAgentName(&backupAgentName);
+        // If the package has no backup agent, we obviously cannot proceed
+        if (backupAgentName.IsNull()) {
+            Slogger::W(TAG, StringBuffer("Asked to restore package ")
+                    + packageName + " with no agent");
 
-    return E_NOT_IMPLEMENTED;
+            *error = -1;
+            return NOERROR;
+        }
+
+        // So far so good; we're allowed to try to restore this package.  Now
+        // check whether there is data for it in the current dataset, falling back
+        // to the ancestral dataset if not.
+        Int64 token = mHost->GetAvailableRestoreToken(packageName);
+
+        // If we didn't come up with a place to look -- no ancestral dataset and
+        // the app has never been backed up from this device -- there's nothing
+        // to do but return failure.
+        if (token == 0) {
+            if (DEBUG) Slogger::W(TAG, "No data available for this package; not restoring");
+            *error = -1;
+            return NOERROR;
+        }
+
+        // Ready to go:  enqueue the restore request and claim success
+        Int64 oldId = Binder::ClearCallingIdentity();
+
+        //TODO
+        //mWakelock.acquire();
+        void (STDCALL CBackupManagerService::*pHandlerFunc)(RestoreParams*);
+        pHandlerFunc = &CBackupManagerService::HandleRestore;
+
+        AutoPtr<IParcel> params;
+        CCallbackParcel::New((IParcel**)&params);
+        CBackupManagerService::RestoreParams data(mRestoreTransport, observer
+                , token, app, 0, FALSE);
+
+        params->WriteInt32((Handle32)(Handle32*) &data);
+
+        mHost->mBackupHandler->PostCppCallbackDelayed(
+            (Handle32)mHost, *(Handle32*)&pHandlerFunc,
+            params, 0, 0);
+
+        Binder::RestoreCallingIdentity(oldId);
+    }
+
+    return NOERROR;
 }
 
 ECode CBackupManagerService::ActiveRestoreSession::EndRestoreSession()
 {
-    // synchronized(this) {
-    //     if (DEBUG) Slog.d(TAG, "endRestoreSession");
+    {
+        Mutex::Autolock lock(mActivieRSLock);
+        if (DEBUG) Slogger::D(TAG, "endRestoreSession");
 
-    //     synchronized (this) {
-    //         Int64 oldId = Binder.clearCallingIdentity();
-    //         try {
-    //             if (mRestoreTransport != NULL) mRestoreTransport.finishRestore();
-    //         } catch (Exception e) {
-    //             Slog.e(TAG, "Error in finishRestore", e);
-    //         } finally {
-    //             mRestoreTransport = NULL;
-    //             Binder.restoreCallingIdentity(oldId);
-    //         }
-    //     }
+        //synchronized (this) {
+        Int64 oldId = Binder::ClearCallingIdentity();
+        // /try {
+        if (mRestoreTransport != NULL) {
+            mRestoreTransport->FinishRestore();
+        }
+        // } catch (Exception e) {
+        //     Slog.e(TAG, "Error in finishRestore", e);
+        // } finally {
+        mRestoreTransport = NULL;
+        Binder::RestoreCallingIdentity(oldId);
+        //}
+        //}
 
-    //     synchronized (BackupManagerService.this) {
-    //         if (BackupManagerService.this.mActiveRestoreSession == this) {
-    //             BackupManagerService.this.mActiveRestoreSession = NULL;
-    //         } else {
-    //             Slog.e(TAG, "ending non-current restore session");
-    //         }
-    //     }
-    // }
+        //synchronized (BackupManagerService.this)
+        {
+            Mutex::Autolock lock(mHost->mBackupServiceLock);
+            if (mHost->mActiveRestoreSession.Get() == this) {
+                mHost->mActiveRestoreSession = NULL;
+            } else {
+                Slogger::E(TAG, "ending non-current restore session");
+            }
+        }
+    }
 
+    return NOERROR;
+}
+
+ECode CBackupManagerService::ActiveRestoreSession::RestoreCapsule(
+    /* [in] */ const String& capsuleName,
+    /* [in] */ IRestoreObserverStub* observer,
+    /* [out] */ Int32* error)
+{
+    assert(0);
     return E_NOT_IMPLEMENTED;
 }
 
@@ -1269,25 +1575,66 @@ UInt32 CBackupManagerService::ActiveRestoreSession::Release()
     return ElRefBase::Release();
 }
 
+PInterface CBackupManagerService::ActiveRestoreSession::Probe(
+    /* [in] */ REIID riid)
+{
+    if (riid == EIID_IRestoreSessionStub) {
+        return (PInterface)this;
+    }
+
+    return NULL;
+}
+
+ECode CBackupManagerService::ActiveRestoreSession::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{
+    if (pIID == NULL) {
+        return E_INVALID_ARGUMENT;
+    }
+
+    if (pObject == (IInterface*)(IRestoreSessionStub*)this) {
+        *pIID = EIID_IRestoreSessionStub;
+    }
+    else {
+        return E_INVALID_ARGUMENT;
+    }
+    return NOERROR;
+}
+
+
+CBackupManagerService::GroupServiceConnection::GroupServiceConnection(
+    /* [in] */ CBackupManagerService* host)
+    : mHost(host)
+{
+}
+
 ECode CBackupManagerService::GroupServiceConnection::OnServiceConnected(
     /* [in] */ IComponentName* name,
     /* [in] */ IBinder* service)
 {
-    // if (DEBUG) Slog.v(TAG, "Connected to Google transport");
-    // mGoogleTransport = IBackupTransport.Stub.asInterface(service);
-    // RegisterTransport(name.flattenToShortString(), mGoogleTransport);
+    if (DEBUG) Slogger::V(TAG, "Connected to Google transport");
+    mHost->mGoogleTransport = IBackupTransport::Probe(service);
 
-    return E_NOT_IMPLEMENTED;
+    assert(name != NULL);
+    String str;
+    name->FlattenToShortString(&str);
+    mHost->RegisterTransport(str, mHost->mGoogleTransport);
+
+    return NOERROR;
 }
 
 ECode CBackupManagerService::GroupServiceConnection::OnServiceDisconnected(
     /* [in] */ IComponentName* name)
 {
-    // if (DEBUG) Slog.v(TAG, "Disconnected from Google transport");
-    // mGoogleTransport = NULL;
-    // RgisterTransport(name.flattenToShortString(), NULL);
+    if (DEBUG) Slogger::V(TAG, "Disconnected from Google transport");
+    mHost->mGoogleTransport = NULL;
 
-    return E_NOT_IMPLEMENTED;
+    String str;
+    name->FlattenToShortString(&str);
+    mHost->RegisterTransport(str, NULL);
+
+    return NOERROR;
 }
 
 UInt32 CBackupManagerService::GroupServiceConnection::AddRef()
@@ -1327,64 +1674,147 @@ ECode CBackupManagerService::GroupServiceConnection::GetInterfaceID(
     return NOERROR;
 }
 
+CBackupManagerService::DataChangedRunable::DataChangedRunable(
+    /* [in] */ const String& name,
+    /* [in] */ HashSet<AutoPtr<IApplicationInfo> >* targets,
+    /* [in] */ CBackupManagerService* host)
+    : mCapsuleName(name)
+    , mTargets(targets)
+    , mHost(host)
+{
+}
+
+ECode CBackupManagerService::DataChangedRunable::Run()
+{
+    assert(mTargets != NULL);
+    mHost->DataChangedImpl(mCapsuleName, mTargets);
+    delete mTargets;
+    mTargets = NULL;
+
+    return NOERROR;
+}
+
+UInt32 CBackupManagerService::DataChangedRunable::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 CBackupManagerService::DataChangedRunable::Release()
+{
+    return ElRefBase::Release();
+}
+
+PInterface CBackupManagerService::DataChangedRunable::Probe(
+    /* [in] */ REIID riid)
+{
+    if (riid == EIID_IServiceConnection) {
+        return (PInterface)this;
+    }
+
+    return NULL;
+}
+
+ECode CBackupManagerService::DataChangedRunable::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{
+    if (pIID == NULL) {
+        return E_INVALID_ARGUMENT;
+    }
+
+    if (pObject == (IInterface*)(IServiceConnection*)this) {
+        *pIID = EIID_IServiceConnection;
+    }
+    else {
+        return E_INVALID_ARGUMENT;
+    }
+    return NOERROR;
+}
+
+CBackupManagerService::TrackCapsuleInstallAndRemoval::TrackCapsuleInstallAndRemoval(
+    /* [in] */ CBackupManagerService* host)
+    : mHost(host)
+{
+}
+
 ECode CBackupManagerService::TrackCapsuleInstallAndRemoval::OnReceive(
     /* [in] */ IContext* context,
     /* [in] */ IIntent* intent)
 {
-    // if (DEBUG) Slog.d(TAG, "Received broadcast " + intent);
+    if (DEBUG) Slogger::D(TAG, StringBuffer("Received broadcast ") + intent);
 
-    // String action = intent.getAction();
-    // Boolean replacing = FALSE;
-    // Boolean added = FALSE;
-    // Bundle extras = intent.getExtras();
-    // String pkgList[] = NULL;
-    // if (Intent.ACTION_PACKAGE_ADDED.equals(action) ||
-    //         Intent.ACTION_PACKAGE_REMOVED.equals(action)) {
-    //     Uri uri = intent.getData();
-    //     if (uri == NULL) {
-    //         return;
-    //     }
-    //     String pkgName = uri.getSchemeSpecificPart();
-    //     if (pkgName != NULL) {
-    //         pkgList = new String[] { pkgName };
-    //     }
-    //     added = Intent.ACTION_PACKAGE_ADDED.equals(action);
-    //     replacing = extras.getBoolean(Intent.EXTRA_REPLACING, FALSE);
-    // } else if (Intent.ACTION_EXTERNAL_APPLICATIONS_AVAILABLE.equals(action)) {
-    //     added = TRUE;
-    //     pkgList = intent.getStringArrayExtra(Intent.EXTRA_CHANGED_PACKAGE_LIST);
-    // } else if (Intent.ACTION_EXTERNAL_APPLICATIONS_UNAVAILABLE.equals(action)) {
-    //     added = FALSE;
-    //     pkgList = intent.getStringArrayExtra(Intent.EXTRA_CHANGED_PACKAGE_LIST);
-    // }
-    // if (pkgList == NULL || pkgList.length == 0) {
-    //     return;
-    // }
-    // if (added) {
-    //     synchronized (mBackupParticipants) {
-    //         for (String pkgName : pkgList) {
-    //             if (replacing) {
-    //                 // The package was just upgraded
-    //                 updatePackageParticipantsLocked(pkgName);
-    //             } else {
-    //                 // The package was just added
-    //                 addPackageParticipantsLocked(pkgName);
-    //             }
-    //         }
-    //     }
-    // } else {
-    //     if (replacing) {
-    //         // The package is being updated.  We'll receive a PACKAGE_ADDED shortly.
-    //     } else {
-    //         synchronized (mBackupParticipants) {
-    //             for (String pkgName : pkgList) {
-    //                 removePackageParticipantsLocked(pkgName);
-    //             }
-    //         }
-    //     }
-    // }
+    assert(intent != NULL);
+    String action;
+    intent->GetAction(&action);
 
-    return E_NOT_IMPLEMENTED;
+    Boolean replacing = FALSE;
+    Boolean added = FALSE;
+    AutoPtr<IBundle> extras;
+    intent->GetExtras((IBundle**) &extras);
+
+    ArrayOf<String>* pkgList = NULL;
+    if (String(Intent_ACTION_CAPSULE_ADDED).Equals(action) ||
+            String(Intent_ACTION_CAPSULE_REMOVED).Equals(action)) {
+        AutoPtr<IUri> uri;
+        intent->GetData((IUri**)&uri);
+        if (uri == NULL) {
+            return NOERROR;
+        }
+
+        assert(uri != NULL);
+        String pkgName;
+        uri->GetSchemeSpecificPart(&pkgName);
+        if (pkgName != NULL) {
+            pkgList = ArrayOf<String>::Alloc(1);
+            (*pkgList)[0] = pkgName;
+        }
+
+        added = String(Intent_ACTION_CAPSULE_ADDED).Equals(action);
+        extras->GetBooleanEx(String(Intent_EXTRA_REPLACING), FALSE, &replacing);
+    } else if (String(Intent_ACTION_EXTERNAL_APPLICATIONS_AVAILABLE).Equals(action)) {
+        added = TRUE;
+        intent->GetStringArrayExtra(String(Intent_EXTRA_CHANGED_CAPSULE_LIST), &pkgList);
+    } else if (String(Intent_ACTION_EXTERNAL_APPLICATIONS_UNAVAILABLE).Equals(action)) {
+        added = FALSE;
+        intent->GetStringArrayExtra(String(Intent_EXTRA_CHANGED_CAPSULE_LIST), &pkgList);
+    }
+
+    if (pkgList == NULL || pkgList->GetLength() == 0) {
+        return NOERROR;
+    }
+
+    if (added) {
+        {
+            Mutex::Autolock lock(mHost->mBackupParticipantsLock);
+            for (Int32 i = 0; i < pkgList->GetLength(); i++) {
+                if (replacing) {
+                    // The package was just upgraded
+                    mHost->UpdatePackageParticipantsLocked((*pkgList)[i]);
+                } else {
+                    // The package was just added
+                    mHost->AddPackageParticipantsLocked((*pkgList)[i]);
+                }
+            }
+        }
+    } else {
+        if (replacing) {
+            // The package is being updated.  We'll receive a PACKAGE_ADDED shortly.
+        } else {
+            {
+                Mutex::Autolock lock(mHost->mBackupParticipantsLock);
+                for (Int32 i = 0; i < pkgList->GetLength(); i++) {
+                    mHost->RemovePackageParticipantsLocked((*pkgList)[i]);
+                }
+            }
+        }
+    }
+
+    if (pkgList != NULL) {
+        ArrayOf<String>::Free(pkgList);
+        pkgList = NULL;
+    }
+
+    return NOERROR;
 }
 
 CBackupManagerService::CBackupManagerService()
@@ -1464,7 +1894,7 @@ ECode CBackupManagerService::constructor(
     mBackupHandler->Start(ApartmentAttr_New);
 
 
-    mBroadcastReceiver = new TrackCapsuleInstallAndRemoval();
+    mBroadcastReceiver = new TrackCapsuleInstallAndRemoval(this);
 
     // Set up our bookkeeping
     AutoPtr<IContentResolver> res;
@@ -1501,7 +1931,7 @@ ECode CBackupManagerService::constructor(
     // ctx->RegisterReceiver(mRunBackupReceiver, filter,
     //         android.Manifest.permission.BACKUP, NULL);
 
-    mRunInitReceiver = new RunInitializeReceiver();
+    mRunInitReceiver = new RunInitializeReceiver(this);
     CIntentFilter::New((IIntentFilter**) &filter);
     assert(filter != NULL);
 
@@ -1603,7 +2033,7 @@ ECode CBackupManagerService::constructor(
         assert(intent != NULL);
 
         intent->SetComponent(transportComponent);
-        mGoogleConnection = new GroupServiceConnection();
+        mGoogleConnection = new GroupServiceConnection(this);
         ctx->BindService(intent, mGoogleConnection, Context_BIND_AUTO_CREATE, &succeeded);
     } else {
         Slogger::W(TAG, StringBuffer("Possible Google transport spoof: ignoring ") + info);
@@ -1630,12 +2060,12 @@ ECode CBackupManagerService::constructor(
 ECode CBackupManagerService::DataChanged(
     /* [in] */ const String& packageName)
 {
-    // final HashSet<AutoPtr<IApplicationInfo> > targets = dataChangedTargets(packageName);
-    // if (targets == NULL) {
-    //     Slog.w(TAG, "dataChanged but no participant pkg='" + packageName + "'"
-    //            + " uid=" + Binder.getCallingUid());
-    //     return;
-    // }
+    HashSet<AutoPtr<IApplicationInfo> >* targets = DataChangedTargets(packageName);
+    if (targets == NULL) {
+        Slogger::W(TAG, StringBuffer("dataChanged but no participant pkg='") + packageName + "'"
+               + " uid=" + Binder::GetCallingUid());
+        return NOERROR;
+    }
 
     // mBackupHandler.post(new Runnable() {
     //         public void run() {
@@ -1643,193 +2073,263 @@ ECode CBackupManagerService::DataChanged(
     //         }
     //     });
 
-    // //TODO : Need to delete??
-    // //delete targets;
+    ECode (STDCALL CBackupManagerService::DataChangedRunable::*pHandlerFunc)();
+    pHandlerFunc = &CBackupManagerService::DataChangedRunable::Run;
 
-    return E_NOT_IMPLEMENTED;
+    mBackupHandler->PostCppCallbackDelayed(
+        (Handle32)(Handle32*)(new DataChangedRunable(packageName, targets, this)),
+        *(Handle32*)&pHandlerFunc,
+        NULL, 0, 0);
+
+    return NOERROR;
 }
 
 // Clear the given package's backup data from the current transport
 ECode CBackupManagerService::ClearBackupData(
     /* [in] */ const String& packageName)
 {
-    // if (DEBUG) Slog.v(TAG, "clearBackupData() of " + packageName);
-    // PackageInfo info;
-    // try {
-    //     info = mPackageManager.getPackageInfo(packageName, PackageManager.GET_SIGNATURES);
+    if (DEBUG) Slogger::V(TAG, StringBuffer("clearBackupData() of ") + packageName);
+    AutoPtr<ICapsuleInfo> info;
+    //try {
+    mPackageManager->GetCapsuleInfo(packageName, CapsuleManager_GET_SIGNATURES,
+            (ICapsuleInfo**) &info);
+
     // } catch (NameNotFoundException e) {
     //     Slog.d(TAG, "No such package '" + packageName + "' - not clearing backup data");
     //     return;
     // }
 
-    // // If the caller does not hold the BACKUP permission, it can only request a
-    // // wipe of its own backed-up data.
-    // HashSet<AutoPtr<IApplicationInfo> > apps;
-    // if ((mContext.checkPermission(android.Manifest.permission.BACKUP, Binder.getCallingPid(),
-    //         Binder.getCallingUid())) == PackageManager.PERMISSION_DENIED) {
-    //     apps = mBackupParticipants.get(Binder.getCallingUid());
-    // } else {
-    //     // a caller with full permission can ask to back up any participating app
-    //     // !!! TODO: allow data-clear of ANY app?
-    //     if (DEBUG) Slog.v(TAG, "Privileged caller, allowing clear of other apps");
-    //     apps = new HashSet<AutoPtr<IApplicationInfo>>();
-    //     Int32 N = mBackupParticipants.size();
-    //     for (Int32 i = 0; i < N; i++) {
-    //         HashSet<AutoPtr<IApplicationInfo>> s = mBackupParticipants.valueAt(i);
-    //         if (s != NULL) {
-    //             apps.addAll(s);
-    //         }
-    //     }
-    // }
+    // If the caller does not hold the BACKUP permission, it can only request a
+    // wipe of its own backed-up data.
+    HashSet<AutoPtr<IApplicationInfo> >* apps = NULL;
 
-    // // now find the given package in the set of candidate apps
-    // for (IApplicationInfo app : apps) {
-    //     if (app.packageName.equals(packageName)) {
-    //         if (DEBUG) Slog.v(TAG, "Found the app - running clear process");
-    //         // found it; fire off the clear request
-    //         {
-    //             Mutex::Autolock lock(mQueueLock);
-    //             Int64 oldId = Binder.clearCallingIdentity();
-    //             mWakelock.acquire();
-    //             Message msg = mBackupHandler.obtainMessage(MSG_RUN_CLEAR,
-    //                     new ClearParams(getTransport(mCurrentTransport), info));
-    //             mBackupHandler.sendMessage(msg);
-    //             Binder.restoreCallingIdentity(oldId);
-    //         }
-    //         break;
-    //     }
-    // }
+    Int32 perm = 0;
+    mContext->CheckPermission(String("android.Manifest.permission.BACKUP"),
+                Binder::GetCallingPid(),
+                Binder::GetCallingUid(), &perm);
 
-    return E_NOT_IMPLEMENTED;
+    if (perm == CapsuleManager_PERMISSION_DENIED) {
+        HashSet<AutoPtr<IApplicationInfo> >* s = mBackupParticipants[Binder::GetCallingUid()];
+        if (s != NULL) {
+            HashSet<AutoPtr<IApplicationInfo> >::Iterator it = s->Begin();
+            for (; it != s->End(); ++it) {
+                apps->Insert(*it);
+            }
+        }
+    } else {
+        // a caller with full permission can ask to back up any participating app
+        // !!! TODO: allow data-clear of ANY app?
+        if (DEBUG) Slogger::V(TAG, "Privileged caller, allowing clear of other apps");
+        apps = new HashSet<AutoPtr<IApplicationInfo> >();
+        Int32 N = mBackupParticipants.GetSize();
+        for (Int32 i = 0; i < N; i++) {
+            HashSet<AutoPtr<IApplicationInfo> >* s = mBackupParticipants[i];
+            if (s != NULL) {
+                HashSet<AutoPtr<IApplicationInfo> >::Iterator it = s->Begin();
+                for (; it != s->End(); ++it) {
+                    apps->Insert(*it);
+                }
+            }
+        }
+    }
+
+    // now find the given package in the set of candidate apps
+    if (apps != NULL) {
+        HashSet<AutoPtr<IApplicationInfo> >::Iterator app = apps->Begin();
+        for (; app != apps->End(); ++ app) {
+            String name;
+            (*app)->GetCapsuleName(&name);
+            if (name.Equals(packageName)) {
+                if (DEBUG) Slogger::V(TAG, "Found the app - running clear process");
+                // found it; fire off the clear request
+                {
+                    Mutex::Autolock lock(mQueueLock);
+                    Int64 oldId = Binder::ClearCallingIdentity();
+
+                    //TODO
+                    //mWakelock.acquire();
+                    // Message msg = mBackupHandler.obtainMessage(MSG_RUN_CLEAR,
+                    //         new ClearParams(GetTransport(mCurrentTransport), info));
+                    // mBackupHandler.sendMessage(msg);
+
+                    void (STDCALL CBackupManagerService::*pHandlerFunc)(ClearParams*);
+                    pHandlerFunc = &CBackupManagerService::HandleClear;
+
+                    AutoPtr<IParcel> params;
+                    CCallbackParcel::New((IParcel**)&params);
+                    params->WriteInt32((Handle32)(Handle32*)(new ClearParams(GetTransport(mCurrentTransport), info)));
+
+                    mBackupHandler->PostCppCallbackDelayed(
+                        (Handle32)this,
+                        *(Handle32*)&pHandlerFunc,
+                        params, 0, 0);
+
+                    Binder::RestoreCallingIdentity(oldId);
+                }
+                break;
+            }
+        }
+
+        delete apps;
+        apps = NULL;
+    }
+
+    return NOERROR;
 }
 
 // Run a backup pass immediately for any applications that have declared
 // that they have pending updates.
 ECode CBackupManagerService::BackupNow()
 {
-    // mContext.enforceCallingOrSelfPermission(android.Manifest.permission.BACKUP, "backupNow");
+    mContext->EnforceCallingOrSelfPermission(String("android.Manifest.permission.BACKUP"),
+        String("backupNow"));
 
-    // if (DEBUG) Slog.v(TAG, "Scheduling immediate backup pass");
-    // {
-    //     Mutex::Autolock lock(mQueueLock);
-    //     // Because the alarms we are using can jitter, and we want an *immediate*
-    //     // backup pass to happen, we restart the timer beginning with "next time,"
-    //     // then manually fire the backup trigger intent ourselves.
-    //     startBackupAlarmsLocked(BACKUP_INTERVAL);
-    //     try {
-    //         mRunBackupIntent.send();
-    //     } catch (PendingIntent.CanceledException e) {
-    //         // should never happen
-    //         Slog.e(TAG, "run-backup intent cancelled!");
-    //     }
-    // }
+    if (DEBUG) Slogger::V(TAG, "Scheduling immediate backup pass");
+    {
+        Mutex::Autolock lock(mQueueLock);
+        // Because the alarms we are using can jitter, and we want an *immediate*
+        // backup pass to happen, we restart the timer beginning with "next time,"
+        // then manually fire the backup trigger intent ourselves.
+        StartBackupAlarmsLocked(BACKUP_INTERVAL);
+        //try {
+        assert(mRunBackupIntent != NULL);
+        mRunBackupIntent->Send();
+        // } catch (PendingIntent.CanceledException e) {
+        //     // should never happen
+        //     Slog.e(TAG, "run-backup intent cancelled!");
+        // }
+    }
 
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 // Enable/disable the backup service
 ECode CBackupManagerService::SetBackupEnabled(
     /* [in] */ Boolean enable)
 {
-    // mContext.enforceCallingOrSelfPermission(android.Manifest.permission.BACKUP,
-    //         "setBackupEnabled");
+    mContext->EnforceCallingOrSelfPermission(String("android.Manifest.permission.BACKUP"),
+            String("setBackupEnabled"));
 
-    // Slog.i(TAG, "Backup enabled => " + enable);
+    Slogger::I(TAG, StringBuffer("Backup enabled => ") + enable);
 
-    // Boolean wasEnabled = mEnabled;
-    // synchronized (this) {
-    //     Settings.Secure.putInt(mContext.getContentResolver(),
-    //             Settings.Secure.BACKUP_ENABLED, enable ? 1 : 0);
-    //     mEnabled = enable;
-    // }
+    Boolean wasEnabled = mEnabled;
+    {
+        Mutex::Autolock lock(mBackupServiceLock);
 
-    // {
-    //     Mutex::Autolock lock(mQueueLock);
-    //     if (enable && !wasEnabled && mProvisioned) {
-    //         // if we've just been enabled, start scheduling backup passes
-    //         startBackupAlarmsLocked(BACKUP_INTERVAL);
-    //     } else if (!enable) {
-    //         // No longer enabled, so stop running backups
-    //         if (DEBUG) Slog.i(TAG, "Opting out of backup");
+        AutoPtr<IContentResolver> res;
+        mContext->GetContentResolver((IContentResolver**) &res);
+        Boolean result = FALSE;
+        Settings::Secure::PutInt32(res, String(SettingsSecure_BACKUP_ENABLED),
+                enable ? 1 : 0, &result);
+        mEnabled = enable;
+    }
 
-    //         mAlarmManager.cancel(mRunBackupIntent);
+    {
+        Mutex::Autolock lock(mQueueLock);
+        if (enable && !wasEnabled && mProvisioned) {
+            // if we've just been enabled, start scheduling backup passes
+            StartBackupAlarmsLocked(BACKUP_INTERVAL);
+        } else if (!enable) {
+            // No longer enabled, so stop running backups
+            if (DEBUG) Slogger::I(TAG, "Opting out of backup");
 
-    //         // This also constitutes an opt-out, so we wipe any data for
-    //         // this device from the backend.  We start that process with
-    //         // an alarm in order to guarantee wakelock states.
-    //         if (wasEnabled && mProvisioned) {
-    //             // NOTE: we currently flush every registered transport, not just
-    //             // the currently-active one.
-    //             HashSet<String> allTransports;
-    //             synchronized (mTransports) {
-    //                 allTransports = new HashSet<String>(mTransports.keySet());
-    //             }
-    //             // build the set of transports for which we are posting an init
-    //             for (String transport : allTransports) {
-    //                 recordInitPendingLocked(TRUE, transport);
-    //             }
-    //             mAlarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(),
-    //                     mRunInitIntent);
-    //         }
-    //     }
-    // }
+            //TODO
+            //mAlarmManager.cancel(mRunBackupIntent);
 
-    return E_NOT_IMPLEMENTED;
+            // This also constitutes an opt-out, so we wipe any data for
+            // this device from the backend.  We start that process with
+            // an alarm in order to guarantee wakelock states.
+            if (wasEnabled && mProvisioned) {
+                // NOTE: we currently flush every registered transport, not just
+                // the currently-active one.
+                // HashSet<String> allTransports;
+                // {
+                //     Mutex::Autolock lock(mTransportsLock);
+                //     allTransports = new HashSet<String>(mTransports.keySet());
+                // }
+
+                // build the set of transports for which we are posting an init
+                HashMap<String, AutoPtr<IBackupTransport> >::Iterator transport;
+
+                for (transport = mTransports.Begin(); transport != mTransports.End(); ++transport) {
+                    RecordInitPendingLocked(TRUE, transport->mFirst);
+                }
+
+                //TODO
+                // mAlarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(),
+                //         mRunInitIntent);
+            }
+        }
+    }
+
+    return NOERROR;
 }
 
 // Enable/disable automatic restore of app data at install time
 ECode CBackupManagerService::SetAutoRestore(
     /* [in] */ Boolean doAutoRestore)
 {
-    // mContext.enforceCallingOrSelfPermission(android.Manifest.permission.BACKUP,
-    // "setBackupEnabled");
+    mContext->EnforceCallingOrSelfPermission(String("android.Manifest.permission.BACKUP"),
+        String("setBackupEnabled"));
 
-    // Slog.i(TAG, "Auto restore => " + doAutoRestore);
+    Slogger::I(TAG, StringBuffer("Auto restore => ") + doAutoRestore);
 
-    // synchronized (this) {
-    //     Settings.Secure.putInt(mContext.getContentResolver(),
-    //             Settings.Secure.BACKUP_AUTO_RESTORE, doAutoRestore ? 1 : 0);
-    //     mAutoRestore = doAutoRestore;
-    // }
+    {
+        Mutex::Autolock lock(mBackupServiceLock);
 
-    return E_NOT_IMPLEMENTED;
+        AutoPtr<IContentResolver> res;
+        mContext->GetContentResolver((IContentResolver**) &res);
+        Boolean result = FALSE;
+        Settings::Secure::PutInt32(res, String(SettingsSecure_BACKUP_AUTO_RESTORE),
+                doAutoRestore ? 1 : 0, &result);
+        mAutoRestore = doAutoRestore;
+    }
+
+    return NOERROR;
 }
 
 // Mark the backup service as having been provisioned
 ECode CBackupManagerService::SetBackupProvisioned(
     /* [in] */ Boolean available)
 {
-    // mContext.enforceCallingOrSelfPermission(android.Manifest.permission.BACKUP,
-    //         "setBackupProvisioned");
+    mContext->EnforceCallingOrSelfPermission(String("android.Manifest.permission.BACKUP"),
+            String("setBackupProvisioned"));
 
-    // Boolean wasProvisioned = mProvisioned;
-    // synchronized (this) {
-    //     Settings.Secure.putInt(mContext.getContentResolver(),
-    //             Settings.Secure.BACKUP_PROVISIONED, available ? 1 : 0);
-    //     mProvisioned = available;
-    // }
+    Boolean wasProvisioned = mProvisioned;
+    {
+        Mutex::Autolock lock(mBackupServiceLock);
 
-    // {
-    //     Mutex::Autolock lock(mQueueLock);
-    //     if (available && !wasProvisioned && mEnabled) {
-    //         // we're now good to go, so start the backup alarms
-    //         startBackupAlarmsLocked(FIRST_BACKUP_INTERVAL);
-    //     } else if (!available) {
-    //         // No longer enabled, so stop running backups
-    //         Slog.w(TAG, "Backup service no longer provisioned");
-    //         mAlarmManager.cancel(mRunBackupIntent);
-    //     }
-    // }
+        AutoPtr<IContentResolver> res;
+        mContext->GetContentResolver((IContentResolver**) &res);
+        Boolean result = FALSE;
+        Settings::Secure::PutInt32(res, String(SettingsSecure_BACKUP_PROVISIONED),
+                available ? 1 : 0, &result);
+        mProvisioned = available;
+    }
 
-    return E_NOT_IMPLEMENTED;
+    {
+        Mutex::Autolock lock(mQueueLock);
+        if (available && !wasProvisioned && mEnabled) {
+            // we're now good to go, so start the backup alarms
+            StartBackupAlarmsLocked(FIRST_BACKUP_INTERVAL);
+        } else if (!available) {
+            // No longer enabled, so stop running backups
+            Slogger::W(TAG, "Backup service no longer provisioned");
+
+            //TODO
+            //mAlarmManager.cancel(mRunBackupIntent);
+        }
+    }
+
+    return NOERROR;
 }
 
 // Report whether the backup mechanism is currently enabled
 ECode CBackupManagerService::IsBackupEnabled(
     /* [out] */ Boolean* enabled)
 {
-    //TODO
-    // mContext.enforceCallingOrSelfPermission(android.Manifest.permission.BACKUP, "isBackupEnabled");
+    mContext->EnforceCallingOrSelfPermission(
+        String("android.Manifest.permission.BACKUP"), String("isBackupEnabled"));
     return mEnabled;    // no need to synchronize just to read it
 }
 
@@ -1839,10 +2339,9 @@ ECode CBackupManagerService::GetCurrentTransport(
 {
     assert(transport != NULL);
 
-    //TODO
-    // mContext.enforceCallingOrSelfPermission(android.Manifest.permission.BACKUP,
-    //         "getCurrentTransport");
-    if (DEBUG) Slogger::V(TAG, "... getCurrentTransport() returning " + mCurrentTransport);
+    mContext->EnforceCallingOrSelfPermission(String("android.Manifest.permission.BACKUP"),
+            String("getCurrentTransport"));
+    if (DEBUG) Slogger::V(TAG, StringBuffer("... getCurrentTransport() returning ") + mCurrentTransport);
 
     *transport = mCurrentTransport;
     return NOERROR;
@@ -1850,25 +2349,41 @@ ECode CBackupManagerService::GetCurrentTransport(
 
 // Report all known, available backup transports
 ECode CBackupManagerService::ListAllTransports(
-    /*[out, callee]*/ BufferOf<String>** transports)
+    /*[out, callee]*/ ArrayOf<String>** transports)
 {
-    // mContext.enforceCallingOrSelfPermission(android.Manifest.permission.BACKUP, "listAllTransports");
+    assert(transports != NULL);
+    *transports = NULL;
 
-    // String[] list = NULL;
-    // ArrayList<String> known = new ArrayList<String>();
-    // for (Map.Entry<String, IBackupTransport> entry : mTransports.entrySet()) {
-    //     if (entry.getValue() != NULL) {
-    //         known.add(entry.getKey());
-    //     }
-    // }
+    mContext->EnforceCallingOrSelfPermission(
+        String("android.Manifest.permission.BACKUP"),
+        String("listAllTransports"));
 
-    // if (known.size() > 0) {
-    //     list = new String[known.size()];
-    //     known.toArray(list);
-    // }
-    // return list;
+    if (mTransports.GetSize() <= 0) {
+        return NOERROR;
+    }
 
-    return E_NOT_IMPLEMENTED;
+    HashMap<String, AutoPtr<IBackupTransport> >::Iterator entry;
+    Int32 index = 0, count = 0;
+    for (entry = mTransports.Begin(); entry != mTransports.End(); ++entry) {
+        if (entry->mSecond != NULL) {
+            ++ count;
+        }
+    }
+
+    if (count <= 0) {
+        return NOERROR;
+    }
+
+    *transports = ArrayOf<String>::Alloc(count);
+    for (entry = mTransports.Begin(); entry != mTransports.End(); ++entry) {
+        if (entry->mSecond != NULL) {
+            (**transports)[index] = entry->mFirst;
+
+            index ++;
+        }
+    }
+
+    return NOERROR;
 }
 
 // Select which transport to use for the next backup operation.  If the given
@@ -1878,24 +2393,34 @@ ECode CBackupManagerService::SelectBackupTransport(
     /* [in] */ const String& transport,
     /* [out] */ String* port)
 {
-    // mContext.enforceCallingOrSelfPermission(android.Manifest.permission.BACKUP, "selectBackupTransport");
+    assert(port != NULL);
+    mContext->EnforceCallingOrSelfPermission(
+        String("android.Manifest.permission.BACKUP"),
+        String("selectBackupTransport"));
 
-    // synchronized (mTransports) {
-    //     String prevTransport = NULL;
-    //     if (mTransports.get(transport) != NULL) {
-    //         prevTransport = mCurrentTransport;
-    //         mCurrentTransport = transport;
-    //         Settings.Secure.putString(mContext.getContentResolver(),
-    //                 Settings.Secure.BACKUP_TRANSPORT, transport);
-    //         Slog.v(TAG, "selectBackupTransport() set " + mCurrentTransport
-    //                 + " returning " + prevTransport);
-    //     } else {
-    //         Slog.w(TAG, "Attempt to select unavailable transport " + transport);
-    //     }
-    //     return prevTransport;
-    // }
+    {
+        Mutex::Autolock lock(mTransportsLock);
+        String prevTransport;
+        if (mTransports[transport] != NULL) {
+            prevTransport = mCurrentTransport;
+            mCurrentTransport = transport;
 
-    return E_NOT_IMPLEMENTED;
+            AutoPtr<IContentResolver> res;
+            mContext->GetContentResolver((IContentResolver**) &res);
+            Boolean result = FALSE;
+            Settings::Secure::PutString(res,
+                    String(SettingsSecure_BACKUP_TRANSPORT), transport, &result);
+            Slogger::V(TAG, StringBuffer("selectBackupTransport() set ") + mCurrentTransport
+                    + " returning " + prevTransport);
+        } else {
+            Slogger::W(TAG, StringBuffer("Attempt to select unavailable transport ") + transport);
+        }
+
+        *port = prevTransport;
+        return NOERROR;
+    }
+
+    return NOERROR;
 }
 
 // Callback: a requested backup agent has been instantiated.  This should only
@@ -1904,20 +2429,25 @@ ECode CBackupManagerService::AgentConnected(
     /* [in] */ const String& packageName,
     /* [in] */ IBinder* agentBinder)
 {
-    // synchronized(mAgentConnectLock) {
-    //     if (Binder.getCallingUid() == Process.SYSTEM_UID) {
-    //         Slog.d(TAG, "agentConnected pkg=" + packageName + " agent=" + agentBinder);
-    //         IBackupAgent agent = IBackupAgent.Stub.asInterface(agentBinder);
-    //         mConnectedAgent = agent;
-    //         mConnecting = FALSE;
-    //     } else {
-    //         Slog.w(TAG, "Non-system process uid=" + Binder.getCallingUid()
-    //                 + " claiming agent connected");
-    //     }
-    //     mAgentConnectLock.notifyAll();
-    // }
+    {
+        Mutex::Autolock lock(mAgentConnectLock);
+        if (Binder::GetCallingUid() == Process::SYSTEM_UID) {
+            Slogger::D(TAG, StringBuffer("agentConnected pkg=")
+                    + packageName + " agent=" + agentBinder);
 
-    return E_NOT_IMPLEMENTED;
+            AutoPtr<IBackupAgent> agent = IBackupAgent::Probe(agentBinder);
+            mConnectedAgent = agent;
+            mConnecting = FALSE;
+        } else {
+            Slogger::W(TAG, StringBuffer("Non-system process uid=")+ Binder::GetCallingUid()
+                    + " claiming agent connected");
+        }
+
+        //TODO
+        //mAgentConnectLock.notifyAll();
+    }
+
+    return NOERROR;
 }
 
 // Callback: a backup agent has failed to come up, or has unexpectedly quit.
@@ -1926,19 +2456,23 @@ ECode CBackupManagerService::AgentConnected(
 ECode CBackupManagerService::AgentDisconnected(
     /* [in] */ const String& packageName)
 {
-    // // TODO: handle backup being interrupted
-    // synchronized(mAgentConnectLock) {
-    //     if (Binder.getCallingUid() == Process.SYSTEM_UID) {
-    //         mConnectedAgent = NULL;
-    //         mConnecting = FALSE;
-    //     } else {
-    //         Slog.w(TAG, "Non-system process uid=" + Binder.getCallingUid()
-    //                 + " claiming agent disconnected");
-    //     }
-    //     mAgentConnectLock.notifyAll();
-    // }
+    // TODO: handle backup being interrupted
+    {
+        Mutex::Autolock lock(mAgentConnectLock);
+        if (Binder::GetCallingUid() == Process::SYSTEM_UID) {
+            mConnectedAgent = NULL;
+            mConnecting = FALSE;
+        } else {
+            Slogger::W(TAG, StringBuffer("Non-system process uid=")
+                    + Binder::GetCallingUid()
+                    + " claiming agent disconnected");
+        }
 
-    return E_NOT_IMPLEMENTED;
+        //TODO
+        //mAgentConnectLock.notifyAll();
+    }
+
+    return NOERROR;
 }
 
 // An application being installed will need a restore pass, then the Package Manager
@@ -1947,42 +2481,57 @@ ECode CBackupManagerService::RestoreAtInstall(
     /* [in] */ const String& packageName,
     /* [in] */ Int32 token)
 {
-    // if (Binder.getCallingUid() != Process.SYSTEM_UID) {
-    //     Slog.w(TAG, "Non-system process uid=" + Binder.getCallingUid()
-    //             + " attemping install-time restore");
-    //     return;
-    // }
+    if (Binder::GetCallingUid() != Process::SYSTEM_UID) {
+        Slogger::W(TAG, StringBuffer("Non-system process uid=") + Binder::GetCallingUid()
+                + " attemping install-time restore");
+        return NOERROR;
+    }
 
-    // Int64 restoreSet = getAvailableRestoreToken(packageName);
-    // if (DEBUG) Slog.v(TAG, "restoreAtInstall pkg=" + packageName
-    //         + " token=" + Integer.toHexString(token));
+    Int64 restoreSet = GetAvailableRestoreToken(packageName);
+    if (DEBUG) Slogger::V(TAG, StringBuffer("restoreAtInstall pkg=") + packageName
+            + " token=" + token);
 
-    // if (mAutoRestore && mProvisioned && restoreSet != 0) {
-    //     // okay, we're going to attempt a restore of this package from this restore set.
-    //     // The eventual message back into the Package Manager to run the post-install
-    //     // steps for 'token' will be issued from the restore handling code.
+    if (mAutoRestore && mProvisioned && restoreSet != 0) {
+        // okay, we're going to attempt a restore of this package from this restore set.
+        // The eventual message back into the Package Manager to run the post-install
+        // steps for 'token' will be issued from the restore handling code.
 
-    //     // We can use a synthetic PackageInfo here because:
-    //     //   1. We know it's valid, since the Package Manager supplied the name
-    //     //   2. Only the packageName field will be used by the restore code
-    //     PackageInfo pkg = new PackageInfo();
-    //     pkg.packageName = packageName;
+        // We can use a synthetic PackageInfo here because:
+        //   1. We know it's valid, since the Package Manager supplied the name
+        //   2. Only the packageName field will be used by the restore code
+        AutoPtr<ICapsuleInfo> pkg;
+        CCapsuleInfo::New((ICapsuleInfo**) &pkg);
+        pkg->SetCapsuleName(packageName);
 
-    //     mWakelock.acquire();
-    //     Message msg = mBackupHandler.obtainMessage(MSG_RUN_RESTORE);
-    //     msg.obj = new RestoreParams(getTransport(mCurrentTransport), NULL,
-    //             restoreSet, pkg, token, TRUE);
-    //     mBackupHandler.sendMessage(msg);
-    // } else {
-    //     // Auto-restore disabled or no way to attempt a restore; just tell the Package
-    //     // Manager to proceed with the post-install handling for this package.
-    //     if (DEBUG) Slog.v(TAG, "No restore set -- skipping restore");
-    //     try {
-    //         mPackageManagerBinder.finishPackageInstall(token);
-    //     } catch (RemoteException e) { /* can't happen */ }
-    // }
+        //TODO
+        //mWakelock.acquire();
+        // Message msg = mBackupHandler.obtainMessage(MSG_RUN_RESTORE);
+        // msg.obj = new RestoreParams(getTransport(mCurrentTransport), NULL,
+        //         restoreSet, pkg, token, TRUE);
+        // mBackupHandler.sendMessage(msg);
 
-    return E_NOT_IMPLEMENTED;
+        void (STDCALL CBackupManagerService::*pHandlerFunc)(RestoreParams*);
+        pHandlerFunc = &CBackupManagerService::HandleRestore;
+
+        AutoPtr<IParcel> params;
+        CCallbackParcel::New((IParcel**)&params);
+        CBackupManagerService::RestoreParams data(GetTransport(mCurrentTransport), NULL,
+                restoreSet, pkg, token, TRUE);
+        params->WriteInt32((Handle32)(Handle32*) &data);
+
+        mBackupHandler->PostCppCallbackDelayed(
+            (Handle32)this, *(Handle32*)&pHandlerFunc,
+            params, 0, 0);
+    } else {
+        // Auto-restore disabled or no way to attempt a restore; just tell the Package
+        // Manager to proceed with the post-install handling for this package.
+        if (DEBUG) Slogger::V(TAG, "No restore set -- skipping restore");
+        //try {
+        mPackageManagerBinder->FinishCapsuleInstall(token);
+        //} catch (RemoteException e) { /* can't happen */ }
+    }
+
+    return NOERROR;
 }
 
 // Hand off a restore session
@@ -1991,48 +2540,65 @@ ECode CBackupManagerService::BeginRestoreSession(
     /* [in] */ const String& transport,
     /* [out] */ IRestoreSessionStub** session)
 {
-    // if (DEBUG) Slog.v(TAG, "beginRestoreSession: pkg=" + packageName
-    //         + " transport=" + transport);
+    assert(session != NULL);
+    if (DEBUG) Slogger::V(TAG, StringBuffer("beginRestoreSession: pkg=") + packageName
+            + " transport=" + transport);
 
-    // Boolean needPermission = TRUE;
-    // if (transport == NULL) {
-    //     transport = mCurrentTransport;
+    Boolean needPermission = TRUE;
 
-    //     if (packageName != NULL) {
-    //         PackageInfo app = NULL;
-    //         try {
-    //             app = mPackageManager.getPackageInfo(packageName, 0);
-    //         } catch (NameNotFoundException nnf) {
-    //             Slog.w(TAG, "Asked to restore nonexistent pkg " + packageName);
-    //             throw new IllegalArgumentException("Package " + packageName + " not found");
-    //         }
+    String tmpPort = transport;
+    if (tmpPort == NULL) {
+        tmpPort = mCurrentTransport;
 
-    //         if (app.applicationInfo.uid == Binder.getCallingUid()) {
-    //             // So: using the current active transport, and the caller has asked
-    //             // that its own package will be restored.  In this narrow use case
-    //             // we do not require the caller to hold the permission.
-    //             needPermission = FALSE;
-    //         }
-    //     }
-    // }
+        if (!packageName.IsNull()) {
+            AutoPtr<ICapsuleInfo> app;
+            //try {
+            mPackageManager->GetCapsuleInfo(packageName, 0, (ICapsuleInfo**) &app);
+            // } catch (NameNotFoundException nnf) {
+            //     Slog.w(TAG, "Asked to restore nonexistent pkg " + packageName);
+            //     throw new IllegalArgumentException("Package " + packageName + " not found");
+            // }
 
-    // if (needPermission) {
-    //     mContext.enforceCallingOrSelfPermission(android.Manifest.permission.BACKUP,
-    //             "beginRestoreSession");
-    // } else {
-    //     if (DEBUG) Slog.d(TAG, "restoring self on current transport; no permission needed");
-    // }
+            assert(app != NULL);
+            AutoPtr<IApplicationInfo> appInfo;
+            app->GetApplicationInfo((IApplicationInfo**) &appInfo);
+            assert(appInfo != NULL);
+            Int32 uid = 0;
+            appInfo->GetUid(&uid);
+            if (uid == Binder::GetCallingUid()) {
+                // So: using the current active transport, and the caller has asked
+                // that its own package will be restored.  In this narrow use case
+                // we do not require the caller to hold the permission.
+                needPermission = FALSE;
+            }
+        }
+    }
 
-    // synchronized(this) {
-    //     if (mActiveRestoreSession != NULL) {
-    //         Slog.d(TAG, "Restore session requested but one already active");
-    //         return NULL;
-    //     }
-    //     mActiveRestoreSession = new ActiveRestoreSession(packageName, transport);
-    // }
-    // return mActiveRestoreSession;
+    if (needPermission) {
+        mContext->EnforceCallingOrSelfPermission(
+                String("android.Manifest.permission.BACKUP"),
+                String("beginRestoreSession"));
+    } else {
+        if (DEBUG) Slogger::D(TAG, "restoring self on current transport; no permission needed");
+    }
 
-    return E_NOT_IMPLEMENTED;
+    {
+        Mutex::Autolock lock(mBackupServiceLock);
+        if (mActiveRestoreSession != NULL) {
+            Slogger::D(TAG, "Restore session requested but one already active");
+            *session = NULL;
+            return NOERROR;
+        }
+
+        mActiveRestoreSession = new ActiveRestoreSession(packageName, tmpPort, this);
+    }
+
+    *session = mActiveRestoreSession;
+    if (*session != NULL) {
+        (*session)->AddRef();
+    }
+
+    return NOERROR;
 }
 
 // Note that a currently-active backup agent has notified us that it has
@@ -2040,37 +2606,49 @@ ECode CBackupManagerService::BeginRestoreSession(
 ECode CBackupManagerService::OpComplete(
     /* [in] */ Int32 token)
 {
-    // synchronized (mCurrentOpLock) {
-    //     if (DEBUG) Slog.v(TAG, "opComplete: " + Integer.toHexString(token));
-    //     mCurrentOperations.put(token, OP_ACKNOWLEDGED);
-    //     mCurrentOpLock.notifyAll();
-    // }
+    {
+        Mutex::Autolock lock(mCurrentOpLock);
+        if (DEBUG) Slogger::V(TAG, StringBuffer("opComplete: ") + token);
+        mCurrentOperations->Put(token, OP_ACKNOWLEDGED);
 
-    return E_NOT_IMPLEMENTED;
+        //TODO
+        //mCurrentOpLock.notifyAll();
+    }
+
+    return NOERROR;
 }
 
 void CBackupManagerService::InitPackageTracking()
 {
-    // if (DEBUG) Slog.v(TAG, "Initializing package tracking");
+    if (DEBUG) Slogger::V(TAG, "Initializing package tracking");
 
-    // // Remember our ancestral dataset
-    // mTokenFile = new File(mBaseStateDir, "ancestral");
-    // try {
-    //     RandomAccessFile tf = new RandomAccessFile(mTokenFile, "r");
-    //     Int32 version = tf.readInt();
-    //     if (version == CURRENT_ANCESTRAL_RECORD_VERSION) {
-    //         mAncestralToken = tf.readLong();
-    //         mCurrentToken = tf.readLong();
+    // Remember our ancestral dataset
+    CFile::New(mBaseStateDir, String("ancestral"), (IFile**) &mTokenFile);
 
-    //         Int32 numPackages = tf.readInt();
-    //         if (numPackages >= 0) {
-    //             mAncestralPackages = new HashSet<String>();
-    //             for (Int32 i = 0; i < numPackages; i++) {
-    //                 String pkgName = tf.readUTF();
-    //                 mAncestralPackages.add(pkgName);
-    //             }
-    //         }
-    //     }
+    //try {
+    AutoPtr<IRandomAccessFile> tf;
+    CRandomAccessFile::New(mTokenFile, String("r"), (IRandomAccessFile**) &tf);
+    assert(tf != NULL);
+    AutoPtr<IDataInput> dataInput = IDataInput::Probe(tf);
+
+    Int32 version = 0;
+    dataInput->ReadInt32(&version);
+    if (version == CURRENT_ANCESTRAL_RECORD_VERSION) {
+        dataInput->ReadInt64(&mAncestralToken);
+        dataInput->ReadInt64(&mCurrentToken);
+
+        Int32 numPackages = 0;
+        dataInput->ReadInt32(&numPackages);
+        if (numPackages >= 0) {
+            for (Int32 i = 0; i < numPackages; i++) {
+                String pkgName;
+                //TODO
+                // tf->ReadUTF(&pkgName);
+                assert(0);
+                mAncestralPackages.Insert(pkgName);
+            }
+        }
+    }
     // } catch (FileNotFoundException fnf) {
     //     // Probably innocuous
     //     Slog.v(TAG, "No ancestral data");
@@ -2078,126 +2656,185 @@ void CBackupManagerService::InitPackageTracking()
     //     Slog.w(TAG, "Unable to read token file", e);
     // }
 
-    // // Keep a log of what apps we've ever backed up.  Because we might have
-    // // rebooted in the middle of an operation that was removing something from
-    // // this log, we sanity-check its contents here and reconstruct it.
-    // mEverStored = new File(mBaseStateDir, "processed");
-    // File tempProcessedFile = new File(mBaseStateDir, "processed.new");
+    // Keep a log of what apps we've ever backed up.  Because we might have
+    // rebooted in the middle of an operation that was removing something from
+    // this log, we sanity-check its contents here and reconstruct it.
+    CFile::New(mBaseStateDir, String("processed"), (IFile**) &mEverStored);
+    AutoPtr<IFile> tempProcessedFile;
+    CFile::New(mBaseStateDir, String("processed.new"), (IFile**) &tempProcessedFile);
 
-    // // If we were in the middle of removing something from the ever-backed-up
-    // // file, there might be a transient "processed.new" file still present.
-    // // Ignore it -- we'll validate "processed" against the current package set.
-    // if (tempProcessedFile.exists()) {
-    //     tempProcessedFile.delete();
-    // }
+    // If we were in the middle of removing something from the ever-backed-up
+    // file, there might be a transient "processed.new" file still present.
+    // Ignore it -- we'll validate "processed" against the current package set.
+    Boolean flag = FALSE;
+    if (tempProcessedFile->Exists(&flag), flag) {
+        tempProcessedFile->Delete(&flag);
+    }
 
-    // // If there are previous contents, parse them out then start a new
-    // // file to continue the recordkeeping.
-    // if (mEverStored.exists()) {
-    //     RandomAccessFile temp = NULL;
-    //     RandomAccessFile in = NULL;
+    // If there are previous contents, parse them out then start a new
+    // file to continue the recordkeeping.
+    if (mEverStored->Exists(&flag), flag) {
+        AutoPtr<IRandomAccessFile> temp;
+        AutoPtr<IRandomAccessFile> in;
 
-    //     try {
-    //         temp = new RandomAccessFile(tempProcessedFile, "rws");
-    //         in = new RandomAccessFile(mEverStored, "r");
+        //try {
+        CRandomAccessFile::New(tempProcessedFile, String("rws"), (IRandomAccessFile**) &temp);
+        CRandomAccessFile::New(mEverStored, String("r"), (IRandomAccessFile**) &in);
 
-    //         while (TRUE) {
-    //             PackageInfo info;
-    //             String pkg = in.readUTF();
-    //             try {
-    //                 info = mPackageManager.getPackageInfo(pkg, 0);
-    //                 mEverStoredApps.add(pkg);
-    //                 temp.writeUTF(pkg);
-    //                 if (DEBUG) Slog.v(TAG, "   + " + pkg);
-    //             } catch (NameNotFoundException e) {
-    //                 // nope, this package was uninstalled; don't include it
-    //                 if (DEBUG) Slog.v(TAG, "   - " + pkg);
-    //             }
-    //         }
-    //     } catch (EOFException e) {
-    //         // Once we've rewritten the backup history log, atomically replace the
-    //         // old one with the new one then reopen the file for continuing use.
-    //         if (!tempProcessedFile.renameTo(mEverStored)) {
-    //             Slog.e(TAG, "Error renaming " + tempProcessedFile + " to " + mEverStored);
-    //         }
-    //     } catch (IOException e) {
-    //         Slog.e(TAG, "Error in processed file", e);
-    //     } finally {
-    //         try { if (temp != NULL) temp.close(); } catch (IOException e) {}
-    //         try { if (in != NULL) in.close(); } catch (IOException e) {}
-    //     }
-    // }
+        while (TRUE) {
+            AutoPtr<ICapsuleInfo> info;
+            String pkg;
 
-    // // Register for broadcasts about package install, etc., so we can
-    // // update the provider list.
-    // IntentFilter filter = new IntentFilter();
-    // filter.addAction(Intent.ACTION_PACKAGE_ADDED);
-    // filter.addAction(Intent.ACTION_PACKAGE_REMOVED);
-    // filter.addDataScheme("package");
-    // mContext.registerReceiver(mBroadcastReceiver, filter);
-    // // Register for events related to sdcard installation.
-    // IntentFilter sdFilter = new IntentFilter();
-    // sdFilter.addAction(Intent.ACTION_EXTERNAL_APPLICATIONS_AVAILABLE);
-    // sdFilter.addAction(Intent.ACTION_EXTERNAL_APPLICATIONS_UNAVAILABLE);
-    // mContext.registerReceiver(mBroadcastReceiver, sdFilter);
+            //TODO
+            assert(0);
+            //in->ReadUTF(&pkg);
+
+            //try {
+            mPackageManager->GetCapsuleInfo(pkg, 0, (ICapsuleInfo**) &info);
+            mEverStoredApps.Insert(pkg);
+
+
+            //temp.WriteUTF(pkg);
+            ArrayOf<Byte>* utf = StringToByteArray(pkg);
+            //TODO ??no WriteUTF api
+            temp->WriteBuffer(*utf);
+            ArrayOf<Byte>::Free(utf);
+
+            if (DEBUG) Slogger::V(TAG, StringBuffer("   + ") + pkg);
+            // } catch (NameNotFoundException e) {
+            //     // nope, this package was uninstalled; don't include it
+            //     if (DEBUG) Slog.v(TAG, "   - " + pkg);
+            // }
+        }
+        // } catch (EOFException e) {
+        //     // Once we've rewritten the backup history log, atomically replace the
+        //     // old one with the new one then reopen the file for continuing use.
+        //     if (!tempProcessedFile.renameTo(mEverStored)) {
+        //         Slog.e(TAG, "Error renaming " + tempProcessedFile + " to " + mEverStored);
+        //     }
+        // } catch (IOException e) {
+        //     Slog.e(TAG, "Error in processed file", e);
+        // } finally {
+        //try {
+        if (temp != NULL) temp->Close();
+        //} catch (IOException e) {}
+
+        //try {
+        if (in != NULL) in->Close();
+        //} catch (IOException e) {}
+        //}
+    }
+
+    // Register for broadcasts about package install, etc., so we can
+    // update the provider list.
+    AutoPtr<IIntentFilter> filter;
+    CIntentFilter::New((IIntentFilter**) &filter);
+    filter->AddAction(String(Intent_ACTION_CAPSULE_ADDED));
+    filter->AddAction(String(Intent_ACTION_CAPSULE_REMOVED));
+    filter->AddDataScheme(String("package"));
+
+    //TODO
+    assert(0);
+    //mContext->RegisterReceiver(mBroadcastReceiver, filter);
+
+    // Register for events related to sdcard installation.
+    AutoPtr<IIntentFilter> sdFilter;
+    CIntentFilter::New((IIntentFilter**) &sdFilter);
+    sdFilter->AddAction(String(Intent_ACTION_EXTERNAL_APPLICATIONS_AVAILABLE));
+    sdFilter->AddAction(String(Intent_ACTION_EXTERNAL_APPLICATIONS_UNAVAILABLE));
+
+    //TODO
+    assert(0);
+    //mContext->RegisterReceiver(mBroadcastReceiver, sdFilter);
 }
 
 void CBackupManagerService::ParseLeftoverJournals()
 {
-    // for (File f : mJournalDir.listFiles()) {
-    //     if (mJournal == NULL || f.compareTo(mJournal) != 0) {
-    //         // This isn't the current journal, so it must be a leftover.  Read
-    //         // out the package names mentioned there and schedule them for
-    //         // backup.
-    //         RandomAccessFile in = NULL;
-    //         try {
-    //             Slog.i(TAG, "Found stale backup journal, scheduling");
-    //             in = new RandomAccessFile(f, "r");
-    //             while (TRUE) {
-    //                 String packageName = in.readUTF();
-    //                 Slog.i(TAG, "  " + packageName);
-    //                 dataChangedImpl(packageName);
-    //             }
-    //         } catch (EOFException e) {
-    //             // no more data; we're done
-    //         } catch (Exception e) {
-    //             Slog.e(TAG, "Can't read " + f, e);
-    //         } finally {
-    //             // close/delete the file
-    //             try { if (in != NULL) in.close(); } catch (IOException e) {}
-    //             f.delete();
-    //         }
-    //     }
-    // }
+    assert(mJournalDir != NULL);
+    AutoPtr<IObjectContainer> fileList;
+    CObjectContainer::New((IObjectContainer**)&fileList);
+    mJournalDir->ListFiles((IObjectContainer**) &fileList);
+
+    AutoPtr<IObjectEnumerator> fileIt;
+    fileList->GetObjectEnumerator((IObjectEnumerator**)&fileIt);
+    Boolean hasNext = FALSE;
+    while(fileIt->MoveNext(&hasNext), hasNext) {
+        AutoPtr<IFile> f;
+        fileIt->Current((IInterface**)&f);
+        assert(f != NULL);
+
+        Int32 result = 0;
+        if (mJournal == NULL || (f->CompareTo(mJournal, &result), result != 0)) {
+            // This isn't the current journal, so it must be a leftover.  Read
+            // out the package names mentioned there and schedule them for
+            // backup.
+            AutoPtr<IRandomAccessFile> in;
+            //try {
+            Slogger::I(TAG, "Found stale backup journal, scheduling");
+            CRandomAccessFile::New(f, String("r"), (IRandomAccessFile**) &in);
+            while (TRUE) {
+                String packageName;
+
+                //TODO
+                assert(0);
+                //in->ReadUTF(&packageName);
+
+                Slogger::I(TAG, StringBuffer("  ") + packageName);
+                DataChangedImpl(packageName);
+            }
+            // } catch (EOFException e) {
+            //     // no more data; we're done
+            // } catch (Exception e) {
+            //     Slog.e(TAG, "Can't read " + f, e);
+            // } finally {
+            // close/delete the file
+            //try {
+            if (in != NULL) in->Close();
+            //} catch (IOException e) {}
+
+            Boolean successed = FALSE;
+            f->Delete(&successed);
+            //}
+        }
+    }
+
 }
 
 void CBackupManagerService::RecordInitPendingLocked(
     /* [in] */ Boolean isPending,
     /* [in] */ const String& transportName)
 {
-    // if (DEBUG) Slog.i(TAG, "recordInitPendingLocked: " + isPending
-    //         + " on transport " + transportName);
-    // try {
-    //     IBackupTransport transport = getTransport(transportName);
-    //     String transportDirName = transport.transportDirName();
-    //     File stateDir = new File(mBaseStateDir, transportDirName);
-    //     File initPendingFile = new File(stateDir, INIT_SENTINEL_FILE_NAME);
+    if (DEBUG) Slogger::I(TAG, StringBuffer("recordInitPendingLocked: ") + isPending
+            + " on transport " + transportName);
+    //try {
+    AutoPtr<IBackupTransport> transport = GetTransport(transportName);
+    String transportDirName;
+    transport->TransportDirName(&transportDirName);
+    AutoPtr<IFile> stateDir;
+    CFile::New(mBaseStateDir, transportDirName, (IFile**) &stateDir);
 
-    //     if (isPending) {
-    //         // We need an init before we can proceed with sending backup data.
-    //         // Record that with an entry in our set of pending inits, as well as
-    //         // journaling it via creation of a sentinel file.
-    //         mPendingInits.add(transportName);
-    //         try {
-    //             (new FileOutputStream(initPendingFile)).close();
-    //         } catch (IOException ioe) {
-    //             // Something is badly wrong with our permissions; just try to move on
-    //         }
-    //     } else {
-    //         // No more initialization needed; wipe the journal and reset our state.
-    //         initPendingFile.delete();
-    //         mPendingInits.remove(transportName);
-    //     }
+    AutoPtr<IFile> initPendingFile;
+    CFile::New(stateDir, String((const char*)INIT_SENTINEL_FILE_NAME), (IFile**) &initPendingFile);
+
+    if (isPending) {
+        // We need an init before we can proceed with sending backup data.
+        // Record that with an entry in our set of pending inits, as well as
+        // journaling it via creation of a sentinel file.
+        mPendingInits.Insert(transportName);
+        //try {
+        AutoPtr<IFileOutputStream> tmpFOS;
+
+        CFileOutputStream::New(initPendingFile, (IFileOutputStream**) &tmpFOS);
+        tmpFOS->Close();
+        // } catch (IOException ioe) {
+        //     // Something is badly wrong with our permissions; just try to move on
+        // }
+    } else {
+        // No more initialization needed; wipe the journal and reset our state.
+        Boolean successed = FALSE;
+        initPendingFile->Delete(&successed);
+        mPendingInits.Erase(transportName);
+    }
     // } catch (RemoteException e) {
     //     // can't happen; the transport is local
     // }
@@ -2206,73 +2843,102 @@ void CBackupManagerService::RecordInitPendingLocked(
 void CBackupManagerService::ResetBackupState(
     /* [in] */ IFile* stateFileDir)
 {
-    // {
-    //     Mutex::Autolock lock(mQueueLock);
-    //     // Wipe the "what we've ever backed up" tracking
-    //     mEverStoredApps.clear();
-    //     mEverStored.delete();
+    {
+        Mutex::Autolock lock(mQueueLock);
+        // Wipe the "what we've ever backed up" tracking
+        mEverStoredApps.Clear();
 
-    //     mCurrentToken = 0;
-    //     writeRestoreTokens();
+        Boolean successed = FALSE;
+        mEverStored->Delete(&successed);
 
-    //     // Remove all the state files
-    //     for (File sf : stateFileDir.listFiles()) {
-    //         // ... but don't touch the needs-init sentinel
-    //         if (!sf.getName().equals(INIT_SENTINEL_FILE_NAME)) {
-    //             sf.delete();
-    //         }
-    //     }
+        mCurrentToken = 0;
+        WriteRestoreTokens();
 
-    //     // Enqueue a new backup of every participant
-    //     Int32 N = mBackupParticipants.size();
-    //     for (Int32 i=0; i<N; i++) {
-    //         Int32 uid = mBackupParticipants.keyAt(i);
-    //         HashSet<AutoPtr<IApplicationInfo> > participants = mBackupParticipants.valueAt(i);
-    //         for (IApplicationInfo app: participants) {
-    //             dataChangedImpl(app.packageName);
-    //         }
-    //     }
-    // }
+        // Remove all the state files
+        assert(stateFileDir != NULL);
+        AutoPtr<IObjectContainer> fileList;
+        CObjectContainer::New((IObjectContainer**)&fileList);
+        stateFileDir->ListFiles((IObjectContainer**) &fileList);
+
+        AutoPtr<IObjectEnumerator> fileIt;
+        fileList->GetObjectEnumerator((IObjectEnumerator**)&fileIt);
+        Boolean hasNext = FALSE;
+        while(fileIt->MoveNext(&hasNext), hasNext) {
+            AutoPtr<IFile> sf;
+            fileIt->Current((IInterface**)&sf);
+            assert(sf != NULL);
+
+            // ... but don't touch the needs-init sentinel
+            String name;
+            sf->GetName(&name);
+            if (!name.Equals((const char*)INIT_SENTINEL_FILE_NAME)) {
+                sf->Delete(&successed);
+            }
+        }
+
+        // Enqueue a new backup of every participant
+        Map<Int32, HashSet<AutoPtr<IApplicationInfo> >*>::Iterator it;
+        for (it = mBackupParticipants.Begin(); it != mBackupParticipants.End(); ++it) {
+            //Int32 uid = it->mFirst;
+            HashSet<AutoPtr<IApplicationInfo> >* participants = it->mSecond;
+            assert(participants != NULL);
+            HashSet<AutoPtr<IApplicationInfo> >::Iterator app = participants->Begin();
+            for (; app != participants->End(); ++app) {
+                String name;
+                assert(*app != NULL);
+                (*app)->GetCapsuleName(&name);
+                DataChangedImpl(name);
+            }
+        }
+    }
 }
 
 void CBackupManagerService::RegisterTransport(
     /* [in] */ const String& name,
     /* [in] */ IBackupTransport* transport)
 {
-    // synchronized (mTransports) {
-    //     if (DEBUG) Slog.v(TAG, "Registering transport " + name + " = " + transport);
-    //     if (transport != NULL) {
-    //         mTransports.put(name, transport);
-    //     } else {
-    //         mTransports.remove(name);
-    //         if ((mCurrentTransport != NULL) && mCurrentTransport.equals(name)) {
-    //             mCurrentTransport = NULL;
-    //         }
-    //         // Nothing further to do in the unregistration case
-    //         return;
-    //     }
-    // }
+    {
+        Mutex::Autolock lock(mTransportsLock);
+        if (DEBUG) Slogger::V(TAG, StringBuffer("Registering transport ") + name + " = " + transport);
+        if (transport != NULL) {
+            mTransports[name] = transport;
+        } else {
+            mTransports.Erase(name);
+            if ((mCurrentTransport != NULL) && mCurrentTransport.Equals(name)) {
+                mCurrentTransport = NULL;
+            }
+            // Nothing further to do in the unregistration case
+            return;
+        }
+    }
 
-    // // If the init sentinel file exists, we need to be sure to perform the init
-    // // as soon as practical.  We also create the state directory at registration
-    // // time to ensure it's present from the outset.
-    // try {
-    //     String transportName = transport.transportDirName();
-    //     File stateDir = new File(mBaseStateDir, transportName);
-    //     stateDir.mkdirs();
+    // If the init sentinel file exists, we need to be sure to perform the init
+    // as soon as practical.  We also create the state directory at registration
+    // time to ensure it's present from the outset.
+    //try {
+    String transportName;
+    transport->TransportDirName(&transportName);
+    AutoPtr<IFile> stateDir;
+    CFile::New(mBaseStateDir, transportName, (IFile**) &stateDir);
+    Boolean tmpFlag = FALSE;
+    stateDir->Mkdirs(&tmpFlag);
 
-    //     File initSentinel = new File(stateDir, INIT_SENTINEL_FILE_NAME);
-    //     if (initSentinel.exists()) {
-    //         {
-    //             Mutex::Autolock lock(mQueueLock);
-    //             mPendingInits.add(transportName);
+    AutoPtr<IFile> initSentinel;
+    CFile::New(stateDir, String(INIT_SENTINEL_FILE_NAME), (IFile**) &initSentinel);
 
-    //             // TODO: pick a better starting time than now + 1 minute
-    //             Int64 delay = 1000 * 60; // one minute, in milliseconds
-    //             mAlarmManager.set(AlarmManager.RTC_WAKEUP,
-    //                     System.currentTimeMillis() + delay, mRunInitIntent);
-    //         }
-    //     }
+    initSentinel->Exists(&tmpFlag);
+    if (tmpFlag) {
+        {
+            Mutex::Autolock lock(mQueueLock);
+            mPendingInits.Insert(transportName);
+
+            // TODO: pick a better starting time than now + 1 minute
+            // TODO
+            //Int64 delay = 1000 * 60; // one minute, in milliseconds
+            // mAlarmManager.set(AlarmManager.RTC_WAKEUP,
+            //         System.currentTimeMillis() + delay, mRunInitIntent);
+        }
+    }
     // } catch (RemoteException e) {
     //     // can't happen, the transport is local
     // }
@@ -2285,6 +2951,11 @@ void CBackupManagerService::AddPackageParticipantsLocked(
     if (DEBUG) Slogger::V(TAG, StringBuffer("addPackageParticipantsLocked: ") + packageName);
     List<AutoPtr<ICapsuleInfo> >* targetApps = AllAgentPackages();
     AddPackageParticipantsLockedInner(packageName, targetApps);
+
+    if (targetApps != NULL) {
+        delete targetApps;
+        targetApps = NULL;
+    }
 }
 
 void CBackupManagerService::AddPackageParticipantsLockedInner(
@@ -2350,22 +3021,27 @@ void CBackupManagerService::RemovePackageParticipantsLocked(
     /* [in] */ const String& packageName)
 {
     if (DEBUG) Slogger::V(TAG, StringBuffer("removePackageParticipantsLocked: ") + packageName);
-    List<AutoPtr<ICapsuleInfo> > allApps;
+    List<AutoPtr<ICapsuleInfo> >* allApps = NULL;
     if (!packageName.IsNull()) {
         //try {
         Int32 flags = CapsuleManager_GET_SIGNATURES;
         AutoPtr<ICapsuleInfo> capInfo;
         mPackageManager->GetCapsuleInfo(packageName, flags, (ICapsuleInfo**) &capInfo);
-        allApps.PushBack(capInfo);
+        allApps->PushBack(capInfo);
         // } catch (Exception e) {
         //     // just skip it (???)
         // }
     } else {
         // all apps with agents
-        allApps = (*(AllAgentPackages()));
+        allApps = AllAgentPackages();
     }
 
-    RemovePackageParticipantsLockedInner(packageName, &allApps);
+    RemovePackageParticipantsLockedInner(packageName, allApps);
+
+    if (allApps != NULL) {
+        delete allApps;
+        allApps = NULL;
+    }
 }
 
 void CBackupManagerService::RemovePackageParticipantsLockedInner(
@@ -2421,31 +3097,68 @@ void CBackupManagerService::RemovePackageParticipantsLockedInner(
 
 List<AutoPtr<ICapsuleInfo> >* CBackupManagerService::AllAgentPackages()
 {
-    // // !!! TODO: cache this and regenerate only when necessary
-    // Int32 flags = PackageManager.GET_SIGNATURES;
-    // List<PackageInfo> packages = mPackageManager.getInstalledPackages(flags);
-    // Int32 N = packages.size();
-    // for (Int32 a = N-1; a >= 0; a--) {
-    //     PackageInfo pkg = packages.get(a);
-    //     try {
-    //         AutoPtr<IApplicationInfo> app = pkg.applicationInfo;
-    //         if (((app.flags & ApplicationInfo_FLAG_ALLOW_BACKUP) == 0)
-    //                 || app.backupAgentName == NULL) {
-    //             packages.remove(a);
-    //         }
-    //         else {
-    //             // we will need the shared library path, so look that up and store it here
-    //             app = mPackageManager.getApplicationInfo(pkg.packageName,
-    //                     PackageManager.GET_SHARED_LIBRARY_FILES);
-    //             pkg.applicationInfo.sharedLibraryFiles = app.sharedLibraryFiles;
-    //         }
-    //     } catch (NameNotFoundException e) {
-    //         packages.remove(a);
-    //     }
-    // }
-    // return packages;
+    // !!! TODO: cache this and regenerate only when necessary
+    Int32 flags = CapsuleManager_GET_SIGNATURES;
 
-    return NULL;
+    AutoPtr<IObjectContainer> capsules;
+    CObjectContainer::New((IObjectContainer**)&capsules);
+    mPackageManager->GetInstalledCapsules(flags, (IObjectContainer**)&capsules);
+
+    List<AutoPtr<ICapsuleInfo> >* packages = new List<AutoPtr<ICapsuleInfo> >();
+    AutoPtr<IObjectEnumerator> pkgIt;
+    capsules->GetObjectEnumerator((IObjectEnumerator**)&pkgIt);
+    Boolean hasNext = FALSE;
+    while(pkgIt->MoveNext(&hasNext), hasNext) {
+        AutoPtr<ICapsuleInfo> pkg;
+        pkgIt->Current((IInterface**)&pkg);
+        packages->PushBack(pkg);
+    }
+
+    Int32 N = packages->GetSize();
+    for (Int32 a = N-1; a >= 0; a--) {
+        AutoPtr<ICapsuleInfo> pkg = (*packages)[a];
+        assert(pkg != NULL);
+        //try {
+        AutoPtr<IApplicationInfo> app;
+        pkg->GetApplicationInfo((IApplicationInfo**) &app);
+        assert(app != NULL);
+
+        Int32 flags = 0;
+        app->GetFlags(&flags);
+        String agentName;
+        app->GetBackupAgentName(&agentName);
+        if (((flags & ApplicationInfo_FLAG_ALLOW_BACKUP) == 0)
+                || agentName.IsNull()) {
+            packages->Remove(a);
+        }
+        else {
+            // we will need the shared library path, so look that up and store it here
+            String name;
+            pkg->GetCapsuleName(&name);
+
+            AutoPtr<IApplicationInfo> tmpApp;
+            mPackageManager->GetApplicationInfo(name,
+                    CapsuleManager_GET_SHARED_LIBRARY_FILES,
+                    (IApplicationInfo**) &tmpApp);
+
+            ArrayOf<String>* sharedLibraryFiles = NULL;
+            tmpApp->GetSharedLibraryFiles(&sharedLibraryFiles);
+            app->SetSharedLibraryFiles(sharedLibraryFiles);
+
+            if (sharedLibraryFiles != NULL) {
+                for (Int32 i = 0; i < sharedLibraryFiles->GetLength(); ++i) {
+                    (*sharedLibraryFiles)[i].~String();
+                }
+                ArrayOf<String>::Free(sharedLibraryFiles);
+                sharedLibraryFiles = NULL;
+            }
+        }
+        // } catch (NameNotFoundException e) {
+        //     (*packages)->Remove(a);
+        // }
+    }
+
+    return packages;
 }
 
 // Reset the given package's known backup participants.  Unlike add/remove, the update
@@ -2453,16 +3166,22 @@ List<AutoPtr<ICapsuleInfo> >* CBackupManagerService::AllAgentPackages()
 void CBackupManagerService::UpdatePackageParticipantsLocked(
     /* [in] */ const String& packageName)
 {
-    // if (packageName == NULL) {
-    //     Slog.e(TAG, "updatePackageParticipants called with NULL package name");
-    //     return;
-    // }
-    // if (DEBUG) Slog.v(TAG, "updatePackageParticipantsLocked: " + packageName);
+    if (packageName.IsNull()) {
+        Slogger::E(TAG, "updatePackageParticipants called with NULL package name");
+        return;
+    }
 
-    // // brute force but small code size
-    // List<PackageInfo> allApps = allAgentPackages();
-    // removePackageParticipantsLockedInner(packageName, allApps);
-    // addPackageParticipantsLockedInner(packageName, allApps);
+    if (DEBUG) Slogger::V(TAG, StringBuffer("updatePackageParticipantsLocked: ") + packageName);
+
+    // brute force but small code size
+    List<AutoPtr<ICapsuleInfo> >* allApps = AllAgentPackages();
+    RemovePackageParticipantsLockedInner(packageName, allApps);
+    AddPackageParticipantsLockedInner(packageName, allApps);
+
+    if (allApps != NULL) {
+        delete allApps;
+        allApps = NULL;
+    }
 }
 
 // Called from the backup task: record that the given app has been successfully
@@ -2470,61 +3189,92 @@ void CBackupManagerService::UpdatePackageParticipantsLocked(
 void CBackupManagerService::LogBackupComplete(
     /* [in] */ const String& packageName)
 {
-    // if (packageName.equals(PACKAGE_MANAGER_SENTINEL)) return;
+    if (packageName.Equals((const char*)PACKAGE_MANAGER_SENTINEL)) return;
 
-    // synchronized (mEverStoredApps) {
-    //     if (!mEverStoredApps.add(packageName)) return;
+    {
+        Mutex::Autolock lock(mEverStoredAppsLock);
 
-    //     RandomAccessFile out = NULL;
-    //     try {
-    //         out = new RandomAccessFile(mEverStored, "rws");
-    //         out.seek(out.length());
-    //         out.writeUTF(packageName);
-    //     } catch (IOException e) {
-    //         Slog.e(TAG, "Can't log backup of " + packageName + " to " + mEverStored);
-    //     } finally {
-    //         try { if (out != NULL) out.close(); } catch (IOException e) {}
-    //     }
-    // }
+        HashSet<String>::Iterator item = mEverStoredApps.Find(packageName);
+        if (item != mEverStoredApps.End()) {
+            return;
+        }
+
+        mEverStoredApps.Insert(packageName);
+        //if (!mEverStoredApps.add(packageName)) return;
+
+        AutoPtr<IRandomAccessFile> out;
+        //try {
+        CRandomAccessFile::New(mEverStored, String("rws"), (IRandomAccessFile**) &out);
+        Int64 len = 0;
+        out->GetLength(&len);
+        out->Seek(len);
+
+        //out->WriteUTF(packageName);
+        ArrayOf<Byte>* utf = StringToByteArray(packageName);
+        out->WriteBuffer(*utf);
+        ArrayOf<Byte>::Free(utf);
+
+
+        // } catch (IOException e) {
+        //     Slog.e(TAG, "Can't log backup of " + packageName + " to " + mEverStored);
+        // } finally {
+        //try {
+        if (out != NULL) out->Close();
+        //} catch (IOException e) {}
+        //}
+    }
 }
 
 // Remove our awareness of having ever backed up the given package
 void CBackupManagerService::RemoveEverBackedUp(
     /* [in] */ const String& packageName)
 {
-    // if (DEBUG) Slog.v(TAG, "Removing backed-up knowledge of " + packageName + ", new set:");
+    if (DEBUG) Slogger::V(TAG, StringBuffer("Removing backed-up knowledge of ")
+        + packageName + ", new set:");
 
-    // synchronized (mEverStoredApps) {
-    //     // Rewrite the file and rename to overwrite.  If we reboot in the middle,
-    //     // we'll recognize on initialization time that the package no longer
-    //     // exists and fix it up then.
-    //     File tempKnownFile = new File(mBaseStateDir, "processed.new");
-    //     RandomAccessFile known = NULL;
-    //     try {
-    //         known = new RandomAccessFile(tempKnownFile, "rws");
-    //         mEverStoredApps.remove(packageName);
-    //         for (String s : mEverStoredApps) {
-    //             known.writeUTF(s);
-    //             if (DEBUG) Slog.v(TAG, "    " + s);
-    //         }
-    //         known.close();
-    //         known = NULL;
-    //         if (!tempKnownFile.renameTo(mEverStored)) {
-    //             throw new IOException("Can't rename " + tempKnownFile + " to " + mEverStored);
-    //         }
-    //     } catch (IOException e) {
-    //         // Bad: we couldn't create the new copy.  For safety's sake we
-    //         // abandon the whole process and remove all what's-backed-up
-    //         // state entirely, meaning we'll force a backup pass for every
-    //         // participant on the next boot or [re]install.
-    //         Slog.w(TAG, "Error rewriting " + mEverStored, e);
-    //         mEverStoredApps.clear();
-    //         tempKnownFile.delete();
-    //         mEverStored.delete();
-    //     } finally {
-    //         try { if (known != NULL) known.close(); } catch (IOException e) {}
-    //     }
-    // }
+    Mutex::Autolock lock(mEverStoredAppsLock);
+    // Rewrite the file and rename to overwrite.  If we reboot in the middle,
+    // we'll recognize on initialization time that the package no longer
+    // exists and fix it up then.
+    AutoPtr<IFile> tempKnownFile;
+    CFile::New(mBaseStateDir, String("processed.new"), (IFile**) &tempKnownFile);
+    AutoPtr<IRandomAccessFile> known;
+    //try {
+    CRandomAccessFile::New(tempKnownFile, String("rws"), (IRandomAccessFile**) &known);
+    mEverStoredApps.Erase(packageName);
+
+    HashSet<String>::Iterator s = mEverStoredApps.Begin();
+    for (; s != mEverStoredApps.End(); ++s) {
+        //known.writeUTF(s);
+        ArrayOf<Byte>* utf = StringToByteArray(*s);
+        known->WriteBuffer(*utf);
+        ArrayOf<Byte>::Free(utf);
+
+        //if (DEBUG) Slog.v(TAG, "    " + s);
+    }
+
+    known->Close();
+    known = NULL;
+
+    Boolean successed = FALSE;
+    if (tempKnownFile->RenameTo(mEverStored, &successed), !successed) {
+        //throw new IOException("Can't rename " + tempKnownFile + " to " + mEverStored);
+        assert(0);
+    }
+    // } catch (IOException e) {
+    //     // Bad: we couldn't create the new copy.  For safety's sake we
+    //     // abandon the whole process and remove all what's-backed-up
+    //     // state entirely, meaning we'll force a backup pass for every
+    //     // participant on the next boot or [re]install.
+    //     Slog.w(TAG, "Error rewriting " + mEverStored, e);
+    //     mEverStoredApps.clear();
+    //     tempKnownFile.delete();
+    //     mEverStored.delete();
+    // } finally {
+    //try {
+    if (known != NULL) known->Close();
+    //} catch (IOException e) {}
+    //}
 }
 
 // Persistently record the current and ancestral backup tokens as well
@@ -2532,28 +3282,39 @@ void CBackupManagerService::RemoveEverBackedUp(
 // ancestral dataset.
 void CBackupManagerService::WriteRestoreTokens()
 {
-    // try {
-    //     RandomAccessFile af = new RandomAccessFile(mTokenFile, "rwd");
+    //try {
+    AutoPtr<IRandomAccessFile> af;
+    CRandomAccessFile::New(mTokenFile, String("rwd"), (IRandomAccessFile**) &af);
 
-    //     // First, the version number of this record, for futureproofing
-    //     af.writeInt(CURRENT_ANCESTRAL_RECORD_VERSION);
+    AutoPtr<IDataOutput> afOutput;
+    afOutput = IDataOutput::Probe(af);
+    assert(afOutput != NULL);
+    // First, the version number of this record, for futureproofing
+    afOutput->WriteInt32(CURRENT_ANCESTRAL_RECORD_VERSION);
 
-    //     // Write the ancestral and current tokens
-    //     af.writeLong(mAncestralToken);
-    //     af.writeLong(mCurrentToken);
+    // Write the ancestral and current tokens
+    afOutput->WriteInt64(mAncestralToken);
+    afOutput->WriteInt64(mCurrentToken);
 
-    //     // Now write the set of ancestral packages
-    //     if (mAncestralPackages == NULL) {
-    //         af.writeInt(-1);
-    //     } else {
-    //         af.writeInt(mAncestralPackages.size());
-    //         if (DEBUG) Slog.v(TAG, "Ancestral packages:  " + mAncestralPackages.size());
-    //         for (String pkgName : mAncestralPackages) {
-    //             af.writeUTF(pkgName);
-    //             if (DEBUG) Slog.v(TAG, "   " + pkgName);
-    //         }
-    //     }
-    //     af.close();
+    // Now write the set of ancestral packages
+    if (mAncestralPackages.GetSize() == 0) {
+        afOutput->WriteInt32(-1);
+    } else {
+        afOutput->WriteInt32(mAncestralPackages.GetSize());
+        if (DEBUG) Slogger::V(TAG, StringBuffer("Ancestral packages:  ") + mAncestralPackages.GetSize());
+
+        Set<String>::Iterator pkgName = mAncestralPackages.Begin();
+        for (; pkgName != mAncestralPackages.End(); ++pkgName) {
+            //af.writeUTF(pkgName);
+            ArrayOf<Byte>* utf = StringToByteArray(*pkgName);
+            af->WriteBuffer(*utf);
+            ArrayOf<Byte>::Free(utf);
+
+            if (DEBUG) Slogger::V(TAG, StringBuffer("   ") + *pkgName);
+        }
+    }
+
+    af->Close();
     // } catch (IOException e) {
     //     Slog.w(TAG, "Unable to write token file:", e);
     // }
@@ -2563,15 +3324,13 @@ void CBackupManagerService::WriteRestoreTokens()
 AutoPtr<IBackupTransport> CBackupManagerService::GetTransport(
     /* [in] */ const String& transportName)
 {
-    // synchronized (mTransports) {
-    //     IBackupTransport transport = mTransports.get(transportName);
-    //     if (transport == NULL) {
-    //         Slog.w(TAG, "Requested unavailable transport: " + transportName);
-    //     }
-    //     return transport;
-    // }
+    Mutex::Autolock lock(mTransportsLock);
+    AutoPtr<IBackupTransport> transport = mTransports[transportName];
+    if (transport == NULL) {
+        Slogger::W(TAG, StringBuffer("Requested unavailable transport: ") + transportName);
+    }
 
-    return NULL;
+    return transport;
 }
 
 // fire off a backup agent, blocking until it attaches or times out
@@ -2579,91 +3338,96 @@ AutoPtr<IBackupAgent> CBackupManagerService::BindToAgentSynchronous(
     /* [in] */ IApplicationInfo* app,
     /* [in] */ Int32 mode)
 {
-    // IBackupAgent agent = NULL;
-    // synchronized(mAgentConnectLock) {
-    //     mConnecting = TRUE;
-    //     mConnectedAgent = NULL;
-    //     try {
-    //         if (mActivityManager.bindBackupAgent(app, mode)) {
-    //             Slog.d(TAG, "awaiting agent for " + app);
+    AutoPtr<IBackupAgent> agent = NULL;
+    {
+        Mutex::Autolock lock(mAgentConnectLock);
+        mConnecting = TRUE;
+        mConnectedAgent = NULL;
+        //try {
+        Boolean ok = FALSE;
+        mActivityManager->BindBackupAgent(app, mode, &ok);
+        if (ok) {
+            Slogger::D(TAG, StringBuffer("awaiting agent for ") + app);
 
-    //             // success; wait for the agent to arrive
-    //             // only wait 10 seconds for the clear data to happen
-    //             Int64 timeoutMark = System.currentTimeMillis() + TIMEOUT_INTERVAL;
-    //             while (mConnecting && mConnectedAgent == NULL
-    //                     && (System.currentTimeMillis() < timeoutMark)) {
-    //                 try {
-    //                     mAgentConnectLock.wait(5000);
-    //                 } catch (InterruptedException e) {
-    //                     // just bail
-    //                     return NULL;
-    //                 }
-    //             }
+            // success; wait for the agent to arrive
+            // only wait 10 seconds for the clear data to happen
+            Int64 timeoutMark = System::GetCurrentTimeMillis() + TIMEOUT_INTERVAL;
+            while (mConnecting && mConnectedAgent == NULL
+                    && (System::GetCurrentTimeMillis() < timeoutMark)) {
+                //try {
 
-    //             // if we timed out with no connect, abort and move on
-    //             if (mConnecting == TRUE) {
-    //                 Slog.w(TAG, "Timeout waiting for agent " + app);
-    //                 return NULL;
-    //             }
-    //             agent = mConnectedAgent;
-    //         }
-    //     } catch (RemoteException e) {
-    //         // can't happen
-    //     }
-    // }
-    // return agent;
+                //TODO
+                //mAgentConnectLock.wait(5000);
+                // } catch (InterruptedException e) {
+                //     // just bail
+                //     return NULL;
+                // }
+            }
 
-    return NULL;
+            // if we timed out with no connect, abort and move on
+            if (mConnecting == TRUE) {
+                Slogger::W(TAG, StringBuffer("Timeout waiting for agent ") + app);
+                return NULL;
+            }
+
+            agent = mConnectedAgent;
+        }
+        // } catch (RemoteException e) {
+        //     // can't happen
+        // }
+    }
+
+    return agent;
 }
 
 // clear an application's data, blocking until the operation completes or times out
 void CBackupManagerService::ClearApplicationDataSynchronous(
     /* [in] */ const String& packageName)
 {
-    // // Don't wipe packages marked allowClearUserData=FALSE
-    // // try {
-    // AutoPtr<ICapsuleInfo> info;
-    // mPackageManager->GetPackageInfo(packageName, 0, (ICapsuleInfo**) &info);
-    // assert(info != NULL);
+    // Don't wipe packages marked allowClearUserData=FALSE
+    // try {
+    AutoPtr<ICapsuleInfo> info;
+    mPackageManager->GetCapsuleInfo(packageName, 0, (ICapsuleInfo**) &info);
+    assert(info != NULL);
 
-    // AutoPtr<IApplicationInfo> appInfo;
-    // info->GetApplicationInfo((IApplicationInfo**) &appInfo);
-    // assert(appInfo != NULL);
+    AutoPtr<IApplicationInfo> appInfo;
+    info->GetApplicationInfo((IApplicationInfo**) &appInfo);
+    assert(appInfo != NULL);
 
-    // Int32 flags = 0;
-    // appInfo->GetFlags(&flags);
-    // if ((flags & ApplicationInfo_FLAG_ALLOW_CLEAR_USER_DATA) == 0) {
-    //     if (DEBUG) Slogger::I(TAG, StringBuffer("allowClearUserData=FALSE so not wiping ")
-    //             + packageName);
+    Int32 flags = 0;
+    appInfo->GetFlags(&flags);
+    if ((flags & ApplicationInfo_FLAG_ALLOW_CLEAR_USER_DATA) == 0) {
+        if (DEBUG) Slogger::I(TAG, StringBuffer("allowClearUserData=FALSE so not wiping ")
+                + packageName);
+        return;
+    }
+    // } catch (NameNotFoundException e) {
+    //     Slog.w(TAG, "Tried to clear data for " + packageName + " but not found");
     //     return;
     // }
-    // // } catch (NameNotFoundException e) {
-    // //     Slog.w(TAG, "Tried to clear data for " + packageName + " but not found");
-    // //     return;
-    // // }
 
-    // ClearDataObserver observer = new ClearDataObserver();
+    ClearDataObserver* observer = new ClearDataObserver(this);
 
-    // {
-    //     Mutex::Autolock lock(mClearDataLock);
-    //     mClearingData = TRUE;
-    //     try {
-    //         mActivityManager.clearApplicationUserData(packageName, observer);
-    //     } catch (RemoteException e) {
-    //         // can't happen because the activity manager is in this process
-    //     }
-
-    //     // only wait 10 seconds for the clear data to happen
-    //     Int64 timeoutMark = System.currentTimeMillis() + TIMEOUT_INTERVAL;
-    //     while (mClearingData && (System.currentTimeMillis() < timeoutMark)) {
-    //         try {
-    //             mClearDataLock.wait(5000);
-    //         } catch (InterruptedException e) {
-    //             // won't happen, but still.
-    //             mClearingData = FALSE;
-    //         }
-    //     }
+    Mutex::Autolock lock(mClearDataLock);
+    mClearingData = TRUE;
+    //try {
+    Boolean res = FALSE;
+    mActivityManager->ClearApplicationUserData(packageName, observer, &res);
+    // } catch (RemoteException e) {
+    //     // can't happen because the activity manager is in this process
     // }
+
+    // only wait 10 seconds for the clear data to happen
+    Int64 timeoutMark = System::GetCurrentTimeMillis() + TIMEOUT_INTERVAL;
+    while (mClearingData && (System::GetCurrentTimeMillis() < timeoutMark)) {
+        // try {
+        //     //TODO
+        //     mClearDataLock.wait(5000);
+        // } catch (InterruptedException e) {
+        //     // won't happen, but still.
+        //     mClearingData = FALSE;
+        // }
+    }
 }
 
 Int64 CBackupManagerService::GetAvailableRestoreToken(
@@ -2883,16 +3647,25 @@ HashSet<AutoPtr<IApplicationInfo> >* CBackupManagerService::DataChangedTargets(
     mContext->CheckPermission(String("android.Manifest.permission.BACKUP"), Binder::GetCallingPid(),
             Binder::GetCallingUid(), &res);
 
+    HashSet<AutoPtr<IApplicationInfo> >* targets = new HashSet<AutoPtr<IApplicationInfo> >();
     if (res == CapsuleManager_PERMISSION_DENIED) {
         {
             Mutex::Autolock lock(mBackupParticipantsLock);
-            return mBackupParticipants[Binder::GetCallingUid()];
+
+            HashSet<AutoPtr<IApplicationInfo> >* s = mBackupParticipants[Binder::GetCallingUid()];
+            if (s != NULL) {
+                HashSet<AutoPtr<IApplicationInfo> >::Iterator it = s->Begin();
+                for (; it != s->End(); ++it) {
+                    targets->Insert(*it);
+                }
+            }
+
+            return targets;
         }
     }
 
     // a caller with full permission can ask to back up any participating app
     // !!! TODO: allow backup of ANY app?
-    HashSet<AutoPtr<IApplicationInfo> >* targets = new HashSet<AutoPtr<IApplicationInfo> >();
     {
         Mutex::Autolock lock(mBackupParticipantsLock);
         Int32 N = mBackupParticipants.GetSize();
@@ -3028,7 +3801,7 @@ void CBackupManagerService::HandleRunInitilize()
         mPendingInits.Clear();
     }
 
-    PerformInitializeTask t(queue);
+    PerformInitializeTask t(queue ,this);
 
     t.Run();
     if (queue != NULL) {
@@ -3051,6 +3824,62 @@ void CBackupManagerService::HandleMSGTimeout(
         //TODO
         //mCurrentOpLock.notifyAll();
     }
+}
+
+void CBackupManagerService::HandleGetRestoreSets(
+    /* [in] */ RestoreGetSetsParams* params)
+{
+    assert(params != NULL);
+    // Like other async operations, this is entered with the wakelock held
+    ArrayOf<IRestoreSet*>* sets = NULL;
+    //try {
+    params->mTransport->GetAvailableRestoreSets(&sets);
+    // cache the result in the active session
+    {
+        Mutex::Autolock lock(params->mSessionLock);
+        params->mSession->mRestoreSets = sets;
+    }
+
+    //if (sets == NULL) EventLog.writeEvent(EventLogTags.RESTORE_TRANSPORT_FAILURE);
+    // } catch (Exception e) {
+    //     Slogger::E(TAG, "Error from transport getting set list");
+    // } finally {
+    if (params->mObserver != NULL) {
+        //try {
+        params->mObserver->RestoreSetsAvailable(sets);
+        // } catch (RemoteException re) {
+        //     Slog.e(TAG, "Unable to report listing to observer");
+        // } catch (Exception e) {
+        //     Slog.e(TAG, "Restore observer threw", e);
+        // }
+    }
+
+    //TODO
+    //mWakelock.release();
+    //}
+}
+
+void CBackupManagerService::HandleRestore(
+    /* [in] */ RestoreParams* params)
+{
+    assert(params != NULL);
+    Slogger::D(TAG, StringBuffer("MSG_RUN_RESTORE observer=") + params->mObserver);
+
+    PerformRestoreTask p(params->mTransport, params->mObserver,
+        params->mToken, params->mCapInfo, params->mPmToken,
+        params->mNeedFullBackup, this);
+
+    p.Run();
+}
+
+void CBackupManagerService::HandleClear(
+    /* [in] */ ClearParams* params)
+{
+    assert(params != NULL);
+    PerformClearTask p(params->mTransport, params->mCapInfo, this);
+    p.Run();
+
+    delete params;
 }
 
 ArrayOf<Byte>* CBackupManagerService::StringToByteArray(
