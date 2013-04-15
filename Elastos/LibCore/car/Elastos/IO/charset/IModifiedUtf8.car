@@ -1,0 +1,20 @@
+module
+{
+    /**
+     * @hide internal use only
+     */
+    interface IModifiedUtf8 {
+         /**
+         * Decodes a byte array containing <i>modified UTF-8</i> bytes into a string.
+         *
+         * <p>Note that although this method decodes the (supposedly impossible) zero byte to U+0000,
+         * that's what the RI does too.
+         */
+        Decode(
+            [in] ArrayOf<Byte> bytes,
+            [out, callee] ArrayOf<Char8>* outChars,
+            [in] Int32 offset,
+            [in] Int32 utfSize,
+            [out] String* string);
+    }
+}

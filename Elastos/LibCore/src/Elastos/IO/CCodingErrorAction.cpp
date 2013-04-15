@@ -2,10 +2,6 @@
 #include "CCodingErrorAction.h"
 #include "cmdef.h"
 
-// const CCodingErrorAction* CCodingErrorAction::IGNORE = new CCodingErrorAction(String("IGNORE"));
-// const CCodingErrorAction* CCodingErrorAction::REPLACE = new CCodingErrorAction(String("REPLACE"));
-// const CCodingErrorAction* CCodingErrorAction::REPORT = new CCodingErrorAction(String("REPORT"));
-
 AutoPtr<ICodingErrorAction> CreateAction(
     /* [in] */ String action)
 {
