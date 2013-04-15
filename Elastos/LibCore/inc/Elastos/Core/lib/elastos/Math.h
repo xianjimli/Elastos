@@ -1218,6 +1218,18 @@ public:
     static CARAPI_(Double) Int64BitsToDouble(
         /* [in] */ Int64 i);
 
+    /**
+     * Counts the number of 1 bits in the specified long value; this is also
+     * referred to as population count.
+     *
+     * @param v
+     *            the long to examine.
+     * @return the number of 1 bits in {@code v}.
+     * @since 1.5
+     */
+    static CARAPI_(Int32) BitCount(
+        /* [in] */ Int64 value);
+
 private:
     static CARAPI_(Double) Nextafter(
         /* [in] */ Double x,

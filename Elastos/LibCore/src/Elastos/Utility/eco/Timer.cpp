@@ -160,6 +160,8 @@ ECode Timer::TimerImpl::TimerHeap::GetTask(
 Timer::TimerImpl::TimerImpl(
     /* [in] */ String name,
     /* [in] */ Boolean isDaemon)
+    : mCancelled(FALSE)
+    , mFinished(FALSE)
 {
     mTasks = new TimerHeap();
     CThread::New((IRunnable*)this, (IThread**)&mThread);

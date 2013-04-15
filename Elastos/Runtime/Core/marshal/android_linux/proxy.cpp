@@ -45,10 +45,10 @@ EXTERN_C void ProxyEntryFunc(void);
             ".align 4;"                         \
             ".globl ProxyEntryFunc;"           \
             "ProxyEntryFunc:"                  \
-            "stmdb  sp!, {r0 - r3};"            \
-             "mov    r1, #0xff;"                 \
-            "ldr    pc, [r0, #4];"              \
-            "nop;"                              \
+            "push {r0 - r3};"            \
+            "push {lr};"
+            "mov  r1, #0xff;"                 \
+            "ldr  pc, [r0, #4];"              \
         )
         DECL_SYS_PROXY_ENTRY();
 #    elif defined(_x86)
@@ -99,12 +99,15 @@ EXTERN_C ECode GlobalProxyEntry(UInt32 *puArgs)
         ".align 4;"                     \
         ".globl __ProxyEntry;"         \
         "__ProxyEntry:"                \
-        "stmdb  sp!, {r1, lr};"         \
+        "push   {r1};"         \
         "add    r0, sp, #4;"            \
         "bl     GlobalProxyEntry;"     \
-        "ldr    lr, [sp, #4];"          \
-        "add    sp, sp, #24;"           \
-        "mov    pc, lr;"                \
+        "add    sp, sp, #4;"           \
+        "pop    {lr};"                \
+        "pop    {r1};"                \
+        "pop    {r1 - r3};"            \
+        "push   {lr};"                \
+        "pop    {pc};"                \
     )
 
 DECL_PROXY_ENTRY();
@@ -169,7 +172,7 @@ void InitProxyEntry()
     char * p = (char *)s_proxyEntryAddress;
     for (Int32 n = 0; n < PROXY_ENTRY_NUM; n++) {
         memcpy(p, (void *)&ProxyEntryFunc, PROXY_ENTRY_SIZE);
-        p[4] = n;
+        p[8] = n;
         p += PROXY_ENTRY_SIZE;
     }
 #else
@@ -448,7 +451,7 @@ ProxyExit:
     MARSHAL_DBGOUT(MSHDBG_NORMAL, printf("Exit proxy: ec(%x)\n", ec));
 
     if (pInParcel != NULL) delete pInParcel;
-	if (pOutParcel != NULL) delete pOutParcel;
+    if (pOutParcel != NULL) delete pOutParcel;
 
 #ifndef _mips
     SYS_PROXY_EXIT(ec, &puArgs - 1, cArgs);

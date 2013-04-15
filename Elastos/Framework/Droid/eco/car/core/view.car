@@ -549,7 +549,7 @@ module
     class CInputConnectionWrapper {
         constructor(
             [in] IInputConnection* target,
-            [in] Boolean bMutable);
+            [in] Boolean mutable);
 
         interface IInputConnection;
     }
@@ -1009,6 +1009,7 @@ module
             [in] Int32 defStyle);
 
         interface ISurfaceView;
+        interface IKeyEventCallback;
     }
 
     class CSurfaceViewWindow {

@@ -267,7 +267,6 @@ ECode ContextWrapper::AttachBaseContext(
         return E_ILLEGAL_STATE_EXCEPTION;
     }
     mBase = base;
-
     return NOERROR;
 }
 
@@ -282,7 +281,6 @@ ECode ContextWrapper::GetBaseContext(
     if (*context) {
         (*context)->AddRef();
     }
-
     return NOERROR;
 }
 

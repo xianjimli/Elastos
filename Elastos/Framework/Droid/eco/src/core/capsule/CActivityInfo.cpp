@@ -1,7 +1,6 @@
 
 #include "capsule/CActivityInfo.h"
 #include "ext/frameworkdef.h"
-#include <stdio.h>
 
 
 CActivityInfo::CActivityInfo()
@@ -284,7 +283,6 @@ ECode CActivityInfo::GetTheme(
 {
     VALIDATE_NOT_NULL(theme);
     *theme = mTheme;
-
     return NOERROR;
 }
 

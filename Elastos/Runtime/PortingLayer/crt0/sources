@@ -19,6 +19,7 @@ endif
 
 ifeq "$(XDK_TARGET_PLATFORM)" "linux"
   SOURCES+=dllmain.c
+  SOURCES+=dsohandle.c
 endif
 
 ifeq "$(XDK_TARGET_PLATFORM)" "win32"

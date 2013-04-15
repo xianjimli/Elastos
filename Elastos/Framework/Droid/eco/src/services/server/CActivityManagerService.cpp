@@ -81,8 +81,8 @@ const Int32 CActivityManagerService::SERVICE_RESET_RUN_DURATION;
 const Int32 CActivityManagerService::SERVICE_RESTART_DURATION_FACTOR;
 const Int32 CActivityManagerService::SERVICE_MIN_RESTART_TIME_BETWEEN;
 const Int32 CActivityManagerService::MAX_SERVICE_INACTIVITY;
-//const Int32 CActivityManagerService::KEY_DISPATCHING_TIMEOUT;
-//const Int32 CActivityManagerService::INSTRUMENTATION_KEY_DISPATCHING_TIMEOUT;
+const Int32 CActivityManagerService::KEY_DISPATCHING_TIMEOUT;
+const Int32 CActivityManagerService::INSTRUMENTATION_KEY_DISPATCHING_TIMEOUT;
 
 Int32 CActivityManagerService::EMPTY_APP_ADJ;
 Int32 CActivityManagerService::HIDDEN_APP_MAX_ADJ;
@@ -1527,7 +1527,6 @@ ECode CActivityManagerService::FinishActivity(
     /* [in] */ IIntent *resultData,
     /* [out] */ Boolean* finished)
 {
-
     // Refuse possible leaked file descriptors
     Boolean hasFd;
     if (resultData != NULL &&

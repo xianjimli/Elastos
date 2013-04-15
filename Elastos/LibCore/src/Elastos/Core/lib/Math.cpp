@@ -891,5 +891,18 @@ Int64 Math::ShiftInt64Bits(
     }
     return ret;
 }
+
+Int32 Math::BitCount(
+    /* [in] */ Int64 v)
+{
+    // Combines techniques from several sources
+    v -=  ((UInt64)v >> 1) & 0x5555555555555555ll;
+    v = (v & 0x3333333333333333ll) + (((UInt64)v >> 2) & 0x3333333333333333ll);
+    Int32 i =  ((Int32)((UInt64)v >> 32)) + (Int32) v;
+    i = (i & 0x0F0F0F0F) + (((UInt32)i >> 4) & 0x0F0F0F0F);
+    i += (UInt32)i >> 8;
+    i += (UInt32)i >> 16;
+    return i  & 0x0000007F;
+}
 } //Core
 } //Elastos
