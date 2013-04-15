@@ -356,6 +356,21 @@ ECode CApplicationInfo::SetPublicSourceDir(
     return NOERROR;
 }
 
+ECode CApplicationInfo::GetSharedLibraryFiles(
+    /* [out, callee] */ ArrayOf<String>** sharedLibraryFiles)
+{
+    assert(sharedLibraryFiles != NULL);
+    if (mSharedLibraryFiles != NULL) {
+        *sharedLibraryFiles = ArrayOf<String>::Alloc(mSharedLibraryFiles->GetLength());
+
+        for (Int32 i = 0; i < (*sharedLibraryFiles)->GetLength(); ++i) {
+            (**sharedLibraryFiles)[i] = (*mSharedLibraryFiles)[i];
+        }
+    }
+
+    return NOERROR;
+}
+
 ECode CApplicationInfo::SetSharedLibraryFiles(
     /* [in] */ ArrayOf<String>* sharedLibraryFiles)
 {

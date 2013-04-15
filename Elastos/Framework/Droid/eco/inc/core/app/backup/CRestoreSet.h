@@ -27,6 +27,15 @@ public:
     CARAPI WriteToParcel(
         /* [in] */ IParcel *dest);
 
+    CARAPI GetToken(
+        /* [out] */ Int64* token);
+
+    CARAPI GetDevice(
+        /* [out] */ String* device);
+
+    CARAPI GetName(
+        /* [out] */ String* name);
+
 public:
     /**
      * Name of this restore set.  May be user generated, may simply be the name

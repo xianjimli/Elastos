@@ -282,6 +282,9 @@ module
         SetPublicSourceDir(
             [in] String pubicSourceDir);
 
+        GetSharedLibraryFiles(
+            [out, callee] ArrayOf<String>* sharedLibraryFiles);
+
         SetSharedLibraryFiles(
             [in] ArrayOf<String>* sharedLibraryFiles);
 

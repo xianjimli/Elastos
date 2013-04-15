@@ -2,6 +2,13 @@
 module
 {
 	interface IRestoreSet {
+        GetToken(
+            [out] Int64* token);
 
+        GetDevice(
+            [out] String* device);
+
+        GetName(
+            [out] String* name);
 	}
 }

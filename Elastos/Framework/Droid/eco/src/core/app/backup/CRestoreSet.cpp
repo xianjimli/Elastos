@@ -47,3 +47,27 @@ ECode CRestoreSet::WriteToParcel(
 {
     return E_NOT_IMPLEMENTED;
 }
+
+ECode CRestoreSet::GetToken(
+    /* [out] */ Int64* token)
+{
+    assert(token != NULL);
+    *token = mToken;
+    return NOERROR;
+}
+
+ECode CRestoreSet::GetDevice(
+    /* [out] */ String* device)
+{
+    assert(device != NULL);
+    *device = mDevice;
+    return NOERROR;
+}
+
+ECode CRestoreSet::GetName(
+    /* [out] */ String* name)
+{
+    assert(name != NULL);
+    *name = mName;
+    return NOERROR;
+}

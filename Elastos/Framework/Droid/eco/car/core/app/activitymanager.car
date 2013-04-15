@@ -184,6 +184,11 @@ module
             [in] IBinder* token,
             [out] Boolean* visible);
 
+        ClearApplicationUserData(
+            [in] String capsuleName,
+            [in] ICapsuleDataObserver* observer,
+            [out] Boolean* result);
+
         //Service related
         StartService(
             [in] IApplicationApartment* caller,
@@ -245,6 +250,19 @@ module
             [in] Int32 type,
             [in] Int32 startId,
             [in] Int32 res);
+
+        //Backup
+        BindBackupAgent(
+            [in] IApplicationInfo* app,
+            [in] Int32 backupMode,
+            [out] Boolean* result);
+
+        BackupAgentCreated(
+            [in] String agentCapsuleName,
+            [in] IBinder* agent);
+
+        UnbindBackupAgent(
+            [in] IApplicationInfo* appInfo);
 
         //BroadcastReceiver related
         BroadcastIntent(
