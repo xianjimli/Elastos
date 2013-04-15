@@ -1,0 +1,12 @@
+
+module
+{
+    /**
+     * This service exists only as a "dumpsys" target which reports
+     * statistics about the status of the disk.
+     */
+    interface IDiskStatsService extends IBinder
+    {
+
+    }
+}
