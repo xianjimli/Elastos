@@ -168,18 +168,29 @@ ECode Charset::Encode(
     /* [in] */ ICharBuffer* buffer,
     /* [out] */ IByteBuffer** byteBuffer)
 {
+    VALIDATE_NOT_NULL(buffer);
     VALIDATE_NOT_NULL(byteBuffer);
 
-    // TODO:
-    // try {
-    //     return newEncoder()
-    //             .onMalformedInput(CodingErrorAction.REPLACE)
-    //             .onUnmappableCharacter(CodingErrorAction.REPLACE).encode(
-    //                     buffer);
-    // } catch (CharacterCodingException ex) {
-    //     throw new Error(ex.getMessage(), ex);
-    // }
-	return E_NOT_IMPLEMENTED;
+    AutoPtr<ICharsetEncoder> encoder;
+    FAIL_RETURN(NewEncoder((ICharsetEncoder **)&encoder));
+
+    AutoPtr<ICodingErrorAction> action;
+    CCodingErrorAction::New((ICodingErrorAction** )&action);
+    assert(action != NULL);
+    AutoPtr<ICodingErrorAction> replace;
+    FAIL_RETURN(action->GetREPLACE((ICodingErrorAction **)&replace));
+
+    AutoPtr<ICharsetEncoder> malformEncoder;
+    FAIL_RETURN(encoder->OnMalformedInput(replace,
+        (ICharsetEncoder **)&malformEncoder));
+
+    AutoPtr<ICharsetEncoder> unMappableEncoder;
+    FAIL_RETURN(malformEncoder->OnUnmappableCharacter(replace,
+        (ICharsetEncoder **)&unMappableEncoder));
+
+    FAIL_RETURN(unMappableEncoder->Encode(buffer, byteBuffer));
+
+	return NOERROR;
 }
 
 ECode Charset::EncodeEx(
@@ -200,15 +211,29 @@ ECode Charset::Decode(
     /* [in] */ IByteBuffer* buffer,
     /* [out] */ ICharBuffer** charBuffer)
 {
-    // TODO:
-    // try {
-    //     return newDecoder()
-    //             .onMalformedInput(CodingErrorAction.REPLACE)
-    //             .onUnmappableCharacter(CodingErrorAction.REPLACE).decode(buffer);
-    // } catch (CharacterCodingException ex) {
-    //     throw new Error(ex.getMessage(), ex);
-    // }
-	return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(buffer);
+    VALIDATE_NOT_NULL(charBuffer);
+
+    AutoPtr<ICharsetDecoder> decoder;
+    FAIL_RETURN(NewDecoder((ICharsetDecoder **)&decoder));
+
+    AutoPtr<ICodingErrorAction> action;
+    CCodingErrorAction::New((ICodingErrorAction** )&action);
+    assert(action != NULL);
+    AutoPtr<ICodingErrorAction> replace;
+    FAIL_RETURN(action->GetREPLACE((ICodingErrorAction **)&replace));
+
+    AutoPtr<ICharsetDecoder> malformDecoder;
+    FAIL_RETURN(decoder->OnMalformedInput(replace,
+        (ICharsetDecoder **)&malformDecoder));
+
+    AutoPtr<ICharsetDecoder> unMappableDecoder;
+    FAIL_RETURN(malformDecoder->OnUnmappableCharacter(replace,
+        (ICharsetDecoder **)&unMappableDecoder));
+
+    FAIL_RETURN(unMappableDecoder->Decode(buffer, charBuffer));
+
+	return NOERROR;
 }
 
 ECode Charset::CompareTo(
