@@ -18,6 +18,14 @@ public:
     ~CContentValues();
 
 public:
+
+    CARAPI Equals(
+        /* [in] */ IInterface* object,
+        /* [out] */ Boolean* result);
+
+    CARAPI HashCode(
+        /* [out] */ Int32* hashcode);
+
     CARAPI PutInt32(
         /* [in] */ const String& key,
         /* [in] */ Int32 value);
@@ -55,7 +63,7 @@ public:
 
     CARAPI PutByteArray(
         /* [in] */ const String& key,
-        /* [in] */ ArrayOf<Byte> * value);
+        /* [in] */ ArrayOf<Byte>* value);
 
     CARAPI PutNull(
         /* [in] */ const String& key);
@@ -70,15 +78,19 @@ public:
 
     CARAPI ContainsKey(
         /* [in] */ const String& key,
-        /* [out] */ Boolean * result);
+        /* [out] */ Boolean* result);
+
+    CARAPI GetString(
+            /* [in] */ DataWrapper* data,
+            /* [out] */ String* value);
 
     CARAPI GetString(
         /* [in] */ const String& key,
-        /* [out] */ String * value);
+        /* [out] */ String* value);
 
     CARAPI GetInt64(
         /* [in] */ const String& key,
-        /* [out] */ Int64 * value);
+        /* [out] */ Int64* value);
 
     CARAPI GetInt32(
         /* [in] */ const String& key,
@@ -86,23 +98,23 @@ public:
 
     CARAPI GetInt16(
         /* [in] */ const String& key,
-        /* [out] */ Int16 * value);
+        /* [out] */ Int16* value);
 
     CARAPI GetByte(
         /* [in] */ const String& key,
-        /* [out] */ Byte * value);
+        /* [out] */ Byte* value);
 
     CARAPI GetDouble(
         /* [in] */ const String& key,
-        /* [out] */ Double * value);
+        /* [out] */ Double* value);
 
     CARAPI GetFloat(
         /* [in] */ const String& key,
-        /* [out] */ Float * value);
+        /* [out] */ Float* value);
 
     CARAPI GetBoolean(
         /* [in] */ const String& key,
-        /* [out] */ Boolean * value);
+        /* [out] */ Boolean* value);
 
     CARAPI GetByteArray(
         /* [in] */ const String& key,
@@ -111,7 +123,22 @@ public:
     CARAPI ValueSet(
         /* [out] */ IObjectStringMap** values);
 
+    CARAPI DescribeContents(
+            /* [out] */ Int32* result);
+
+    CARAPI ToString(
+            /* [out] */ String* value);
+
+    CARAPI ReadFromParcel(
+        /* [in] */ IParcel* source);
+
+    CARAPI WriteToParcel(
+        /* [in] */ IParcel* dest);
+
     CARAPI constructor();
+
+    CARAPI constructor(
+            /* [in] */ IContentValues* values);
 
 public:
 

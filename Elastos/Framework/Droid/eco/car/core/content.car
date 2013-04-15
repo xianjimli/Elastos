@@ -64,8 +64,11 @@ module
 
     class CContentValues {
         constructor();
+        constructor(
+            [in] IContentValues* values);
 
         interface IContentValues;
+        interface IParcelable;
     }
 
     interface IApplicationApartment;

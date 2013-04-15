@@ -5,6 +5,12 @@ module
 
     [deprecated]
     interface IContentValues {
+        Equals(
+            [in] IInterface* object,
+            [out] Boolean* result);
+            
+        HashCode(
+            [out] Int32* hashcode);
         
         /**
          * Adds a value to the set.
@@ -243,7 +249,7 @@ module
         GetByteArray(
             [in] String key,
             [out, callee] ArrayOf<Byte>* value);
-        
+            
         /**
          * Returns a set of all of the keys and values
          *
@@ -251,5 +257,11 @@ module
          */    
         ValueSet(
             [out] IObjectStringMap** values);
+            
+        DescribeContents(
+            [out] Int32* result);
+            
+        ToString(
+            [out] String* value);
     }
 }
