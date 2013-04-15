@@ -2439,16 +2439,16 @@ ECode CContextImpl::Enforce(
 }
 
 ECode CContextImpl::EnforceCallingOrSelfPermission(
-    /* [in] */ CString permission,
-    /* [in] */ CString message)
+    /* [in] */ const String& permission,
+    /* [in] */ const String& message)
 {
-    // Int32 result;
-    // CheckCallingOrSelfPermission(permission, &result);
-    // return Enforce(permission,
-    //         result,
-    //         TRUE,
-    //         Binder::GetCallingUid(),
-    //         message);
+    Int32 result;
+    CheckCallingOrSelfPermission(permission, &result);
+    return Enforce(permission,
+            result,
+            TRUE,
+            Binder::GetCallingUid(),
+            message);
 }
 
 ECode CContextImpl::CheckPermission(

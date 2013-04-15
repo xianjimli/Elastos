@@ -525,8 +525,8 @@ public:
         /* [out] */ Int32* value) = 0;
 
     virtual CARAPI EnforceCallingOrSelfPermission(
-        /* [in] */ CString permission,
-        /* [in] */ CString message) = 0;
+        /* [in] */ const String& permission,
+        /* [in] */ const String& message) = 0;
 
     virtual CARAPI RevokeUriPermission(
         /* [in] */ IUri* uri,

@@ -283,8 +283,8 @@ ECode CSoftKeyboard::CheckCallingPermission(
 }
 
 ECode CSoftKeyboard::EnforceCallingOrSelfPermission(
-    /* [in] */ CString permission,
-    /* [in] */ CString message)
+    /* [in] */ const String& permission,
+    /* [in] */ const String& message)
 {
     return InputMethodService::EnforceCallingOrSelfPermission(permission, message);
 }

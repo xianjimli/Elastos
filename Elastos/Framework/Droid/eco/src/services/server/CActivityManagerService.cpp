@@ -852,7 +852,7 @@ void CActivityManagerService::StartProcessLocked(
 //        gids = mContext.getPackageManager().getPackageGids(
 //                app.info.packageName);
 //    } catch (PackageManager.NameNotFoundException e) {
-//        Slog.w(TAG, "Unable to retrieve gids", e);
+//        Slogger::W(TAG, "Unable to retrieve gids", e);
 //    }
 //    if (mFactoryTest != SystemServer.FACTORY_TEST_OFF) {
 //        if (mFactoryTest == SystemServer.FACTORY_TEST_LOW_LEVEL
@@ -1565,15 +1565,15 @@ ECode CActivityManagerService::FinishActivity(
 
 ECode CActivityManagerService::FinishHeavyWeightApp()
 {
-//    if (checkCallingPermission(android.Manifest.permission.FORCE_STOP_CAPSULES)
-//            != PackageManager.PERMISSION_GRANTED) {
-//        String msg = "Permission Denial: finishHeavyWeightApp() from pid="
-//                + Binder.getCallingPid()
-//                + ", uid=" + Binder.getCallingUid()
-//                + " requires " + android.Manifest.permission.FORCE_STOP_CAPSULES;
-//        Slog.w(TAG, msg);
-//        throw new SecurityException(msg);
-//    }
+    if (CheckCallingPermission(String("android.permission.FORCE_STOP_CAPSULES") /*android.Manifest.permission.FORCE_STOP_CAPSULES*/)
+           != CapsuleManager_PERMISSION_GRANTED) {
+        Slogger::W(TAG, StringBuffer("Permission Denial: finishHeavyWeightApp() from pid=")
+               + Binder::GetCallingPid()
+               + ", uid=" + Binder::GetCallingUid()
+               + " requires " + "android.permission.FORCE_STOP_CAPSULES");
+        // throw new SecurityException(msg);
+        return E_SECURITY_EXCEPTION;
+    }
 //
 //    synchronized(this) {
 //        if (mHeavyWeightProcess == null) {
@@ -1605,15 +1605,15 @@ ECode CActivityManagerService::CrashApplication(
     /* [in] */ CString capsuleName,
     /* [in] */ CString message)
 {
-//    if (checkCallingPermission(android.Manifest.permission.FORCE_STOP_CAPSULES)
-//            != PackageManager.PERMISSION_GRANTED) {
-//        String msg = "Permission Denial: crashApplication() from pid="
-//                + Binder.getCallingPid()
-//                + ", uid=" + Binder.getCallingUid()
-//                + " requires " + android.Manifest.permission.FORCE_STOP_CAPSULES;
-//        Slog.w(TAG, msg);
-//        throw new SecurityException(msg);
-//    }
+    if (CheckCallingPermission(String("android.permission.FORCE_STOP_CAPSULES") /*android.Manifest.permission.FORCE_STOP_CAPSULES*/)
+           != CapsuleManager_PERMISSION_GRANTED) {
+        Slogger::W(TAG, StringBuffer("Permission Denial: crashApplication() from pid=")
+            + Binder::GetCallingPid()
+            + ", uid=" + Binder::GetCallingUid()
+            + " requires " + "android.permission.FORCE_STOP_CAPSULES");
+        // throw new SecurityException(msg);
+        return E_SECURITY_EXCEPTION;
+    }
 //
 //    synchronized(this) {
 //        ProcessRecord proc = null;
@@ -1640,7 +1640,7 @@ ECode CActivityManagerService::CrashApplication(
 //        }
 //
 //        if (proc == null) {
-//            Slog.w(TAG, "crashApplication: nothing for uid=" + uid
+//            Slogger::W(TAG, "crashApplication: nothing for uid=" + uid
 //                    + " initialPid=" + initialPid
 //                    + " packageName=" + packageName);
 //            return;
@@ -2165,7 +2165,7 @@ ECode CActivityManagerService::ClearApplicationUserData(
 //            } catch (RemoteException e) {
 //            }
 //            if (pkgUid == -1) {
-//                Slog.w(TAG, "Invalid packageName:" + packageName);
+//                Slogger::W(TAG, "Invalid packageName:" + packageName);
 //                return false;
 //            }
 //            if (uid == pkgUid || checkComponentPermission(
@@ -2200,17 +2200,17 @@ ECode CActivityManagerService::ClearApplicationUserData(
 ECode CActivityManagerService::KillBackgroundProcesses(
     /* [in] */ const String& capsuleName)
 {
-//    if (checkCallingPermission(android.Manifest.permission.KILL_BACKGROUND_PROCESSES)
-//            != PackageManager.PERMISSION_GRANTED &&
-//            checkCallingPermission(android.Manifest.permission.RESTART_CAPSULES)
-//                    != PackageManager.PERMISSION_GRANTED) {
-//        String msg = "Permission Denial: killBackgroundProcesses() from pid="
-//                + Binder.getCallingPid()
-//                + ", uid=" + Binder.getCallingUid()
-//                + " requires " + android.Manifest.permission.KILL_BACKGROUND_PROCESSES;
-//        Slog.w(TAG, msg);
-//        throw new SecurityException(msg);
-//    }
+    if (CheckCallingPermission(String("android.permission.KILL_BACKGROUND_PROCESSES") /*android.Manifest.permission.KILL_BACKGROUND_PROCESSES*/)
+            != CapsuleManager_PERMISSION_GRANTED &&
+            CheckCallingPermission(String("android.permission.RESTART_CAPSULES") /*android.Manifest.permission.RESTART_CAPSULES*/)
+                != CapsuleManager_PERMISSION_GRANTED) {
+        Slogger::W(TAG, StringBuffer("Permission Denial: killBackgroundProcesses() from pid=")
+               + Binder::GetCallingPid()
+               + ", uid=" + Binder::GetCallingUid()
+               + " requires " + "android.permission.KILL_BACKGROUND_PROCESSES");
+        // throw new SecurityException(msg);
+        return E_SECURITY_EXCEPTION;
+    }
 //
 //    long callingId = Binder.clearCallingIdentity();
 //    try {
@@ -2222,7 +2222,7 @@ ECode CActivityManagerService::KillBackgroundProcesses(
 //            } catch (RemoteException e) {
 //            }
 //            if (pkgUid == -1) {
-//                Slog.w(TAG, "Invalid packageName: " + packageName);
+//                Slogger::W(TAG, "Invalid packageName: " + packageName);
 //                return;
 //            }
 //            killPackageProcessesLocked(packageName, pkgUid,
@@ -2237,15 +2237,15 @@ ECode CActivityManagerService::KillBackgroundProcesses(
 ECode CActivityManagerService::ForceStopCapsule(
     /* [in] */ const String& capsuleName)
 {
-//    if (checkCallingPermission(android.Manifest.permission.FORCE_STOP_CAPSULES)
-//            != PackageManager.PERMISSION_GRANTED) {
-//        String msg = "Permission Denial: forceStopPackage() from pid="
-//                + Binder.getCallingPid()
-//                + ", uid=" + Binder.getCallingUid()
-//                + " requires " + android.Manifest.permission.FORCE_STOP_CAPSULES;
-//        Slog.w(TAG, msg);
-//        throw new SecurityException(msg);
-//    }
+    if (CheckCallingPermission(String("android.permission.FORCE_STOP_CAPSULES") /*android.Manifest.permission.FORCE_STOP_CAPSULES*/)
+           != CapsuleManager_PERMISSION_GRANTED) {
+        Slogger::W(TAG, StringBuffer("Permission Denial: forceStopPackage() from pid=")
+               + Binder::GetCallingPid()
+               + ", uid=" + Binder::GetCallingUid()
+               + " requires " + "android.permission.FORCE_STOP_CAPSULES");
+        // throw new SecurityException(msg);
+        return E_SECURITY_EXCEPTION;
+    }
 //
 //    long callingId = Binder.clearCallingIdentity();
 //    try {
@@ -2257,7 +2257,7 @@ ECode CActivityManagerService::ForceStopCapsule(
 //            } catch (RemoteException e) {
 //            }
 //            if (pkgUid == -1) {
-//                Slog.w(TAG, "Invalid packageName: " + packageName);
+//                Slogger::W(TAG, "Invalid packageName: " + packageName);
 //                return;
 //            }
 //            forceStopPackageLocked(packageName, pkgUid);
@@ -2281,7 +2281,7 @@ ECode CActivityManagerService::KillApplicationWithUid(
 //    }
 //    // Make sure the uid is valid.
 //    if (uid < 0) {
-//        Slog.w(TAG, "Invalid uid specified for pkg : " + pkg);
+//        Slogger::W(TAG, "Invalid uid specified for pkg : " + pkg);
 //        return;
 //    }
 //    int callerUid = Binder.getCallingUid();
@@ -2372,7 +2372,7 @@ ECode CActivityManagerService::KillApplicationProcess(
 //                    // If the other end already died, then our work here is done.
 //                }
 //            } else {
-//                Slog.w(TAG, "Process/uid not found attempting kill of "
+//                Slogger::W(TAG, "Process/uid not found attempting kill of "
 //                        + processName + " / " + uid);
 //            }
 //        }
@@ -2591,7 +2591,7 @@ void CActivityManagerService::ProcessStartTimedOutLocked(
 //    }
 //
 //    if (gone) {
-//        Slog.w(TAG, "Process " + app + " failed to attach");
+//        Slogger::W(TAG, "Process " + app + " failed to attach");
 //        EventLog.writeEvent(EventLogTags.AM_PROCESS_START_TIMEOUT, pid, app.info.uid,
 //                app.processName);
 //        mProcessNames.remove(app.processName, app.info.uid);
@@ -2606,7 +2606,7 @@ void CActivityManagerService::ProcessStartTimedOutLocked(
 //            ServiceRecord sr = mPendingServices.get(i);
 //            if (app.info.uid == sr.appInfo.uid
 //                    && app.processName.equals(sr.processName)) {
-//                Slog.w(TAG, "Forcing bringing down service: " + sr);
+//                Slogger::W(TAG, "Forcing bringing down service: " + sr);
 //                mPendingServices.remove(i);
 //                i--;
 //                bringDownServiceLocked(sr, true);
@@ -2614,7 +2614,7 @@ void CActivityManagerService::ProcessStartTimedOutLocked(
 //        }
 //        Process.killProcess(pid);
 //        if (mBackupTarget != null && mBackupTarget.app.pid == pid) {
-//            Slog.w(TAG, "Unattached app died before backup, skipping");
+//            Slogger::W(TAG, "Unattached app died before backup, skipping");
 //            try {
 //                IBackupManager bm = IBackupManager.Stub.asInterface(
 //                        ServiceManager.getService(Context.BACKUP_SERVICE));
@@ -2624,14 +2624,14 @@ void CActivityManagerService::ProcessStartTimedOutLocked(
 //            }
 //        }
 //        if (mPendingBroadcast != null && mPendingBroadcast.curApp.pid == pid) {
-//            Slog.w(TAG, "Unattached app died before broadcast acknowledged, skipping");
+//            Slogger::W(TAG, "Unattached app died before broadcast acknowledged, skipping");
 //            mPendingBroadcast.state = BroadcastRecord.IDLE;
 //            mPendingBroadcast.nextReceiver = mPendingBroadcastRecvIndex;
 //            mPendingBroadcast = null;
 //            scheduleBroadcastsLocked();
 //        }
 //    } else {
-//        Slog.w(TAG, "Spurious process start timeout - pid not known for " + app);
+//        Slogger::W(TAG, "Spurious process start timeout - pid not known for " + app);
 //    }
 }
 
@@ -2775,7 +2775,7 @@ Boolean CActivityManagerService::AttachApplicationLocked(
 //        // todo: Yikes!  What should we do?  For now we will try to
 //        // start another process, but that could easily get us in
 //        // an infinite loop of restarting processes...
-//        Slog.w(TAG, "Exception thrown during bind!", e);
+//        Slogger::W(TAG, "Exception thrown during bind!", e);
 //
 //        app.resetPackageList();
 //        startProcessLocked(app, "bind fail", processName);
@@ -2812,7 +2812,7 @@ Boolean CActivityManagerService::AttachApplicationLocked(
                 didSomething = TRUE;
             }
 //            } catch (Exception e) {
-//                Slog.w(TAG, "Exception in new application when starting activity "
+//                Slogger::W(TAG, "Exception in new application when starting activity "
 //                      + hr.intent.getComponent().flattenToShortString(), e);
 //                badApp = true;
 //            }
@@ -2843,7 +2843,7 @@ Boolean CActivityManagerService::AttachApplicationLocked(
             didSomething = TRUE;
         }
 //        } catch (Exception e) {
-//            Slog.w(TAG, "Exception in new application when starting service "
+//            Slogger::W(TAG, "Exception in new application when starting service "
 //                  + sr.shortName, e);
 //            badApp = true;
 //        }
@@ -2857,7 +2857,7 @@ Boolean CActivityManagerService::AttachApplicationLocked(
         ProcessCurBroadcastLocked(br, app);
         didSomething = TRUE;
 //        } catch (Exception e) {
-//            Slog.w(TAG, "Exception in new application when starting receiver "
+//            Slogger::W(TAG, "Exception in new application when starting receiver "
 //                  + br.curComponent.flattenToShortString(), e);
 //            badApp = true;
 //            logBroadcastReceiverDiscardLocked(br);
@@ -2876,7 +2876,7 @@ Boolean CActivityManagerService::AttachApplicationLocked(
 //        try {
 //            thread.scheduleCreateBackupAgent(mBackupTarget.appInfo, mBackupTarget.backupMode);
 //        } catch (Exception e) {
-//            Slog.w(TAG, "Exception scheduling backup agent creation: ");
+//            Slogger::W(TAG, "Exception scheduling backup agent creation: ");
 //            e.printStackTrace();
 //        }
 //    }
@@ -3169,7 +3169,7 @@ ECode CActivityManagerService::GetIntentSender(
 //                        + ", uid=" + Binder.getCallingUid()
 //                        + ", (need uid=" + uid + ")"
 //                        + " is not allowed to send as package " + packageName;
-//                    Slog.w(TAG, msg);
+//                    Slogger::W(TAG, msg);
 //                    throw new SecurityException(msg);
 //                }
 //            }
@@ -3269,7 +3269,7 @@ ECode CActivityManagerService::CancelIntentSender(
 //                    + ", uid=" + Binder.getCallingUid()
 //                    + " is not allowed to cancel packges "
 //                    + rec.key.packageName;
-//                Slog.w(TAG, msg);
+//                Slogger::W(TAG, msg);
 //                throw new SecurityException(msg);
 //            }
 //        } catch (RemoteException e) {
@@ -3358,7 +3358,7 @@ ECode CActivityManagerService::SetProcessForeground(
 //        synchronized (mPidsSelfLocked) {
 //            ProcessRecord pr = mPidsSelfLocked.get(pid);
 //            if (pr == null) {
-//                Slog.w(TAG, "setProcessForeground called on unknown pid: " + pid);
+//                Slogger::W(TAG, "setProcessForeground called on unknown pid: " + pid);
 //                return;
 //            }
 //            ForegroundToken oldToken = mForegroundProcesses.get(pid);
@@ -3496,15 +3496,10 @@ ECode CActivityManagerService::EnforceCallingPermission(
         return NOERROR;
     }
 
-    StringBuffer msg;
-    msg += "Permission Denial: ";
-    msg += func;
-    msg += " from pid=";
-    msg += Binder::GetCallingPid();
-    msg += ", uid=";
-    msg += Binder::GetCallingUid();
-    msg += " requires " + permission;
-    Slogger::W(TAG, msg);
+    Slogger::W(TAG, StringBuffer("Permission Denial: ") + func
+                + " from pid=" + Binder::GetCallingPid()
+                + ", uid=" + Binder::GetCallingUid()
+                + " requires " + permission);
     return E_SECURITY_EXCEPTION;
 }
 
@@ -4023,7 +4018,7 @@ void CActivityManagerService::RevokeUriPermissionLocked(
 //        }
 //    }
 //    if (pi == null) {
-//        Slog.w(TAG, "No content provider found for: " + authority);
+//        Slogger::W(TAG, "No content provider found for: " + authority);
 //        return;
 //    }
 //
@@ -4095,7 +4090,7 @@ ECode CActivityManagerService::RevokeUriPermission(
 //                    + " when revoking permission to uri " + uri);
 //        }
 //        if (uri == null) {
-//            Slog.w(TAG, "revokeUriPermission: null uri");
+//            Slogger::W(TAG, "revokeUriPermission: null uri");
 //            return;
 //        }
 //
@@ -4120,7 +4115,7 @@ ECode CActivityManagerService::RevokeUriPermission(
 //            }
 //        }
 //        if (pi == null) {
-//            Slog.w(TAG, "No content provider found for: " + authority);
+//            Slogger::W(TAG, "No content provider found for: " + authority);
 //            return;
 //        }
 //
@@ -4240,23 +4235,23 @@ ECode CActivityManagerService::GetTasks(
 //            TAG, "getTasks: max=" + maxNum + ", flags=" + flags
 //            + ", receiver=" + receiver);
 //
-//        if (checkCallingPermission(android.Manifest.permission.GET_TASKS)
-//                != PackageManager.PERMISSION_GRANTED) {
-//            if (receiver != null) {
-//                // If the caller wants to wait for pending thumbnails,
-//                // it ain't gonna get them.
-//                try {
-//                    receiver.finished();
-//                } catch (RemoteException ex) {
-//                }
-//            }
-//            String msg = "Permission Denial: getTasks() from pid="
-//                    + Binder.getCallingPid()
-//                    + ", uid=" + Binder.getCallingUid()
-//                    + " requires " + android.Manifest.permission.GET_TASKS;
-//            Slog.w(TAG, msg);
-//            throw new SecurityException(msg);
-//        }
+        if (CheckCallingPermission(String("android.permission.GET_TASKS") /*android.Manifest.permission.GET_TASKS*/)
+               != CapsuleManager_PERMISSION_GRANTED) {
+           if (receiver != NULL) {
+               // If the caller wants to wait for pending thumbnails,
+               // it ain't gonna get them.
+               // try {
+               receiver->Finished();
+               // } catch (RemoteException ex) {
+               // }
+           }
+            Slogger::W(TAG, StringBuffer("Permission Denial: getTasks() from pid=")
+                + Binder::GetCallingPid()
+                + ", uid=" + Binder::GetCallingUid()
+                + " requires " + "android.permission.GET_TASKS");
+            // throw new SecurityException(msg);
+            return E_SECURITY_EXCEPTION;
+        }
 //
 //        int pos = mMainStack.mHistory.size()-1;
 //        ActivityRecord next =
@@ -4346,7 +4341,7 @@ ECode CActivityManagerService::GetTasks(
 //        try {
 //            topThumbnail.requestThumbnail(topRecord);
 //        } catch (Exception e) {
-//            Slog.w(TAG, "Exception thrown when requesting thumbnail", e);
+//            Slogger::W(TAG, "Exception thrown when requesting thumbnail", e);
 //            sendPendingThumbnail(null, topRecord, null, null, true);
 //        }
 //    }
@@ -5170,7 +5165,7 @@ ECode CActivityManagerService::RemoveContentProvider(
 //                + localCpr.appInfo.processName);
 //        if (localCpr.app == r) {
 //            //should not happen. taken care of as a local provider
-//            Slog.w(TAG, "removeContentProvider called on local provider: "
+//            Slogger::W(TAG, "removeContentProvider called on local provider: "
 //                    + cpr.info.name + " in process " + r.processName);
 //            return;
 //        } else {
@@ -5308,7 +5303,7 @@ void CActivityManagerService::InstallSystemProviders()
 //            for (int i=providers.size()-1; i>=0; i--) {
 //                ProviderInfo pi = (ProviderInfo)providers.get(i);
 //                if ((pi.applicationInfo.flags&ApplicationInfo.FLAG_SYSTEM) == 0) {
-//                    Slog.w(TAG, "Not installing system proc provider " + pi.name
+//                    Slogger::W(TAG, "Not installing system proc provider " + pi.name
 //                            + ": not system .apk");
 //                    providers.remove(i);
 //                }
@@ -5484,7 +5479,7 @@ ECode CActivityManagerService::GoingToSleep()
 //        if (mMainStack.mResumedActivity != null) {
 //            mMainStack.pauseIfSleepingLocked();
 //        } else {
-//            Slog.w(TAG, "goingToSleep with no resumed activity!");
+//            Slogger::W(TAG, "goingToSleep with no resumed activity!");
 //        }
 //
 //        // Initialize the wake times of all processes.
@@ -5500,11 +5495,12 @@ ECode CActivityManagerService::Shutdown(
     /* [in]*/ Int32 timeout,
     /* [out] */ Boolean* result)
 {
-//    if (checkCallingPermission(android.Manifest.permission.SHUTDOWN)
-//            != PackageManager.PERMISSION_GRANTED) {
-//        throw new SecurityException("Requires permission "
-//                + android.Manifest.permission.SHUTDOWN);
-//    }
+    if (CheckCallingPermission(String("android.permission.SHUTDOWN") /*android.Manifest.permission.SHUTDOWN)*/)
+           != CapsuleManager_PERMISSION_GRANTED) {
+        // throw new SecurityException("Requires permission "
+        //         + android.Manifest.permission.SHUTDOWN);
+        return E_SECURITY_EXCEPTION;
+    }
 //
 //    boolean timedout = false;
 //
@@ -5519,7 +5515,7 @@ ECode CActivityManagerService::Shutdown(
 //                    || mMainStack.mPausingActivity != null) {
 //                long delay = endTime - System.currentTimeMillis();
 //                if (delay <= 0) {
-//                    Slog.w(TAG, "Activity manager shutdown timed out");
+//                    Slogger::W(TAG, "Activity manager shutdown timed out");
 //                    timedout = true;
 //                    break;
 //                }
@@ -5553,11 +5549,12 @@ ECode CActivityManagerService::WakingUp()
 
 ECode CActivityManagerService::StopAppSwitches()
 {
-//    if (checkCallingPermission(android.Manifest.permission.STOP_APP_SWITCHES)
-//            != PackageManager.PERMISSION_GRANTED) {
-//        throw new SecurityException("Requires permission "
-//                + android.Manifest.permission.STOP_APP_SWITCHES);
-//    }
+    if (CheckCallingPermission(String("android.permission.STOP_APP_SWITCHES") /*android.Manifest.permission.STOP_APP_SWITCHES*/)
+           != CapsuleManager_PERMISSION_GRANTED) {
+        // throw new SecurityException("Requires permission "
+        //         + android.Manifest.permission.STOP_APP_SWITCHES);
+        return E_SECURITY_EXCEPTION;
+    }
 //
 //    synchronized(this) {
 //        mAppSwitchesAllowedTime = SystemClock.uptimeMillis()
@@ -5572,11 +5569,12 @@ ECode CActivityManagerService::StopAppSwitches()
 
 ECode CActivityManagerService::ResumeAppSwitches()
 {
-//    if (checkCallingPermission(android.Manifest.permission.STOP_APP_SWITCHES)
-//            != PackageManager.PERMISSION_GRANTED) {
-//        throw new SecurityException("Requires permission "
-//                + android.Manifest.permission.STOP_APP_SWITCHES);
-//    }
+    if (CheckCallingPermission(String("android.permission.STOP_APP_SWITCHES") /*android.Manifest.permission.STOP_APP_SWITCHES)*/)
+           != CapsuleManager_PERMISSION_GRANTED) {
+        // throw new SecurityException("Requires permission "
+        //        + android.Manifest.permission.STOP_APP_SWITCHES);
+        return E_SECURITY_EXCEPTION;
+    }
 //
 //    synchronized(this) {
 //        // Note that we don't execute any pending app switches... we will
@@ -5785,7 +5783,7 @@ ECode CActivityManagerService::KillPids(
 //        if (worstType < EMPTY_APP_ADJ && worstType > HIDDEN_APP_MIN_ADJ) {
 //            worstType = HIDDEN_APP_MIN_ADJ;
 //        }
-//        Slog.w(TAG, "Killing processes " + reason + " at adjustment " + worstType);
+//        Slogger::W(TAG, "Killing processes " + reason + " at adjustment " + worstType);
 //        for (int i=0; i<pids.length; i++) {
 //            ProcessRecord proc = mPidsSelfLocked.get(pids[i]);
 //            if (proc == null) {
@@ -5793,7 +5791,7 @@ ECode CActivityManagerService::KillPids(
 //            }
 //            int adj = proc.setAdj;
 //            if (adj >= worstType && !proc.killedBackground) {
-//                Slog.w(TAG, "Killing " + proc + " (adj " + adj + "): " + reason);
+//                Slogger::W(TAG, "Killing " + proc + " (adj " + adj + "): " + reason);
 //                EventLog.writeEvent(EventLogTags.AM_KILL, proc.pid,
 //                        proc.processName, adj, reason);
 //                killed = true;
@@ -5890,7 +5888,7 @@ List<AutoPtr<IComponentName> >* CActivityManagerService::ReadLastDonePreBootRece
 //        }
 //    } catch (FileNotFoundException e) {
 //    } catch (IOException e) {
-//        Slog.w(TAG, "Failure reading last done pre-boot receivers", e);
+//        Slogger::W(TAG, "Failure reading last done pre-boot receivers", e);
 //    } finally {
 //        if (fis != null) {
 //            try {
@@ -5921,7 +5919,7 @@ void CActivityManagerService::WriteLastDonePreBootReceivers(
 //            dos.writeUTF(list.get(i).getClassName());
 //        }
 //    } catch (IOException e) {
-//        Slog.w(TAG, "Failure writing last done pre-boot receivers", e);
+//        Slogger::W(TAG, "Failure writing last done pre-boot receivers", e);
 //        file.delete();
 //    } finally {
 //        FileUtils.sync(fos);
@@ -6241,7 +6239,7 @@ Boolean CActivityManagerService::HandleAppCrashLocked(
 //            app.info.uid);
 //    if (crashTime != null && now < crashTime+MIN_CRASH_INTERVAL) {
 //        // This process loses!
-//        Slog.w(TAG, "Process " + app.info.processName
+//        Slogger::W(TAG, "Process " + app.info.processName
 //                + " has crashed too many times: killing!");
 //        EventLog.writeEvent(EventLogTags.AM_PROCESS_CRASHED_TOO_MUCH,
 //                app.info.processName, app.info.uid);
@@ -6249,7 +6247,7 @@ Boolean CActivityManagerService::HandleAppCrashLocked(
 //        for (int i=mMainStack.mHistory.size()-1; i>=0; i--) {
 //            ActivityRecord r = (ActivityRecord)mMainStack.mHistory.get(i);
 //            if (r.app == app) {
-//                Slog.w(TAG, "  Force finishing activity "
+//                Slogger::W(TAG, "  Force finishing activity "
 //                    + r.intent.getComponent().flattenToShortString());
 //                r.stack.finishActivityLocked(r, i, Activity.RESULT_CANCELED, null, "crashed");
 //            }
@@ -6273,7 +6271,7 @@ Boolean CActivityManagerService::HandleAppCrashLocked(
 //        if (r.app == app) {
 //            // If the top running activity is from this crashing
 //            // process, then terminate it to avoid getting in a loop.
-//            Slog.w(TAG, "  Force finishing activity "
+//            Slogger::W(TAG, "  Force finishing activity "
 //                    + r.intent.getComponent().flattenToShortString());
 //            int index = mMainStack.indexOfTokenLocked(r);
 //            r.stack.finishActivityLocked(r, index,
@@ -6288,7 +6286,7 @@ Boolean CActivityManagerService::HandleAppCrashLocked(
 //                        || r.state == ActivityState.PAUSING
 //                        || r.state == ActivityState.PAUSED) {
 //                    if (!r.isHomeActivity) {
-//                        Slog.w(TAG, "  Force finishing activity "
+//                        Slogger::W(TAG, "  Force finishing activity "
 //                                + r.intent.getComponent().flattenToShortString());
 //                        r.stack.finishActivityLocked(r, index,
 //                                Activity.RESULT_CANCELED, null, "crashed");
@@ -6428,7 +6426,7 @@ ECode CActivityManagerService::HandleApplicationStrictModeViolation(
 //            Binder.restoreCallingIdentity(origId);
 //        }
 //        int res = result.get();
-//        Slog.w(TAG, "handleApplicationStrictModeViolation; res=" + res);
+//        Slogger::W(TAG, "handleApplicationStrictModeViolation; res=" + res);
 //    }
     return E_NOT_IMPLEMENTED;
 }
@@ -6592,7 +6590,7 @@ ProcessRecord* CActivityManagerService::FindAppProcess(
 //            }
 //        }
 //
-//        Slog.w(TAG, "Can't find mystery application: " + app);
+//        Slogger::W(TAG, "Can't find mystery application: " + app);
 //        return null;
 //    }
     return NULL;
@@ -6772,7 +6770,7 @@ void CActivityManagerService::CrashApplication(
 //                int pid = r != null ? r.pid : Binder.getCallingPid();
 //                if (!mController.appCrashed(name, pid,
 //                        shortMsg, longMsg, timeMillis, crashInfo.stackTrace)) {
-//                    Slog.w(TAG, "Force-killing crashed app " + name
+//                    Slogger::W(TAG, "Force-killing crashed app " + name
 //                            + " at watcher's request");
 //                    Process.killProcess(pid);
 //                    return;
@@ -6786,10 +6784,10 @@ void CActivityManagerService::CrashApplication(
 //
 //        // If this process is running instrumentation, finish it.
 //        if (r != null && r.instrumentationClass != null) {
-//            Slog.w(TAG, "Error in app " + r.processName
+//            Slogger::W(TAG, "Error in app " + r.processName
 //                  + " running instrumentation " + r.instrumentationClass + ":");
-//            if (shortMsg != null) Slog.w(TAG, "  " + shortMsg);
-//            if (longMsg != null) Slog.w(TAG, "  " + longMsg);
+//            if (shortMsg != null) Slogger::W(TAG, "  " + shortMsg);
+//            if (longMsg != null) Slogger::W(TAG, "  " + longMsg);
 //            Bundle info = new Bundle();
 //            info.putString("shortMsg", shortMsg);
 //            info.putString("longMsg", longMsg);
@@ -6833,7 +6831,7 @@ void CActivityManagerService::CrashApplication(
 //        try {
 //            mContext.startActivity(appErrorIntent);
 //        } catch (ActivityNotFoundException e) {
-//            Slog.w(TAG, "bug report receiver dissappeared", e);
+//            Slogger::W(TAG, "bug report receiver dissappeared", e);
 //        }
 //    }
 }
@@ -6920,7 +6918,7 @@ ECode CActivityManagerService::GetProcessesInErrorState(
 //                    }
 //                    errList.add(report);
 //                } else {
-//                    Slog.w(TAG, "Missing app error report, app = " + app.processName +
+//                    Slogger::W(TAG, "Missing app error report, app = " + app.processName +
 //                            " crashing = " + app.crashing +
 //                            " notResponding = " + app.notResponding);
 //                }
@@ -7049,7 +7047,7 @@ void CActivityManagerService::KillServicesLocked(
 //                                    //c.conn.connected(r.className, null);
 //                                } catch (Exception e) {
 //                                    // todo: this should be asynchronous!
-//                                    Slog.w(TAG, "Exception thrown disconnected servce "
+//                                    Slogger::W(TAG, "Exception thrown disconnected servce "
 //                                          + r.shortName
 //                                          + " from app " + app.processName, e);
 //                                }
@@ -7781,7 +7779,7 @@ void CActivityManagerService::SendServiceArgsLocked(
 //            if (DEBUG_SERVICE) Slog.v(TAG, "Crashed while scheduling start: " + r);
 //            break;
 //        } catch (Exception e) {
-//            Slog.w(TAG, "Unexpected exception", e);
+//            Slogger::W(TAG, "Unexpected exception", e);
 //            break;
 //        }
     }
@@ -7977,7 +7975,7 @@ Boolean CActivityManagerService::ScheduleServiceRestartLocked(
 //    mHandler.removeCallbacks(r.restarter);
 //    mHandler.postAtTime(r.restarter, r.nextRestartTime);
 //    r.nextRestartTime = SystemClock.uptimeMillis() + r.restartDelay;
-//    Slog.w(TAG, "Scheduling restart of crashed service "
+//    Slogger::W(TAG, "Scheduling restart of crashed service "
 //            + r.shortName + " in " + r.restartDelay + "ms");
 //    EventLog.writeEvent(EventLogTags.AM_SCHEDULE_SERVICE_RESTART,
 //            r.shortName, r.restartDelay);
@@ -8149,7 +8147,7 @@ ECode CActivityManagerService::BringDownServiceLocked(
                 ibr->mIntent->GetIntent((IIntent**)&ibrIntent);
                 r->mApp->mAppApartment->ScheduleUnbindService(r, ibrIntent);
 //                } catch (Exception e) {
-//                    Slog.w(TAG, "Exception when unbinding service "
+//                    Slogger::W(TAG, "Exception when unbinding service "
 //                            + r.shortName, e);
 //                    serviceDoneExecutingLocked(r, true);
 //                }
@@ -8209,7 +8207,7 @@ ECode CActivityManagerService::BringDownServiceLocked(
             UpdateOomAdjLocked(r->mApp);
             r->mApp->mAppApartment->ScheduleStopService(r);
 //            } catch (Exception e) {
-//                Slog.w(TAG, "Exception when stopping service "
+//                Slogger::W(TAG, "Exception when stopping service "
 //                        + r.shortName, e);
 //                serviceDoneExecutingLocked(r, true);
 //            }
@@ -8756,7 +8754,7 @@ ECode CActivityManagerService::BindService(
 //        try {
         c->mConn->Connected(s->mName, b->mIntent->mBinder);
 //        } catch (Exception e) {
-//            Slog.w(TAG, "Failure sending service " + s.shortName
+//            Slogger::W(TAG, "Failure sending service " + s.shortName
 //                    + " to connection " + c.conn.asBinder()
 //                    + " (in " + c.binding.client.processName + ")", e);
 //        }
@@ -8832,7 +8830,7 @@ ECode CActivityManagerService::RemoveConnectionLocked(
         s->mApp->mAppApartment->ScheduleUnbindService(
                 s, bIntent);
 //        } catch (Exception e) {
-//            Slog.w(TAG, "Exception when unbinding service " + s.shortName, e);
+//            Slogger::W(TAG, "Exception when unbinding service " + s.shortName, e);
 //            serviceDoneExecutingLocked(s, true);
 //        }
     }
@@ -9298,7 +9296,7 @@ ECode CActivityManagerService::BackupAgentCreated(
 //    } catch (RemoteException e) {
 //        // can't happen; the backup manager service is local
 //    } catch (Exception e) {
-//        Slog.w(TAG, "Exception trying to deliver BackupAgent binding: ");
+//        Slogger::W(TAG, "Exception trying to deliver BackupAgent binding: ");
 //        e.printStackTrace();
 //    } finally {
 //        Binder.restoreCallingIdentity(oldIdent);
@@ -9312,13 +9310,13 @@ ECode CActivityManagerService::UnbindBackupAgent(
 {
 //    if (DEBUG_BACKUP) Slog.v(TAG, "unbindBackupAgent: " + appInfo);
 //    if (appInfo == null) {
-//        Slog.w(TAG, "unbind backup agent for null app");
+//        Slogger::W(TAG, "unbind backup agent for null app");
 //        return;
 //    }
 //
 //    synchronized(this) {
 //        if (mBackupAppName == null) {
-//            Slog.w(TAG, "Unbinding backup agent with no active backup");
+//            Slogger::W(TAG, "Unbinding backup agent with no active backup");
 //            return;
 //        }
 //
@@ -9462,7 +9460,7 @@ ECode CActivityManagerService::RegisterReceiver(
 //        BroadcastFilter bf = new BroadcastFilter(filter, rl, permission);
 //        rl.add(bf);
 //        if (!bf.debugCheck()) {
-//            Slog.w(TAG, "==> For Dynamic broadast");
+//            Slogger::W(TAG, "==> For Dynamic broadast");
 //        }
 //        mReceiverResolver.addFilter(bf);
 //
@@ -10106,16 +10104,16 @@ ECode CActivityManagerService::UnbroadcastIntent(
 //        throw new IllegalArgumentException("File descriptors passed in Intent");
 //    }
 //
-//    synchronized(this) {
-//        if (checkCallingPermission(android.Manifest.permission.BROADCAST_STICKY)
-//                != PackageManager.PERMISSION_GRANTED) {
-//            String msg = "Permission Denial: unbroadcastIntent() from pid="
-//                    + Binder.getCallingPid()
-//                    + ", uid=" + Binder.getCallingUid()
-//                    + " requires " + android.Manifest.permission.BROADCAST_STICKY;
-//            Slog.w(TAG, msg);
-//            throw new SecurityException(msg);
-//        }
+    // synchronized(this) {
+
+        if (CheckCallingPermission(String("android.permission.BROADCAST_STICKY") /*android.Manifest.permission.BROADCAST_STICKY)*/)
+                != CapsuleManager_PERMISSION_GRANTED) {
+            Slogger::V(TAG, StringBuffer("Permission Denial: unbroadcastIntent() from pid=") + Binder::GetCallingPid()
+                + ", uid=" + Binder::GetCallingUid() + " requires " + "android.permission.BROADCAST_STICKY");
+            // throw new SecurityException(msg);
+            return E_SECURITY_EXCEPTION;
+        }
+    // }
 //        ArrayList<Intent> list = mStickyBroadcasts.get(intent.getAction());
 //        if (list != null) {
 //            int N = list.size();
@@ -10248,7 +10246,7 @@ void CActivityManagerService::LogBroadcastReceiverDiscardLocked(
 //                    ((ResolveInfo)curReceiver).toString());
 //        }
 //    } else {
-//        Slog.w(TAG, "Discarding broadcast before first receiver is invoked: "
+//        Slogger::W(TAG, "Discarding broadcast before first receiver is invoked: "
 //                + r);
 //        EventLog.writeEvent(EventLogTags.AM_BROADCAST_DISCARD_APP,
 //                System.identityHashCode(r),
@@ -10329,7 +10327,7 @@ void CActivityManagerService::BroadcastTimeoutLocked(
 
 //    // Current receiver has passed its expiration date.
 //    if (r.nextReceiver <= 0) {
-//        Slog.w(TAG, "Timeout on receiver with nextReceiver <= 0");
+//        Slogger::W(TAG, "Timeout on receiver with nextReceiver <= 0");
 //        return;
 //    }
 
@@ -10338,7 +10336,7 @@ void CActivityManagerService::BroadcastTimeoutLocked(
 
     AutoPtr<IObject> curReceiver = *(--r->mNextReceiver);
     ++r->mNextReceiver;
-//    Slog.w(TAG, "Receiver during timeout: " + curReceiver);
+//    Slogger::W(TAG, "Receiver during timeout: " + curReceiver);
     LogBroadcastReceiverDiscardLocked(r);
     ClassID clsid;
     curReceiver->GetClassID(&clsid);
@@ -11034,7 +11032,7 @@ void CActivityManagerService::ReportStartInstrumentationFailure(
     /* [in] */ IComponentName* cn,
     /* [in] */ const String& report)
 {
-//    Slog.w(TAG, report);
+//    Slogger::W(TAG, report);
 //    try {
 //        if (watcher != null) {
 //            Bundle results = new Bundle();
@@ -11043,7 +11041,7 @@ void CActivityManagerService::ReportStartInstrumentationFailure(
 //            watcher.instrumentationStatus(cn, -1, results);
 //        }
 //    } catch (RemoteException e) {
-//        Slog.w(TAG, e);
+//        Slogger::W(TAG, e);
 //    }
 }
 
@@ -11081,7 +11079,7 @@ ECode CActivityManagerService::FinishInstrumentation(
 //    synchronized(this) {
 //        ProcessRecord app = getRecordForAppLocked(target);
 //        if (app == null) {
-//            Slog.w(TAG, "finishInstrumentation: no app for " + target);
+//            Slogger::W(TAG, "finishInstrumentation: no app for " + target);
 //            return;
 //        }
 //        final long origId = Binder.clearCallingIdentity();
@@ -11131,8 +11129,8 @@ ECode CActivityManagerService::GetConfiguration(
 ECode CActivityManagerService::UpdateConfiguration(
     /* [in] */ IConfiguration* values)
 {
-//    enforceCallingPermission(android.Manifest.permission.CHANGE_CONFIGURATION,
-//            "updateConfiguration()");
+    //EnforceCallingPermission(String("android.permission.CHANGE_CONFIGURATION"), /*android.Manifest.permission.CHANGE_CONFIGURATION,*/
+    //        String("UpdateConfiguration()"));
 //
 //    synchronized(this) {
 //        if (values == null && mWindowManager != null) {
@@ -11814,7 +11812,7 @@ void CActivityManagerService::CheckExcessivePowerUsageLocked(
 //                    stats.reportExcessiveWakeLocked(app.info.uid, app.processName,
 //                            realtimeSince, wtimeUsed);
 //                }
-//                Slog.w(TAG, "Excessive wake lock in " + app.processName
+//                Slogger::W(TAG, "Excessive wake lock in " + app.processName
 //                        + " (pid " + app.pid + "): held " + wtimeUsed
 //                        + " during " + realtimeSince);
 //                EventLog.writeEvent(EventLogTags.AM_KILL, app.pid,
@@ -11826,7 +11824,7 @@ void CActivityManagerService::CheckExcessivePowerUsageLocked(
 //                    stats.reportExcessiveCpuLocked(app.info.uid, app.processName,
 //                            uptimeSince, cputimeUsed);
 //                }
-//                Slog.w(TAG, "Excessive CPU in " + app.processName
+//                Slogger::W(TAG, "Excessive CPU in " + app.processName
 //                        + " (pid " + app.pid + "): used " + cputimeUsed
 //                        + " during " + uptimeSince);
 //                EventLog.writeEvent(EventLogTags.AM_KILL, app.pid,

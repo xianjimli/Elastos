@@ -823,8 +823,8 @@ module
          * @see #checkCallingOrSelfPermission(String)
          */
         EnforceCallingOrSelfPermission(
-            [in] CString permission,
-            [in] CString message);
+            [in] String permission,
+            [in] String message);
 
         /**
          * Determine whether the given permission is allowed for a particular

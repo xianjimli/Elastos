@@ -4,6 +4,7 @@
 #include "view/WindowManagerPolicy.h"
 #include "view/ViewTreeObserver.h"
 #include "graphics/ElPixelFormat.h"
+#include "os/Process.h"
 #include "os/SystemClock.h"
 #include "os/Binder.h"
 #include <elastos/Math.h>
@@ -916,30 +917,37 @@ Boolean CWindowManagerService::CheckCallingPermission(
     /* [in] */ const String& func)
 {
     // Quick check: if the calling permission is me, it's all okay.
-//    if (Binder.getCallingPid() == Process.myPid()) {
-//        return true;
-//    }
+#if 0
+    if (Binder::GetCallingPid() == Process::MyPid()) {
+      return TRUE;
+    }
 
-//    if (mContext->CheckCallingPermission(permission)
-//            == PackageManager.PERMISSION_GRANTED) {
-//        return true;
-//    }
-//    String msg = "Permission Denial: " + func + " from pid="
-//            + Binder.getCallingPid()
-//            + ", uid=" + Binder.getCallingUid()
-//            + " requires " + permission;
-//    Slog.w(TAG, msg);
+    Int32 perm;
+    mContext->CheckCallingPermission(permission, &perm);
+    if (perm == CapsuleManager_PERMISSION_GRANTED) {
+      return TRUE;
+    }
+
+    String msg = "Permission Denial: " + func + " from pid="
+           + Binder.getCallingPid()
+           + ", uid=" + Binder.getCallingUid()
+           + " requires " + permission;
+    Slog.w(TAG, msg);
     return FALSE;
+#else
+    return TRUE;
+#endif
 }
 
 ECode CWindowManagerService::AddWindowToken(
     /* [in] */ IBinder* token,
     /* [in] */ Int32 type)
 {
-//    if (!CheckCallingPermission(android.Manifest.permission.MANAGE_APP_TOKENS,
-//            "AddWindowToken()")) {
-//        throw new SecurityException("Requires MANAGE_APP_TOKENS permission");
-//    }
+    if (!CheckCallingPermission(String("elastos.permission.MANAGE_APP_TOKENS"), /*android.Manifest.permission.MANAGE_APP_TOKENS,*/
+           String("AddWindowToken()"))) {
+        //throw new SecurityException("Requires MANAGE_APP_TOKENS permission");
+        return E_SECURITY_EXCEPTION;
+    }
 
     Mutex::Autolock lock(mWindowMapLock);
 
@@ -966,10 +974,11 @@ ECode CWindowManagerService::AddWindowToken(
 ECode CWindowManagerService::RemoveWindowToken(
     /* [in] */ IBinder* token)
 {
-//    if (!checkCallingPermission(android.Manifest.permission.MANAGE_APP_TOKENS,
-//            "removeWindowToken()")) {
-//        throw new SecurityException("Requires MANAGE_APP_TOKENS permission");
-//    }
+    if (!CheckCallingPermission(String("elastos.permission.MANAGE_APP_TOKENS"), /*android.Manifest.permission.MANAGE_APP_TOKENS,*/
+           String("RemoveWindowToken()"))) {
+        //throw new SecurityException("Requires MANAGE_APP_TOKENS permission");
+        return E_SECURITY_EXCEPTION;
+    }
 
 //    long origId = Binder.clearCallingIdentity();
     Mutex::Autolock lock(mWindowMapLock);
@@ -1034,10 +1043,11 @@ ECode CWindowManagerService::AddAppToken(
     /* [in] */ Int32 requestedOrientation,
     /* [in] */ Boolean fullscreen)
 {
-//    if (!checkCallingPermission(android.Manifest.permission.MANAGE_APP_TOKENS,
-//            "addAppToken()")) {
-//        throw new SecurityException("Requires MANAGE_APP_TOKENS permission");
-//    }
+    if (!CheckCallingPermission(String("elastos.permission.MANAGE_APP_TOKENS"), /*android.Manifest.permission.MANAGE_APP_TOKENS,*/
+           String("AddAppToken()"))) {
+        // throw new SecurityException("Requires MANAGE_APP_TOKENS permission");
+        return E_SECURITY_EXCEPTION;
+    }
 
     // Get the dispatching timeout here while we are not holding any locks so that it
     // can be cached by the AppWindowToken.  The timeout value is used later by the
@@ -1085,10 +1095,11 @@ ECode CWindowManagerService::SetAppGroupId(
     /* [in] */ IBinder* token,
     /* [in] */ Int32 groupId)
 {
-    //    if (!checkCallingPermission(android.Manifest.permission.MANAGE_APP_TOKENS,
-//            "setAppStartingIcon()")) {
-//        throw new SecurityException("Requires MANAGE_APP_TOKENS permission");
-//    }
+    if (!CheckCallingPermission(String("elastos.permission.MANAGE_APP_TOKENS"), /*android.Manifest.permission.MANAGE_APP_TOKENS,*/
+        String("SetAppStartingIcon()"))) {
+        //throw new SecurityException("Requires MANAGE_APP_TOKENS permission");
+        return E_SECURITY_EXCEPTION;
+    }
 
     Mutex::Autolock lock(mWindowMapLock);
 
@@ -1199,10 +1210,12 @@ ECode CWindowManagerService::StartViewServer(
 //        return NOERROR;
 //    }
 //
-////    if (!CheckCallingPermission(Manifest.permission.DUMP, "startViewServer")) {
-////        *result = FALSE;
-////        return NOERROR;
-////    }
+
+    if (!CheckCallingPermission(String("elastos.permission.DUMP"), /*Manifest.permission.DUMP,*/
+            String("StartViewServer"))) {
+        *result = FALSE;
+        return NOERROR;
+    }
 //
 //    if (port < 1024) {
 //        *result = FALSE;
@@ -1252,10 +1265,11 @@ ECode CWindowManagerService::StopViewServer(
         return NOERROR;
     }
 
-//    if (!CheckCallingPermission(Manifest.permission.DUMP, "stopViewServer")) {
-//        *result = FALSE;
-//        return NOERROR;
-//    }
+    if (!CheckCallingPermission(String("elastos.permission.DUMP"), /*Manifest.permission.DUMP,*/
+            String("StopViewServer"))) {
+        *result = FALSE;
+        return NOERROR;
+    }
 //
 //    if (mViewServer != NULL) {
 //        *result = mViewServer->Stop();
@@ -1275,10 +1289,11 @@ ECode CWindowManagerService::IsViewServerRunning(
         return NOERROR;
     }
 
-//    if (!CheckCallingPermission(Manifest.permission.DUMP, "isViewServerRunning")) {
-//        *result = FALSE;
-//        return NOERROR;
-//    }
+    if (!CheckCallingPermission(String("elastos.permission.Dump"), /*Manifest.permission.DUMP,*/
+            String("IsViewServerRunning"))) {
+        *result = FALSE;
+        return NOERROR;
+    }
 
 //    return mViewServer != NULL && mViewServer->IsRunning();
     return FALSE;
@@ -1676,10 +1691,11 @@ ECode CWindowManagerService::ReportInjectionResult(
 ECode CWindowManagerService::PauseKeyDispatching(
     /* [in] */ IBinder* token)
 {
-//    if (!CheckCallingPermission(android.Manifest.permission.MANAGE_APP_TOKENS,
-//            "pauseKeyDispatching()")) {
-//        throw new SecurityException("Requires MANAGE_APP_TOKENS permission");
-//    }
+    if (!CheckCallingPermission(String("elastos.permission.MANAGE_APP_TOKENS"), /*android.Manifest.permission.MANAGE_APP_TOKENS,*/
+            String("PauseKeyDispatching()"))) {
+        //throw new SecurityException("Requires MANAGE_APP_TOKENS permission");
+        return E_SECURITY_EXCEPTION;
+    }
 
     Mutex::Autolock lock(mWindowMapLock);
     WindowToken* wtoken = NULL;
@@ -1699,10 +1715,11 @@ ECode CWindowManagerService::PauseKeyDispatching(
 ECode CWindowManagerService::ResumeKeyDispatching(
     /* [in] */ IBinder* token)
 {
-//    if (!checkCallingPermission(android.Manifest.permission.MANAGE_APP_TOKENS,
-//            "resumeKeyDispatching()")) {
-//        throw new SecurityException("Requires MANAGE_APP_TOKENS permission");
-//    }
+    if (!CheckCallingPermission(String("elastos.permission.MANAGE_APP_TOKENS"), /*android.Manifest.permission.MANAGE_APP_TOKENS,*/
+            String("ResumeKeyDispatching()"))) {
+        //throw new SecurityException("Requires MANAGE_APP_TOKENS permission");
+        return E_SECURITY_EXCEPTION;
+    }
 
     Mutex::Autolock lock(mWindowMapLock);
     WindowToken* wtoken = NULL;
@@ -1722,10 +1739,11 @@ ECode CWindowManagerService::ResumeKeyDispatching(
 ECode CWindowManagerService::SetEventDispatching(
     /* [in] */ Boolean enabled)
 {
-//    if (!checkCallingPermission(android.Manifest.permission.MANAGE_APP_TOKENS,
-//            "resumeKeyDispatching()")) {
-//        throw new SecurityException("Requires MANAGE_APP_TOKENS permission");
-//    }
+    if (!CheckCallingPermission(String("elastos.permission.MANAGE_APP_TOKENS"), /*android.Manifest.permission.MANAGE_APP_TOKENS,*/
+            String("ResumeKeyDispatching()"))) {
+        //throw new SecurityException("Requires MANAGE_APP_TOKENS permission");
+        return E_SECURITY_EXCEPTION;
+    }
 
     Mutex::Autolock lock(mWindowMapLock);
     mInputMonitor->SetEventDispatchingLw(enabled);
@@ -1737,10 +1755,11 @@ ECode CWindowManagerService::SetAppOrientation(
     /* [in] */ IApplicationToken* token,
     /* [in] */ Int32 requestedOrientation)
 {
-//    if (!checkCallingPermission(android.Manifest.permission.MANAGE_APP_TOKENS,
-//            "setAppOrientation()")) {
-//        throw new SecurityException("Requires MANAGE_APP_TOKENS permission");
-//    }
+    if (!CheckCallingPermission(String("elastos.permission.MANAGE_APP_TOKENS"), /*android.Manifest.permission.MANAGE_APP_TOKENS,*/
+            String("SetAppOrientation()"))) {
+        //throw new SecurityException("Requires MANAGE_APP_TOKENS permission");
+        return E_SECURITY_EXCEPTION;
+    }
 
     Mutex::Autolock lock(mWindowMapLock);
     AppWindowToken* wtoken = FindAppWindowToken((IBinder*)token);
@@ -1775,10 +1794,11 @@ ECode CWindowManagerService::SetFocusedApp(
     /* [in] */ IBinder* token,
     /* [in] */ Boolean moveFocusNow)
 {
-//    if (!CheckCallingPermission(android.Manifest.permission.MANAGE_APP_TOKENS,
-//            "setFocusedApp()")) {
-//        throw new SecurityException("Requires MANAGE_APP_TOKENS permission");
-//    }
+    if (!CheckCallingPermission(String("elastos.permission.MANAGE_APP_TOKENS"), /*android.Manifest.permission.MANAGE_APP_TOKENS,*/
+            String("SetFocusedApp()"))) {
+        //throw new SecurityException("Requires MANAGE_APP_TOKENS permission");
+        return E_SECURITY_EXCEPTION;
+    }
 
     Mutex::Autolock lock(mWindowMapLock);
 
@@ -1817,10 +1837,11 @@ ECode CWindowManagerService::SetFocusedApp(
 ECode CWindowManagerService::PrepareAppTransition(
     /* [in] */ Int32 transit)
 {
-//    if (!checkCallingPermission(android.Manifest.permission.MANAGE_APP_TOKENS,
-//            "prepareAppTransition()")) {
-//        throw new SecurityException("Requires MANAGE_APP_TOKENS permission");
-//    }
+    if (!CheckCallingPermission(String("elastos.permission.MANAGE_APP_TOKENS"), /*android.Manifest.permission.MANAGE_APP_TOKENS,*/
+            String("PrepareAppTransition()"))) {
+        //throw new SecurityException("Requires MANAGE_APP_TOKENS permission");
+        return E_SECURITY_EXCEPTION;
+    }
 
     Mutex::Autolock lock(mWindowMapLock);
 //    if (DEBUG_APP_TRANSITIONS) Slog.v(
@@ -1883,10 +1904,11 @@ ECode CWindowManagerService::OverridePendingAppTransition(
 
 ECode CWindowManagerService::ExecuteAppTransition()
 {
-//    if (!checkCallingPermission(android.Manifest.permission.MANAGE_APP_TOKENS,
-//            "executeAppTransition()")) {
-//        throw new SecurityException("Requires MANAGE_APP_TOKENS permission");
-//    }
+    if (!CheckCallingPermission(String("elastos.permission.MANAGE_APP_TOKENS"), /*android.Manifest.permission.MANAGE_APP_TOKENS,*/
+            String("ExecuteAppTransition()"))) {
+        //throw new SecurityException("Requires MANAGE_APP_TOKENS permission");
+        return E_SECURITY_EXCEPTION;
+    }
 
     Mutex::Autolock lock(mWindowMapLock);
 //    if (DEBUG_APP_TRANSITIONS) {
@@ -1915,10 +1937,11 @@ ECode CWindowManagerService::SetAppStartingWindow(
     /* [in] */ IBinder* transferFrom,
     /* [in] */ Boolean createIfNeeded)
 {
-//    if (!checkCallingPermission(android.Manifest.permission.MANAGE_APP_TOKENS,
-//            "setAppStartingIcon()")) {
-//        throw new SecurityException("Requires MANAGE_APP_TOKENS permission");
-//    }
+    if (!CheckCallingPermission(String("elastos.permission.MANAGE_APP_TOKENS"), /*android.Manifest.permission.MANAGE_APP_TOKENS,*/
+            String("SetAppStartingIcon()"))) {
+        //throw new SecurityException("Requires MANAGE_APP_TOKENS permission");
+        return E_SECURITY_EXCEPTION;
+    }
 
     Mutex::Autolock lock(mWindowMapLock);
 
@@ -2094,10 +2117,11 @@ ECode CWindowManagerService::SetAppStartingWindow(
 ECode CWindowManagerService::SetAppWillBeHidden(
     /* [in] */ IBinder* token)
 {
-//    if (!checkCallingPermission(android.Manifest.permission.MANAGE_APP_TOKENS,
-//            "setAppWillBeHidden()")) {
-//        throw new SecurityException("Requires MANAGE_APP_TOKENS permission");
-//    }
+    if (!CheckCallingPermission(String("elastos.permission.MANAGE_APP_TOKENS"), /*android.Manifest.permission.MANAGE_APP_TOKENS,*/
+            String("SetAppWillBeHidden()"))) {
+        //throw new SecurityException("Requires MANAGE_APP_TOKENS permission");
+        return E_SECURITY_EXCEPTION;
+    }
 
     AppWindowToken* wtoken;
 
@@ -2222,10 +2246,11 @@ ECode CWindowManagerService::SetAppVisibility(
     /* [in] */ IBinder* token,
     /* [in] */ Boolean visible)
 {
-//    if (!checkCallingPermission(android.Manifest.permission.MANAGE_APP_TOKENS,
-//            "setAppVisibility()")) {
-//        throw new SecurityException("Requires MANAGE_APP_TOKENS permission");
-//    }
+    if (!CheckCallingPermission(String("elastos.permission.MANAGE_APP_TOKENS"), /*android.Manifest.permission.MANAGE_APP_TOKENS,*/
+            String("SetAppVisibility()"))) {
+        //throw new SecurityException("Requires MANAGE_APP_TOKENS permission");
+        return E_SECURITY_EXCEPTION;
+    }
 
     AppWindowToken* wtoken;
 
@@ -2387,10 +2412,11 @@ ECode CWindowManagerService::StartAppFreezingScreen(
     /* [in] */ IBinder* token,
     /* [in] */ Int32 configChanges)
 {
-//    if (!checkCallingPermission(android.Manifest.permission.MANAGE_APP_TOKENS,
-//            "setAppFreezingScreen()")) {
-//        throw new SecurityException("Requires MANAGE_APP_TOKENS permission");
-//    }
+    if (!CheckCallingPermission(String("elastos.permission.MANAGE_APP_TOKENS"), /*android.Manifest.permission.MANAGE_APP_TOKENS,*/
+            String("SetAppFreezingScreen()"))) {
+        //throw new SecurityException("Requires MANAGE_APP_TOKENS permission");
+        return E_SECURITY_EXCEPTION;
+    }
 
     Mutex::Autolock lock(mWindowMapLock);
 
@@ -2417,10 +2443,11 @@ ECode CWindowManagerService::StopAppFreezingScreen(
     /* [in] */ IBinder* token,
     /* [in] */ Boolean force)
 {
-//    if (!checkCallingPermission(android.Manifest.permission.MANAGE_APP_TOKENS,
-//            "setAppFreezingScreen()")) {
-//        throw new SecurityException("Requires MANAGE_APP_TOKENS permission");
-//    }
+    if (!CheckCallingPermission(String("elastos.permission.MANAGE_APP_TOKENS"), /*android.Manifest.permission.MANAGE_APP_TOKENS,*/
+            String("SetAppFreezingScreen()"))) {
+        //throw new SecurityException("Requires MANAGE_APP_TOKENS permission");
+        return E_SECURITY_EXCEPTION;
+    }
 
     Mutex::Autolock lock(mWindowMapLock);
 
@@ -2440,10 +2467,11 @@ ECode CWindowManagerService::StopAppFreezingScreen(
 ECode CWindowManagerService::RemoveAppToken(
     /* [in] */ IBinder* token)
 {
-//    if (!checkCallingPermission(android.Manifest.permission.MANAGE_APP_TOKENS,
-//            "removeAppToken()")) {
-//        throw new SecurityException("Requires MANAGE_APP_TOKENS permission");
-//    }
+    if (!CheckCallingPermission(String("elastos.permission.MANAGE_APP_TOKENS"), /*android.Manifest.permission.MANAGE_APP_TOKENS,*/
+            String("RemoveAppToken()"))) {
+        //throw new SecurityException("Requires MANAGE_APP_TOKENS permission");
+        return E_SECURITY_EXCEPTION;
+    }
 
     AppWindowToken* wtoken = NULL;
     AppWindowToken* startingToken = NULL;
@@ -2539,10 +2567,11 @@ ECode CWindowManagerService::MoveAppToken(
     /* [in] */ Int32 index,
     /* [in] */ IBinder* token)
 {
-//    if (!checkCallingPermission(android.Manifest.permission.MANAGE_APP_TOKENS,
-//            "moveAppToken()")) {
-//        throw new SecurityException("Requires MANAGE_APP_TOKENS permission");
-//    }
+    if (!CheckCallingPermission(String("elastos.permission.MANAGE_APP_TOKENS"), /*android.Manifest.permission.MANAGE_APP_TOKENS,*/
+            String("MoveAppToken()"))) {
+        //throw new SecurityException("Requires MANAGE_APP_TOKENS permission");
+        return E_SECURITY_EXCEPTION;
+    }
 
     Mutex::Autolock lock(mWindowMapLock);
 
@@ -2579,10 +2608,11 @@ ECode CWindowManagerService::MoveAppToken(
 ECode CWindowManagerService::MoveAppTokensToTop(
     /* [in] */ IObjectContainer* tokens)
 {
-//    if (!checkCallingPermission(android.Manifest.permission.MANAGE_APP_TOKENS,
-//            "moveAppTokensToTop()")) {
-//        throw new SecurityException("Requires MANAGE_APP_TOKENS permission");
-//    }
+    if (!CheckCallingPermission(String("elastos.permission.MANAGE_APP_TOKENS"), /*android.Manifest.permission.MANAGE_APP_TOKENS,*/
+            String("MoveAppTokensToTop()"))) {
+        //throw new SecurityException("Requires MANAGE_APP_TOKENS permission");
+        return E_SECURITY_EXCEPTION;
+    }
 //
 //    final long origId = Binder.clearCallingIdentity();
 
@@ -2622,10 +2652,11 @@ ECode CWindowManagerService::MoveAppTokensToTop(
 ECode CWindowManagerService::MoveAppTokensToBottom(
     /* [in] */ IObjectContainer* tokens)
 {
-//    if (!checkCallingPermission(android.Manifest.permission.MANAGE_APP_TOKENS,
-//            "moveAppTokensToBottom()")) {
-//        throw new SecurityException("Requires MANAGE_APP_TOKENS permission");
-//    }
+    if (!CheckCallingPermission(String("elastos.permission.MANAGE_APP_TOKENS"), /*android.Manifest.permission.MANAGE_APP_TOKENS,*/
+            String("MoveAppTokensToBottom()"))) {
+        //throw new SecurityException("Requires MANAGE_APP_TOKENS permission");
+        return E_SECURITY_EXCEPTION;
+    }
 
 //    final long origId = Binder.clearCallingIdentity();
     Mutex::Autolock lock(mWindowMapLock);
@@ -2676,10 +2707,11 @@ ECode CWindowManagerService::UpdateOrientationFromAppTokens(
 {
     VALIDATE_NOT_NULL(_config);
 
-//    if (!checkCallingPermission(android.Manifest.permission.MANAGE_APP_TOKENS,
-//            "updateOrientationFromAppTokens()")) {
-//        throw new SecurityException("Requires MANAGE_APP_TOKENS permission");
-//    }
+    if (!CheckCallingPermission(String("elastos.permission.MANAGE_APP_TOKENS"), /*android.Manifest.permission.MANAGE_APP_TOKENS,*/
+            String("UpdateOrientationFromAppTokens()"))) {
+        //throw new SecurityException("Requires MANAGE_APP_TOKENS permission");
+        return E_SECURITY_EXCEPTION;
+    }
 
 //    long ident = Binder.clearCallingIdentity();
 
@@ -2739,10 +2771,11 @@ Int32 CWindowManagerService::ComputeForcedAppOrientationLocked()
 ECode CWindowManagerService::SetNewConfiguration(
     /* [in] */ IConfiguration* config)
 {
-//    if (!checkCallingPermission(android.Manifest.permission.MANAGE_APP_TOKENS,
-//            "setNewConfiguration()")) {
-//        throw new SecurityException("Requires MANAGE_APP_TOKENS permission");
-//    }
+    if (!CheckCallingPermission(String("elastos.permission.MANAGE_APP_TOKENS"), /*android.Manifest.permission.MANAGE_APP_TOKENS,*/
+            String("SetNewConfiguration()"))) {
+        //throw new SecurityException("Requires MANAGE_APP_TOKENS permission");
+        return E_SECURITY_EXCEPTION;
+    }
 
     Mutex::Autolock lock(mWindowMapLock);
     FAIL_RETURN(CConfiguration::New(config,
@@ -2756,10 +2789,13 @@ ECode CWindowManagerService::DisableKeyguard(
     /* [in] */ IBinder* token,
     /* [in] */ const String& tag)
 {
-//    if (mContext.checkCallingOrSelfPermission(android.Manifest.permission.DISABLE_KEYGUARD)
-//        != PackageManager.PERMISSION_GRANTED) {
-//        throw new SecurityException("Requires DISABLE_KEYGUARD permission");
-//    }
+    Int32 perm;
+    mContext->CheckCallingOrSelfPermission(String("elastos.permission.DISABLE_KEYGUARD"), /*android.Manifest.permission.DISABLE_KEYGUARD)*/
+                &perm);
+    if (perm != CapsuleManager_PERMISSION_GRANTED) {
+        //throw new SecurityException("Requires DISABLE_KEYGUARD permission");
+        return E_SECURITY_EXCEPTION;
+    }
 
 //    Mutex::Autolock lock(mKeyguardTokenWatcherLock);
 
@@ -2771,10 +2807,13 @@ ECode CWindowManagerService::DisableKeyguard(
 ECode CWindowManagerService::ReenableKeyguard(
     /* [in] */ IBinder* token)
 {
-//    if (mContext.checkCallingOrSelfPermission(android.Manifest.permission.DISABLE_KEYGUARD)
-//        != PackageManager.PERMISSION_GRANTED) {
-//        throw new SecurityException("Requires DISABLE_KEYGUARD permission");
-//    }
+    Int32 perm;
+    mContext->CheckCallingOrSelfPermission(String("elastos.permission.DISABLE_KEYGUARD"), /*android.Manifest.permission.DISABLE_KEYGUARD)*/
+                &perm);
+    if (perm != CapsuleManager_PERMISSION_GRANTED) {
+        //throw new SecurityException("Requires DISABLE_KEYGUARD permission");
+        return E_SECURITY_EXCEPTION;
+    }
 
 //    Mutex::Autolock lock(mKeyguardTokenWatcherLock);
 
@@ -2858,10 +2897,11 @@ ECode CWindowManagerService::SetAnimationScale(
     /* [in] */ Int32 which,
     /* [in] */ Float scale)
 {
-//    if (!checkCallingPermission(android.Manifest.permission.SET_ANIMATION_SCALE,
-//            "setAnimationScale()")) {
-//        throw new SecurityException("Requires SET_ANIMATION_SCALE permission");
-//    }
+    if (!CheckCallingPermission(String("elastos.permission.SET_ANIMATION_SCALE"), /*android.Manifest.permission.SET_ANIMATION_SCALE,*/
+            String("SetAnimationScale()"))) {
+        //throw new SecurityException("Requires SET_ANIMATION_SCALE permission");
+        return E_SECURITY_EXCEPTION;
+    }
 
     if (scale < 0) scale = 0;
     else if (scale > 20) scale = 20;
@@ -2890,10 +2930,11 @@ ECode CWindowManagerService::GetSwitchState(
 {
     VALIDATE_NOT_NULL(state);
 
-//    if (!checkCallingPermission(android.Manifest.permission.READ_INPUT_STATE,
-//            "getSwitchState()")) {
-//        throw new SecurityException("Requires READ_INPUT_STATE permission");
-//    }
+    if (!CheckCallingPermission(String("elastos.permission.READ_INPUT_STATE"), /*android.Manifest.permission.READ_INPUT_STATE,*/
+            String("GetSwitchState()"))) {
+        //throw new SecurityException("Requires READ_INPUT_STATE permission");
+        return E_SECURITY_EXCEPTION;
+    }
     *state = mInputManager->GetSwitchState(-1, InputDevice_SOURCE_ANY, sw);
 
     return NOERROR;
@@ -2906,10 +2947,11 @@ ECode CWindowManagerService::GetSwitchStateForDevice(
 {
     VALIDATE_NOT_NULL(state);
 
-//    if (!checkCallingPermission(android.Manifest.permission.READ_INPUT_STATE,
-//            "getSwitchStateForDevice()")) {
-//        throw new SecurityException("Requires READ_INPUT_STATE permission");
-//    }
+    if (!CheckCallingPermission(String("elastos.permission.READ_INPUT_STATE"), /*android.Manifest.permission.READ_INPUT_STATE,*/
+            String("GetSwitchStateForDevice()"))) {
+        //throw new SecurityException("Requires READ_INPUT_STATE permission");
+        return E_SECURITY_EXCEPTION;
+    }
     *state = mInputManager->GetSwitchState(devid, InputDevice_SOURCE_ANY, sw);
 
     return NOERROR;
@@ -2921,10 +2963,11 @@ ECode CWindowManagerService::GetScancodeState(
 {
     VALIDATE_NOT_NULL(state);
 
-//    if (!checkCallingPermission(android.Manifest.permission.READ_INPUT_STATE,
-//            "getScancodeState()")) {
-//        throw new SecurityException("Requires READ_INPUT_STATE permission");
-//    }
+    if (!CheckCallingPermission(String("elastos.permission.READ_INPUT_STATE"), /*android.Manifest.permission.READ_INPUT_STATE,*/
+            String("GetScancodeState()"))) {
+        //throw new SecurityException("Requires READ_INPUT_STATE permission");
+        return E_SECURITY_EXCEPTION;
+    }
     *state = mInputManager->GetScanCodeState(-1, InputDevice_SOURCE_ANY, sw);
 
     return NOERROR;
@@ -2937,10 +2980,11 @@ ECode CWindowManagerService::GetScancodeStateForDevice(
 {
     VALIDATE_NOT_NULL(state);
 
-//    if (!checkCallingPermission(android.Manifest.permission.READ_INPUT_STATE,
-//            "getScancodeStateForDevice()")) {
-//        throw new SecurityException("Requires READ_INPUT_STATE permission");
-//    }
+    if (!CheckCallingPermission(String("elastos.permission.READ_INPUT_STATE"), /*android.Manifest.permission.READ_INPUT_STATE,*/
+            String("GetScancodeStateForDevice()"))) {
+        //throw new SecurityException("Requires READ_INPUT_STATE permission");
+        return E_SECURITY_EXCEPTION;
+    }
     *state = mInputManager->GetScanCodeState(devid, InputDevice_SOURCE_ANY, sw);
 
     return NOERROR;
@@ -2952,10 +2996,11 @@ ECode CWindowManagerService::GetTrackballScancodeState(
 {
     VALIDATE_NOT_NULL(state);
 
-//    if (!checkCallingPermission(android.Manifest.permission.READ_INPUT_STATE,
-//            "getTrackballScancodeState()")) {
-//        throw new SecurityException("Requires READ_INPUT_STATE permission");
-//    }
+    if (!CheckCallingPermission(String("elastos.permission.READ_INPUT_STATE"), /*android.Manifest.permission.READ_INPUT_STATE,*/
+            String("GetTrackballScancodeState()"))) {
+        //throw new SecurityException("Requires READ_INPUT_STATE permission");
+        return E_SECURITY_EXCEPTION;
+    }
     *state = mInputManager->GetScanCodeState(-1, InputDevice_SOURCE_TRACKBALL, sw);
 
     return NOERROR;
@@ -2967,10 +3012,11 @@ ECode CWindowManagerService::GetDPadScancodeState(
 {
     VALIDATE_NOT_NULL(state);
 
-//    if (!checkCallingPermission(android.Manifest.permission.READ_INPUT_STATE,
-//            "getDPadScancodeState()")) {
-//        throw new SecurityException("Requires READ_INPUT_STATE permission");
-//    }
+    if (!CheckCallingPermission(String("elastos.permission.READ_INPUT_STATE"), /*android.Manifest.permission.READ_INPUT_STATE,*/
+            String("GetDPadScancodeState()"))) {
+        //throw new SecurityException("Requires READ_INPUT_STATE permission");
+        return E_SECURITY_EXCEPTION;
+    }
     *state = mInputManager->GetScanCodeState(-1, InputDevice_SOURCE_DPAD, sw);
 
     return NOERROR;
@@ -2982,10 +3028,11 @@ ECode CWindowManagerService::GetKeycodeState(
 {
     VALIDATE_NOT_NULL(state);
 
-//    if (!checkCallingPermission(android.Manifest.permission.READ_INPUT_STATE,
-//            "getKeycodeState()")) {
-//        throw new SecurityException("Requires READ_INPUT_STATE permission");
-//    }
+    if (!CheckCallingPermission(String("elastos.permission.READ_INPUT_STATE"), /*android.Manifest.permission.READ_INPUT_STATE,*/
+            String("GetKeycodeState()"))) {
+        //throw new SecurityException("Requires READ_INPUT_STATE permission");
+        return E_SECURITY_EXCEPTION;
+    }
     *state = mInputManager->GetKeyCodeState(-1, InputDevice_SOURCE_ANY, sw);
 
     return NOERROR;
@@ -2998,10 +3045,11 @@ ECode CWindowManagerService::GetKeycodeStateForDevice(
 {
     VALIDATE_NOT_NULL(state);
 
-//    if (!checkCallingPermission(android.Manifest.permission.READ_INPUT_STATE,
-//            "getKeycodeStateForDevice()")) {
-//        throw new SecurityException("Requires READ_INPUT_STATE permission");
-//    }
+    if (!CheckCallingPermission(String("elastos.permission.READ_INPUT_STATE"), /*android.Manifest.permission.READ_INPUT_STATE,*/
+            String("GetKeycodeStateForDevice()"))) {
+        //throw new SecurityException("Requires READ_INPUT_STATE permission");
+        return E_SECURITY_EXCEPTION;
+    }
     *state = mInputManager->GetKeyCodeState(devid, InputDevice_SOURCE_ANY, sw);
 
     return NOERROR;
@@ -3013,10 +3061,11 @@ ECode CWindowManagerService::GetTrackballKeycodeState(
 {
     VALIDATE_NOT_NULL(state);
 
-//    if (!checkCallingPermission(android.Manifest.permission.READ_INPUT_STATE,
-//            "getTrackballKeycodeState()")) {
-//        throw new SecurityException("Requires READ_INPUT_STATE permission");
-//    }
+    if (!CheckCallingPermission(String("elastos.permission.READ_INPUT_STATE"), /*android.Manifest.permission.READ_INPUT_STATE,*/
+            String("GetTrackballKeycodeState()"))) {
+        //throw new SecurityException("Requires READ_INPUT_STATE permission");
+        return E_SECURITY_EXCEPTION;
+    }
     *state = mInputManager->GetKeyCodeState(-1, InputDevice_SOURCE_TRACKBALL, sw);
 
     return NOERROR;
@@ -3028,10 +3077,11 @@ ECode CWindowManagerService::GetDPadKeycodeState(
 {
     VALIDATE_NOT_NULL(state);
 
-//    if (!checkCallingPermission(android.Manifest.permission.READ_INPUT_STATE,
-//            "getDPadKeycodeState()")) {
-//        throw new SecurityException("Requires READ_INPUT_STATE permission");
-//    }
+    if (!CheckCallingPermission(String("elastos.permission.READ_INPUT_STATE"), /*android.Manifest.permission.READ_INPUT_STATE,*/
+            String("GetDPadKeycodeState()"))) {
+        //throw new SecurityException("Requires READ_INPUT_STATE permission");
+        return E_SECURITY_EXCEPTION;
+    }
     *state = mInputManager->GetKeyCodeState(-1, InputDevice_SOURCE_DPAD, sw);
 
     return NOERROR;
@@ -3049,10 +3099,11 @@ ECode CWindowManagerService::MonitorInput(
 {
     VALIDATE_NOT_NULL(channel);
 
-//    if (!checkCallingPermission(android.Manifest.permission.READ_INPUT_STATE,
-//            "monitorInput()")) {
-//        throw new SecurityException("Requires READ_INPUT_STATE permission");
-//    }
+    if (!CheckCallingPermission(String("elastos.permission.READ_INPUT_STATE"), /*android.Manifest.permission.READ_INPUT_STATE,*/
+            String("MonitorInput()"))) {
+        //throw new SecurityException("Requires READ_INPUT_STATE permission");
+        return E_SECURITY_EXCEPTION;
+    }
     return mInputManager->MonitorInput(inputChannelName, channel);
 }
 
@@ -3171,10 +3222,11 @@ ECode CWindowManagerService::SetRotation(
     /* [in] */ Boolean alwaysSendConfiguration,
     /* [in] */ Int32 animFlags)
 {
-//    if (!checkCallingPermission(android.Manifest.permission.SET_ORIENTATION,
-//            "setRotation()")) {
-//        throw new SecurityException("Requires SET_ORIENTATION permission");
-//    }
+    if (!CheckCallingPermission(String("elastos.permission.SET_ORIENTATION"), /*android.Manifest.permission.SET_ORIENTATION,*/
+            String("SetRotation()"))) {
+        //throw new SecurityException("Requires SET_ORIENTATION permission");
+        return E_SECURITY_EXCEPTION;
+    }
 
     SetRotationUnchecked(rotation, alwaysSendConfiguration, animFlags);
 

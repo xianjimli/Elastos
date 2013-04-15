@@ -207,8 +207,8 @@ ECode Activity::CheckCallingPermission(
 }
 
 ECode Activity::EnforceCallingOrSelfPermission(
-    /* [in] */ CString permission,
-    /* [in] */ CString message)
+    /* [in] */ const String& permission,
+    /* [in] */ const String& message)
 {
     return mBase->EnforceCallingOrSelfPermission(permission, message);
 }
