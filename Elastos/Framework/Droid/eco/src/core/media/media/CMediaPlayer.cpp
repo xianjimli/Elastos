@@ -8,111 +8,6 @@
 #include "os/CApartment.h"
 
 
-//MediaPlayer::EventHandler::EventHandler(
-//    /* [in] */ IMediaPlayer* mp,
-//    /* [in] */ Looper looper)
-//{
-//    super(looper);
-//    mMediaPlayer = mp;
-//}
-
-IInterface* CMediaPlayer::EventHandler::Probe(
-    /* [in] */ REIID riid)
-{
-    if (riid == EIID_IInterface) {
-        return (IInterface*)(IApartment*)this;
-    }
-    else if (riid == EIID_IApartment) {
-        return (IApartment*)this;
-    }
-    return NULL;
-}
-
-UInt32 CMediaPlayer::EventHandler::AddRef()
-{
-    return ElRefBase::AddRef();
-}
-
-UInt32 CMediaPlayer::EventHandler::Release()
-{
-    return ElRefBase::Release();
-}
-
-ECode CMediaPlayer::EventHandler::GetInterfaceID(
-    /* [in] */ IInterface *pObject,
-    /* [out] */ InterfaceID *pIID)
-{
-    return E_NOT_IMPLEMENTED;
-}
-
-//ECode MediaPlayer::EventHandler::HandleMessage(
-//    /* [in] */ IMessage* msg)
-//{
-//    if (((CMediaPlayer*)mMediaPlayer)->mNativeContext == 0) {
-//        //Log.w(TAG, "mediaplayer went away with unhandled events");
-//        return NOERROR;
-//    }
-//    switch((CMessage*)msg->what) {
-//    case MEDIA_PREPARED:
-//        if (mOnPreparedListener != NULL)
-//            mOnPreparedListener->OnPrepared(mMediaPlayer);
-//        return NOERROR;
-//
-//    case MEDIA_PLAYBACK_COMPLETE:
-//        if (mOnCompletionListener != NULL)
-//            mOnCompletionListener->OnCompletion(mMediaPlayer);
-//        StayAwake(FALSE);
-//        return NOERROR;
-//
-//    case MEDIA_BUFFERING_UPDATE:
-//        if (mOnBufferingUpdateListener != NULL)
-//            mOnBufferingUpdateListener->OnBufferingUpdate(mMediaPlayer, ((CMessage*)msg)->arg1);
-//        return NOERROR;
-//
-//    case MEDIA_SEEK_COMPLETE:
-//      if (mOnSeekCompleteListener != NULL)
-//          mOnSeekCompleteListener->OnSeekComplete(mMediaPlayer);
-//      return NOERROR;
-//
-//    case MEDIA_SET_VIDEO_SIZE:
-//      if (mOnVideoSizeChangedListener != NULL)
-//          mOnVideoSizeChangedListener->OnVideoSizeChanged(mMediaPlayer, ((CMessage*)msg)->arg1, ((CMessage*)msg)->arg2);
-//      return NOERROR;
-//
-//    case MEDIA_ERROR:
-//        // For PV specific error values (msg.arg2) look in
-//        // opencore/pvmi/pvmf/include/pvmf_return_codes.h
-//        //Log.e(TAG, "Error (" + msg.arg1 + "," + msg.arg2 + ")");
-//        Boolean error_was_handled = FALSE;
-//        if (mOnErrorListener != NULL) {
-//            error_was_handled = mOnErrorListener->OnError(mMediaPlayer, ((CMessage*)msg)->arg1, ((CMessage*)msg)->arg2);
-//        }
-//        if (mOnCompletionListener != NULL && ! error_was_handled) {
-//            mOnCompletionListener->OnCompletion(mMediaPlayer);
-//        }
-//        StayAwake(FALSE);
-//        return NOERROR;
-//
-//    case MEDIA_INFO:
-//        // For PV specific code values (msg.arg2) look in
-//        // opencore/pvmi/pvmf/include/pvmf_return_codes.h
-//        //Log.i(TAG, "Info (" + msg.arg1 + "," + msg.arg2 + ")");
-//        if (mOnInfoListener != NULL) {
-//            mOnInfoListener->OnInfo(mMediaPlayer, ((CMessage*)msg)->arg1, ((CMessage*)msg)->arg2);
-//        }
-//        // No real default action so far.
-//        return NOERROR;
-//
-//    case MEDIA_NOP: // interface test message - ignore
-//        break;
-//
-//    default:
-//        //Log.e(TAG, "Unknown message type " + msg.what);
-//        return NOERROR;
-//    }
-//}
-
-
 CString CMediaPlayer::TAG = "MediaPlayer";
 // Name of the remote interface for the media player. Must be kept
 // in sync with the 2nd parameter of the IMPLEMENT_META_INTERFACE
@@ -175,7 +70,7 @@ JNIMediaPlayerListener::~JNIMediaPlayerListener()
 
 void JNIMediaPlayerListener::notify(int msg, int ext1, int ext2)
 {
-    // mObject->PostEventFromNative(mObject, msg, ext1, ext2, 0);
+    mObject->PostEventFromNative(mObject, msg, ext1, ext2, 0);
 }
 
 static android::sp<android::MediaPlayer> getMediaPlayer(CMediaPlayer* thiz)
@@ -1383,21 +1278,31 @@ void CMediaPlayer::NativeFinalize()
 }
 
 void CMediaPlayer::PostEventFromNative(
-    /* [in] */ IInterface* mediaplayer_ref,
+    /* [in] */ CMediaPlayer* mediaplayer_ref,
     /* [in] */ Int32 what,
     /* [in] */ Int32 arg1,
     /* [in] */ Int32 arg2,
     /* [in] */ IInterface* obj)
 {
-    /*MediaPlayer mp = (MediaPlayer)((WeakReference)mediaplayer_ref).get();
+    // MediaPlayer mp = (MediaPlayer)((WeakReference)mediaplayer_ref).get();
+    CMediaPlayer* mp = mediaplayer_ref;
     if (mp == NULL) {
         return;
     }
 
-    if (mp.mEventHandler != NULL) {
-        Message m = mp.mEventHandler.obtainMessage(what, arg1, arg2, obj);
-        mp.mEventHandler.sendMessage(m);
-    }*/
+    if (mp->mEventHandler != NULL) {
+        ECode (STDCALL CMediaPlayer::*pHandlerFunc)(
+                Int32 what, Int32 arg1, Int32 arg2, IInterface* obj);
+        pHandlerFunc = &CMediaPlayer::HandleMessage;
+
+        AutoPtr<IParcel> params;
+        CCallbackParcel::New((IParcel**)&params);
+        params->WriteInt32(what);
+        params->WriteInt32(arg1);
+        params->WriteInt32(arg2);
+        params->WriteInterfacePtr(obj);
+        mp->mEventHandler->PostCppCallback((Handle32)mp, *(Handle32*)&pHandlerFunc, params, 0);
+    }
 }
 
 /**
@@ -1494,5 +1399,83 @@ ECode CMediaPlayer::SetOnInfoListener(
 {
     mOnInfoListener = listener;
 
+    return NOERROR;
+}
+
+ECode CMediaPlayer::HandleMessage(
+    /* [in] */ Int32 what,
+    /* [in] */ Int32 arg1,
+    /* [in] */ Int32 arg2,
+    /* [in] */ IInterface* obj)
+{
+//    if (((CMediaPlayer*)mMediaPlayer)->mNativeContext == 0) {
+//        //Log.w(TAG, "mediaplayer went away with unhandled events");
+//        return NOERROR;
+//    }
+    switch(what) {
+    case MEDIA_PREPARED:
+        if (mOnPreparedListener != NULL) {
+            mOnPreparedListener->OnPrepared((IMediaPlayer*)this);
+        }
+        return NOERROR;
+
+    case MEDIA_PLAYBACK_COMPLETE:
+        if (mOnCompletionListener != NULL) {
+            mOnCompletionListener->OnCompletion((IMediaPlayer*)this);
+        }
+        StayAwake(FALSE);
+        return NOERROR;
+
+    case MEDIA_BUFFERING_UPDATE:
+        if (mOnBufferingUpdateListener != NULL) {
+            mOnBufferingUpdateListener->OnBufferingUpdate((IMediaPlayer*)this, arg1);
+        }
+        return NOERROR;
+
+    case MEDIA_SEEK_COMPLETE:
+        if (mOnSeekCompleteListener != NULL) {
+            mOnSeekCompleteListener->OnSeekComplete((IMediaPlayer*)this);
+        }
+        return NOERROR;
+
+    case MEDIA_SET_VIDEO_SIZE:
+        if (mOnVideoSizeChangedListener != NULL) {
+            mOnVideoSizeChangedListener->OnVideoSizeChanged((IMediaPlayer*)this, arg1, arg2);
+        }
+        return NOERROR;
+
+    case MEDIA_ERROR: {
+        // For PV specific error values (msg.arg2) look in
+        // opencore/pvmi/pvmf/include/pvmf_return_codes.h
+        //Log.e(TAG, "Error (" + msg.arg1 + "," + msg.arg2 + ")");
+        Boolean error_was_handled = FALSE;
+        if (mOnErrorListener != NULL) {
+            mOnErrorListener->OnError((IMediaPlayer*)this, arg1, arg2, &error_was_handled);
+        }
+        if (mOnCompletionListener != NULL && ! error_was_handled) {
+            mOnCompletionListener->OnCompletion((IMediaPlayer*)this);
+        }
+        StayAwake(FALSE);
+        return NOERROR;
+    }
+
+    case MEDIA_INFO:
+        // For PV specific code values (msg.arg2) look in
+        // opencore/pvmi/pvmf/include/pvmf_return_codes.h
+        //Log.i(TAG, "Info (" + msg.arg1 + "," + msg.arg2 + ")");
+        if (mOnInfoListener != NULL) {
+            Boolean result;
+            mOnInfoListener->OnInfo((IMediaPlayer*)this, arg1, arg2, &result);
+        }
+        // No real default action so far.
+        return NOERROR;
+
+    case MEDIA_NOP: // interface test message - ignore
+        break;
+
+    default:
+        //Log.e(TAG, "Unknown message type " + msg.what);
+        return NOERROR;
+    }
     return NOERROR;
 }

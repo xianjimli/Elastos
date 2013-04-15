@@ -155,11 +155,11 @@ ECode VideoView::VVOnPreparedListener::OnPrepared(
             }
             else if (!mHost->IsPlaying() &&
                     (seekToPosition != 0 || mHost->GetCurrentPosition() > 0)) {
-               if (mHost->mMediaController != NULL) {
-                   // Show the media controls when we're paused into a video and make 'em stick.
-                   mHost->mMediaController->ShowEx(0);
-               }
-           }
+                if (mHost->mMediaController != NULL) {
+                    // Show the media controls when we're paused into a video and make 'em stick.
+                    mHost->mMediaController->ShowEx(0);
+                }
+            }
         }
     }
     else {

@@ -467,7 +467,6 @@ ECode MediaController::Show(
             mPauseButton->RequestFocus(&result);
         }
         DisableUnsupportedButtons();
-
         Int32 x, y;
         FAIL_RETURN(mAnchor->GetLocationOnScreen(&x, &y));
 
@@ -555,7 +554,7 @@ String MediaController::StringForTime(
 
     Int32 seconds = totalSeconds % 60;
     Int32 minutes = (totalSeconds / 60) % 60;
-    Int32 hours   = totalSeconds / 3600;
+    Int32 hours = totalSeconds / 3600;
 
     /*mFormatBuilder.setLength(0);
     if (hours > 0) {
@@ -563,21 +562,19 @@ String MediaController::StringForTime(
     } else {
         return mFormatter.format("%02d:%02d", minutes, seconds).toString();
     }*/
-
-    String result;
+    String result("");
     if (hours > 0) {
-        result.Append("%d", hours);
+        result.AppendFormat("%d", hours);
         result += ":";
-        result.Append("%2d", minutes);
+        result.AppendFormat("%2d", minutes);
         result += ":";
-        result.Append("%2d", seconds);
+        result.AppendFormat("%2d", seconds);
     }
     else {
-        result.Append("%2d", minutes);
+        result.AppendFormat("%2d", minutes);
         result += ":";
-        result.Append("%2d", seconds);
+        result.AppendFormat("%2d", seconds);
     }
-
     return result;
 }
 

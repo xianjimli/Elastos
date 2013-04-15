@@ -3,6 +3,7 @@
 #include "Uri.h"
 #include <elastos/AutoPtr.h>
 #include <stdio.h>
+#include <unistd.h>
 
 CActivityOne::PlayListener::PlayListener(
     /* [in] */ CActivityOne* host)
@@ -57,6 +58,7 @@ ECode CActivityOne::PlayListener::OnClick(
 {
     ECode ec;
     ec = mHost->mMediaPlayer->SetDataSourceEx2(String("/data/data/com.elastos.runtime/elastos/MediaPlayerDemo/data/test.mp3"));
+    // ec = mHost->mMediaPlayer->SetDataSourceEx2(String("http://www.ieface.com/music/ForrestGump.mp3"));
     assert(SUCCEEDED(ec));
     ec = mHost->mMediaPlayer->Prepare();
     assert(SUCCEEDED(ec));
@@ -186,6 +188,10 @@ ECode CActivityOne::StopListener::OnClick(
 ECode CActivityOne::OnCreate(
     /* [in] */ IBundle* savedInstanceState)
 {
+    gid_t groups0[1];
+    groups0[0] = 3003;
+    setgroups(1, groups0);
+
     SetContentView(0x7f030000);
 
     assert(CMediaPlayer::New((IMediaPlayer**)&mMediaPlayer) == NOERROR);

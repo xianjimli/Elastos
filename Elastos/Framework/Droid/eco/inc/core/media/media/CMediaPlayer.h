@@ -423,34 +423,6 @@
  */
 CarClass(CMediaPlayer)
 {
-private:
-    class EventHandler
-        : public ElRefBase
-        , public IApartment
-    {
-    public:
-        //EventHandler(
-        //    /* [in] */ IMediaPlayer* mp,
-        //    /* [in] */ ILooper* looper);
-
-        //virtual CARAPI HandleMessage(
-        //    /* [in] */ IMessage* msg);
-
-        CARAPI_(UInt32) AddRef();
-
-        CARAPI_(UInt32) Release();
-
-        CARAPI_(PInterface) Probe(
-            /* [in]  */ REIID riid);
-
-        CARAPI GetInterfaceID(
-            /* [in] */ IInterface *pObject,
-            /* [out] */ InterfaceID *pIID);
-
-    private:
-        IMediaPlayer* mMediaPlayer;
-    };
-
 public:
     /**
      * Default constructor. Consider using one of the create() methods for
@@ -1036,7 +1008,7 @@ public:
      * the cookie passed to native_setup().)
      */
     static CARAPI_(void) PostEventFromNative(
-        /* [in] */ IInterface* mediaplayer_ref,
+        /* [in] */ CMediaPlayer* mediaplayer_ref,
         /* [in] */ Int32 what,
         /* [in] */ Int32 arg1,
         /* [in] */ Int32 arg2,
@@ -1116,6 +1088,12 @@ private:
         /* [in] */ CMediaPlayer* mediaplayer);
 
     CARAPI_(void) NativeFinalize();
+
+    CARAPI HandleMessage(
+        /* [in] */ Int32 what,
+        /* [in] */ Int32 arg1,
+        /* [in] */ Int32 arg2,
+        /* [in] */ IInterface* obj);
 
 public:
     Int32 mNativeContext; // accessed by native methods

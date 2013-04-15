@@ -73,7 +73,7 @@ ECode CActivityOne::OnCreate(
      * videoView.setVideoPath(String path)
      * 以上两个方法都可以。
      */
-    mVideoView->SetVideoPath(String("data/data/com.elastos.runtime/elastos/VideoViewDemo/data/test.mp3"));
+    mVideoView->SetVideoPath(String("data/data/com.elastos.runtime/elastos/VideoViewDemo/data/panda.3gp"));
     /**
      * w为其提供一个控制器，控制其暂停、播放……等功能
      */
@@ -98,6 +98,7 @@ ECode CActivityOne::OnCreate(
     //         return false;
     //     }
     // });
+    IMediaPlayerControl::Probe(mVideoView)->Start();
     return NOERROR;
 }
 
