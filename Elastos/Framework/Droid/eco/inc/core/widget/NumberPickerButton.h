@@ -14,12 +14,12 @@ public:
     NumberPickerButton();
 
     NumberPickerButton(
-        /* [in] */ IContext* context, 
+        /* [in] */ IContext* context,
         /* [in] */ IAttributeSet* attrs,
         /* [in] */ Int32 defStyle);
 
     NumberPickerButton(
-        /* [in] */ IContext* context, 
+        /* [in] */ IContext* context,
         /* [in] */ IAttributeSet* attrs);
 
     NumberPickerButton(
@@ -35,7 +35,7 @@ public:
         /* [in] */ IMotionEvent* event);
 
     virtual CARAPI_(Boolean) OnKeyUp(
-        /* [in] */ Int32 keyCode, 
+        /* [in] */ Int32 keyCode,
         /* [in] */ IKeyEvent* event);
 
 private:

@@ -6,15 +6,15 @@
 
 /**
  * <p>
- * Displays a button with an image (instead of text) that can be pressed 
- * or clicked by the user. By default, an ImageButton looks like a regular 
+ * Displays a button with an image (instead of text) that can be pressed
+ * or clicked by the user. By default, an ImageButton looks like a regular
  * {@link android.widget.Button}, with the standard button background
  * that changes color during different button states. The image on the surface
  * of the button is defined either by the {@code android:src} attribute in the
- * {@code &lt;ImageButton&gt;} XML element or by the 
+ * {@code &lt;ImageButton&gt;} XML element or by the
  * {@link #setImageResource(int)} method.</p>
- * 
- * <p>To remove the standard button background image, define your own 
+ *
+ * <p>To remove the standard button background image, define your own
  * background image or set the background color to be transparent.</p>
  * <p>To indicate the different button states (focused, selected, etc.), you can
  * define a different image for each state. E.g., a blue image by default, an
@@ -30,9 +30,9 @@
  *     &lt;item android:drawable="@drawable/button_normal" /&gt; &lt;!-- default --&gt;
  * &lt;/selector&gt;</pre>
  *
- * <p>Save the XML file in your project {@code res/drawable/} folder and then 
- * reference it as a drawable for the source of your ImageButton (in the 
- * {@code android:src} attribute). Android will automatically change the image 
+ * <p>Save the XML file in your project {@code res/drawable/} folder and then
+ * reference it as a drawable for the source of your ImageButton (in the
+ * {@code android:src} attribute). Android will automatically change the image
  * based on the state of the button and the corresponding images
  * defined in the XML.</p>
  *
@@ -50,27 +50,25 @@
  * {@link android.R.styleable#View View Attributes}
  * </p>
  */
-class ImageButton : public ImageView 
+class ImageButton : public ImageView
 {
 public:
     ImageButton();
 
     ImageButton(
-        /* [in] */ IContext* context);
-
-    ImageButton(
-        /* [in] */ IContext* context, 
-        /* [in] */ IAttributeSet* attrs);
-
-    ImageButton(
-        /* [in] */ IContext* context, 
-        /* [in] */ IAttributeSet* attrs, 
-        /* [in] */ Int32 defStyle);
+        /* [in] */ IContext* context,
+        /* [in] */ IAttributeSet* attrs = NULL,
+        /* [in] */ Int32 defStyle = 0x01010072/* com.android.internal.R.attr.imageButtonStyle */);
 
 protected:
-    virtual CARAPI_(Boolean) OnSetAlpha(
+    CARAPI Init(
+        /* [in] */ IContext* context,
+        /* [in] */ IAttributeSet* attrs = NULL,
+        /* [in] */ Int32 defStyle = 0x01010072/* com.android.internal.R.attr.imageButtonStyle */);
+
+    //@Override
+    CARAPI_(Boolean) OnSetAlpha(
         /* [in] */ Int32 alpha);
 };
 
 #endif
-

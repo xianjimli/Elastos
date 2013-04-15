@@ -50,41 +50,31 @@ ECode CSurfaceView::SetWindowType(
 }
 
 ECode CSurfaceView::IsFixedSize(
-    /* [out] */ Boolean * pSize)
+    /* [out] */ Boolean* size)
 {
-    assert(pSize != NULL);
-    *pSize = SurfaceView::IsFixedSize();
+    assert(size != NULL);
+    *size = SurfaceView::IsFixedSize();
 
     return NOERROR;
 }
 
 ECode CSurfaceView::constructor(
-    /* [in] */ IContext * pContext)
+    /* [in] */ IContext* context)
 {
-    View::Init(pContext);
-    SurfaceView::Init();
-
-    return NOERROR;
+    return SurfaceView::Init(context);
 }
 
 ECode CSurfaceView::constructor(
-    /* [in] */ IContext * pContext,
-    /* [in] */ IAttributeSet * pAttrs)
+    /* [in] */ IContext* context,
+    /* [in] */ IAttributeSet* attrs)
 {
-    View::Init(pContext, pAttrs);
-    SurfaceView::Init();
-
-    return NOERROR;
+    return SurfaceView::Init(context, attrs);
 }
 
 ECode CSurfaceView::constructor(
-    /* [in] */ IContext * pContext,
-    /* [in] */ IAttributeSet * pAttrs,
+    /* [in] */ IContext* context,
+    /* [in] */ IAttributeSet* attrs,
     /* [in] */ Int32 defStyle)
 {
-    View::Init(pContext, pAttrs, defStyle);
-    SurfaceView::Init();
-
-    return NOERROR;
+    return SurfaceView::Init(context, attrs, defStyle);
 }
-

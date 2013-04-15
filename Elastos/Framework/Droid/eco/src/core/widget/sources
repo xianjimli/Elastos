@@ -120,7 +120,6 @@ SOURCES += CExpandableListView.cpp
 SOURCES += GridView.cpp
 SOURCES += CGridView.cpp
 SOURCES += AbsSeekBar.cpp
-SOURCES += CAbsSeekBar.cpp
 SOURCES += AlphabetIndexer.cpp
 SOURCES += CAlphabetIndexer.cpp
 SOURCES += AnalogClock.cpp

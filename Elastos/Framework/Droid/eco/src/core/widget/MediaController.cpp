@@ -270,7 +270,8 @@ MediaController::MediaController()
     mRewListener = new RewListener(this);
     mFfwdListener = new FfwdListener(this);
     mSeekListener = new MCOnSeekBarChangeListener(this);
-    CApartment::GetMyApartment((IApartment**)&mApartment);
+    //todo: CApartment::GetMyApartment((IApartment**)&mApartment);
+    CApartment::GetMainApartment((IApartment**)&mApartment);
     assert(mApartment != NULL);
 }
 

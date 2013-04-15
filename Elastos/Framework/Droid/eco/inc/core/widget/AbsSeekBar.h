@@ -3,6 +3,9 @@
 #define __ABSSEEKBAR_H__
 
 #include "widget/ProgressBar.h"
+#include <elastos/Mutex.h>
+
+using namespace Elastos::Core::Threading;
 
 class AbsSeekBar : public ProgressBar
 {
@@ -65,16 +68,18 @@ public:
      */
     virtual CARAPI_(Int32) GetKeyProgressIncrement();
 
-    virtual CARAPI SetMax(
+    //@Override
+    CARAPI SetMax(
         /* [in] */ Int32 max);
 
-    virtual CARAPI_(Boolean) OnTouchEvent(
+    //@Override
+    CARAPI_(Boolean) OnTouchEvent(
         /* [in] */ IMotionEvent* event);
 
-    virtual CARAPI_(Boolean) OnKeyDown(
+    //@Override
+    CARAPI_(Boolean) OnKeyDown(
         /* [in] */ Int32 keyCode,
         /* [in] */ IKeyEvent* event);
-
 
 protected:
     CARAPI Init(
@@ -89,25 +94,31 @@ protected:
         /* [in] */ IAttributeSet* attrs,
         /* [in] */ Int32 defStyle);
 
-    virtual CARAPI_(Boolean) VerifyDrawable(
+    //@Override
+    CARAPI_(Boolean) VerifyDrawable(
         /* [in] */ IDrawable* who);
 
-    virtual CARAPI DrawableStateChanged();
+    //@Override
+    CARAPI DrawableStateChanged();
 
-    virtual CARAPI_(void) OnProgressRefresh(
+    //@Override
+    CARAPI_(void) OnProgressRefresh(
         /* [in] */ Float scale,
         /* [in] */ Boolean fromUser);
 
-    virtual CARAPI_(void) OnSizeChanged(
+    //@Overide
+    CARAPI_(void) OnSizeChanged(
         /* [in] */ Int32 w,
         /* [in] */ Int32 h,
         /* [in] */ Int32 oldw,
         /* [in] */ Int32 oldh);
 
-    virtual CARAPI_(void) OnDraw(
+    //@Override
+    CARAPI_(void) OnDraw(
         /* [in] */ ICanvas* canvas);
 
-    virtual CARAPI_(void) OnMeasure(
+    //@Override
+    CARAPI_(void) OnMeasure(
         /* [in] */ Int32 widthMeasureSpec,
         /* [in] */ Int32 heightMeasureSpec);
 
@@ -128,31 +139,34 @@ protected:
      */
     virtual CARAPI_(void) OnKeyChange();
 
-private:
-    CARAPI_(void) Init();
+    virtual CARAPI_(Mutex*) GetSelfLock() = 0;
 
+private:
     /**
      * @param gap If set to {@link Integer#MIN_VALUE}, this will be ignored and
      */
-    virtual CARAPI_(void) SetThumbPos(
+    CARAPI_(void) SetThumbPos(
         /* [in] */ Int32 w,
         /* [in] */ IDrawable* thumb,
         /* [in] */ Float scale,
         /* [in] */ Int32 gap);
 
-    virtual CARAPI_(void) TrackTouchEvent(
+    CARAPI_(void) TrackTouchEvent(
         /* [in] */ IMotionEvent* event);
 
     /**
      * Tries to claim the user's drag motion, and requests disallowing any
      * ancestors from stealing events in the drag.
      */
-    virtual CARAPI_(void) AttemptClaimDrag();
+    CARAPI_(void) AttemptClaimDrag();
+
+    CARAPI InitFromAttributes(
+        /* [in] */ IContext* context,
+        /* [in] */ IAttributeSet* attrs,
+        /* [in] */ Int32 defStyle);
 
 private:
-
     AutoPtr<IDrawable> mThumb;
-
     Int32 mThumbOffset;
 
     /**

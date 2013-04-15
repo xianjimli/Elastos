@@ -2,6 +2,7 @@
 #include "ext/frameworkdef.h"
 #include "widget/CSeekBar.h"
 
+
 IVIEW_METHODS_IMPL(CSeekBar, AbsSeekBar, AbsSeekBar);
 
 IDrawableCallback_METHODS_IMPL(CSeekBar, AbsSeekBar, AbsSeekBar);
@@ -9,6 +10,27 @@ IDrawableCallback_METHODS_IMPL(CSeekBar, AbsSeekBar, AbsSeekBar);
 IKeyEventCallback_METHODS_IMPL(CSeekBar, AbsSeekBar, AbsSeekBar);
 
 IAccessibilityEventSource_METHODS_IMPL(CSeekBar, AbsSeekBar, AbsSeekBar);
+
+ECode CSeekBar::constructor(
+    /* [in] */ IContext* ctx)
+{
+    return constructor(ctx, NULL);
+}
+
+ECode CSeekBar::constructor(
+    /* [in] */ IContext* ctx,
+    /* [in] */ IAttributeSet* attrs)
+{
+    return constructor(ctx, attrs, 0x0101007b); //com.android.internal.R.attr.seekBarStyle
+}
+
+ECode CSeekBar::constructor(
+    /* [in] */ IContext* ctx,
+    /* [in] */ IAttributeSet* attrs,
+    /* [in] */ Int32 defStyle)
+{
+    return AbsSeekBar::Init(ctx, attrs, defStyle);
+}
 
 PInterface CSeekBar::Probe(
     /* [in] */ REIID riid)
@@ -20,10 +42,10 @@ PInterface CSeekBar::Probe(
 }
 
 ECode CSeekBar::IsIndeterminate(
-    /* [out] */ Boolean * pIndeterminate)
+    /* [out] */ Boolean* isIndeterminate)
 {
-    VALIDATE_NOT_NULL(pIndeterminate);
-    *pIndeterminate = AbsSeekBar::IsIndeterminate();
+    VALIDATE_NOT_NULL(isIndeterminate);
+    *isIndeterminate = AbsSeekBar::IsIndeterminate();
 
     return NOERROR;
 }
@@ -35,38 +57,37 @@ ECode CSeekBar::SetIndeterminate(
 }
 
 ECode CSeekBar::GetIndeterminateDrawable(
-    /* [out] */ IDrawable ** ppD)
+    /* [out] */ IDrawable** drawable)
 {
-    VALIDATE_NOT_NULL(ppD);
-    AutoPtr<IDrawable> drawable = AbsSeekBar::GetIndeterminateDrawable();
-    *ppD = drawable.Get();
-    if (*ppD) (*ppD)->AddRef();
+    VALIDATE_NOT_NULL(drawable);
+    AutoPtr<IDrawable> _drawable = AbsSeekBar::GetIndeterminateDrawable();
+    *drawable = _drawable;
+    if (*drawable) (*drawable)->AddRef();
 
     return NOERROR;
 }
 
 ECode CSeekBar::SetIndeterminateDrawable(
-    /* [in] */ IDrawable * pD)
+    /* [in] */ IDrawable* drawable)
 {
-    return AbsSeekBar::SetIndeterminateDrawable(pD);
+    return AbsSeekBar::SetIndeterminateDrawable(drawable);
 }
 
 ECode CSeekBar::GetProgressDrawable(
-    /* [out] */ IDrawable ** ppD)
+    /* [out] */ IDrawable ** drawable)
 {
-    VALIDATE_NOT_NULL(ppD);
-    AutoPtr<IDrawable> drawable = AbsSeekBar::GetProgressDrawable();
-    *ppD = drawable.Get();
-    if (*ppD) (*ppD)->AddRef();
+    VALIDATE_NOT_NULL(drawable);
+    AutoPtr<IDrawable> _drawable = AbsSeekBar::GetProgressDrawable();
+    *drawable = _drawable;
+    if (*drawable) (*drawable)->AddRef();
 
     return NOERROR;
 }
 
 ECode CSeekBar::SetProgressDrawable(
-    /* [in] */ IDrawable * pD)
+    /* [in] */ IDrawable * drawable)
 {
-    // TODO: Add your code here
-    return AbsSeekBar::SetProgressDrawable(pD);
+    return AbsSeekBar::SetProgressDrawable(drawable);
 }
 
 ECode CSeekBar::SetProgress(
@@ -82,28 +103,28 @@ ECode CSeekBar::SetSecondaryProgress(
 }
 
 ECode CSeekBar::GetProgress(
-    /* [out] */ Int32 * pProgress)
+    /* [out] */ Int32* progress)
 {
-    VALIDATE_NOT_NULL(pProgress);
-    *pProgress = AbsSeekBar::GetProgress();
+    VALIDATE_NOT_NULL(progress);
+    *progress = AbsSeekBar::GetProgress();
 
     return NOERROR;
 }
 
 ECode CSeekBar::GetSecondaryProgress(
-    /* [out] */ Int32 * pSecondaryProgress)
+    /* [out] */ Int32* secProgress)
 {
-    VALIDATE_NOT_NULL(pSecondaryProgress);
-    *pSecondaryProgress = AbsSeekBar::GetSecondaryProgress();
+    VALIDATE_NOT_NULL(secProgress);
+    *secProgress = AbsSeekBar::GetSecondaryProgress();
 
     return NOERROR;
 }
 
 ECode CSeekBar::GetMax(
-    /* [out] */ Int32 * pMax)
+    /* [out] */ Int32* max)
 {
-    VALIDATE_NOT_NULL(pMax);
-    *pMax = AbsSeekBar::GetMax();
+    VALIDATE_NOT_NULL(max);
+    *max = AbsSeekBar::GetMax();
 
     return NOERROR;
 }
@@ -127,40 +148,40 @@ ECode CSeekBar::IncrementSecondaryProgressBy(
 }
 
 ECode CSeekBar::SetInterpolator(
-    /* [in] */ IContext * pCtx,
+    /* [in] */ IContext* ctx,
     /* [in] */ Int32 resID)
 {
-    return AbsSeekBar::SetInterpolator(pCtx, resID);
+    return AbsSeekBar::SetInterpolator(ctx, resID);
 }
 
 ECode CSeekBar::SetInterpolatorEx(
-    /* [in] */ IInterpolator * pInterpolator)
+    /* [in] */ IInterpolator* interpolator)
 {
-    return AbsSeekBar::SetInterpolator(pInterpolator);
+    return AbsSeekBar::SetInterpolator(interpolator);
 }
 
 ECode CSeekBar::GetInterpolator(
-    /* [out] */ IInterpolator ** ppInterpolator)
+    /* [out] */ IInterpolator** interpolator)
 {
-    VALIDATE_NOT_NULL(ppInterpolator);
-    AutoPtr<IInterpolator> interpolator = AbsSeekBar::GetInterpolator();
-    *ppInterpolator = interpolator.Get();
-    if (*ppInterpolator) (*ppInterpolator)->AddRef();
+    VALIDATE_NOT_NULL(interpolator);
+    AutoPtr<IInterpolator> _interpolator = AbsSeekBar::GetInterpolator();
+    *interpolator = _interpolator;
+    if (*interpolator) (*interpolator)->AddRef();
 
     return NOERROR;
 }
 
 ECode CSeekBar::SetThumb(
-    /* [in] */ IDrawable * pThumb)
+    /* [in] */ IDrawable* thumb)
 {
-    return AbsSeekBar::SetThumb(pThumb);
+    return AbsSeekBar::SetThumb(thumb);
 }
 
 ECode CSeekBar::GetThumbOffset(
-    /* [out] */ Int32 * pOffset)
+    /* [out] */ Int32* offset)
 {
-    VALIDATE_NOT_NULL(pOffset);
-    *pOffset = AbsSeekBar::GetThumbOffset();
+    VALIDATE_NOT_NULL(offset);
+    *offset = AbsSeekBar::GetThumbOffset();
 
     return NOERROR;
 }
@@ -178,10 +199,10 @@ ECode CSeekBar::SetKeyProgressIncrement(
 }
 
 ECode CSeekBar::GetKeyProgressIncrement(
-    /* [out] */ Int32 * pIncrement)
+    /* [out] */ Int32* increment)
 {
-    VALIDATE_NOT_NULL(pIncrement);
-    *pIncrement = AbsSeekBar::GetKeyProgressIncrement();
+    VALIDATE_NOT_NULL(increment);
+    *increment = AbsSeekBar::GetKeyProgressIncrement();
 
     return NOERROR;
 }
@@ -199,25 +220,16 @@ ECode CSeekBar::SetOnSeekBarChangeListener(
     return NOERROR;
 }
 
-ECode CSeekBar::constructor(
-    /* [in] */ IContext * pCtx)
+void CSeekBar::OnProgressRefresh(
+    /* [in] */ Float scale,
+    /* [in] */ Boolean fromUser)
 {
-    return constructor(pCtx, NULL);
-}
+    AbsSeekBar::OnProgressRefresh(scale, fromUser);
 
-ECode CSeekBar::constructor(
-    /* [in] */ IContext * pCtx,
-    /* [in] */ IAttributeSet * pAttrs)
-{
-    return constructor(pCtx, pAttrs, 0x0101007b); //com.android.internal.R.attr.seekBarStyle
-}
-
-ECode CSeekBar::constructor(
-    /* [in] */ IContext * pCtx,
-    /* [in] */ IAttributeSet * pAttrs,
-    /* [in] */ Int32 defStyle)
-{
-    return AbsSeekBar::Init(pCtx, pAttrs, defStyle);
+    if (mOnSeekBarChangeListener != NULL) {
+        mOnSeekBarChangeListener->OnProgressChanged(
+                this, AbsSeekBar::GetProgress(), fromUser);
+    }
 }
 
 void CSeekBar::OnStartTrackingTouch()
@@ -231,17 +243,5 @@ void CSeekBar::OnStopTrackingTouch()
 {
     if (mOnSeekBarChangeListener != NULL) {
         mOnSeekBarChangeListener->OnStopTrackingTouch(this);
-    }
-}
-
- void CSeekBar::OnProgressRefresh(
-    /* [in] */ Float scale,
-    /* [in] */ Boolean fromUser)
-{
-    AbsSeekBar::OnProgressRefresh(scale, fromUser);
-
-    if (mOnSeekBarChangeListener != NULL) {
-        mOnSeekBarChangeListener->OnProgressChanged(
-                this, AbsSeekBar::GetProgress(), fromUser);
     }
 }

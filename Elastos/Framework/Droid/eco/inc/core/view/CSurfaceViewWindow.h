@@ -3,6 +3,7 @@
 #define  _CSURFACEVIEWWINDOW_H__
 
 #include "_CSurfaceViewWindow.h"
+#include "view/SurfaceView.h"
 #include <elastos/AutoPtr.h>
 
 CarClass(CSurfaceViewWindow)
@@ -11,7 +12,7 @@ public:
 	CSurfaceViewWindow();
 
     CARAPI constructor(
-        /* [in] */ ISurfaceView* surfaceView);
+        /* [in] */ Handle32 surfaceView);
 
     CARAPI Resized(
         /* [in] */ Int32 w,
@@ -57,7 +58,7 @@ public:
             /* [out] */ String* description);
 
 private:
-    AutoPtr<ISurfaceView> mSurfaceView;
+    SurfaceView* mSurfaceView;
 
     Int32 mCurWidth;// = -1;
     Int32 mCurHeight;// = -1;

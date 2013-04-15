@@ -18,14 +18,12 @@ const Int32 SurfaceView::GET_NEW_SURFACE_MSG;
 const Int32 SurfaceView::UPDATE_WINDOW_MSG;
 
 SurfaceView::_SurfaceHolder::_SurfaceHolder(
-    /* [in] */ SurfaceView* host):
-    mHost(host)
-{
-}
+    /* [in] */ SurfaceView* host)
+    : mHost(host)
+{}
 
 SurfaceView::_SurfaceHolder::~_SurfaceHolder()
-{
-}
+{}
 
 PInterface SurfaceView::_SurfaceHolder::Probe(
     /* [in]  */ REIID riid)
@@ -184,7 +182,7 @@ ECode SurfaceView::_SurfaceHolder::SetKeepScreenOn(
     params->WriteBoolean(screenOn);
 
     mHost->mHandler->PostCppCallback(
-            (Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);
+            (Handle32)mHost, *(Handle32*)&pHandlerFunc, params, 0);
 
     return NOERROR;
 }
@@ -294,9 +292,7 @@ AutoPtr<ICanvas> SurfaceView::_SurfaceHolder::InternalLockCanvas(
 }
 
 SurfaceView::SurfaceView()
-{
-
-}
+{}
 
 SurfaceView::SurfaceView(
     /* [in] */ IContext* context) :
@@ -319,6 +315,33 @@ SurfaceView::SurfaceView(
     /* [in] */ Int32 defStyle)
 {
     Init();
+}
+
+ECode SurfaceView::Init(
+    /* [in] */ IContext* context)
+{
+    FAIL_RETURN(View::Init(context));
+    Init();
+    return NOERROR;
+}
+
+ECode SurfaceView::Init(
+    /* [in] */ IContext* context,
+    /* [in] */ IAttributeSet* attrs)
+{
+    FAIL_RETURN(View::Init(context, attrs));
+    Init();
+    return NOERROR;
+}
+
+ECode SurfaceView::Init(
+    /* [in] */ IContext* context,
+    /* [in] */ IAttributeSet* attrs,
+    /* [in] */ Int32 defStyle)
+{
+    FAIL_RETURN(View::Init(context, attrs, defStyle));
+    Init();
+    return NOERROR;
 }
 
 SurfaceView::~SurfaceView()
@@ -348,9 +371,8 @@ void SurfaceView::Init()
 
     mIsCreating = FALSE;
 
-    CApartment::New(FALSE, (IApartment**) &mHandler);
-    mHandler->Start(ApartmentAttr_New);
-
+    //todo: CApartment::GetMyApartment();
+    CApartment::GetMainApartment((IApartment**)&mHandler);
     mRequestedVisible = FALSE;
     mWindowVisibility = FALSE;
     mViewVisibility = FALSE;
@@ -722,8 +744,7 @@ void SurfaceView::UpdateWindow(
             ((CWindowManagerLayoutParams*)mLayout.Get())->mMemoryType = mRequestedType;
 
             if (mWindow == NULL) {
-                CSurfaceViewWindow::New((ISurfaceView*)this->Probe(EIID_ISurfaceView),
-                    (IInnerWindow**) &mWindow);
+                CSurfaceViewWindow::New((Handle32)this, (IInnerWindow**)&mWindow);
 
                 ((CWindowManagerLayoutParams*)mLayout.Get())->mType = mWindowType;
                 ((CWindowManagerLayoutParams*)mLayout.Get())->mGravity = Gravity_LEFT|Gravity_TOP;

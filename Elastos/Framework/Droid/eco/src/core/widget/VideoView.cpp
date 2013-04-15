@@ -522,7 +522,7 @@ ECode VideoView::VVSurfaceHodlerCallback::SurfaceDestroyed(
     /* [in] */ ISurfaceHolder* holder)
 {
     // after we return from this we can't use the surface any more
-    mHost->mSurfaceHolder.Clear();
+    mHost->mSurfaceHolder = NULL;
     if (mHost->mMediaController != NULL) mHost->mMediaController->Hide();
     if (mHost->mCurrentState != STATE_SUSPEND) {
         mHost->Release(TRUE);
@@ -564,7 +564,7 @@ VideoView::VideoView()
 ECode VideoView::Init(
     /* [in] */ IContext* context)
 {
-    FAIL_RETURN(View::Init(context));
+    FAIL_RETURN(SurfaceView::Init(context));
     InitVideoView();
 
     return NOERROR;
@@ -575,7 +575,7 @@ ECode VideoView::Init(
     /* [in] */ IAttributeSet* attrs,
     /* [in] */ Int32 defStyle)
 {
-    FAIL_RETURN(View::Init(context, attrs, defStyle));
+    FAIL_RETURN(SurfaceView::Init(context, attrs, defStyle));
     InitVideoView();
 
     return NOERROR;
@@ -659,7 +659,6 @@ ECode VideoView::SetVideoPath(
 {
     AutoPtr<IUri> uri;
     FAIL_RETURN(Uri::Parse(path, (IUri**)&uri));
-
     return SetVideoURI(uri);
 }
 
@@ -674,7 +673,9 @@ ECode VideoView::SetVideoURI(
     /* [in] */  HashMap<String, String>* headers)
 {
     mUri = uri;
-    mHeaders = *headers;
+    if (headers != NULL) {
+        mHeaders = *headers;
+    }
     mSeekWhenPrepared = 0;
     OpenVideo();
     FAIL_RETURN(RequestLayout());

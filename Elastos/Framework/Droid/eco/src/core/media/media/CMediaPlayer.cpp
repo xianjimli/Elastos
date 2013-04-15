@@ -397,11 +397,13 @@ ECode CMediaPlayer::SetDataSourceEx(
     /* [in] */ IUri* uri,
     /* [in] */ IObjectStringMap* headers)
 {
-    //String scheme = uri.getScheme();
-    //if(scheme == NULL || scheme.equals("file")) {
-    //    setDataSource(uri.getPath());
-    //    return;
-    //}
+    String scheme;
+    uri->GetScheme(&scheme);
+    if(scheme.IsNull() || scheme.Equals("file")) {
+        String path;
+        uri->GetPath(&path);
+        return SetDataSourceEx2(path);
+    }
 
     //AssetFileDescriptor fd = NULL;
     //try {

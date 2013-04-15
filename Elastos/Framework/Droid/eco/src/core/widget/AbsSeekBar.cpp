@@ -4,14 +4,66 @@
 
 using namespace Elastos::Core;
 
+
 const Int32 AbsSeekBar::NO_ALPHA;
+
+
+AbsSeekBar::AbsSeekBar()
+    : mIsUserSeekable(TRUE)
+    , mKeyProgressIncrement(-1)
+{}
+
+AbsSeekBar::AbsSeekBar(
+    /* [in] */ IContext* context)
+    : ProgressBar(context)
+    , mIsUserSeekable(TRUE)
+    , mKeyProgressIncrement(-1)
+{}
+
+AbsSeekBar::AbsSeekBar(
+    /* [in] */ IContext* context,
+    /* [in] */ IAttributeSet* attrs)
+    : ProgressBar(context, attrs)
+    , mIsUserSeekable(TRUE)
+    , mKeyProgressIncrement(-1)
+{}
+
+AbsSeekBar::AbsSeekBar(
+    /* [in] */ IContext* context,
+    /* [in] */ IAttributeSet* attrs,
+    /* [in] */ Int32 defStyle)
+    : ProgressBar(context, attrs, defStyle)
+    , mIsUserSeekable(TRUE)
+    , mKeyProgressIncrement(-1)
+{
+    ASSERT_SUCCEEDED(InitFromAttributes(context, attrs, defStyle));
+}
+
+ECode AbsSeekBar::Init(
+    /* [in] */ IContext* context)
+{
+    return ProgressBar::Init(context);
+}
+
+ECode AbsSeekBar::Init(
+    /* [in] */ IContext* context,
+    /* [in] */ IAttributeSet* attrs)
+{
+    return ProgressBar::Init(context, attrs);
+}
+
+ECode AbsSeekBar::Init(
+    /* [in] */ IContext* context,
+    /* [in] */ IAttributeSet* attrs,
+    /* [in] */ Int32 defStyle)
+{
+    FAIL_RETURN(ProgressBar::Init(context, attrs, defStyle));
+    return InitFromAttributes(context, attrs, defStyle);
+}
 
 static Int32 R_Styleable_SeekBar[] = {
     0x01010142, 0x01010143
 };
-
-static const Int32 R_Styleable_SeekBar_thumb = 0; //com.android.internal.R.styleable.SeekBar_thumb
-static const Int32 R_Styleable_SeekBar_thumbOffset = 1; //com.android.internal.R.styleable.SeekBar_thumbOffset
 
 static Int32 R_Styleable_Theme[] = {
     0x01010030, 0x01010031, 0x01010032, 0x01010033,
@@ -50,83 +102,34 @@ static Int32 R_Styleable_Theme[] = {
     0x010102cd, 0x010102ce, 0x010102cf, 0x010102d0
 };
 
-static const Int32 R_Styleable_Theme_disabledAlpha = 3;
-
-AbsSeekBar::AbsSeekBar()
-{
-    Init();
-}
-
-AbsSeekBar::AbsSeekBar(
-    /* [in] */ IContext* context) : ProgressBar(context)
-{
-    Init();
-    Init(context);
-}
-
-AbsSeekBar::AbsSeekBar(
-    /* [in] */ IContext* context,
-    /* [in] */ IAttributeSet* attrs) : ProgressBar(context, attrs)
-{
-    Init();
-    Init(context, attrs);
-}
-
-AbsSeekBar::AbsSeekBar(
-    /* [in] */ IContext* context,
-    /* [in] */ IAttributeSet* attrs,
-    /* [in] */ Int32 defStyle) : ProgressBar(context, attrs, defStyle)
-{
-    Init();
-    Init(context, attrs, defStyle);
-}
-
-void AbsSeekBar::Init()
-{
-    mIsUserSeekable = TRUE;
-    mKeyProgressIncrement = 1;
-}
-
-ECode AbsSeekBar::Init(
-    /* [in] */ IContext* context)
-{
-    return ProgressBar::Init(context);
-}
-
-ECode AbsSeekBar::Init(
-    /* [in] */ IContext* context,
-    /* [in] */ IAttributeSet* attrs)
-{
-    return ProgressBar::Init(context, attrs);
-}
-
-ECode AbsSeekBar::Init(
+ECode AbsSeekBar::InitFromAttributes(
     /* [in] */ IContext* context,
     /* [in] */ IAttributeSet* attrs,
     /* [in] */ Int32 defStyle)
 {
-    FAIL_RETURN(ProgressBar::Init(context, attrs, defStyle));
-
     AutoPtr<ITypedArray> a;
     FAIL_RETURN(context->ObtainStyledAttributesEx3(attrs,
-                ArrayOf<Int32>(R_Styleable_SeekBar, 2),
+                ArrayOf<Int32>(R_Styleable_SeekBar, 2), /*com.android.internal.R.styleable.SeekBar*/
                 defStyle, 0, (ITypedArray**)&a));
     AutoPtr<IDrawable> thumb;
-    FAIL_RETURN(a->GetDrawable(R_Styleable_SeekBar_thumb, (IDrawable**)&thumb));
-    FAIL_RETURN(SetThumb(thumb)); // will guess mThumbOffset if thumb != NULL...
+    FAIL_RETURN(a->GetDrawable(0/*com.android.internal.R.styleable.SeekBar_thumb*/,
+            (IDrawable**)&thumb));
+    SetThumb(thumb); // will guess mThumbOffset if thumb != NULL...
     // ...but allow layout to override this
     Int32 thumbOffset;
     FAIL_RETURN(a->GetDimensionPixelOffset(
-            R_Styleable_SeekBar_thumbOffset, GetThumbOffset(), &thumbOffset));
-    FAIL_RETURN(SetThumbOffset(thumbOffset));
+            1/*com.android.internal.R.styleable.SeekBar_thumbOffset*/,
+            GetThumbOffset(), &thumbOffset));
+    SetThumbOffset(thumbOffset);
     FAIL_RETURN(a->Recycle());
 
     FAIL_RETURN(context->ObtainStyledAttributesEx3(attrs,
-                ArrayOf<Int32>(R_Styleable_Theme,
+                ArrayOf<Int32>(R_Styleable_Theme, /*com.android.internal.R.styleable.Theme*/
                 sizeof(R_Styleable_Theme) / sizeof(Int32)),
                 0, 0, (ITypedArray**)&a));
     FAIL_RETURN(a->GetFloat(
-            R_Styleable_Theme_disabledAlpha, 0.5f, &mDisabledAlpha));
+            3, /*com.android.internal.R.styleable.Theme_disabledAlpha*/
+            0.5f, &mDisabledAlpha));
     return a->Recycle();
 }
 
@@ -210,6 +213,8 @@ Int32 AbsSeekBar::GetKeyProgressIncrement()
 ECode AbsSeekBar::SetMax(
     /* [in] */ Int32 max)
 {
+    Mutex::Autolock lock(GetSelfLock());
+
     ProgressBar::SetMax(max);
 
     if ((mKeyProgressIncrement == 0) || (GetMax() / mKeyProgressIncrement > 20)) {
@@ -229,7 +234,7 @@ Boolean AbsSeekBar::VerifyDrawable(
 
 ECode AbsSeekBar::DrawableStateChanged()
 {
-    ProgressBar::DrawableStateChanged();
+    FAIL_RETURN(ProgressBar::DrawableStateChanged());
 
     AutoPtr<IDrawable> progressDrawable = GetProgressDrawable();
     if (progressDrawable != NULL) {
@@ -237,11 +242,8 @@ ECode AbsSeekBar::DrawableStateChanged()
     }
 
     Boolean stateful;
-    mThumb->IsStateful(&stateful);
-
-    if (mThumb != NULL && stateful) {
+    if (mThumb != NULL && (mThumb->IsStateful(&stateful), stateful)) {
         ArrayOf<Int32>* state = GetDrawableState();
-
         Boolean res;
         mThumb->SetState(state, &res);
     }
@@ -273,7 +275,6 @@ void AbsSeekBar::OnSizeChanged(
 {
     AutoPtr<IDrawable> d = GetCurrentDrawable();
     AutoPtr<IDrawable> thumb = mThumb;
-
     Int32 height;
     Int32 thumbHeight = thumb == NULL ? 0 : (thumb->GetIntrinsicHeight(&height), height);
     // The max height does not incorporate padding, whereas the height
@@ -294,7 +295,8 @@ void AbsSeekBar::OnSizeChanged(
                     w - mPaddingRight - mPaddingLeft, h - mPaddingBottom - gapForCenteringTrack
                     - mPaddingTop);
         }
-    } else {
+    }
+    else {
         if (d != NULL) {
             // Canvas will be translated by the padding, so 0,0 is where we start drawing
             d->SetBounds(0, 0, w - mPaddingRight - mPaddingLeft, h - mPaddingBottom
@@ -332,9 +334,10 @@ void AbsSeekBar::SetThumbPos(
     if (gap == Math::INT32_MIN_VALUE) {
         AutoPtr<IRect> oldBounds;
         thumb->GetBounds((IRect**)&oldBounds);
-        topBound = ((CRect*)oldBounds.Get())->mTop;
-        bottomBound = ((CRect*)oldBounds.Get())->mBottom;
-    } else {
+        oldBounds->GetTop(&topBound);
+        oldBounds->GetBottom(&bottomBound);
+    }
+    else {
         topBound = gap;
         bottomBound = gap + thumbHeight;
     }
@@ -346,9 +349,10 @@ void AbsSeekBar::SetThumbPos(
 void AbsSeekBar::OnDraw(
     /* [in] */ ICanvas* canvas)
 {
+    Mutex::Autolock lock(GetSelfLock());
+
     ProgressBar::OnDraw(canvas);
     if (mThumb != NULL) {
-
         Int32 count;
         canvas->Save(&count);
         // Translate the padding. For the x, we need to allow the thumb to
@@ -363,6 +367,8 @@ void AbsSeekBar::OnMeasure(
     /* [in] */ Int32 widthMeasureSpec,
     /* [in] */ Int32 heightMeasureSpec)
 {
+    Mutex::Autolock lock(GetSelfLock());
+
     AutoPtr<IDrawable> d = GetCurrentDrawable();
 
     Int32 h;
@@ -431,9 +437,11 @@ void AbsSeekBar::TrackTouchEvent(
     Float progress = 0;
     if (x < mPaddingLeft) {
         scale = 0.0f;
-    } else if (x > width - mPaddingRight) {
+    }
+    else if (x > width - mPaddingRight) {
         scale = 1.0f;
-    } else {
+    }
+    else {
         scale = (Float)(x - mPaddingLeft) / (Float)available;
         progress = mTouchProgressOffset;
     }
@@ -441,7 +449,7 @@ void AbsSeekBar::TrackTouchEvent(
     Int32 max = GetMax();
     progress += scale * max;
 
-    SetProgress((Int32) progress, TRUE);
+    SetProgress((Int32)progress, TRUE);
 }
 
 /**
@@ -500,4 +508,3 @@ Boolean AbsSeekBar::OnKeyDown(
 
     return ProgressBar::OnKeyDown(keyCode, event);
 }
-

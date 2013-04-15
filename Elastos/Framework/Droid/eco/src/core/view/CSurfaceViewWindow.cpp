@@ -10,10 +10,10 @@ CSurfaceViewWindow::CSurfaceViewWindow():
 }
 
 ECode CSurfaceViewWindow::constructor(
-    /* [in] */ ISurfaceView* surfaceView)
+    /* [in] */ Handle32 surfaceView)
 
 {
-	mSurfaceView = surfaceView;
+	mSurfaceView = (SurfaceView*)surfaceView;
     //mSurfaceView = new WeakReference<SurfaceView>(surfaceView);
     return NOERROR;
 }
@@ -26,7 +26,7 @@ ECode CSurfaceViewWindow::Resized(
     /* [in] */ Boolean reportDraw,
     /* [in] */ IConfiguration* newConfig)
 {
-    AutoPtr<ISurfaceView> surfaceView = mSurfaceView;
+    SurfaceView* surfaceView = mSurfaceView;
     if (surfaceView != NULL) {
         /*if (localLOGV) Log.v(
                 "SurfaceView", surfaceView + " got resized: w=" +
@@ -36,8 +36,8 @@ ECode CSurfaceViewWindow::Resized(
         //Mutex::Autolock lock(((CSurfaceView*)surfaceView.Get())->mSurfaceLock);
         Int32 width, height;
         if (reportDraw) {
-            ((CSurfaceView*)surfaceView.Get())->mUpdateWindowNeeded = TRUE;
-            ((CSurfaceView*)surfaceView.Get())->mReportDrawNeeded = TRUE;
+            surfaceView->mUpdateWindowNeeded = TRUE;
+            surfaceView->mReportDrawNeeded = TRUE;
 
             void (STDCALL SurfaceView::*pHandlerFunc)(Boolean, Boolean);
             pHandlerFunc = &SurfaceView::UpdateWindow;
@@ -46,12 +46,11 @@ ECode CSurfaceViewWindow::Resized(
             CCallbackParcel::New((IParcel**)&params);
             params->WriteBoolean(FALSE);
             params->WriteBoolean(FALSE);
-            ((CSurfaceView*)surfaceView.Get())->mHandler->PostCppCallback(
-                    (Handle32)mSurfaceView.Get(), *(Handle32*)&pHandlerFunc, params, 0);
+            surfaceView->mHandler->PostCppCallback((Handle32)surfaceView, *(Handle32*)&pHandlerFunc, params, 0);
 
-        } else if ((((CSurfaceView*)surfaceView.Get())->mWinFrame->GetWidth(&width), width) != w
-                || (((CSurfaceView*)surfaceView.Get())->mWinFrame->GetHeight(&height), height) != h) {
-            ((CSurfaceView*)surfaceView.Get())->mUpdateWindowNeeded = TRUE;
+        } else if ((surfaceView->mWinFrame->GetWidth(&width), width) != w
+                || (surfaceView->mWinFrame->GetHeight(&height), height) != h) {
+            surfaceView->mUpdateWindowNeeded = TRUE;
 
             void (STDCALL SurfaceView::*pHandlerFunc)(Boolean, Boolean);
             pHandlerFunc = &SurfaceView::UpdateWindow;
@@ -59,9 +58,8 @@ ECode CSurfaceViewWindow::Resized(
             CCallbackParcel::New((IParcel**)&params);
             params->WriteBoolean(FALSE);
             params->WriteBoolean(FALSE);
-
-            ((CSurfaceView*)surfaceView.Get())->mHandler->PostCppCallback(
-                    (Handle32)mSurfaceView.Get(), *(Handle32*)&pHandlerFunc, params, 0);
+            surfaceView->mHandler->PostCppCallback(
+                    (Handle32)surfaceView, *(Handle32*)&pHandlerFunc, params, 0);
         }
     }
 
@@ -81,8 +79,8 @@ ECode CSurfaceViewWindow::DispatchGetNewSurface()
         void (STDCALL SurfaceView::*pHandlerFunc)();
         pHandlerFunc = &SurfaceView::HandleGetNewSurface;
 
-        ((CSurfaceView*)mSurfaceView.Get())->mHandler->PostCppCallback(
-                (Handle32)mSurfaceView.Get(), *(Handle32*)&pHandlerFunc, NULL, 0);
+        mSurfaceView->mHandler->PostCppCallback(
+                (Handle32)mSurfaceView, *(Handle32*)&pHandlerFunc, NULL, 0);
     }
 
     return NOERROR;

@@ -17,6 +17,18 @@ public:
 
     IAccessibilityEventSource_METHODS_DECL();
 
+    CARAPI constructor(
+        /* [in] */ IContext* ctx);
+
+    CARAPI constructor(
+        /* [in] */ IContext* ctx,
+        /* [in] */ IAttributeSet* attrs);
+
+    CARAPI constructor(
+        /* [in] */ IContext* ctx,
+        /* [in] */ IAttributeSet* attrs,
+        /* [in] */ Int32 defStyle);
+
     CARAPI_(PInterface) Probe(
         /* [in] */ REIID riid);
 
@@ -30,22 +42,22 @@ public:
         /* [in] */ Int32 maxHeight);
 
     CARAPI GetDrawable(
-        /* [out] */ IDrawable ** ppDrawable);
+        /* [out] */ IDrawable** drawable);
 
     CARAPI SetImageResource(
         /* [in] */ Int32 resId);
 
     CARAPI SetImageURI(
-        /* [in] */ IUri * pUri);
+        /* [in] */ IUri* uri);
 
     CARAPI SetImageDrawable(
-        /* [in] */ IDrawable * pDrawable);
+        /* [in] */ IDrawable* drawable);
 
     CARAPI SetImageBitmap(
-        /* [in] */ IBitmap * pBm);
+        /* [in] */ IBitmap* bm);
 
     CARAPI SetImageState(
-        /* [in] */ const ArrayOf<Int32> & state,
+        /* [in] */ const ArrayOf<Int32>& state,
         /* [in] */ Boolean mg);
 
     CARAPI SetImageLevel(
@@ -55,28 +67,13 @@ public:
         /* [in] */ ImageViewScaleType scaleType);
 
     CARAPI GetScaleType(
-        /* [out] */ ImageViewScaleType * pScaleType);
+        /* [out] */ ImageViewScaleType* scaleType);
 
     CARAPI GetImageMatrix(
-        /* [out] */ IMatrix ** ppMartix);
+        /* [out] */ IMatrix** martix);
 
     CARAPI SetImageMatrix(
-        /* [in] */ IMatrix * pMatrix);
-
-    CARAPI constructor(
-        /* [in] */ IContext * pCtx);
-
-    CARAPI constructor(
-        /* [in] */ IContext * pCtx,
-        /* [in] */ IAttributeSet * pAttrs);
-
-    CARAPI constructor(
-        /* [in] */ IContext * pCtx,
-        /* [in] */ IAttributeSet * pAttrs,
-        /* [in] */ Int32 defStyle);
-
-private:
-    // TODO: Add your private member variables here.
+        /* [in] */ IMatrix* matrix);
 };
 
 #endif // __CIMAGEBUTTON_H__

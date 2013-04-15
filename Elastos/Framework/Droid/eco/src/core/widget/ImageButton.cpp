@@ -1,32 +1,28 @@
 
+#include "ext/frameworkdef.h"
 #include "widget/ImageButton.h"
 
-static const Int32 R_Attr_ImageButtonStyle = 0x01010072;
 
 ImageButton::ImageButton()
-{
-
-}
+{}
 
 ImageButton::ImageButton(
-    /* [in] */ IContext* context) : ImageView(context, NULL, R_Attr_ImageButtonStyle)
+    /* [in] */ IContext* context,
+    /* [in] */ IAttributeSet* attrs,
+    /* [in] */ Int32 defStyle)
+    : ImageView(context, attrs, defStyle)
 {
     SetFocusable(TRUE);
 }
 
-ImageButton::ImageButton(
-    /* [in] */ IContext* context, 
-    /* [in] */ IAttributeSet* attrs) : ImageView(context, attrs, R_Attr_ImageButtonStyle)
+ECode ImageButton::Init(
+    /* [in] */ IContext* context,
+    /* [in] */ IAttributeSet* attrs,
+    /* [in] */ Int32 defStyle)
 {
+    FAIL_RETURN(ImageView::Init(context, attrs, defStyle));
     SetFocusable(TRUE);
-}
-
-ImageButton::ImageButton(
-    /* [in] */ IContext* context, 
-    /* [in] */ IAttributeSet* attrs, 
-    /* [in] */ Int32 defStyle)  : ImageView(context, attrs, defStyle)
-{
-    SetFocusable(TRUE);
+    return NOERROR;
 }
 
 Boolean ImageButton::OnSetAlpha(

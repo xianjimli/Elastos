@@ -9,8 +9,7 @@ module
      * touch gesture or arrow key/trackball as well as changes that were initiated
      * programmatically.
      */
-    interface IOnSeekBarChangeListener
-    {
+    interface IOnSeekBarChangeListener {
         /**
          * Notification that the progress level has changed. Clients can use the fromUser parameter
          * to distinguish user-initiated changes from those that occurred programmatically.
@@ -42,8 +41,7 @@ module
             [in] ISeekBar* seekBar);
     }
 
-    interface ISeekBar extends IAbsSeekBar
-    {
+    interface ISeekBar extends IAbsSeekBar {
         /**
          * Sets a listener to receive notifications of changes to the SeekBar's progress level. Also
          * provides notifications of when the user starts and stops a touch gesture within the SeekBar.
@@ -54,6 +52,5 @@ module
          */
         SetOnSeekBarChangeListener(
             [in] IOnSeekBarChangeListener* l);
-
     }
 }

@@ -1013,7 +1013,7 @@ module
 
     class CSurfaceViewWindow {
         constructor(
-            [in] ISurfaceView* surfaceView);
+            [in] Handle32 surfaceView);
 
         interface IInnerWindow;
     }

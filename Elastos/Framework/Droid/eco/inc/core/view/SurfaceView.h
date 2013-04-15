@@ -202,6 +202,18 @@ public:
     virtual CARAPI_(Boolean) IsFixedSize();
 
 protected:
+    CARAPI Init(
+        /* [in] */ IContext* context);
+
+    CARAPI Init(
+        /* [in] */ IContext* context,
+        /* [in] */ IAttributeSet* attrs);
+
+    CARAPI Init(
+        /* [in] */ IContext* context,
+        /* [in] */ IAttributeSet* attrs,
+        /* [in] */ Int32 defStyle);
+
     virtual CARAPI_(void) OnAttachedToWindow();
 
     virtual CARAPI_(void) OnWindowVisibilityChanged(

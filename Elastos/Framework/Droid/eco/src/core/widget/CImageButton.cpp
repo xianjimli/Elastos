@@ -9,6 +9,27 @@ IKeyEventCallback_METHODS_IMPL(CImageButton, ImageButton, ImageButton);
 
 IAccessibilityEventSource_METHODS_IMPL(CImageButton, ImageButton, ImageButton);
 
+ECode CImageButton::constructor(
+    /* [in] */ IContext* ctx)
+{
+    return ImageButton::Init(ctx);
+}
+
+ECode CImageButton::constructor(
+    /* [in] */ IContext* ctx,
+    /* [in] */ IAttributeSet* attrs)
+{
+    return ImageButton::Init(ctx, attrs);
+}
+
+ECode CImageButton::constructor(
+    /* [in] */ IContext* ctx,
+    /* [in] */ IAttributeSet* attrs,
+    /* [in] */ Int32 defStyle)
+{
+    return ImageButton::Init(ctx, attrs, defStyle);
+}
+
 PInterface CImageButton::Probe(
     /* [in] */ REIID riid)
 {
@@ -21,123 +42,97 @@ PInterface CImageButton::Probe(
 ECode CImageButton::SetAdjustViewBounds(
     /* [in] */ Boolean adjustViewBounds)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return ImageButton::SetAdjustViewBounds(adjustViewBounds);
 }
 
 ECode CImageButton::SetMaxWidth(
     /* [in] */ Int32 maxWidth)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return ImageButton::SetMaxWidth(maxWidth);
 }
 
 ECode CImageButton::SetMaxHeight(
     /* [in] */ Int32 maxHeight)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return ImageButton::SetMaxHeight(maxHeight);
 }
 
 ECode CImageButton::GetDrawable(
-    /* [out] */ IDrawable ** ppDrawable)
+    /* [out] */ IDrawable** drawable)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(drawable);
+
+    AutoPtr<IDrawable> d = ImageButton::GetDrawable();
+    *drawable = d;
+    if (*drawable != NULL) (*drawable)->AddRef();
+    return NOERROR;
 }
 
 ECode CImageButton::SetImageResource(
     /* [in] */ Int32 resId)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return ImageButton::SetImageResource(resId);
 }
 
 ECode CImageButton::SetImageURI(
-    /* [in] */ IUri * pUri)
+    /* [in] */ IUri* uri)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return ImageButton::SetImageURI(uri);
 }
 
 ECode CImageButton::SetImageDrawable(
-    /* [in] */ IDrawable * pDrawable)
+    /* [in] */ IDrawable* drawable)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return ImageButton::SetImageDrawable(drawable);
 }
 
 ECode CImageButton::SetImageBitmap(
-    /* [in] */ IBitmap * pBm)
+    /* [in] */ IBitmap* bm)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return ImageButton::SetImageBitmap(bm);
 }
 
 ECode CImageButton::SetImageState(
-    /* [in] */ const ArrayOf<Int32> & state,
+    /* [in] */ const ArrayOf<Int32>& state,
     /* [in] */ Boolean mg)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return ImageButton::SetImageState(state, mg);
 }
 
 ECode CImageButton::SetImageLevel(
     /* [in] */ Int32 level)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return ImageButton::SetImageLevel(level);
 }
 
 ECode CImageButton::SetScaleType(
     /* [in] */ ImageViewScaleType scaleType)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return ImageButton::SetScaleType(scaleType);
 }
 
 ECode CImageButton::GetScaleType(
-    /* [out] */ ImageViewScaleType * pScaleType)
+    /* [out] */ ImageViewScaleType* scaleType)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(scaleType);
+
+    *scaleType = ImageButton::GetScaleType();
+    return NOERROR;
 }
 
 ECode CImageButton::GetImageMatrix(
-    /* [out] */ IMatrix ** ppMartix)
+    /* [out] */ IMatrix** martix)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(martix);
+
+    AutoPtr<IMatrix> m = ImageButton::GetImageMatrix();
+    *martix = m;
+    if (*martix != NULL) (*martix)->AddRef();
+    return NOERROR;
 }
 
 ECode CImageButton::SetImageMatrix(
-    /* [in] */ IMatrix * pMatrix)
+    /* [in] */ IMatrix* matrix)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return ImageButton::SetImageMatrix(matrix);
 }
-
-ECode CImageButton::constructor(
-    /* [in] */ IContext * pCtx)
-{
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
-}
-
-ECode CImageButton::constructor(
-    /* [in] */ IContext * pCtx,
-    /* [in] */ IAttributeSet * pAttrs)
-{
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
-}
-
-ECode CImageButton::constructor(
-    /* [in] */ IContext * pCtx,
-    /* [in] */ IAttributeSet * pAttrs,
-    /* [in] */ Int32 defStyle)
-{
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
-}
-
