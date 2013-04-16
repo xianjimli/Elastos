@@ -116,6 +116,7 @@ module
     /** @hide */
     const ContentResolver_CONTENT_SERVICE_NAME = "content";
 
+    interface IAccount;
     interface IResources;
     interface IUri;
     interface ICursor;
@@ -598,5 +599,258 @@ module
         // @Deprecated
         // CancelSync(
         //     [in] IUri* uri);
+    }
+    
+    interface IContentResolverHelper{
+        /** @hide */
+        ModeToMode(
+            [in] IUri* uri,
+            [in] String mode,
+            [out] Int32* result);
+
+        /**
+         * Start an asynchronous sync operation. If you want to monitor the progress
+         * of the sync you may register a SyncObserver. Only values of the following
+         * types may be used in the extras bundle:
+         * <ul>
+         * <li>Integer</li>
+         * <li>Long</li>
+         * <li>Boolean</li>
+         * <li>Float</li>
+         * <li>Double</li>
+         * <li>String</li>
+         * </ul>
+         *
+         * @param account which account should be synced
+         * @param authority which authority should be synced
+         * @param extras any extras to pass to the SyncAdapter.
+         */
+        RequestSync(
+            [in] IAccount* account,
+            [in] String authority,
+            [in] IBundle *extras);
+            
+        /**
+         * Check that only values of the following types are in the Bundle:
+         * <ul>
+         * <li>Integer</li>
+         * <li>Long</li>
+         * <li>Boolean</li>
+         * <li>Float</li>
+         * <li>Double</li>
+         * <li>String</li>
+         * <li>Account</li>
+         * <li>null</li>
+         * </ul>
+         * @param extras the Bundle to check
+         */
+        ValidateSyncExtrasBundle(
+            [in] IBundle* extras);
+            
+        /**
+         * Cancel any active or pending syncs that match account and authority. The account and
+         * authority can each independently be set to null, which means that syncs with any account
+         * or authority, respectively, will match.
+         *
+         * @param account filters the syncs that match by this account
+         * @param authority filters the syncs that match by this authority
+          */
+        CancelSync(
+            [in] IAccount* account,
+            [in] String authority);
+            
+        /**
+         * Get information about the SyncAdapters that are known to the system.
+         * @return an array of SyncAdapters that have registered with the system
+         */
+        GetSyncAdapterTypes(
+            [out, callee] ArrayOf<ISyncAdapterType*>* type);
+            
+        /**
+         * Check if the provider should be synced when a network tickle is received
+         *
+         * @param account the account whose setting we are querying
+         * @param authority the provider whose setting we are querying
+         * @return true if the provider should be synced when a network tickle is received
+         */
+        GetSyncAutomatically(
+            [in] IAccount* account,
+            [in] String authority,
+            [out] Boolean* result);
+            
+        /**
+         * Set whether or not the provider is synced when it receives a network tickle.
+         *
+         * @param account the account whose setting we are querying
+         * @param authority the provider whose behavior is being controlled
+         * @param sync true if the provider should be synced when tickles are received for it
+          */
+        SetSyncAutomatically(
+            [in] IAccount* account,
+            [in] String authority,
+            [in] Boolean sync);
+            
+        /**
+         * Specifies that a sync should be requested with the specified the account, authority,
+         * and extras at the given frequency. If there is already another periodic sync scheduled
+         * with the account, authority and extras then a new periodic sync won't be added, instead
+         * the frequency of the previous one will be updated.
+         * <p>
+         * These periodic syncs honor the "syncAutomatically" and "masterSyncAutomatically" settings.
+         * Although these sync are scheduled at the specified frequency, it may take longer for it to
+         * actually be started if other syncs are ahead of it in the sync operation queue. This means
+         * that the actual start time may drift.
+         * <p>
+         * Periodic syncs are not allowed to have any of {@link #SYNC_EXTRAS_DO_NOT_RETRY},
+         * {@link #SYNC_EXTRAS_IGNORE_BACKOFF}, {@link #SYNC_EXTRAS_IGNORE_SETTINGS},
+         * {@link #SYNC_EXTRAS_INITIALIZE}, {@link #SYNC_EXTRAS_FORCE},
+         * {@link #SYNC_EXTRAS_EXPEDITED}, {@link #SYNC_EXTRAS_MANUAL} set to true.
+         * If any are supplied then an {@link IllegalArgumentException} will be thrown.
+         *
+         * @param account the account to specify in the sync
+         * @param authority the provider to specify in the sync request
+         * @param extras extra parameters to go along with the sync request
+         * @param pollFrequency how frequently the sync should be performed, in seconds.
+         * @throws IllegalArgumentException if an illegal extra was set or if any of the parameters
+         * are null.
+         */
+        AddPeriodicSync(
+            [in] IAccount* account,
+            [in] String authority,
+            [in] IBundle* extras,
+            [in] Int64 pollFrequency);
+            
+        /**
+         * Remove a periodic sync. Has no affect if account, authority and extras don't match
+         * an existing periodic sync.
+         *
+         * @param account the account of the periodic sync to remove
+         * @param authority the provider of the periodic sync to remove
+         * @param extras the extras of the periodic sync to remove
+         */
+        RemovePeriodicSync(
+            [in] IAccount* account,
+            [in] String authority,
+            [in] IBundle* extras);
+            
+        /**
+         * Get the list of information about the periodic syncs for the given account and authority.
+         *
+         * @param account the account whose periodic syncs we are querying
+         * @param authority the provider whose periodic syncs we are querying
+         * @return a list of PeriodicSync objects. This list may be empty but will never be null.
+         */
+        GetPeriodicSyncs(
+            [in] IAccount* account,
+            [in] String authority,
+            [out] IObjectContainer** periodicSyncs);
+            
+        /**
+         * Check if this account/provider is syncable.
+         * @return >0 if it is syncable, 0 if not, and <0 if the state isn't known yet.
+         */
+        GetIsSyncable(
+            [in] IAccount* account,
+            [in] String authority,
+            [out] Int32* isSyncable);
+        
+        /**
+         * Set whether this account/provider is syncable.
+         * @param syncable >0 denotes syncable, 0 means not syncable, <0 means unknown
+         */
+        SetIsSyncable(
+            [in] IAccount* account,
+            [in] String authority,
+            [in] Int32 syncable);
+            
+        /**
+         * Gets the master auto-sync setting that applies to all the providers and accounts.
+         * If this is false then the per-provider auto-sync setting is ignored.
+         *
+         * @return the master auto-sync setting that applies to all the providers and accounts
+         */
+        GetMasterSyncAutomatically(
+            [out] Boolean* result);
+            
+        /**
+         * Sets the master auto-sync setting that applies to all the providers and accounts.
+         * If this is false then the per-provider auto-sync setting is ignored.
+         *
+         * @param sync the master auto-sync setting that applies to all the providers and accounts
+         */
+        SetMasterSyncAutomatically(
+            [in] Boolean sync);
+        
+        /**
+         * Returns true if there is currently a sync operation for the given
+         * account or authority in the pending list, or actively being processed.
+         * @param account the account whose setting we are querying
+         * @param authority the provider whose behavior is being queried
+         * @return true if a sync is active for the given account or authority.
+         */
+        IsSyncActive(
+            [in] IAccount* account,
+            [in] String authority,
+            [out] Boolean* isSyncActive);
+            
+        /**
+         * If a sync is active returns the information about it, otherwise returns false.
+         * @return the SyncInfo for the currently active sync or null if one is not active.
+         */
+        GetCurrentSync(
+            [out] ISyncInfo** syncInfo);
+        
+        /**
+         * Returns the status that matches the authority.
+         * @param account the account whose setting we are querying
+         * @param authority the provider whose behavior is being queried
+         * @return the SyncStatusInfo for the authority, or null if none exists
+         * @hide
+         */
+        GetSyncStatus(
+            [in] IAccount* account,
+            [in] String authority,
+            [out] ISyncStatusInfo** syncStatusInfo);
+        
+        /**
+         * Return true if the pending status is true of any matching authorities.
+         * @param account the account whose setting we are querying
+         * @param authority the provider whose behavior is being queried
+         * @return true if there is a pending sync with the matching account and authority
+         */
+        IsSyncPending(
+            [in] IAccount* account,
+            [in] String authority,
+            [out] Boolean* isSyncPending);
+            
+        /**
+         * Request notifications when the different aspects of the SyncManager change. The
+         * different items that can be requested are:
+         * <ul>
+         * <li> {@link #SYNC_OBSERVER_TYPE_PENDING}
+         * <li> {@link #SYNC_OBSERVER_TYPE_ACTIVE}
+         * <li> {@link #SYNC_OBSERVER_TYPE_SETTINGS}
+         * </ul>
+         * The caller can set one or more of the status types in the mask for any
+         * given listener registration.
+         * @param mask the status change types that will cause the callback to be invoked
+         * @param callback observer to be invoked when the status changes
+         * @return a handle that can be used to remove the listener at a later time
+         */
+        AddStatusChangeListener(
+            [in] Int32 mask,
+            [in] ISyncStatusObserver* observerCallback,
+            [out] IInterface** item);
+        
+        /**
+         * Remove a previously registered status change listener.
+         * @param handle the handle that was returned by {@link #addStatusChangeListener}
+         */
+        RemoveStatusChangeListener(
+            [in] IInterface* item);
+        
+        /** @hide */
+        GetContentService(
+            [out] IContentService** contentService);
     }
 }

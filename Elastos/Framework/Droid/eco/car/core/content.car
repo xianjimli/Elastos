@@ -36,9 +36,16 @@ module
     merge("content/cm/Signature.car");
     merge("content/context.car");
     merge("content/contextwrapper.car");
+
+    merge("content/SyncAdapterType.car");
+    merge("content/SyncInfo.car");
+    merge("content/SyncStatusInfo.car");
+    merge("content/SyncStatusObserver.car");
+    merge("content/ContentService.car");
     merge("content/contentresolver.car");
     merge("content/contentvalues.car");
     merge("content/contentprovider.car");
+
     merge("content/serviceconnection.car");
     merge("content/iintentsender.car");
     merge("content/iintentreceiver.car");
@@ -80,6 +87,10 @@ module
             [in] IApplicationApartment* apartment);
 
         interface IContentResolver;
+    }
+
+    singleton class CContentResolverHelper{
+        interface IContentResolverHelper;
     }
 
     class COpenResourceIdResult {

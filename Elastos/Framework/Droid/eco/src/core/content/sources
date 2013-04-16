@@ -23,6 +23,7 @@ SOURCES += CResolveInfo.cpp
 SOURCES += CResources.cpp
 SOURCES += CResourcesFactory.cpp
 SOURCES += ContentResolver.cpp
+SOURCES += CContentResolverHelper.cpp
 SOURCES += CCursorWrapperInner.cpp
 SOURCES += CContentValues.cpp
 SOURCES += CConfiguration.cpp

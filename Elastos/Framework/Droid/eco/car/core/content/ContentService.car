@@ -1,7 +1,7 @@
 
 module
 {
-    //interface ISyncAdapterType;
+    interface ISyncAdapterType;
     //interface ISyncInfo;
     //interface ISyncStatusObserver;
     interface IAccount;
@@ -132,8 +132,8 @@ module
         * Returns the types of the SyncAdapters that are registered with the system.
         * @return Returns the types of the SyncAdapters that are registered with the system.
         */
-        //GetSyncAdapterTypes(
-        //    [out, callee] ArrayOf<ISyncAdapterType*>* result);
+        GetSyncAdapterTypes(
+            [out, callee] ArrayOf<ISyncAdapterType*>* result);
 
         /**
         * Returns the status that matches the authority. If there are multiples accounts for
