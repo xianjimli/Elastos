@@ -291,7 +291,7 @@ private:
      */
     CARAPI_(Int32) GetFile(
         /* [in] */ const String& uri,
-        /* [in] */ Byte buffer[],
+        /* [in] */ ArrayOf<Byte> buffer,
         /* [in] */ Int32 offset,
         /* [in] */ Int32 expectedSize) const;
 
@@ -316,7 +316,7 @@ private:
         /* [in] */ const String& url,
         /* [in] */ const String& method,
         /* [in] */ IHashMap* headers,
-        /* [in] */ Byte postData[],
+        /* [in] */ ArrayOf<Byte> postData,
         /* [in] */ Int64 postDataIdentifier,
         /* [in] */ Int32 cacheMode,
         /* [in] */ Boolean mainResource,
@@ -391,17 +391,11 @@ private:
     CARAPI_(void) NativeCreateFrame(
         /* [in] */ WebViewCore* w,
         /* [in] */ IAssetManager* am,
-        /* [in] */ IWebBackForwardList* list)
-    {
-
-    }
+        /* [in] */ IWebBackForwardList* list);
 
     CARAPI_(void) NativeCallPolicyFunction(
         /* [in] */ Int32 policyFunction,
-        /* [in] */ Int32 decision)
-    {
-
-    }
+        /* [in] */ Int32 decision);
 
     /**
      * Go back or forward the number of steps given.
@@ -409,10 +403,7 @@ private:
      *              and number of steps to move.
      */
     CARAPI_(void) NativeGoBackOrForward(
-        /* [in] */ Int32 steps)
-    {
-
-    }
+        /* [in] */ Int32 steps);
 
     /**
      * Add a javascript interface to the main frame.
@@ -420,10 +411,7 @@ private:
     CARAPI_(void) NativeAddJavascriptInterface(
         /* [in] */ Int32 nativeFramePointer,
         /* [in] */ IInterface* obj,
-        /* [in] */ const String& interfaceName)
-    {
-
-    }
+        /* [in] */ const String& interfaceName);
 
     /**
      * Enable or disable the native cache.
@@ -431,51 +419,33 @@ private:
     /* FIXME: The native cache is always on for now until we have a better
      * solution for our 2 caches. */
     CARAPI_(void) SetCacheDisabled(
-        /* [in] */ Boolean disabled)
-    {
-
-    }
+        /* [in] */ Boolean disabled);
 
     /**
      * Returns false if the url is bad.
      */
     CARAPI_(void) NativeLoadUrl(
         /* [in] */ CString url,
-        /* [in] */ IObjectStringMap* headers)
-    {
-
-    }
+        /* [in] */ IObjectStringMap* headers);
 
     CARAPI_(void) NativePostUrl(
         /* [in] */ CString url,
-        /* [in] */ const ArrayOf<Byte>& postData)
-    {
-
-    }
+        /* [in] */ const ArrayOf<Byte>& postData);
 
     CARAPI_(void) NativeLoadData(
         /* [in] */ CString baseUrl,
         /* [in] */ CString data,
         /* [in] */ CString mimeType,
         /* [in] */ CString encoding,
-        /* [in] */ CString historyUrl)
-    {
-
-    }
+        /* [in] */ CString historyUrl);
 
 
-    CARAPI_(void) NativeStopLoading()
-    {
-
-    }
+    CARAPI_(void) NativeStopLoading();
 
     /**
      * @return TRUE if there is a password field in the current frame
      */
-    CARAPI_(Boolean) HasPasswordField()
-    {
-
-    }
+    CARAPI_(Boolean) HasPasswordField();
 
     /**
      * Get username and password in the current frame. If found, String[0] is
@@ -483,10 +453,7 @@ private:
      * @return String[]
      */
     CARAPI_(void) GetUsernamePassword(
-        /* [in] */ String& str)
-    {
-
-    }
+        /* [in] */ String& str);
 
     /**
      * Set username and password to the proper fields in the current frame
@@ -495,10 +462,7 @@ private:
      */
     CARAPI_(void) SetUsernamePassword(
         /* [in] */ CString username,
-        /* [in] */ CString password)
-    {
-
-    }
+        /* [in] */ CString password);
 
     /**
      * Get form's "text" type data associated with the current frame.
@@ -508,10 +472,7 @@ private:
     CARAPI_(AutoPtr<IHashMap>) GetFormTextData() const;
 
     CARAPI_(void) NativeOrientationChanged(
-        /* [in] */ Int32 orientation)
-    {
-
-    }
+        /* [in] */ Int32 orientation);
 
 private:
     AutoPtr<ICallbackProxy> mCallbackProxy;

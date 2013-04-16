@@ -222,10 +222,10 @@ CARAPI_(void) LoadListener::Headers(
     }
 
     Vector<String> cookies;// = headers.getSetCookie();
-    int size = cookies.GetSize();
+    Int32 size = cookies.GetSize();
     ICookieManager* pCookieManager = NULL;
     CCookieManager::AcquireSingleton(&pCookieManager);
-    for (int i = 0; i < size; ++i) {
+    for (Int32 i = 0; i < size; ++i) {
         pCookieManager->SetCookieEx(mUri, cookies[i]);
     }
 //    SendMessageInternal(obtainMessage(MSG_CONTENT_HEADERS, headers));
@@ -310,7 +310,7 @@ CARAPI_(void) LoadListener::Certificate(
  * directly
  */
 CARAPI_(void) LoadListener::Error(
-	/* [in] */ int id, 
+	/* [in] */ Int32 id, 
 	/* [in] */ const String& description)
 {}
 
@@ -490,7 +490,7 @@ CARAPI_(Boolean) LoadListener::AuthCredentialsInvalid()
 /**
  * @return The last SSL error or null if there is none
  */
-CARAPI_(ISslError*) LoadListener::SslError()
+CARAPI_(AutoPtr<ISslError>) LoadListener::SslError()
 {
 	return mSslError;
 }
@@ -572,7 +572,7 @@ CARAPI_(void) LoadListener::Url(
 /**
  * @return The current WebAddress associated with this load.
  */
-CARAPI_(IWebAddress*) LoadListener::GetWebAddress()
+CARAPI_(AutoPtr<IWebAddress>) LoadListener::GetWebAddress()
 {
 	return mUri;
 }

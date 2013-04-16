@@ -59,7 +59,7 @@ ECode CCallbackProxy::GetBackForwardList(
 {
     VALIDATE_NOT_NULL(list);
 
-    *list = const_cast<IWebBackForwardList*>(mBackForwardList);
+    *list = /*const_cast<IWebBackForwardList*>*/(mBackForwardList);
    
     return NOERROR;
 }
@@ -90,7 +90,7 @@ ECode CCallbackProxy::UiOverrideUrlLoading(
 //        intent->PutExtra(Browser.EXTRA_APPLICATION_ID,
 //                mContext->GetPackageName());
         //try {
-            (const_cast<IContext*>(mContext))->StartActivity(intent);
+            (/*const_cast<IContext*>*/(mContext))->StartActivity(intent);
             override = TRUE;
         //} catch (ActivityNotFoundException ex) {
             // If no application can handle the URL, assume that the
@@ -976,10 +976,14 @@ ECode CCallbackProxy::constructor(
 
 CARAPI_(void) CCallbackProxy::SetWebBackForwardListClient(
     /* [in] */ IWebBackForwardListClient* client)
-{}
+{
+    mWebBackForwardListClient = client;
+}
 
 CARAPI_(AutoPtr<IWebBackForwardListClient>) CCallbackProxy::GetWebBackForwardListClient() const
-{}
+{
+    return mWebBackForwardListClient;
+}
 
 /**
  * Called by WebCore side to switch out of history Picture drawing mode
@@ -1007,4 +1011,32 @@ CARAPI_(void) CCallbackProxy::OnNewHistoryItem(
 CARAPI_(void) CCallbackProxy::OnIndexChanged(
     /* [in] */ WebHistoryItem* item,
     /* [in] */ Int32 index)
+{}
+
+/********************************ResultTransport********************************/
+
+CCallbackProxy::ResultTransport::ResultTransport(
+    /* [in] */ IInterface* defaultResult)
+{}
+
+/*synchronized*/
+CARAPI_(void) CCallbackProxy::ResultTransport::SetResult(
+    /* [in] */ const IInterface* result)
+{
+    Mutex::Autolock lock(mLock);
+}
+
+/*synchronized*/
+CARAPI_(AutoPtr<IInterface>) CCallbackProxy::ResultTransport::GetResult() const
+{
+    Mutex::Autolock lock(mLock);
+}
+
+/***********************************UploadFile************************************/
+
+CARAPI_(void) CCallbackProxy::UploadFile::OnReceiveValue(
+    /* [in] */ const IUri* value)
+{}
+
+CARAPI_(AutoPtr<IUri>) CCallbackProxy::UploadFile::GetResult() const
 {}

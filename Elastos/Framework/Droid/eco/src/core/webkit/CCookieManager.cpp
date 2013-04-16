@@ -1,6 +1,10 @@
+#include <elastos/System.h>
 
 #include "webkit/CCookieManager.h"
 #include "webkit/CCookieSyncManager.h"
+#include "os/Runnable.h"
+
+using namespace Core;
 
 const CString CCookieManager::LOGTAG = "webkit";
 
@@ -48,16 +52,19 @@ ECode CCookieManager::GetInstance(
 ECode CCookieManager::SetAcceptCookie(
     /* [in] */ Boolean accept)
 {
+    Mutex::Autolock lock(_m_syncLock);
+
     mAcceptCookie = accept;
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    
+    return NOERROR;
 }
 
 ECode CCookieManager::AcceptCookie(
     /* [out] */ Boolean* acceptCookie)
 {
-    VALIDATE_NOT_NULL(acceptCookie);
+    Mutex::Autolock lock(_m_syncLock);
 
+    VALIDATE_NOT_NULL(acceptCookie);
     *acceptCookie = mAcceptCookie;
 
     return NOERROR;
@@ -84,6 +91,8 @@ ECode CCookieManager::SetCookieEx(
     /* [in] */ IWebAddress* uri,
     /* [in] */ CString value)
 {
+    Mutex::Autolock lock(_m_syncLock);
+
     VALIDATE_NOT_NULL(uri);
 
     if (value.GetLength() > MAX_COOKIE_LENGTH) {
@@ -141,7 +150,7 @@ ECode CCookieManager::SetCookieEx(
         mCookieMap->Put(baseDomain, (IInterface*)cookieList);
     }
 
-    Int64 now = 0;//System.currentTimeMillis();
+    Int64 now = System::GetCurrentTimeMillis();
     Int32 size = cookies.GetSize();
     for (Int32 i = 0; i < size; i++) {
         AutoPtr<Cookie> cookie = cookies[i];
@@ -222,6 +231,8 @@ ECode CCookieManager::GetCookieEx(
     /* [in] */ IWebAddress* uri,
     /* [out] */ String* cookie)
 {
+    Mutex::Autolock lock(_m_syncLock);
+
 //    VALIDATE_NOT_NULL(uri);
     VALIDATE_NOT_NULL(cookie);
 
@@ -249,7 +260,7 @@ ECode CCookieManager::GetCookieEx(
         mCookieMap->Put(baseDomain, (IInterface*)cookieList);
     }
 #if 0
-    long now = 0;//System.currentTimeMillis();
+    long now = System::GetCurrentTimeMillis();
     Boolean secure;// = HTTPS.equals(pUri.mScheme);
     Iterator<Cookie> iter = cookieList.iterator();
 
@@ -310,27 +321,125 @@ ECode CCookieManager::GetCookieEx(
 
 ECode CCookieManager::RemoveSessionCookie()
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    class runable : public Runnable {
+    public:
+        runable(CCookieManager* cm) : cookieManager(cm) {}
+
+        ECode Run() {
+            CCookieManager* cm = (CCookieManager*)(cookieManager.Get());
+            Mutex::Autolock lock(cm->_m_syncLock);
+            
+            ArrayOf<String> *cookieList = NULL;
+            cm->mCookieMap->GetAllItems(&cookieList, NULL);
+            Int32 size = cookieList->GetLength();
+            for (Int32 i = 0; i < size; i++) {
+                Vector<AutoPtr<Cookie> >* list = NULL;
+                cm->mCookieMap->Get((*cookieList)[i], (IInterface**)&list);
+
+                Int32 _size = list->GetSize();
+                for (Int32 j = 0; j < _size; j++) {
+                    if ((*list)[j]->expires == -1) {
+                        list->Erase(list->Begin() + j);
+                    }
+                }
+            }
+
+            ICookieSyncManager* csm = NULL;
+            CCookieSyncManager::AcquireSingleton(&csm);
+            ((CCookieSyncManager*)csm)->ClearSessionCookies();
+        }
+
+    private:
+        AutoPtr<ICookieManager> cookieManager;
+    };
+
+    runable clearCache(this);// = new Runnable()
+
+    AutoPtr<IThread> thread;
+    CThread::New((IRunnable*)&clearCache, (IThread**)&thread);
+    thread->Start();
+
+    return NOERROR;
 }
 
 ECode CCookieManager::RemoveAllCookie()
 {
+#if 0
+    final Runnable clearCache = new Runnable() {
+        public void run() {
+            synchronized(CookieManager.this) {
+                mCookieMap = new LinkedHashMap<String, ArrayList<Cookie>>(
+                        MAX_DOMAIN_COUNT, 0.75f, true);
+                CookieSyncManager.getInstance().clearAllCookies();
+            }
+        }
+    };
+    new Thread(clearCache).start();
+#endif
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CCookieManager::HasCookies(
-    /* [out] */ Boolean * pFlag)
+    /* [out] */ Boolean * flag)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    Mutex::Autolock lock(_m_syncLock);
+
+    VALIDATE_NOT_NULL(flag);
+    
+    ICookieSyncManager* csm = NULL;
+    CCookieSyncManager::AcquireSingleton(&csm);
+    *flag = ((CCookieSyncManager*)csm)->HasCookies();
+
+    return NOERROR;
 }
 
 ECode CCookieManager::RemoveExpiredCookie()
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    //final Runnable clearCache = new Runnable() 
+    class runable : public Runnable {
+    public:
+        runable(CCookieManager* cm) : cookieManager(cm) {}
+
+        ECode Run() {
+            CCookieManager* cm = (CCookieManager*)(cookieManager.Get());
+            Mutex::Autolock lock(cm->_m_syncLock);
+
+            Int64 now = System::GetCurrentTimeMillis();
+            ArrayOf<String>* cookieList = NULL;//mCookieMap.values();
+            cm->mCookieMap->GetAllItems(&cookieList, NULL);
+            Int32 size = cookieList->GetLength();
+            for (Int32 i = 0; i < size; i++) {
+                Vector<AutoPtr<Cookie> >* list = NULL;
+                cm->mCookieMap->Get((*cookieList)[i], (IInterface**)&list);
+
+                Int32 _size = list->GetSize();
+                for (Int32 j = 0; j < _size; j++) {
+                    // expires == -1 means no expires defined. Otherwise 
+                    // negative means far future
+                    if (((*list)[j])->expires > 0 && ((*list)[j])->expires < now) {
+                        //iter.remove();
+                        list->Erase(list->Begin() + j);
+                    }
+                }
+            }
+
+            ICookieSyncManager* csm = NULL;
+            CCookieSyncManager::AcquireSingleton(&csm);
+            ((CCookieSyncManager*)csm)->ClearExpiredCookies(now);
+        }
+
+    private:
+        AutoPtr<ICookieManager> cookieManager;
+    };
+
+    runable clearCache(this);// = new Runnable()
+
+    AutoPtr<IThread> thread;
+    CThread::New((IRunnable*)&clearCache, (IThread**)&thread);
+    thread->Start();
+
+    return NOERROR;
 }
 
 
@@ -339,6 +448,8 @@ CARAPI_(void) CCookieManager::GetUpdatedCookiesSince(
     /* [in] */ Int64 last,
     /* [out] */ Vector<AutoPtr<Cookie> >& cookies)
 {
+    Mutex::Autolock lock(_m_syncLock);
+
     //ArrayList<Cookie> cookies = new ArrayList<Cookie>();
     //Collection<Vector<Cookie>> cookieList = mCookieMap.values();
     //Iterator<ArrayList<Cookie>> listIter = cookieList.iterator();    
@@ -379,6 +490,8 @@ CARAPI_(void) CCookieManager::GetUpdatedCookiesSince(
 CARAPI_(void) CCookieManager::DeleteACookie(
     /* [in] */ Cookie& cookie)
 {
+    Mutex::Autolock lock(_m_syncLock);
+
     if (cookie.mode == Cookie::MODE_DELETED) {
         String baseDomain;
         GetBaseDomain(cookie.domain, baseDomain);
@@ -398,6 +511,7 @@ CARAPI_(void) CCookieManager::DeleteACookie(
 CARAPI_(void) CCookieManager::SyncedACookie(
     /* [in] */ Cookie& cookie)
 {
+    Mutex::Autolock lock(_m_syncLock);
     cookie.mode = Cookie::MODE_NORMAL;
 }
 
@@ -405,6 +519,8 @@ CARAPI_(void) CCookieManager::SyncedACookie(
 CARAPI_(void) CCookieManager::DeleteLRUDomain(
     /* [out] */ Vector<AutoPtr<Cookie> >& retlist)
 {
+    Mutex::Autolock lock(_m_syncLock);
+
     Int32 count = 0;
     Int32 byteCount = 0;
     Int32 mapSize = 0;

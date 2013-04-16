@@ -232,7 +232,7 @@ CARAPI_(void) CWebViewDatabase::GetCookiesForDomain(
         selection += COOKIES_DOMAIN_COL;
         selection += " GLOB '*' || ?)";
 
-        AutoPtr<ICursor> cursor = NULL;
+        AutoPtr<ICursor> cursor;
 
         /*
         cursor = mDatabase->Query(mTableNames[TABLE_COOKIES_ID],
@@ -405,7 +405,7 @@ CARAPI_(CCacheManager::CacheResult*) CWebViewDatabase::GetCache(
         return NULL;
     }
 
-    AutoPtr<ICursor> cursor = NULL;
+    AutoPtr<ICursor> cursor;
     String query("SELECT filepath, lastmodify, etag, expires, ");
     query += "expiresstring, mimetype, encoding, httpstatus, location, contentlength, ";
     query += "contentdisposition, crossdomain FROM cache WHERE url = ?";
@@ -486,7 +486,7 @@ CARAPI_(Boolean) CWebViewDatabase::HasCache()
         return FALSE;
     }
 
-    AutoPtr<ICursor> cursor = NULL;
+    AutoPtr<ICursor> cursor;
     Boolean ret = FALSE;
 //    cursor = mCacheDatabase->Query("cache", ID_PROJECTION, 
 //        NULL, NULL, NULL, NULL, NULL);
@@ -502,7 +502,7 @@ CARAPI_(Int64) CWebViewDatabase::GetCacheTotalSize()
     }
 
     Int64 size = 0;
-    AutoPtr<ICursor> cursor = NULL;
+    AutoPtr<ICursor> cursor;
     String query("SELECT SUM(contentlength) as sum FROM cache");
 //    cursor = mCacheDatabase.rawQuery(query, null);
     Boolean bFlag = FALSE;
@@ -536,7 +536,7 @@ CARAPI_(void) CWebViewDatabase::TrimCache(
         }
 
         pathStr.Append(")");
-        ISQLiteStatement* statement = NULL;
+        AutoPtr<ISQLiteStatement> statement;
         
 //        statement = mCacheDatabase.compileStatement(pathStr.toString());
         // as bindString() uses 1-based index, initialize index to 1
@@ -573,7 +573,7 @@ CARAPI_(void) CWebViewDatabase::TrimCache(
 CARAPI_(void) CWebViewDatabase::GetAllCacheFileNames(
     /* [out] */ Vector<String>& pathList)
 {
-    AutoPtr<ICursor> cursor = NULL;
+    AutoPtr<ICursor> cursor;
 
 //    cursor = mCacheDatabase.rawQuery("SELECT filepath FROM cache", null);
     Boolean bMoveToFirst = FALSE;
@@ -606,7 +606,7 @@ CARAPI_(void) CWebViewDatabase::SetUsernamePassword(
 
     mPasswordLock.Lock();
     {
-        AutoPtr<IContentValues> c = NULL;
+        AutoPtr<IContentValues> c;
         
         CContentValues::New((IContentValues**)&c);
         assert(c);
@@ -809,8 +809,8 @@ CARAPI_(void) CWebViewDatabase::GetFormData(
         Boolean bMoveToFirst = FALSE;
         cursor->MoveToFirst(&bMoveToFirst);
         if (bMoveToFirst) {
-            long urlid = 0;//cursor.getLong(cursor.getColumnIndex(ID_COL));
-            AutoPtr<ICursor> dataCursor = NULL;
+            Int64 urlid = 0;//cursor.getLong(cursor.getColumnIndex(ID_COL));
+            AutoPtr<ICursor> dataCursor;
 
 //            dataCursor = mDatabase.query(
 //                    mTableNames[TABLE_FORMDATA_ID],
@@ -822,7 +822,7 @@ CARAPI_(void) CWebViewDatabase::GetFormData(
             Boolean bFlag = FALSE;
             dataCursor->MoveToFirst(&bFlag);
             if (bFlag) {
-                int valueCol = 0;
+                Int32 valueCol = 0;
                 String str;
                 Boolean bMoveToNext = FALSE;
                 dataCursor->GetColumnIndex((String)FORMDATA_VALUE_COL, &valueCol);
@@ -934,7 +934,7 @@ CARAPI_(Boolean) CWebViewDatabase::HasEntries(
         return FALSE;
     }
 
-    AutoPtr<ICursor> cursor = NULL;
+    AutoPtr<ICursor> cursor;
     Boolean ret = FALSE;
     
 //    cursor = mDatabase.query(mTableNames[tableId], ID_PROJECTION,

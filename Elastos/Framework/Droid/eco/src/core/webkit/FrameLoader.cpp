@@ -36,10 +36,10 @@ CARAPI_(void) FrameLoader::SetReferrer(
 	/* [in] */ const String& ref)
 {
 	// only set referrer for http or https
-	IURLUtil* pURL = NULL;
+	AutoPtr<IURLUtil> URL;
 	Boolean bFlag = FALSE;
-	CURLUtil::AcquireSingleton(&pURL);
-	pURL->IsNetworkUrl(ref, &bFlag);
+	CURLUtil::AcquireSingleton((IURLUtil**)&URL);
+	URL->IsNetworkUrl(ref, &bFlag);
 
 	if (bFlag) {
 		mReferrer = ref;
@@ -88,16 +88,16 @@ CARAPI_(Boolean) FrameLoader::ExecuteLoad()
 	String url;
     mListener->Url(url);
 
-	IURLUtil* pURL = NULL;
+	AutoPtr<IURLUtil> URL;
 	Boolean bFlag = FALSE;
-	CURLUtil::AcquireSingleton(&pURL);
-	pURL->IsNetworkUrl(url, &bFlag);
+	CURLUtil::AcquireSingleton((IURLUtil**)&URL);
+	URL->IsNetworkUrl(url, &bFlag);
 
     if (bFlag) {
         if (mSettings->GetBlockNetworkLoads()) {
 //            mListener->Error(EventHandler::ERROR_BAD_URL,
 //                    mListener.getContext().getString(com.android.internal.R.string.httpErrorBadUrl));
-            return false;
+            return FALSE;
         }
         // Make sure the host part of the url is correctly
         // encoded before sending the request
@@ -414,8 +414,8 @@ CARAPI_(void) FrameLoader::PopulateHeaders()
     }
 
     // Set cookie header
-    ICookieManager* pCookieManager = NULL;
-    CCookieManager::AcquireSingleton(&pCookieManager);
+    AutoPtr<ICookieManager> cookieManager;
+    CCookieManager::AcquireSingleton((ICookieManager**)&cookieManager);
 //    String cookie;
 //    pCookieManager->GetCookieEx(mListener->GetWebAddress());
 //    if (cookie != null && cookie.length() > 0)

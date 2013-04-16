@@ -115,8 +115,6 @@ private:
     Boolean mClearPending;
     // CallbackProxy to issue client callbacks.
     /*const*/ AutoPtr<ICallbackProxy> mCallbackProxy;
-
-    Elastos::Core::Threading::Mutex mLock;
 };
 
 #endif // __CWEBBACKFORWARDLIST_H__

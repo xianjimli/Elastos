@@ -94,7 +94,7 @@ private:
     Vector<AutoPtr<IMessage> > mQueuedMessages;
 };
 
-class GeolocationPermissionsCallback: public ElRefBase, public IGeolocationPermissionsCallback
+class GeolocationPermissionsCallback: public IGeolocationPermissionsCallback, ElRefBase
 {
 public: 
     CARAPI_(PInterface) Probe(

@@ -2,9 +2,12 @@
 #include "ext/frameworkext.h"
 #include <elstring.h>
 #include <elastos/Vector.h>
+#include <elastos/System.h>
 
 #include "webkit/CWebViewDatabase.h"
 #include "webkit/CCacheManager.h"
+#include "os/Runnable.h"
+#include "os/FileUtils.h"
 
 const CString CCacheManager::HEADER_KEY_IFMODIFIEDSINCE = "if-modified-since";
 const CString CCacheManager::HEADER_KEY_IFNONEMATCH = "if-none-match";
@@ -21,6 +24,9 @@ AutoPtr<IFile> CCacheManager::mBaseDir;
 
 Int64 CCacheManager::CACHE_THRESHOLD;
 Int64 CCacheManager::CACHE_TRIM_AMOUNT;
+
+// Limit the maximum cache file size to half of the normal capacity
+Int64 CCacheManager::CACHE_MAX_SIZE;
 
 Boolean CCacheManager::mDisabled;
 
@@ -77,9 +83,11 @@ ECode CCacheManager::GetCacheFile(
     /* [out] */ ICacheManagerCacheResult** result)
 {
     VALIDATE_NOT_NULL(headers);
-    VALIDATE_NOT_NULL(result);
-
-    *result = GetCacheFile(url, 0, headers);
+ 
+    ICacheManagerCacheResult* r = GetCacheFile(url, 0, headers);
+    if (result) {
+        *result = r;
+    }
 
     return NOERROR;
 }
@@ -93,10 +101,12 @@ ECode CCacheManager::CreateCacheFile(
     /* [out] */ ICacheManagerCacheResult** result)
 {
     VALIDATE_NOT_NULL(headers);
-    VALIDATE_NOT_NULL(result);
 
-    *result = CreateCacheFile(url, statusCode, headers, mimeType, 0,
+    ICacheManagerCacheResult* r = CreateCacheFile(url, statusCode, headers, mimeType, 0,
                 forceCache);
+    if (result) {
+        *result = r;
+    }
 
     return NOERROR;
 }
@@ -105,7 +115,7 @@ ECode CCacheManager::SaveCacheFile(
     /* [in] */ const String& url,
     /* [in] */ ICacheManagerCacheResult* cacheRet)
 {
-    VALIDATE_NOT_NULL(cacheRet);
+//    VALIDATE_NOT_NULL(cacheRet);
 
     SaveCacheFile(url, 0, (CCacheManager::CacheResult*)cacheRet);
 
@@ -414,29 +424,39 @@ CARAPI_(Boolean) CCacheManager::RemoveAllCacheFiles()
         return TRUE;
     }
     // delete rows in the cache database
-/*    WebViewWorker.getHandler().sendEmptyMessage(
-            WebViewWorker.MSG_CLEAR_CACHE);
-    // delete cache files in a separate thread to not block UI.
-    final Runnable clearCache = new Runnable() {
-        public void run() {
+//    WebViewWorker.getHandler().sendEmptyMessage(
+//            WebViewWorker.MSG_CLEAR_CACHE);
+    // delete cache files in a separate thread to not block UI.    
+    class CRunnable : public Runnable
+    {
+    public:
+        ECode Run() {
             // delete all cache files
-            try {
-                String[] files = mBaseDir.list();
-                // if mBaseDir doesn't exist, files can be null.
-                if (files != null) {
-                    for (int i = 0; i < files.length; i++) {
-                        File f = new File(mBaseDir, files[i]);
-                        if (!f.delete()) {
-                            Log.e(LOGTAG, f.getPath() + " delete failed.");
-                        }
+            const Int32 size = 10; //not sure
+            ArrayOf<String>* files = ArrayOf<String>::Alloc(size);
+            mBaseDir->List(&files);
+            // if mBaseDir doesn't exist, files can be null.
+            for (Int32 i = 0; i < size; i++) {
+                if ((*files)[i]) {
+                    AutoPtr<IFile> f;
+                    CFile::New(mBaseDir.Get(), (*files)[i], (IFile**)&f);
+                    Boolean flag = false;
+                    f->Delete(&flag);
+                    if (!flag) {
+//                        Log.e(LOGTAG, f.getPath() + " delete failed.");
                     }
                 }
-            } catch (SecurityException e) {
-                // Ignore SecurityExceptions.
             }
+
+            return NOERROR;
         }
     };
-    new Thread(clearCache).start();*/
+
+    CRunnable runable;
+
+    AutoPtr<IThread> thread;
+    CThread::New((IRunnable*)&runable, (IThread**)&thread);
+
     return TRUE;
 }
 
@@ -511,10 +531,13 @@ CARAPI_(Boolean) CCacheManager::CreateCacheDirectory()
             //Log.w(LOGTAG, "Unable to create webviewCache directory");
             return FALSE;
         }
-      /*  FileUtils.setPermissions(
-                mBaseDir.toString(),
-                FileUtils.S_IRWXU|FileUtils.S_IRWXG|FileUtils.S_IXOTH,
-                -1, -1);*/
+
+        String str;
+        mBaseDir->ToString(&str);
+        FileUtils::SetPermissions(
+                (const char*)str,
+                FileUtils::IRWXU | FileUtils::IRWXG | FileUtils::IXOTH,
+                -1, -1);
         // If we did create the directory, we need to flush 
         // the cache database. The directory could be recreated
         // because the system flushed all the data/cache directories
@@ -751,7 +774,7 @@ CARAPI_(AutoPtr<ICacheManagerCacheResult>) CCacheManager::ParseHeaders(
                     //try {
                         Int64 sec;// = Long.parseLong(s);
                         if (sec >= 0) {
-                            ret->expires;// = System.currentTimeMillis() + 1000 * sec;
+                            ret->expires = System::GetCurrentTimeMillis() + 1000 * sec;
                         }
                     //} catch (NumberFormatException ex) {
                     //    if ("1d".equals(s)) {
@@ -795,7 +818,7 @@ CARAPI_(AutoPtr<ICacheManagerCacheResult>) CCacheManager::ParseHeaders(
             // Only add the default expiration for non-html markup. Some
             // sites like news.google.com have no cache directives.
             if (!mimeType.StartWith("text/html")) {
-                ret->expires;// = System.currentTimeMillis() + 86400000; // 24*60*60*1000
+                ret->expires = System::GetCurrentTimeMillis() + 86400000; // 24*60*60*1000
             } else {
                 // Setting a expires as zero will cache the result for
                 // forward/back nav.
@@ -808,15 +831,15 @@ CARAPI_(AutoPtr<ICacheManagerCacheResult>) CCacheManager::ParseHeaders(
             // increasing this to 20%.
 
             // 24 * 60 * 60 * 1000
-            Int64 lastmod;// = System.currentTimeMillis() + 86400000;
+            Int64 lastmod = System::GetCurrentTimeMillis() + 86400000;
             //try {
 //                lastmod = AndroidHttpClient.parseDate(ret.lastModified);
             //} catch (IllegalArgumentException ex) {
             //    Log.e(LOGTAG, "illegal lastModified: " + ret.lastModified);
             //}
-            Int64 difference;// = System.currentTimeMillis() - lastmod;
+            Int64 difference = System::GetCurrentTimeMillis() - lastmod;
             if (difference > 0) {
-                ret->expires;// = System.currentTimeMillis() + difference / 5;
+                ret->expires = System::GetCurrentTimeMillis() + difference / 5;
             } else {
                 // last modified is in the future, expire the content
                 // on the last modified
@@ -918,4 +941,42 @@ inline CARAPI CCacheManager::CacheResult::SetInputStream(IFileInputStream* strea
 inline CARAPI_(void) CCacheManager::CacheResult::SetEncoding(String encoding)
 {
     encoding = encoding;
+}
+
+PInterface CCacheManager::CacheResult::Probe(
+    /* [in]  */ REIID riid)
+{
+    if (riid == EIID_IInterface) {
+        return (PInterface)this;
+    }
+    else if (riid == EIID_ICacheManagerCacheResult) {
+        return (IRunnable*)this;
+    }
+
+    return NULL;
+}
+
+UInt32 CCacheManager::CacheResult::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 CCacheManager::CacheResult::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode CCacheManager::CacheResult::GetInterfaceID(
+    /* [in] */ IInterface* object,
+    /* [out] */ InterfaceID* IID)
+{
+    VALIDATE_NOT_NULL(IID);
+
+    if (object == (IInterface*)(ICacheManagerCacheResult*)this) {
+        *IID = EIID_ICacheManagerCacheResult;
+    }
+    else {
+        return E_INVALID_ARGUMENT;
+    }
+    return NOERROR;
 }

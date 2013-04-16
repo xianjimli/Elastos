@@ -10,6 +10,7 @@
 #include "webkit/WebHistoryItem.h"
 #include "webkit/WebBackForwardList.h"
 #include "view/ViewRoot.h"
+#include "webkit/CCallbackProxy.h"
 
 const CString CBrowserFrame::LOGTAG = "webkit";
 
@@ -175,7 +176,7 @@ ECode CBrowserFrame::ExternalRepresentation(
 }
 
 ECode CBrowserFrame::DocumentAsText(
-    /* [in] */ IMessage * pCallBack)
+    /* [in] */ IMessage* callBack)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -185,9 +186,9 @@ ECode CBrowserFrame::HandleUrl(
     /* [in] */ const String& url,
     /* [out] */ Boolean* outFlag)
 {
-    VALIDATE_NOT_NULL(outFlag);
+//    VALIDATE_NOT_NULL(outFlag);
 
-    if (mLoadInitFromJava == TRUE) {
+    if (mLoadInitFromJava == TRUE && outFlag) {
         *outFlag = FALSE;
         return NOERROR;
     }
@@ -198,10 +199,17 @@ ECode CBrowserFrame::HandleUrl(
         // if the url is hijacked, reset the state of the BrowserFrame
         DidFirstLayout();
 
-        *outFlag = TRUE;
+        if (outFlag) {
+            *outFlag = TRUE;            
+        }
+        
         return NOERROR;
-    } else {        
-        *outFlag = FALSE;
+    } else {
+
+        if (outFlag) {
+            *outFlag = FALSE;
+        }
+        
         return NOERROR;
     }
 
@@ -439,3 +447,413 @@ ECode CBrowserFrame::ConfigCallback::OnLowMemory()
 {
     return E_NOT_IMPLEMENTED;
 }
+
+/**
+ * native callback
+ * Report an error to an activity.
+ * @param errorCode The HTTP error code.
+ * @param description A String description.
+ * TODO: Report all errors including resource errors but include some kind
+ * of domain identifier. Change errorCode to an enum for a cleaner
+ * interface.
+ */
+CARAPI_(void) CBrowserFrame::ReportError(
+    /* [in] */ const Int32 errorCode,
+    /* [in] */ const String description,
+    /* [in] */ const String failingUrl)
+{
+    // As this is called for the main resource and loading will be stopped
+    // after, reset the state variables.
+    ResetLoadingStates();
+    mCallbackProxy->OnReceivedError(errorCode, description, failingUrl);
+}
+
+CARAPI_(void) CBrowserFrame::ResetLoadingStates()
+{
+    mCommitted = TRUE;
+    mFirstLayoutDone = TRUE;
+}
+
+/**
+ * native callback
+ * Indicates the beginning of a new load.
+ * This method will be called once for the main frame.
+ */
+CARAPI_(void) CBrowserFrame::LoadStarted(
+    /* [in] */ const String& url,
+    /* [in] */ IBitmap* favicon,
+    /* [in] */ Int32 loadType,
+    /* [in] */ Boolean isMainFrame)
+{
+    assert (favicon != NULL);
+
+    mIsMainFrame = isMainFrame;
+
+    if (isMainFrame || loadType == FRAME_LOADTYPE_STANDARD) {
+        mLoadType = loadType;
+
+        if (isMainFrame) {
+            // Call onPageStarted for main frames.
+            mCallbackProxy->OnPageStarted(url, favicon);
+            // as didFirstLayout() is only called for the main frame, reset 
+            // mFirstLayoutDone only for the main frames
+            mFirstLayoutDone = FALSE;
+            mCommitted = FALSE;
+            // remove pending draw to block update until mFirstLayoutDone is
+            // set to true in didFirstLayout()
+            mWebViewCore->RemoveMessages(WebViewCore::EventHub::WEBKIT_DRAW);
+        }
+
+        // Note: only saves committed form data in standard load
+        if (loadType == FRAME_LOADTYPE_STANDARD
+                && mSettings->GetSaveFormData()) {
+            AutoPtr<IWebHistoryItem> h;
+            AutoPtr<IWebBackForwardList> wfl;
+            mCallbackProxy->GetBackForwardList((IWebBackForwardList**)&wfl);
+            assert(wfl.Get());
+            wfl->GetCurrentItem((IWebHistoryItem**)&h);
+            if (h != NULL) {
+                String currentUrl;
+                h->GetUrl(&currentUrl);
+                if (currentUrl.IsNullOrEmpty()) {
+//                    ((CWebViewDatabase*)mDatabase.Get())->SetFormData(currentUrl, GetFormTextData());
+                }
+            }
+        }
+    }
+}
+
+/**
+ * native callback
+ * Indicates the WebKit has committed to the new load
+ */
+CARAPI_(void) CBrowserFrame::TransitionToCommitted(
+    /* [in] */ Int32 loadType,
+    /* [in] */ Boolean isMainFrame)
+{
+    // loadType is not used yet
+    if (isMainFrame) {
+        mCommitted = TRUE;
+        AutoPtr<IWebView> webView;
+        webView = mWebViewCore->GetWebView();
+        ((CWebView*)webView.Get())->mViewManager->PostResetStateAll();
+    }
+}
+
+/**
+ * native callback
+ * <p>
+ * Indicates the end of a new load.
+ * This method will be called once for the main frame.
+ */
+CARAPI_(void) CBrowserFrame::LoadFinished(
+    /* [in] */ const String& url,
+    /* [in] */ Int32 loadType,
+    /* [in] */ Boolean isMainFrame)
+{
+    // mIsMainFrame and isMainFrame are better be equal!!!
+
+    if (isMainFrame || loadType == FRAME_LOADTYPE_STANDARD) {
+        if (isMainFrame) {
+            ResetLoadingStates();
+            ((CCallbackProxy*)mCallbackProxy.Get())->SwitchOutDrawHistory();
+            mCallbackProxy->OnPageFinished(url);
+        }
+    }
+}
+
+/**
+ * Punch-through for WebCore to set the document
+ * title. Inform the Activity of the new title.
+ * @param title The new title of the document.
+ */
+CARAPI_(void) CBrowserFrame::SetTitle(
+    /* [in] */ const String& title)
+{
+    // FIXME: The activity must call getTitle (a native method) to get the
+    // title. We should try and cache the title if we can also keep it in
+    // sync with the document.
+    mCallbackProxy->OnReceivedTitle(title);
+}
+
+/**
+ * Return the render tree as a string
+ */
+CARAPI_(void) CBrowserFrame::ExternalRepresentation(
+    /* [out] */ String& str)
+{}
+
+/**
+ * Return the text drawn on the screen as a string
+ */
+CARAPI_(void) CBrowserFrame::DocumentAsText(
+    /* [out] */ String& str)
+{}
+
+/*
+ * This method is called by WebCore to inform the frame that
+ * the Javascript window object has been cleared.
+ * We should re-attach any attached js interfaces.
+ */
+CARAPI_(void) CBrowserFrame::WindowObjectCleared(
+    /* [in] */ Int32 nativeFramePointer)
+{
+#if 0
+    if (mJSInterfaceMap != NULL) {
+        //Iterator iter = mJSInterfaceMap.keySet().iterator();
+        Int32 size = 0, i;
+        mJSInterfaceMap->GetSize(&size);
+
+        ArrayOf<String>* Keys = ArrayOf<String>::Alloc(size*sizeof(String));
+        while (iter.hasNext())  {
+            String interfaceName = (String) iter.next();
+            nativeAddJavascriptInterface(nativeFramePointer,
+                    mJSInterfaceMap.get(interfaceName), interfaceName);
+        }
+    }
+#endif
+}
+
+/**
+ * Called by JNI.  Given a URI, find the associated file and return its size
+ * @param uri A String representing the URI of the desired file.
+ * @return int The size of the given file.
+ */
+CARAPI_(Int32) CBrowserFrame::GetFileSize(
+    /* [in] */ const String& uri) const
+{}
+
+/**
+ * Called by JNI.  Given a URI, a buffer, and an offset into the buffer,
+ * copy the resource into buffer.
+ * @param uri A String representing the URI of the desired file.
+ * @param buffer The byte array to copy the data into.
+ * @param offset The offet into buffer to place the data.
+ * @param expectedSize The size that the buffer has allocated for this file.
+ * @return int The size of the given file, or zero if it fails.
+ */
+CARAPI_(Int32) CBrowserFrame::GetFile(
+    /* [in] */ const String& uri,
+    /* [in] */ ArrayOf<Byte> buffer,
+    /* [in] */ Int32 offset,
+    /* [in] */ Int32 expectedSize) const
+{}
+
+/**
+ * Start loading a resource.
+ * @param loaderHandle The native ResourceLoader that is the target of the
+ *                     data.
+ * @param url The url to load.
+ * @param method The http method.
+ * @param headers The http headers.
+ * @param postData If the method is "POST" postData is sent as the request
+ *                 body. Is null when empty.
+ * @param postDataIdentifier If the post data contained form this is the form identifier, otherwise it is 0.
+ * @param cacheMode The cache mode to use when loading this resource. See WebSettings.setCacheMode
+ * @param mainResource True if the this resource is the main request, not a supporting resource
+ * @param userGesture
+ * @param synchronous True if the load is synchronous.
+ * @return A newly created LoadListener object.
+ */
+CARAPI_(AutoPtr<LoadListener>) CBrowserFrame::StartLoadingResource(
+    /* [in] */ Int32 loaderHandle,
+    /* [in] */ const String& url,
+    /* [in] */ const String& method,
+    /* [in] */ IHashMap* headers,
+    /* [in] */ ArrayOf<Byte> postData,
+    /* [in] */ Int64 postDataIdentifier,
+    /* [in] */ Int32 cacheMode,
+    /* [in] */ Boolean mainResource,
+    /* [in] */ Boolean userGesture,
+    /* [in] */ Boolean synchronous,
+    /* [in] */ const String& username,
+    /* [in] */ const String& password)
+{}
+
+/**
+ * Set the progress for the browser activity.  Called by native code.
+ * Uses a delay so it does not happen too often.
+ * @param newProgress An int between zero and one hundred representing
+ *                    the current progress percentage of loading the page.
+ */
+CARAPI_(void) CBrowserFrame::SetProgress(
+    /* [in] */ Int32 newProgress)
+{}
+
+/**
+ * Send the icon to the activity for display.
+ * @param icon A Bitmap representing a page's favicon.
+ */
+CARAPI_(void) CBrowserFrame::DidReceiveIcon(
+    /* [in] */ IBitmap* icon)
+{
+    mCallbackProxy->OnReceivedIcon(icon);
+}
+
+// Called by JNI when an apple-touch-icon attribute was found.
+CARAPI_(void) CBrowserFrame::DidReceiveTouchIconUrl(
+    /* [in] */ const String& url,
+    /* [in] */ Boolean precomposed)
+{
+    ((CCallbackProxy*)mCallbackProxy.Get())->OnReceivedTouchIconUrl(url, precomposed);
+}
+
+/**
+ * Request a new window from the client.
+ * @return The BrowserFrame object stored in the new WebView.
+ */
+CARAPI_(AutoPtr<IBrowserFrame>) CBrowserFrame::CreateWindow(
+    /* [in] */ Boolean dialog,
+    /* [in] */ Boolean userGesture)
+{
+    AutoPtr<IBrowserFrame> bf;
+    mCallbackProxy->CreateWindow(dialog, userGesture, (IBrowserFrame**)&bf);
+
+    return bf;
+}
+
+/**
+ * Try to focus this WebView.
+ */
+CARAPI_(void) CBrowserFrame::RequestFocus()
+{
+    mCallbackProxy->OnRequestFocus();
+}
+
+/**
+ * Close this frame and window.
+ */
+CARAPI_(void) CBrowserFrame::CloseWindow(
+    /* [in] */ WebViewCore* w)
+{
+    assert(w != NULL);
+    mCallbackProxy->OnCloseWindow(w->GetWebView());
+}
+
+CARAPI_(void) CBrowserFrame::DecidePolicyForFormResubmission(
+    /* [in] */ Int32 policyFunction)
+{}
+
+/**
+ * Tell the activity to update its global history.
+ */
+CARAPI_(void) CBrowserFrame::UpdateVisitedHistory(
+    /* [in] */ const String& url,
+    /* [in] */ Boolean isReload)
+{
+    mCallbackProxy->DoUpdateVisitedHistory(url, isReload);
+}
+
+CARAPI_(Float) CBrowserFrame::Density()
+{}
+
+//==========================================================================
+// native functions
+//==========================================================================
+
+/**
+ * Create a new native frame for a given WebView
+ * @param w     A WebView that the frame draws into.
+ * @param am    AssetManager to use to get assets.
+ * @param list  The native side will add and remove items from this list as
+ *              the native list changes.
+ */
+CARAPI_(void) CBrowserFrame::NativeCreateFrame(
+    /* [in] */ WebViewCore* w,
+    /* [in] */ IAssetManager* am,
+    /* [in] */ IWebBackForwardList* list)
+{}
+
+CARAPI_(void) CBrowserFrame::NativeCallPolicyFunction(
+    /* [in] */ Int32 policyFunction,
+    /* [in] */ Int32 decision)
+{}
+
+/**
+ * Go back or forward the number of steps given.
+ * @param steps A negative or positive number indicating the direction
+ *              and number of steps to move.
+ */
+CARAPI_(void) CBrowserFrame::NativeGoBackOrForward(
+    /* [in] */ Int32 steps)
+{}
+
+/**
+ * Add a javascript interface to the main frame.
+ */
+CARAPI_(void) CBrowserFrame::NativeAddJavascriptInterface(
+    /* [in] */ Int32 nativeFramePointer,
+    /* [in] */ IInterface* obj,
+    /* [in] */ const String& interfaceName)
+{}
+
+/**
+ * Enable or disable the native cache.
+ */
+/* FIXME: The native cache is always on for now until we have a better
+ * solution for our 2 caches. */
+CARAPI_(void) CBrowserFrame::SetCacheDisabled(
+    /* [in] */ Boolean disabled)
+{}
+
+/**
+ * Returns false if the url is bad.
+ */
+CARAPI_(void) CBrowserFrame::NativeLoadUrl(
+    /* [in] */ CString url,
+    /* [in] */ IObjectStringMap* headers)
+{}
+
+CARAPI_(void) CBrowserFrame::NativePostUrl(
+    /* [in] */ CString url,
+    /* [in] */ const ArrayOf<Byte>& postData)
+{}
+
+CARAPI_(void) CBrowserFrame::NativeLoadData(
+    /* [in] */ CString baseUrl,
+    /* [in] */ CString data,
+    /* [in] */ CString mimeType,
+    /* [in] */ CString encoding,
+    /* [in] */ CString historyUrl)
+{}
+
+
+CARAPI_(void) CBrowserFrame::NativeStopLoading()
+{}
+
+/**
+ * @return TRUE if there is a password field in the current frame
+ */
+CARAPI_(Boolean) CBrowserFrame::HasPasswordField()
+{}
+
+/**
+ * Get username and password in the current frame. If found, String[0] is
+ * username and String[1] is password. Otherwise return NULL.
+ * @return String[]
+ */
+CARAPI_(void) CBrowserFrame::GetUsernamePassword(
+    /* [in] */ String& str)
+{}
+
+/**
+ * Set username and password to the proper fields in the current frame
+ * @param username
+ * @param password
+ */
+CARAPI_(void) CBrowserFrame::SetUsernamePassword(
+    /* [in] */ CString username,
+    /* [in] */ CString password)
+{}
+
+/**
+ * Get form's "text" type data associated with the current frame.
+ * @return HashMap If succeed, returns a list of name/value pair. Otherwise
+ *         returns null.
+ */
+CARAPI_(AutoPtr<IHashMap>) CBrowserFrame::GetFormTextData() const
+{}
+
+CARAPI_(void) CBrowserFrame::NativeOrientationChanged(
+    /* [in] */ Int32 orientation)
+{}

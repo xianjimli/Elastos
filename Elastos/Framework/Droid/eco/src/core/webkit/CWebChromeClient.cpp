@@ -5,24 +5,21 @@ ECode CWebChromeClient::OnProgressChanged(
     /* [in] */ IWebView* view,
     /* [in] */ Int32 newProgress)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CWebChromeClient::OnReceivedTitle(
     /* [in] */ IWebView* view,
     /* [in] */ CString title)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CWebChromeClient::OnReceivedIcon(
     /* [in] */ IWebView* view,
     /* [in] */ IBitmap* icon)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CWebChromeClient::OnReceivedTouchIconUrl(
@@ -30,22 +27,19 @@ ECode CWebChromeClient::OnReceivedTouchIconUrl(
     /* [in] */ CString url,
     /* [in] */ Boolean precomposed)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CWebChromeClient::OnShowCustomView(
     /* [in] */ IView* view,
     /* [in] */ IWebChromeClientCustomViewCallback* callBack)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CWebChromeClient::OnHideCustomView()
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CWebChromeClient::OnCreateWindow(
@@ -65,15 +59,13 @@ ECode CWebChromeClient::OnCreateWindow(
 ECode CWebChromeClient::OnRequestFocus(
     /* [in] */ IWebView* view)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CWebChromeClient::OnCloseWindow(
     /* [in] */ IWebView* window)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CWebChromeClient::OnJsAlert(
@@ -170,8 +162,7 @@ ECode CWebChromeClient::OnGeolocationPermissionsShowPrompt(
 
 ECode CWebChromeClient::OnGeolocationPermissionsHidePrompt()
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CWebChromeClient::OnJsTimeout(
@@ -189,8 +180,7 @@ ECode CWebChromeClient::OnConsoleMessage(
     /* [in] */ Int32 lineNumber,
     /* [in] */ CString sourceID)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CWebChromeClient::OnConsoleMessageEx(
@@ -239,8 +229,7 @@ ECode CWebChromeClient::GetVideoLoadingProgressView(
 ECode CWebChromeClient::GetVisitedHistory(
     /* [in] */ IValueCallback* callBack)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CWebChromeClient::OpenFileChooser(
@@ -266,7 +255,6 @@ ECode CWebChromeClient::OnSelectionStart(
 ECode CWebChromeClient::OnSelectionDone(
     /* [in] */ IWebView* view)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 

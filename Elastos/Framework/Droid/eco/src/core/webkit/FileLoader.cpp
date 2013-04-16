@@ -23,25 +23,25 @@ FileLoader::FileLoader(
 {	
     mType = type;
     mAllowFileAccess = allowFileAccess;
-    IURLUtil* pURL = NULL;
-    CURLUtil::AcquireSingleton(&pURL);
+    AutoPtr<IURLUtil> URL;
+    CURLUtil::AcquireSingleton((IURLUtil**)&URL);
 
-    assert(pURL);
+    assert(URL);
 
     String str1, str2;
     // clean the Url
-    int index = url.IndexOf('?');
+    Int32 index = url.IndexOf('?');
     if (mType == TYPE_ASSET) {
-    	pURL->StripAnchor(url.Substring(strlen(CURLUtil::ASSET_BASE), index), &str1);
-    	pURL->StripAnchor(url.Substring(strlen(CURLUtil::ASSET_BASE)), &str2);
+    	URL->StripAnchor(url.Substring(strlen(CURLUtil::ASSET_BASE), index), &str1);
+    	URL->StripAnchor(url.Substring(strlen(CURLUtil::ASSET_BASE)), &str2);
         mPath = index > 0 ? str1 : str2;
     } else if (mType == TYPE_RES) {
-    	pURL->StripAnchor(url.Substring(strlen(CURLUtil::RESOURCE_BASE), index), &str1);
-    	pURL->StripAnchor(url.Substring(strlen(CURLUtil::RESOURCE_BASE)), &str2);
+    	URL->StripAnchor(url.Substring(strlen(CURLUtil::RESOURCE_BASE), index), &str1);
+    	URL->StripAnchor(url.Substring(strlen(CURLUtil::RESOURCE_BASE)), &str2);
         mPath = index > 0 ? str1 : str2;
     } else {
-    	pURL->StripAnchor(url.Substring(strlen(CURLUtil::FILE_BASE), index), &str1);
-    	pURL->StripAnchor(url.Substring(strlen(CURLUtil::FILE_BASE)), &str2);
+    	URL->StripAnchor(url.Substring(strlen(CURLUtil::FILE_BASE), index), &str1);
+    	URL->StripAnchor(url.Substring(strlen(CURLUtil::FILE_BASE)), &str2);
         mPath = index > 0 ? str1 : str2;
     }
 }

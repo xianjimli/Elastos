@@ -31,11 +31,11 @@ ECode CWebHistoryItem::constructor(
 {
     if(item != NULL){
         CWebHistoryItem* itemC = (CWebHistoryItem*)item;
-        itemC -> GetUrl(&mUrl);
-        itemC -> GetTitle(&mTitle);
-        itemC -> GetFlattenedData((ArrayOf<byte>**)&mFlattenedData);
-        itemC -> GetFavicon((IBitmap**)&mFavicon);
-        itemC -> GetId(&mId);
+        itemC->GetUrl(&mUrl);
+        itemC->GetTitle(&mTitle);
+        itemC->GetFlattenedData((ArrayOf<byte>**)&mFlattenedData);
+        itemC->GetFavicon((IBitmap**)&mFavicon);
+        itemC->GetId(&mId);
     }
     return NOERROR;
 }
@@ -73,7 +73,7 @@ ECode CWebHistoryItem::GetTitle(
 }
 
 ECode CWebHistoryItem::GetFavicon(
-    /* [out] */ IBitmap ** favicon)
+    /* [out] */ IBitmap** favicon)
 {    
     VALIDATE_NOT_NULL(favicon);
     *favicon = mFavicon.Get();
@@ -135,22 +135,23 @@ ECode CWebHistoryItem::Inflate(
 ECode CWebHistoryItem::Clone(
     /* [out] */ IWebHistoryItem** item)
 {
-    VALIDATE_NOT_NULL(item);
-    Mutex::Autolock lock(mLock);
+    Mutex::Autolock lock(_m_syncLock);
+
+    VALIDATE_NOT_NULL(item);       
 
     CWebHistoryItem::New(item);    
     String url;
     String title;
     ArrayOf<byte>* data;
-    IBitmap* favicon;
+    AutoPtr<IBitmap> favicon;
     Int32 id;    
     GetUrl(&url);
     GetTitle(&title);
     GetFlattenedData(&data);
     GetFavicon((IBitmap**)&favicon);
     GetId(&id);
-    ( (CWebHistoryItem*)(*item) ) -> Update(url,String(""),title,favicon,data);
-    ( (CWebHistoryItem*)(*item) ) -> SetId(id);
+    ((CWebHistoryItem*)(*item))->Update(url,String(""),title,favicon,data);
+    ((CWebHistoryItem*)(*item))->SetId(id);
 
     return NOERROR;
 }
@@ -159,7 +160,7 @@ ECode CWebHistoryItem::Inflate(
     /* [in] */ Int32 nativeFrame, 
     /* [in] */ ArrayOf<byte>* data)
 {//=0(virtual)
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CWebHistoryItem::Update(

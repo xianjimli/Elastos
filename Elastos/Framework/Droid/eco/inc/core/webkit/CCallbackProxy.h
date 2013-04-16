@@ -2,16 +2,20 @@
 #ifndef __CCALLBACKPROXY_H__
 #define __CCALLBACKPROXY_H__
 
+#include <elastos/Mutex.h>
+
 #include "_CCallbackProxy.h"
 #include "IValueCallback.h"
 #include "net/Uri.h"
 #include "content/CIntent.h"
+#include "WebBackForwardListClient.h"
 
-class WebBackForwardListClient;
+using namespace Core;
+using namespace Core::Threading;
+
 class WebHistoryItem;
 class DownloadListener;
 class WebBackForwardList;
-class WebBackForwardListClient;
 
 CarClass(CCallbackProxy)
 {
@@ -291,6 +295,8 @@ private:
     private:
         // Private result object
         AutoPtr<IInterface> mResult;
+
+        mutable Mutex mLock;
     };
 
     class UploadFile : public ValueCallback<IUri>
@@ -315,24 +321,24 @@ private:
     // Logging tag
     static const CString LOGTAG;// = "CallbackProxy";
     // Instance of WebViewClient that is the client callback.
-    volatile IWebViewClient* mWebViewClient;
+    /*volatile*/ AutoPtr<IWebViewClient> mWebViewClient;
     // Instance of WebChromeClient for handling all chrome functions.
-    volatile IWebChromeClient* mWebChromeClient;
+    /*volatile*/ AutoPtr<IWebChromeClient> mWebChromeClient;
     // Instance of WebView for handling UI requests.
-    const IWebView* mWebView;
+    /*const*/ AutoPtr<IWebView> mWebView;
     // Client registered callback listener for download events
-    volatile IDownloadListener* mDownloadListener;
+    /*volatile*/ AutoPtr<IDownloadListener> mDownloadListener;
     // Keep track of multiple progress updates.
     Boolean mProgressUpdatePending;
     // Keep track of the last progress amount.
     // Start with 100 to indicate it is not in load for the empty page.
     volatile Int32 mLatestProgress;// = 100;
     // Back/Forward list
-    const IWebBackForwardList* mBackForwardList;
+    /*const*/ AutoPtr<IWebBackForwardList> mBackForwardList;
     // Back/Forward list client
-    volatile WebBackForwardListClient* mWebBackForwardListClient;
+    /*volatile*/ AutoPtr<IWebBackForwardListClient> mWebBackForwardListClient;
     // Used to call startActivity during url override.
-    const IContext* mContext;
+    /*const*/ AutoPtr<IContext> mContext;
 
     //--------------------------------------------------------------------------
     // WebViewClient functions.

@@ -14,9 +14,10 @@ ECode CWebBackForwardList::constructor(
 
 ECode CWebBackForwardList::GetCurrentItem(
     /* [out] */ IWebHistoryItem ** item)
-{
+{    
+    Mutex::Autolock lock(_m_syncLock);
+ 
     VALIDATE_NOT_NULL(item);
-    Mutex::Autolock lock(mLock);
     GetItemAtIndex(mCurrentIndex,item);
     return NOERROR;
 }
@@ -24,8 +25,9 @@ ECode CWebBackForwardList::GetCurrentItem(
 ECode CWebBackForwardList::GetCurrentIndex(
     /* [out] */ Int32 * index)
 {
+    Mutex::Autolock lock(_m_syncLock);
+
     VALIDATE_NOT_NULL(index);
-    Mutex::Autolock lock(mLock);
     *index = mCurrentIndex;
     return NOERROR;
 }
@@ -34,8 +36,9 @@ ECode CWebBackForwardList::GetItemAtIndex(
     /* [in] */ Int32 index,
     /* [out] */ IWebHistoryItem ** item)
 {
+    Mutex::Autolock lock(_m_syncLock);
+
     VALIDATE_NOT_NULL(item);
-    Mutex::Autolock lock(mLock);
     Int32 nSize;
     GetSize(&nSize);
     if (index < 0 || index >= nSize) {
@@ -48,15 +51,16 @@ ECode CWebBackForwardList::GetItemAtIndex(
 ECode CWebBackForwardList::GetSize(
     /* [out] */ Int32 * size)
 {
+    Mutex::Autolock lock(_m_syncLock);
+
     VALIDATE_NOT_NULL(size);
-    Mutex::Autolock lock(mLock);
     *size = mArray.GetSize();
     return NOERROR;
 }
 
 ECode CWebBackForwardList::SetClearPending()
 {
-    Mutex::Autolock lock(mLock);
+    Mutex::Autolock lock(_m_syncLock);
     mClearPending = TRUE;
     return NOERROR;
 }
@@ -64,7 +68,7 @@ ECode CWebBackForwardList::SetClearPending()
 ECode CWebBackForwardList::GetClearPending(
     /* [out] */ Boolean* clearPending)
 {
-    Mutex::Autolock lock(mLock);
+    Mutex::Autolock lock(_m_syncLock);
     *clearPending = mClearPending;
     return NOERROR;
 }
@@ -72,7 +76,8 @@ ECode CWebBackForwardList::GetClearPending(
 ECode CWebBackForwardList::AddHistoryItem(
     /* [in] */ IWebHistoryItem* item)
 {    
-    Mutex::Autolock lock(mLock);
+    Mutex::Autolock lock(_m_syncLock);
+    
     // Update the current position because we are going to add the new item
     // in that slot.
     ++mCurrentIndex;
@@ -96,7 +101,8 @@ ECode CWebBackForwardList::AddHistoryItem(
 ECode CWebBackForwardList::Close(
     /* [in] */ Int32 nativeFrame)
 {
-    Mutex::Autolock lock(mLock);
+    Mutex::Autolock lock(_m_syncLock);
+
     // Clear the array first because nativeClose will call addHistoryItem
     // with the current item.
     mArray.Clear();
@@ -110,7 +116,8 @@ ECode CWebBackForwardList::Close(
 ECode CWebBackForwardList::RemoveHistoryItem(
     /* [in] */ Int32 index)
 {
-    Mutex::Autolock lock(mLock);
+    Mutex::Autolock lock(_m_syncLock);
+
     // XXX: This is a special case. Since the callback is only triggered
     // when removing the first item, we can assert that the index is 0.
     // This lets us change the current index without having to query the
@@ -129,7 +136,8 @@ ECode CWebBackForwardList::RemoveHistoryItem(
 ECode CWebBackForwardList::Clone(
     /* [in] */ IWebBackForwardList** webBackForwardList)
 {
-    Mutex::Autolock lock(mLock);
+    Mutex::Autolock lock(_m_syncLock);
+
     AutoPtr<CWebBackForwardList> l = new CWebBackForwardList();
     if (mClearPending)  {
         // If a clear is pending, return a copy with only the current item.
@@ -147,6 +155,7 @@ ECode CWebBackForwardList::Clone(
         (l -> mArray).PushBack(mArray[i]);
     }
     *webBackForwardList = (IWebBackForwardList*)(l.Get());
+
     return NOERROR;
 }
 
@@ -159,6 +168,7 @@ ECode CWebBackForwardList::SetCurrentIndex(
         GetItemAtIndex(newIndex,(IWebHistoryItem**)&webHistoryItem);
         mCallbackProxy -> OnIndexChanged(webHistoryItem.Get(), newIndex);
     }
+
     return NOERROR;
 }
 

@@ -6,6 +6,7 @@
 #include "ext/frameworkext.h"
 #include <elastos/AutoPtr.h>
 #include <elastos/Vector.h>
+#include <elastos/HashMap.h>
 
 CarClass(CMimeTypeMap)
 {
@@ -58,17 +59,17 @@ private:
     /**
      * Singleton MIME-type map instance:
      */
-    static CMimeTypeMap* sMimeTypeMap;
+ //   static CMimeTypeMap* sMimeTypeMap;
 
     /**
      * MIME-type to file extension mapping:
      */
-    AutoPtr<IObjectStringMap> mMimeTypeToExtensionMap;
+    HashMap<String, String> mMimeTypeToExtensionMap;
 
     /**
      * File extension to MIME type mapping:
      */
-    AutoPtr<IObjectStringMap> mExtensionToMimeTypeMap;
+    HashMap<String, String> mExtensionToMimeTypeMap;
 };
 
 #endif // __CMIMETYPEMAP_H__

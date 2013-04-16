@@ -8,6 +8,7 @@
 #include <elastos/Vector.h>
 #include <elastos/ElRefBase.h>
 #include <elastos/AutoFree.h>
+#include <elastos/List.h>
 
 CarClass(CByteArrayBuilder)
 {
@@ -31,8 +32,7 @@ public:
     CARAPI constructor();
 
 public:
-    class Chunk : //public ElRefBase, 
-                  public IByteArrayBuilderChunk
+    class Chunk : public IByteArrayBuilderChunk, ElRefBase
     {
     public:
         Chunk(
@@ -43,6 +43,17 @@ public:
          */
         virtual CARAPI ChunkRelease();
 
+        CARAPI_(PInterface) Probe(
+        /* [in] */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        ECode GetInterfaceID(
+            /* [in] */ IInterface* Object,
+            /* [out] */ InterfaceID* IID);
+
     public:
         AutoFree<ArrayOf<Byte> >     mArray;
         Int32     mLength;
@@ -52,19 +63,19 @@ private:
     // Must be called with lock held on sPool.
     CARAPI_(void) ProcessPoolLocked();
 
-    CARAPI_(Chunk*) ObtainChunk(
+    CARAPI_(AutoPtr<Chunk>) ObtainChunk(
         /* [in] */ Int32 length);
 
 private:
     static const Int32 DEFAULT_CAPACITY = 8192;
 
     // Global pool of chunks to be used by other ByteArrayBuilders.
-    static const Vector< AutoPtr<Chunk> > sPool;
+    static /*const*/ List<AutoPtr<Chunk> > sPool;
 
     // Reference queue for processing gc'd entries.
-    static const Vector<AutoPtr<Chunk> > sQueue;
+//    static const Vector<AutoPtr<Chunk> > sQueue;
 
-    Vector<AutoPtr<Chunk> > mChunks;
+    List<AutoPtr<Chunk> > mChunks;
 };
 
 #endif // __CBYTEARRAYBUILDER_H__

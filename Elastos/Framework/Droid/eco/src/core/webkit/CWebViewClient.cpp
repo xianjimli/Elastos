@@ -18,24 +18,21 @@ ECode CWebViewClient::OnPageStarted(
     /* [in] */ const String& url,
     /* [in] */ IBitmap* favicon)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CWebViewClient::OnPageFinished(
     /* [in] */ IWebView* view,
     /* [in] */ const String& url)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CWebViewClient::OnLoadResource(
     /* [in] */ IWebView* view,
     /* [in] */ const String& url)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CWebViewClient::OnTooManyRedirects(
@@ -56,8 +53,7 @@ ECode CWebViewClient::OnReceivedError(
     /* [in] */ const String& description,
     /* [in] */ const String& failingUrl)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CWebViewClient::OnFormResubmission(
@@ -77,8 +73,7 @@ ECode CWebViewClient::DoUpdateVisitedHistory(
     /* [in] */ const String& url,
     /* [in] */ Boolean isReload)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CWebViewClient::OnReceivedSslError(
@@ -122,8 +117,7 @@ ECode CWebViewClient::OnUnhandledKeyEvent(
     /* [in] */ IWebView* view,
     /* [in] */ IKeyEvent* event)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CWebViewClient::OnScaleChanged(
@@ -131,7 +125,6 @@ ECode CWebViewClient::OnScaleChanged(
     /* [in] */ Float oldScale,
     /* [in] */ Float newScale)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 

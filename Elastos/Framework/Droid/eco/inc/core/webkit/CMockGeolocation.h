@@ -33,7 +33,7 @@ private:
 
 private:
     // Global instance of a MockGeolocation
-    static CMockGeolocation* sMockGeolocation;
+//    static CMockGeolocation* sMockGeolocation;
 };
 
 #endif // __CMOCKGEOLOCATION_H__

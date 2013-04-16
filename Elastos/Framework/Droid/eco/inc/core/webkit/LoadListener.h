@@ -185,7 +185,7 @@ public:
     /**
      * @return The last SSL error or null if there is none
      */
-    virtual CARAPI_(ISslError*) SslError();
+    virtual CARAPI_(AutoPtr<ISslError>) SslError();
 
     /**
      * Handles SSL error(s) on the way down from the user
@@ -228,7 +228,7 @@ public:
     /**
      * @return The current WebAddress associated with this load.
      */
-    virtual CARAPI_(IWebAddress*) GetWebAddress();
+    virtual CARAPI_(AutoPtr<IWebAddress>) GetWebAddress();
 
     /**
      * @return URL hostname (current URL).
@@ -609,7 +609,7 @@ private:
 //	HttpAuthHeader         mAuthHeader;
 	Int32                  mErrorID;
 	String                 mErrorDescription;
-	ISslError*             mSslError;
+	AutoPtr<ISslError>     mSslError;
 //	RequestHandle          mRequestHandle;
 //	RequestHandle          mSslErrorRequestHandle;
 	Int64                  mPostIdentifier;

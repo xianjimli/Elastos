@@ -2,28 +2,24 @@
 #include "ext/frameworkext.h"
 #include "webkit/CMimeTypeMap.h"
 
-CMimeTypeMap* CMimeTypeMap::sMimeTypeMap;
+//CMimeTypeMap* CMimeTypeMap::sMimeTypeMap;
 
 ECode CMimeTypeMap::GetFileExtensionFromUrl(
     /* [in] */ CString inUrl,
     /* [out] */ String* outUrl)
 {
-    #if 0
-    if (pOutUrl == NULL)
-    {
-        return E_INVALID_ARGUMENT;
-    }
+    VALIDATE_NOT_NULL(outUrl);
 
     String url((const char*)inUrl);
 
     if (url.GetLength() > 0)
     {
-        int query = url.LastIndexOf('?');
+        Int32 query = url.LastIndexOf('?');
         if (query > 0)
         {
             url = url.Substring(0, query);
         }
-        int filenamePos = url.LastIndexOf('/');
+        Int32 filenamePos = url.LastIndexOf('/');
         String filename =
             0 <= filenamePos ? url.Substring(filenamePos + 1) : url;
 
@@ -32,26 +28,24 @@ ECode CMimeTypeMap::GetFileExtensionFromUrl(
         if (filename.GetLength() > 0 /*&&
             Pattern.matches("[a-zA-Z_0-9\\.\\-\\(\\)\\%]+", filename)*/)
         {
-            int dotPos = filename.LastIndexOf('.');
+            Int32 dotPos = filename.LastIndexOf('.');
             if (0 <= dotPos)
             {
-                *pOutUrl = filename.Substring(dotPos + 1);
+                *outUrl = filename.Substring(dotPos + 1);
                 return E_NOT_IMPLEMENTED;
             }
         }
     }
 
-    *pOutUrl = "";
-#endif
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    *outUrl = "";
+
+    return NOERROR;
 }
 
 ECode CMimeTypeMap::HasMimeType(
     /* [in] */ CString mimeType,
     /* [out] */ Boolean* flag)
 {
-#if 0
     VALIDATE_NOT_NULL(flag);
 
     if (!mimeType.IsNullOrEmpty()) {
@@ -68,8 +62,7 @@ ECode CMimeTypeMap::HasMimeType(
     }
 
     *flag = FALSE;
-    #endif
-
+ 
     return NOERROR;
 }
 
@@ -77,7 +70,6 @@ ECode CMimeTypeMap::GetMimeTypeFromExtension(
     /* [in] */ CString extension,
     /* [out] */ String* mimeType)
 {
-    #if 0
     VALIDATE_NOT_NULL(mimeType);
 
     if (!extension.IsNullOrEmpty()) {
@@ -94,7 +86,6 @@ ECode CMimeTypeMap::GetMimeTypeFromExtension(
     }
 
     mimeType->SetTo(NULL);
-    #endif
 
     return NOERROR;
 }
@@ -103,7 +94,6 @@ ECode CMimeTypeMap::HasExtension(
     /* [in] */ CString extension,
     /* [out] */ Boolean* flag)
 {
-    #if 0
     VALIDATE_NOT_NULL(flag);
 
     if (!extension.IsNullOrEmpty()) {
@@ -120,7 +110,6 @@ ECode CMimeTypeMap::HasExtension(
     }
 
     *flag = FALSE;
-    #endif
 
     return NOERROR;
 }
@@ -129,7 +118,6 @@ ECode CMimeTypeMap::GetExtensionFromMimeType(
     /* [in] */ CString mimeType,
     /* [out] */ String* extensionFrom)
 {
-    #if 0
     VALIDATE_NOT_NULL(extensionFrom);
 
     if (!mimeType.IsNullOrEmpty()) {
@@ -146,25 +134,25 @@ ECode CMimeTypeMap::GetExtensionFromMimeType(
     }
 
     extensionFrom->SetTo(NULL);
-    #endif
-
+ 
     return NOERROR;
 }
 
 ECode CMimeTypeMap::GetSingleton(
     /* [out] */ IMimeTypeMap** instance)
 {
+#if 0
     VALIDATE_NOT_NULL(instance);
 
     *instance = this;
     AddRef();
+#endif
 
     return NOERROR;
 }
 
 ECode CMimeTypeMap::constructor()
 {
-    #if 0
     // The following table is based on /etc/mime.types data minus
     // chemical/* MIME types and MIME types that don't map to any
     // file extensions. We also exclude top-level domain names to
@@ -514,7 +502,7 @@ ECode CMimeTypeMap::constructor()
     LoadEntry("video/x-sgi-movie", "movie");
     LoadEntry("x-conference/x-cooltalk", "ice");
     LoadEntry("x-epoc/x-sisx-app", "sisx");
-#endif
+
     return NOERROR;
 }
 
@@ -522,7 +510,6 @@ void CMimeTypeMap::LoadEntry(
     /* [in] */ const char* mimeType,
     /* [in] */ const char* extension)
 {
-    #if 0
     //
     // if we have an existing x --> y mapping, we do not want to
     // override it with another mapping x --> ?
@@ -531,11 +518,15 @@ void CMimeTypeMap::LoadEntry(
     // the first extension is considered the most popular and is
     // added first; we do not want to overwrite it later).
     //
+
+    if (mimeType == NULL || extension == NULL) {
+        return;
+    }
+
     if (mMimeTypeToExtensionMap.Find(String(mimeType))
         != mMimeTypeToExtensionMap.End()) {
         mMimeTypeToExtensionMap[String(mimeType)] = String(extension);
     }
 
     mExtensionToMimeTypeMap[String(extension)] = String(mimeType);
-    #endif
 }

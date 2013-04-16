@@ -143,11 +143,9 @@ private:
     // The apple-touch-icon url for use when adding the site to the home screen
     String mTouchIconUrl;
     // Custom client data that is not flattened or read by native code.
-    IInterface* mCustomData;
+    AutoPtr<IInterface> mCustomData;
 
-    Core::Threading::Mutex mLock;
     static Core::Threading::Mutex sLock;
-
 };
 
 #endif // __CWEBHISTORYITEM_H__

@@ -6,6 +6,7 @@
 #include <StringBuffer.h>
 #include "ext/frameworkext.h"
 #include <elastos/AutoPtr.h>
+#include <elastos/ElRefBase.h>
 
 //#include "CWebViewDatabase.h"
 
@@ -53,7 +54,7 @@ public:
      * Instances of this class can be obtained by invoking the
      * CacheManager.getCacheFile() method.
      */
-    class CacheResult : public ICacheManagerCacheResult
+    class CacheResult : public ICacheManagerCacheResult, ElRefBase
     {
     public:
         inline CARAPI_(Int32) GetHttpStatusCode() const;
@@ -95,6 +96,18 @@ public:
         inline CARAPI SetInputStream(IFileInputStream* stream);
 
         inline CARAPI_(void) SetEncoding(String encoding);
+
+    public:
+        CARAPI_(PInterface) Probe(
+            /* [in]  */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *object,
+            /* [out] */ InterfaceID *IID);
 
     public:
         // these fields are saved to the database
