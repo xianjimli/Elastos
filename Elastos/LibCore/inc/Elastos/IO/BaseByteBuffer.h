@@ -45,7 +45,7 @@ public:
         /* [in] */ Int32 index,
         /* [in] */ Char32 value);
 
-protected:
+// protected:
     BaseByteBuffer(
         /* [in] */ Int32 capacity);
 };

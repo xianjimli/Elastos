@@ -54,14 +54,13 @@ ECode ByteBuffer::WrapEx(
     Int32 length = array->GetLength();
     if ((start < 0) || (len < 0) || ((Int64) start + (Int64) len > length)) {
         return E_INDEX_OUT_OF_BOUNDS_EXCEPTION;
-//        throw new IndexOutOfBoundsException();
     }
 
     AutoPtr<IByteBuffer> byteBuf;
     BufferFactory::NewByteBuffer(array, (IByteBuffer**)&byteBuf);
-    ByteBuffer* bufCls = (ByteBuffer*)byteBuf->Probe(EIID_ByteBuffer);
-    bufCls->mPosition = start;
-    bufCls->mLimit = start + len;
+    ByteBuffer* bufCls  = (ByteBuffer*)byteBuf->Probe(EIID_ByteBuffer);
+    bufCls->mPosition   = start;
+    bufCls->mLimit      = start + len;
 
     *buf = byteBuf;
     return NOERROR;

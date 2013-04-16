@@ -75,15 +75,6 @@ public:
     	/* [in] */ Int32 len,
     	/* [out] */ IByteBuffer** buf);
 
-    /**
-     * Constructs a {@code ByteBuffer} with given capacity.
-     *
-     * @param capacity
-     *            the capacity of the buffer.
-     */
-    ByteBuffer(
-        /* [in] */ Int32 capacity);
-
     CARAPI Array(
         /* [out, callee] */ ArrayOf<Byte>** array);
 
@@ -286,6 +277,16 @@ public:
     virtual CARAPI Equals(
         /* [in]  */ IInterface* other,
         /* [out] */ Boolean* isEquals);
+
+protected:
+    /**
+     * Constructs a {@code ByteBuffer} with given capacity.
+     *
+     * @param capacity
+     *            the capacity of the buffer.
+     */
+    ByteBuffer(
+        /* [in] */ Int32 capacity);
 
 public:
 	/**
