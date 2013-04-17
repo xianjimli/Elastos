@@ -41,6 +41,10 @@ module
     merge("content/SyncInfo.car");
     merge("content/SyncStatusInfo.car");
     merge("content/SyncStatusObserver.car");
+    merge("content/SyncQueue.car");
+    merge("content/SyncStorageEngine.car");
+    merge("content/SyncOperation.car");
+    merge("content/SyncManager.car");
     merge("content/ContentService.car");
     merge("content/contentresolver.car");
     merge("content/contentvalues.car");
@@ -78,9 +82,9 @@ module
         interface IContentValues;
         interface IParcelable;
     }
-
-    interface IApplicationApartment;
-
+    
+    interface IOnAccountsUpdateListener;
+    
     class CApplicationContentResolver {
         constructor(
             [in] IContext* ctx,

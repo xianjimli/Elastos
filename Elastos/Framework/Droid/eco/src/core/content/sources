@@ -26,6 +26,7 @@ SOURCES += ContentResolver.cpp
 SOURCES += CContentResolverHelper.cpp
 SOURCES += CCursorWrapperInner.cpp
 SOURCES += CContentValues.cpp
+SOURCES += CSyncManager.cpp
 SOURCES += CConfiguration.cpp
 SOURCES += CInstrumentationInfo.cpp
 SOURCES += ContextWrapper.cpp

@@ -1,7 +1,7 @@
 
 #include "ext/frameworkext.h"
 #include "content/ContentResolver.h"
-#include "CContentResolverHelper.h"
+#include "content/CContentResolverHelper.h"
 ECode CContentResolverHelper::ModeToMode(
     /* [in] */ IUri * uri,
     /* [in] */ const String& mode,

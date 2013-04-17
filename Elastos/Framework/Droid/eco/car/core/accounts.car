@@ -30,4 +30,18 @@ module
 
         interface ILocalAccountManager;
     }
+    
+    /**
+     * This class is in content module, since it need IOnAccountsUpdateListener 
+     * but IOnAccountsUpdateListener interface is defined after content module, 
+     * move it here
+     */
+    class CSyncManager {
+        constructor(
+            [in] IContext* context,
+            [in] Boolean factoryTest);
+    
+        interface ISyncManager;
+        interface IOnAccountsUpdateListener;
+    }
 }
