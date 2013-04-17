@@ -1081,6 +1081,12 @@ module
     singleton class CByteBufferHelper {
         interface IByteBufferHelper;
     }
+    
+    singleton class CCharBufferHelper {
+        constructor();
+        
+        interface ICharBufferHelper;
+    }
 	
 	singleton class CChannels {
 		constructor();

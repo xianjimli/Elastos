@@ -116,15 +116,6 @@ public:
         /* [in] */ Int32 end,
         /* [out] */ ICharBuffer** buf);
 
-    /**
-     * Constructs a {@code CharBuffer} with given capacity.
-     *
-     * @param capacity
-     *            the capacity of the buffer.
-     */
-    CharBuffer(
-        /* [in] */ Int32 capacity);
-
     CARAPI Array(
         /* [out, callee] */ ArrayOf<Char32>** array);
 
@@ -251,6 +242,16 @@ public:
 
     virtual CARAPI HasArray(
         /* [out] */ Boolean* hasArray);
+
+protected:
+    /**
+     * Constructs a {@code CharBuffer} with given capacity.
+     *
+     * @param capacity
+     *            the capacity of the buffer.
+     */
+    CharBuffer(
+        /* [in] */ Int32 capacity);
 };
 
 #endif // __CHARBUFFER_H__
