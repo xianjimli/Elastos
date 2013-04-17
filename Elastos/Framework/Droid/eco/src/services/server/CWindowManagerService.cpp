@@ -9701,7 +9701,10 @@ ECode CWindowManagerService::WindowState::CreateSurfaceLocked(
             flags |= Surface_PUSH_BUFFERS;
         }
 
-        if ((attrsMemoryType & WindowManagerLayoutParams_FLAG_SECURE) != 0) {
+        Int32 attrsFlags;
+        mAttrs->GetFlags(&attrsFlags);
+
+        if ((attrsFlags & WindowManagerLayoutParams_FLAG_SECURE) != 0) {
             flags |= Surface_SECURE;
         }
 //        if (DEBUG_VISIBILITY) Slog.v(
@@ -9715,8 +9718,6 @@ ECode CWindowManagerService::WindowState::CreateSurfaceLocked(
         Int32 h;
         mFrame->GetWidth(&w);
         mFrame->GetHeight(&h);
-        Int32 attrsFlags;
-        mAttrs->GetFlags(&attrsFlags);
         if ((attrsFlags & WindowManagerLayoutParams_FLAG_SCALED) != 0) {
             // for a scaled surface, we always want the requested
             // size.
@@ -9758,7 +9759,10 @@ ECode CWindowManagerService::WindowState::CreateSurfaceLocked(
         assert(SUCCEEDED(CSurface::New(
             mSession->mSurfaceSession,
             mSession->mPid, strTitle,
-            0, w, h, format, flags,
+
+            //TODO :Temporarily modify format = -2;
+            //0, w, h, format, flags,
+            0, w, h, -2, flags,
             (ISurface**)&mSurface)));
 
         if (FAILED(ec)) {
