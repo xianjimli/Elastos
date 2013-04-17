@@ -17,6 +17,7 @@ ECode BaseByteBuffer::AsCharBuffer(
     /* [out] */ ICharBuffer** buffer)
 {
     VALIDATE_NOT_NULL(buffer);
+
     AutoPtr<IByteBuffer> byteBuf;
     if (this->Probe(EIID_IByteBuffer) != NULL) {
         byteBuf = (IByteBuffer*)this->Probe(EIID_IByteBuffer);

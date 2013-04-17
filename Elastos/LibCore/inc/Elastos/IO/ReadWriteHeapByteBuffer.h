@@ -5,14 +5,12 @@
 #include <elastos/ElRefBase.h>
 
 /**
- * HeapByteReadWriteHeapByteBuffer, ReadWriteHeapByteReadWriteHeapByteBuffer and ReadOnlyHeapByteReadWriteHeapByteBuffer compose
- * the implementation of array bCARAPI Ased byte ReadWriteHeapByteBuffers.
- * <p>
- * ReadWriteHeapByteReadWriteHeapByteBuffer extends HeapByteReadWriteHeapByteBuffer with all the write methods.
- * </p>
- * <p>
- * This clCARAPI Ass is marked final for runtime performance.
- * </p>
+ * HeapByteBuffer, ReadWriteHeapByteBuffer and ReadOnlyHeapByteBuffer compose
+ * the implementation of array based byte buffers.
+ *
+ * ReadWriteHeapByteBuffer extends HeapByteBuffer with all the write methods.
+ *
+ * This class is marked final for runtime performance.
  *
  */
 class ReadWriteHeapByteBuffer
@@ -21,6 +19,21 @@ class ReadWriteHeapByteBuffer
     , public HeapByteBuffer
 {
 public:
+    static CARAPI_(ReadWriteHeapByteBuffer*) Copy(
+    	/* [in] */ HeapByteBuffer* other,
+    	/* [in] */ Int32 markOfOther);
+
+    ReadWriteHeapByteBuffer(
+        /* [in] */ Int32 capacity);
+
+    ReadWriteHeapByteBuffer(
+    	/* [in] */ ArrayOf<Byte>* backingArray);
+
+    ReadWriteHeapByteBuffer(
+    	/* [in] */ ArrayOf<Byte>* backingArray,
+    	/* [in] */ Int32 capacity,
+    	/* [in] */ Int32 arrayOffset);
+
     CARAPI_(PInterface) Probe(
         /* [in]  */ REIID riid);
 
@@ -31,21 +44,6 @@ public:
     CARAPI GetInterfaceID(
         /* [in] */ IInterface *pObject,
         /* [out] */ InterfaceID *pIID);
-
-    static CARAPI_(ReadWriteHeapByteBuffer*) Copy(
-    	/* [in] */ HeapByteBuffer* other,
-    	/* [in] */ Int32 markOfOther);
-
-    ReadWriteHeapByteBuffer(
-    	/* [in] */ ArrayOf<Byte>* backingArray);
-
-    ReadWriteHeapByteBuffer(
-    	/* [in] */ Int32 capacity);
-
-    ReadWriteHeapByteBuffer(
-    	/* [in] */ ArrayOf<Byte>* backingArray,
-    	/* [in] */ Int32 capacity,
-    	/* [in] */ Int32 arrayOffset);
 
     CARAPI Array(
         /* [out, callee] */ ArrayOf<Byte>** array);

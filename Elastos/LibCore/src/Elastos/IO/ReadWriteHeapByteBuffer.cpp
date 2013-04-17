@@ -3,6 +3,24 @@
 #include "ReadWriteHeapByteBuffer.h"
 #include "ReadOnlyHeapByteBuffer.h"
 
+
+ReadWriteHeapByteBuffer::ReadWriteHeapByteBuffer(
+    /* [in] */ Int32 capacity)
+    : HeapByteBuffer(capacity)
+{}
+
+ReadWriteHeapByteBuffer::ReadWriteHeapByteBuffer(
+    /* [in] */ ArrayOf<Byte>* backingArray)
+    : HeapByteBuffer(backingArray, backingArray->GetLength(), 0)
+{}
+
+ReadWriteHeapByteBuffer::ReadWriteHeapByteBuffer(
+    /* [in] */ ArrayOf<Byte>* backingArray,
+    /* [in] */ Int32 capacity,
+    /* [in] */ Int32 arrayOffset)
+    : HeapByteBuffer(backingArray, capacity, arrayOffset)
+{}
+
 PInterface ReadWriteHeapByteBuffer::Probe(
         /* [in]  */ REIID riid)
 {
@@ -53,23 +71,6 @@ ReadWriteHeapByteBuffer* ReadWriteHeapByteBuffer::Copy(
 
     return buf;
 }
-
-ReadWriteHeapByteBuffer::ReadWriteHeapByteBuffer(
-    /* [in] */ ArrayOf<Byte>* backingArray)
-    : HeapByteBuffer(backingArray, backingArray->GetLength(), 0)
-{}
-
-ReadWriteHeapByteBuffer::ReadWriteHeapByteBuffer(
-    /* [in] */ Int32 capacity)
-    : HeapByteBuffer(ArrayOf<Byte>::Alloc(capacity), capacity, 0)
-{}
-
-ReadWriteHeapByteBuffer::ReadWriteHeapByteBuffer(
-    /* [in] */ ArrayOf<Byte>* backingArray,
-    /* [in] */ Int32 capacity,
-    /* [in] */ Int32 arrayOffset)
-    : HeapByteBuffer(backingArray, capacity, arrayOffset)
-{}
 
 ECode ReadWriteHeapByteBuffer::Array(
     /* [out, callee] */ ArrayOf<Byte>** array)
@@ -123,6 +124,7 @@ ECode ReadWriteHeapByteBuffer::AsReadOnlyBuffer(
     /* [out] */ IByteBuffer** buffer)
 {
     VALIDATE_NOT_NULL(buffer);
+
     ReadOnlyHeapByteBuffer* buf = ReadOnlyHeapByteBuffer::Copy((HeapByteBuffer*)this, mMark);
     if (buf->Probe(EIID_IByteBuffer)) {
         *buffer = (IByteBuffer*)buf->Probe(EIID_IByteBuffer);
@@ -130,18 +132,19 @@ ECode ReadWriteHeapByteBuffer::AsReadOnlyBuffer(
     else {
         *buffer = NULL;
     }
+
     return NOERROR;
 }
 
 ECode ReadWriteHeapByteBuffer::Compact()
 {
-    // System.arraycopy(backingArray, position + offset, backingArray, offset,
-    //         remaining());
     Int32 remaining;
     Remaining(&remaining);
+
     for(Int32 i = 0; i < remaining; ++i) {
         (*mBackingArray)[i + mOffset] = (*mBackingArray)[mOffset + mPosition + i];
     }
+
     mPosition = mLimit - mPosition;
     mLimit = mCapacity;
     mMark = Buffer_UNSET_MARK;
@@ -159,6 +162,7 @@ ECode ReadWriteHeapByteBuffer::Duplicate(
     /* [out] */ IByteBuffer** buffer)
 {
     VALIDATE_NOT_NULL(buffer);
+
     ReadWriteHeapByteBuffer* buf = Copy((HeapByteBuffer*)this, mMark);
     if (buf->Probe(EIID_IByteBuffer)) {
         *buffer = (IByteBuffer*)buf->Probe(EIID_IByteBuffer);
@@ -166,6 +170,7 @@ ECode ReadWriteHeapByteBuffer::Duplicate(
     else {
         *buffer = NULL;
     }
+
     return NOERROR;
 }
 
@@ -315,8 +320,8 @@ ECode ReadWriteHeapByteBuffer::PutByte(
 {
     if (mPosition == mLimit) {
         return E_BUFFER_OVER_FLOW_EXCEPTION;
-//        throw new BufferOverflowException();
     }
+
     (*mBackingArray)[mOffset + mPosition++] = b;
     return NOERROR;
 }
@@ -327,8 +332,8 @@ ECode ReadWriteHeapByteBuffer::PutByteEx(
 {
     if (index < 0 || index >= mLimit) {
         return E_INDEX_OUT_OF_BOUNDS_EXCEPTION;
-//        throw new IndexOutOfBoundsException();
     }
+
     (*mBackingArray)[mOffset + index] = b;
     return NOERROR;
 }
@@ -346,24 +351,24 @@ ECode ReadWriteHeapByteBuffer::PutBytesEx(
 {
     if (off < 0 || len < 0 || (Int64)len + (Int64)off > src.GetLength()) {
         return E_INDEX_OUT_OF_BOUNDS_EXCEPTION;
-//        throw new IndexOutOfBoundsException();
     }
+
     Int32 remaining;
     Remaining(&remaining);
     if (len > remaining) {
         return E_BUFFER_OVER_FLOW_EXCEPTION;
-//        throw new BufferOverflowException();
     }
+
     Boolean isReadOnly;
     IsReadOnly(&isReadOnly);
     if (isReadOnly) {
         return E_READ_ONLY_BUFFER_EXCEPTION;
-//        throw new ReadOnlyBufferException();
     }
-//    System.arraycopy(src, off, backingArray, offset + position, len);
+
     for(Int32 i = 0; i < len; ++i) {
         (*mBackingArray)[i + mOffset + mPosition] = src[off + i];
     }
+
     mPosition += len;
     return NOERROR;
 }

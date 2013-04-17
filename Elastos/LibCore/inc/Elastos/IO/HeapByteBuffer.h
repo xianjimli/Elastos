@@ -4,29 +4,33 @@
 #include "BaseByteBuffer.h"
 
 /**
- * HeapByteReadWriteHeapByteBuffer, ReadWriteHeapByteReadWriteHeapByteBuffer and ReadOnlyHeapByteReadWriteHeapByteBuffer compose
- * the implementation of array based byte ReadWriteHeapByteBuffers.
+ * HeapByteBuffer, ReadWriteHeapByteBuffer and ReadOnlyHeapByteBuffer compose
+ * the implementation of array based byte buffers.
  * <p>
- * ReadWriteHeapByteReadWriteHeapByteBuffer extends HeapByteReadWriteHeapByteBuffer with all the write methods.
+ * HeapByteBuffer implements all the shared readonly methods and is extended by
+ * the other two classes.
  * </p>
  * <p>
- * This class is marked final for runtime performance.
+ * All methods are marked final for runtime performance.
  * </p>
  *
  */
 class HeapByteBuffer : public BaseByteBuffer
 {
-public:
-    // HeapByteBuffer(
-    // 	/* [in] */ ArrayOf<Byte>* backingArray);
-
-    // HeapByteBuffer(
-    // 	/* [in] */ Int32 capacity);
+protected:
+    HeapByteBuffer(
+        /* [in] */ Int32 capacity);
 
     HeapByteBuffer(
-    	/* [in] */ ArrayOf<Byte>* backingArray,
-    	/* [in] */ Int32 capacity,
-    	/* [in] */ Int32 offset);
+        /* [in] */ ArrayOf<Byte>* backingArray);
+
+    HeapByteBuffer(
+        /* [in] */ ArrayOf<Byte>* backingArray,
+        /* [in] */ Int32 capacity,
+        /* [in] */ Int32 offset);
+
+public:
+    virtual ~HeapByteBuffer();
 
     CARAPI GetBytesEx(
         /* [in] */ Int32 off,
@@ -101,9 +105,11 @@ protected:
 		/* [in] */ Int16 value);
 
 public:
-	ArrayOf<Byte>* mBackingArray;
+	ArrayOf<Byte>*  mBackingArray;
+    Int32           mOffset;
 
-    Int32 mOffset;
+private:
+    Boolean         mIsAllocBySelf;
 };
 
 #endif // __HEAPBYTEBUFFER_H__
