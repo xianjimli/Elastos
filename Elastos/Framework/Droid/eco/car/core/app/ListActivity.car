@@ -1,0 +1,24 @@
+module
+{
+    interface IListActivity {
+        OnContentChanged();
+
+        SetListAdapter(
+            [in] IListAdapter* adapter);
+
+        SetSelection(
+            [in] Int32 position);
+
+        GetSelectedItemPosition(
+            [out] Int32* position);
+
+        GetSelectedItemId(
+            [out] Int64* id);
+
+        GetListView(
+            [out] IListView** listview);
+
+        GetListAdapter(
+            [out] IListAdapter** listadapter);
+    }
+}

@@ -26,6 +26,8 @@ module
     merge("app/RunningAppProcessInfo.car");
     merge("app/ActivityGroup.car");
     merge("app/LocalActivityManager.car");
+    merge("app/ListActivity.car");
+    merge("app/LauncherActivity.car");
 
     class CContentProviderHolder {
         interface IContentProviderHolder;
@@ -284,5 +286,31 @@ module
             [in] Boolean singleMode);
 
         interface ILocalActivityManager;
+    }
+
+    class CListActivity {
+        interface IListActivity;
+    }
+
+    class CLauncherActivity {
+        interface ILauncherActivity;
+    }
+
+    class CLauncherActivityListItem {
+        constructor(
+            [in] ILocalCapsuleManager* pm,
+            [in] IResolveInfo* resolveInfo,
+            [in] ILauncherActivityIconResizer* resizer);
+
+        constructor();
+
+        interface ILauncherActivityListItem;
+    }
+
+    class CLauncherActivityIconResizer {
+        constructor(
+            [in] ILauncherActivity* lActivity);
+
+        interface ILauncherActivityIconResizer;
     }
 }

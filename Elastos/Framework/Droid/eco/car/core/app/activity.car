@@ -360,6 +360,21 @@ module
         RemoveDialog(
             [in] Int32 id);
 
+       /**
+        * Enable extended window features.  This is a convenience for calling
+        * {@link android.view.Window#requestFeature getWindow().requestFeature()}.
+        * 
+        * @param featureId The desired feature as defined in
+        *                  {@link android.view.Window}.
+        * @return Returns true if the requested feature is supported and now
+        *         enabled.
+        * 
+        * @see android.view.Window#requestFeature
+        */
+        RequestWindowFeature(
+            [in] Int32 featureId,
+            [out] Boolean* result);
+
         /**
          * Initialize the contents of the Activity's standard options menu.  You
          * should place your menu items in to <var>menu</var>.
@@ -542,6 +557,16 @@ module
 
         SetStartedActivity(
             [in] Boolean started);
+       /**
+        * Sets the visibility of the indeterminate progress bar in the title.
+        * <p>
+        * In order for the progress bar to be shown, the feature must be requested
+        * via {@link #requestWindowFeature(int)}.
+        *
+        * @param visible Whether to show the progress bars in the title.
+        */
+        SetProgressBarIndeterminateVisibility(
+	    [in] Boolean visible);
     }
 }
 

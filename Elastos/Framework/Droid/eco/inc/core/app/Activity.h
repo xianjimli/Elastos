@@ -564,6 +564,9 @@ public:
         /* [in] */ IMotionEvent* event,
         /* [out] */ Boolean* res);
 
+    CARAPI SetProgressBarIndeterminateVisibility(
+        /* [in] */ Boolean visible);
+
 public:
     /**
      * Finds a view that was identified by the id attribute from the XML that
@@ -632,6 +635,10 @@ public:
     CARAPI RemoveDialog(
         /* [in] */ Int32 id);
 
+    CARAPI RequestWindowFeature(
+        /* [in] */ Int32 featureId,
+        /* [out] */ Boolean* result);
+
     virtual CARAPI OnSaveInstanceState(
         /* [in] */ IBundle* outState);
 
@@ -645,6 +652,9 @@ protected:
     CARAPI Finish();
 
     virtual CARAPI OnCreate(
+        /* [in] */ IBundle* savedInstanceState);
+
+    virtual CARAPI OnRestoreInstanceState(
         /* [in] */ IBundle* savedInstanceState);
 
     virtual CARAPI_(AutoPtr<IDialog>) CreateDialog(

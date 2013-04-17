@@ -110,6 +110,36 @@ public:
     CARAPI WriteToParcel(
         /* [in] */ IParcel *dest);
 
+	/**
+     * Retrieve the current textual label associated with this resolution.  This
+     * will call back on the given PackageManager to load the label from
+     * the application.
+     * 
+     * @param pm A PackageManager from which the label can be loaded; usually
+     * the PackageManager from which you originally retrieved this item.
+     * 
+     * @return Returns a CharSequence containing the resolutions's label.  If the
+     * item does not have a label, its name is returned.
+     */
+    CARAPI LoadLabel(
+        /* [in] */ ILocalCapsuleManager* pm,
+        /* [out] */ ICharSequence** label);
+
+	/**
+     * Retrieve the current graphical icon associated with this resolution.  This
+     * will call back on the given PackageManager to load the icon from
+     * the application.
+     * 
+     * @param pm A PackageManager from which the icon can be loaded; usually
+     * the PackageManager from which you originally retrieved this item.
+     * 
+     * @return Returns a Drawable containing the resolution's icon.  If the
+     * item does not have an icon, the default activity icon is returned.
+     */
+    CARAPI LoadIcon(
+        /* [in] */ ILocalCapsuleManager* pm,
+        /* [out] */ IDrawable** icon);
+
 public:
     /**
      * The activity that corresponds to this resolution match, if this

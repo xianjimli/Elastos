@@ -1,0 +1,19 @@
+module
+{
+    interface IObjectContainer;
+    interface IDrawable;
+
+    interface ILauncherActivity {
+        MakeListItems(
+            [out] IObjectContainer** list);
+    }
+
+    interface ILauncherActivityListItem {        
+    }
+
+    interface ILauncherActivityIconResizer {
+        CreateIconThumbnail(
+            [in] IDrawable* icon,
+            [out] IDrawable** drawable);
+    }
+}
