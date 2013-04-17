@@ -264,7 +264,7 @@ ECode CAudioEffect::CheckStatus(
 }
 
 ECode CAudioEffect::ByteArrayToInt32(
-    /* [in] */ const ArrayOf<Byte>& valueBuf,
+    /* [in] */ ArrayOf<Byte>* valueBuf,
     /* [out] */ Int32* result)
 {
     VALIDATE_NOT_NULL(result);
@@ -273,7 +273,7 @@ ECode CAudioEffect::ByteArrayToInt32(
 }
 
 ECode CAudioEffect::ByteArrayToInt32Ex(
-    /* [in] */ const ArrayOf<Byte>& valueBuf,
+    /* [in] */ ArrayOf<Byte>* valueBuf,
     /* [in] */ Int32 offset,
     /* [out] */ Int32* result)
 {
@@ -292,7 +292,7 @@ ECode CAudioEffect::Int32ToByteArray(
 }
 
 ECode CAudioEffect::ByteArrayToInt16(
-    /* [in] */ const ArrayOf<Byte>& valueBuf,
+    /* [in] */ ArrayOf<Byte>* valueBuf,
     /* [out] */ Int16* result)
 {
     VALIDATE_NOT_NULL(result);
@@ -301,7 +301,7 @@ ECode CAudioEffect::ByteArrayToInt16(
 }
 
 ECode CAudioEffect::ByteArrayToInt16Ex(
-    /* [in] */ const ArrayOf<Byte>& valueBuf,
+    /* [in] */ ArrayOf<Byte>* valueBuf,
     /* [in] */ Int32 offset,
     /* [out] */ Int16* result)
 {
@@ -320,8 +320,8 @@ ECode CAudioEffect::Int16ToByteArray(
 }
 
 ECode CAudioEffect::ConcatArrays(
-    /* [in] */ const ArrayOf<Byte>& array1,
-    /* [in] */ const ArrayOf<byte>& array2,
+    /* [in] */ ArrayOf<Byte>* array1,
+    /* [in] */ ArrayOf<byte>* array2,
     /* [out, callee] */ ArrayOf<Byte>** result)
 {
     VALIDATE_NOT_NULL(result);

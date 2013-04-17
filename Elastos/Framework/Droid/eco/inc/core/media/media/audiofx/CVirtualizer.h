@@ -78,8 +78,8 @@ private:
         CARAPI OnParameterChange(
             /* [in] */ IAudioEffect* effect,
             /* [in] */ Int32 status,
-            /* [in] */ const ArrayOf<Byte>& param,
-            /* [in] */ const ArrayOf<Byte>& value);
+            /* [in] */ ArrayOf<Byte>* param,
+            /* [in] */ ArrayOf<Byte>* value);
     private:
         CVirtualizer* mHost;
     };
@@ -278,11 +278,11 @@ public:
         /* [in] */ Int32 status);
 
     CARAPI ByteArrayToInt32(
-        /* [in] */ const ArrayOf<Byte>& valueBuf,
+        /* [in] */ ArrayOf<Byte>* valueBuf,
         /* [out] */ Int32* result);
 
     CARAPI ByteArrayToInt32Ex(
-        /* [in] */ const ArrayOf<Byte>& valueBuf,
+        /* [in] */ ArrayOf<Byte>* valueBuf,
         /* [in] */ Int32 offset,
         /* [out] */ Int32* result);
 
@@ -291,11 +291,11 @@ public:
         /* [out, callee] */ ArrayOf<Byte>** result);
 
     CARAPI ByteArrayToInt16(
-        /* [in] */ const ArrayOf<Byte>& valueBuf,
+        /* [in] */ ArrayOf<Byte>* valueBuf,
         /* [out] */ Int16* result);
 
     CARAPI ByteArrayToInt16Ex(
-        /* [in] */ const ArrayOf<Byte>& valueBuf,
+        /* [in] */ ArrayOf<Byte>* valueBuf,
         /* [in] */ Int32 offset,
         /* [out] */ Int16* result);
 
@@ -304,8 +304,8 @@ public:
         /* [out, callee] */ ArrayOf<Byte>** result);
 
     CARAPI ConcatArrays(
-        /* [in] */ const ArrayOf<Byte>& array1,
-        /* [in] */ const ArrayOf<Byte>& array2,
+        /* [in] */ ArrayOf<Byte>* array1,
+        /* [in] */ ArrayOf<Byte>* array2,
         /* [out, callee] */ ArrayOf<Byte>** result);
 
 private:

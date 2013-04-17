@@ -80,7 +80,7 @@ ECode CEnvironmentalReverb::GetRoomLevel(
     ArrayOf_<Byte,2> param;
     Int32 status = 0;;
     FAIL_RETURN(obj->CheckStatus(obj->GetParameterEx(EnvironmentalReverb_PARAM_ROOM_LEVEL, &param, &status)));
-    *room = obj->ByteArrayToInt16(param, room);
+    *room = obj->ByteArrayToInt16(&param, room);
     return NOERROR;
 }
 
@@ -102,7 +102,7 @@ ECode CEnvironmentalReverb::GetRoomHFLevel(
     ArrayOf_<Byte,2> param;
     Int32 status = 0;
     FAIL_RETURN(obj->CheckStatus(obj->GetParameterEx(EnvironmentalReverb_PARAM_ROOM_HF_LEVEL, &param, &status)));
-    *roomHF = obj->ByteArrayToInt16(param, roomHF);
+    *roomHF = obj->ByteArrayToInt16(&param, roomHF);
     return NOERROR;
 }
 
@@ -124,7 +124,7 @@ ECode CEnvironmentalReverb::GetDecayTime(
     ArrayOf_<Byte,4> param;
     Int32 status = 0;
     FAIL_RETURN(obj->CheckStatus(obj->GetParameterEx(EnvironmentalReverb_PARAM_DECAY_TIME, &param, &status)));
-    *decayTime = obj->ByteArrayToInt32(param, decayTime);
+    *decayTime = obj->ByteArrayToInt32(&param, decayTime);
     return NOERROR;
 }
 
@@ -146,7 +146,7 @@ ECode CEnvironmentalReverb::GetDecayHFRatio(
     ArrayOf_<Byte,2> param;
     Int32 status = 0;
     FAIL_RETURN(obj->CheckStatus(obj->GetParameterEx(EnvironmentalReverb_PARAM_DECAY_HF_RATIO, &param, &status)));
-    *decayHFRatio = obj->ByteArrayToInt16(param, decayHFRatio);
+    *decayHFRatio = obj->ByteArrayToInt16(&param, decayHFRatio);
     return NOERROR;
 }
 
@@ -168,7 +168,7 @@ ECode CEnvironmentalReverb::GetReflectionsLevel(
     ArrayOf_<Byte,2> param;
     Int32 status = 0;
     FAIL_RETURN(obj->CheckStatus(obj->GetParameterEx(EnvironmentalReverb_PARAM_REFLECTIONS_LEVEL, &param, &status)));
-    *reflectionsLevel = obj->ByteArrayToInt16(param, reflectionsLevel);
+    *reflectionsLevel = obj->ByteArrayToInt16(&param, reflectionsLevel);
     return NOERROR;
 }
 
@@ -190,7 +190,7 @@ ECode CEnvironmentalReverb::GetReflectionsDelay(
     ArrayOf_<Byte,4> param;
     Int32 status;
     FAIL_RETURN(obj->CheckStatus(obj->GetParameterEx(EnvironmentalReverb_PARAM_REFLECTIONS_DELAY, &param, &status)));
-    *reflectionsDelay = obj->ByteArrayToInt32(param, reflectionsDelay);
+    *reflectionsDelay = obj->ByteArrayToInt32(&param, reflectionsDelay);
     return NOERROR;
 }
 
@@ -212,7 +212,7 @@ ECode CEnvironmentalReverb::GetReverbLevel(
     ArrayOf_<Byte,2> param;
     Int32 status;
     FAIL_RETURN(obj->CheckStatus(obj->GetParameterEx(EnvironmentalReverb_PARAM_REVERB_LEVEL, &param, &status)));
-    *reverbLevel = obj->ByteArrayToInt16(param, reverbLevel);
+    *reverbLevel = obj->ByteArrayToInt16(&param, reverbLevel);
     return NOERROR;
 }
 
@@ -234,7 +234,7 @@ ECode CEnvironmentalReverb::GetReverbDelay(
     ArrayOf_<Byte,4> param;
     Int32 status;
     FAIL_RETURN(obj->CheckStatus(obj->GetParameterEx(EnvironmentalReverb_PARAM_REVERB_DELAY, &param, &status)));
-    *reverbDelay = obj->ByteArrayToInt32(param, reverbDelay);
+    *reverbDelay = obj->ByteArrayToInt32(&param, reverbDelay);
     return NOERROR;
 }
 
@@ -256,7 +256,7 @@ ECode CEnvironmentalReverb::GetDiffusion(
     ArrayOf_<Byte,2> param;
     Int32 status = 0;
     FAIL_RETURN(obj->CheckStatus(obj->GetParameterEx(EnvironmentalReverb_PARAM_DIFFUSION, &param, &status)));
-    *diffusion = obj->ByteArrayToInt16(param, diffusion);
+    *diffusion = obj->ByteArrayToInt16(&param, diffusion);
     return NOERROR;
 }
 
@@ -278,15 +278,15 @@ ECode CEnvironmentalReverb::GetDensity(
     ArrayOf_<Byte,2> param;
     Int32 status = 0;
     obj->CheckStatus(obj->GetParameterEx(EnvironmentalReverb_PARAM_DENSITY, &param, &status));
-    *density = obj->ByteArrayToInt16(param, density);
+    *density = obj->ByteArrayToInt16(&param, density);
     return NOERROR;
 }
 
 ECode CEnvironmentalReverb::BaseParameterListener::OnParameterChange(
     /* [in] */ IAudioEffect* effect,
     /* [in] */ Int32 status,
-    /* [in] */ const ArrayOf<Byte>& param,
-    /* [in] */ const ArrayOf<Byte>& value)
+    /* [in] */ ArrayOf<Byte>* param,
+    /* [in] */ ArrayOf<Byte>* value)
 {
     AutoPtr<IEnvironmentalReverbOnParameterChangeListener> l;
 
@@ -298,13 +298,13 @@ ECode CEnvironmentalReverb::BaseParameterListener::OnParameterChange(
         Int32 p = -1;
         Int32 v = -1;
 
-        if (param.GetLength() == 4) {
+        if (param->GetLength() == 4) {
             AutoPtr<IAudioEffect> obj;
             CAudioEffect::New((IUUID*) 0,(IUUID*) 0,0,0,(IAudioEffect**)&obj);
             obj->ByteArrayToInt32Ex(param, 0, &p);
             obj->Release();
         }
-        if (value.GetLength() == 2) {
+        if (value->GetLength() == 2) {
             AutoPtr<IAudioEffect> obj;
             CAudioEffect::New((IUUID*) 0,(IUUID*) 0,0,0,(IAudioEffect**)&obj);
             obj->ByteArrayToInt32Ex(value, 0, &v);
@@ -866,14 +866,14 @@ ECode CEnvironmentalReverb::CheckStatus(
 }
 
 ECode CEnvironmentalReverb::ByteArrayToInt32(
-    /* [in] */ const ArrayOf<Byte>& valueBuf,
+    /* [in] */ ArrayOf<Byte>* valueBuf,
     /* [out] */ Int32* result)
 {
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CEnvironmentalReverb::ByteArrayToInt32Ex(
-    /* [in] */ const ArrayOf<Byte>& valueBuf,
+    /* [in] */ ArrayOf<Byte>* valueBuf,
     /* [in] */ Int32 offset,
     /* [out] */ Int32* result)
 {
@@ -888,14 +888,14 @@ ECode CEnvironmentalReverb::Int32ToByteArray(
 }
 
 ECode CEnvironmentalReverb::ByteArrayToInt16(
-    /* [in] */ const ArrayOf<Byte>& valueBuf,
+    /* [in] */ ArrayOf<Byte>* valueBuf,
     /* [out] */ Int16* result)
 {
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CEnvironmentalReverb::ByteArrayToInt16Ex(
-    /* [in] */ const ArrayOf<Byte>& valueBuf,
+    /* [in] */ ArrayOf<Byte>* valueBuf,
     /* [in] */ Int32 offset,
     /* [out] */ Int16* result)
 {
@@ -910,8 +910,8 @@ ECode CEnvironmentalReverb::Int16ToByteArray(
 }
 
 ECode CEnvironmentalReverb::ConcatArrays(
-    /* [in] */ const ArrayOf<Byte>& array1,
-    /* [in] */ const ArrayOf<Byte>& array2,
+    /* [in] */ ArrayOf<Byte>* array1,
+    /* [in] */ ArrayOf<Byte>* array2,
     /* [out, callee] */ ArrayOf<Byte>** result)
 {
     return E_NOT_IMPLEMENTED;

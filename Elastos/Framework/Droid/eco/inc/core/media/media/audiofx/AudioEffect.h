@@ -492,14 +492,14 @@ public:
      * @hide
      */
     CARAPI ByteArrayToInt32(
-        /* [in] */ const ArrayOf<Byte>& valueBuf,
+        /* [in] */ ArrayOf<Byte>* valueBuf,
         /* [out] */ Int32* result);
 
     /**
      * @hide
      */
     CARAPI ByteArrayToInt32Ex(
-        /* [in] */ const ArrayOf<Byte>& valueBuf,
+        /* [in] */ ArrayOf<Byte>* valueBuf,
         /* [in] */ Int32 offset,
         /* [out] */ Int32* result);
 
@@ -514,14 +514,14 @@ public:
      * @hide
      */
     CARAPI ByteArrayToInt16(
-        /* [in] */ const ArrayOf<Byte>& valueBuf,
+        /* [in] */ ArrayOf<Byte>* valueBuf,
         /* [out] */ Int16* result);
 
     /**
      * @hide
      */
     CARAPI ByteArrayToInt16Ex(
-        /* [in] */ const ArrayOf<Byte>& valueBuf,
+        /* [in] */ ArrayOf<Byte>* valueBuf,
         /* [in] */ Int32 offset,
         /* [out] */ Int16* result);
 
@@ -536,8 +536,8 @@ public:
      * @hide
      */
     CARAPI ConcatArrays(
-        /* [in] */ const ArrayOf<Byte>& array1,
-        /* [in] */ const ArrayOf<Byte>& array2,
+        /* [in] */ ArrayOf<Byte>* array1,
+        /* [in] */ ArrayOf<Byte>* array2,
         /* [out, callee] */ ArrayOf<Byte>** result);
 
 protected:

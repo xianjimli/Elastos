@@ -82,8 +82,8 @@ ECode CPresetReverb::GetPreset(
 ECode CPresetReverb::BaseParameterListener::OnParameterChange(
     /* [in] */ IAudioEffect* effect,
     /* [in] */ Int32 status,
-    /* [in] */ const ArrayOf<Byte>& param,
-    /* [in] */ const ArrayOf<Byte>& value)
+    /* [in] */ ArrayOf<Byte>* param,
+    /* [in] */ ArrayOf<Byte>* value)
 {
     AutoPtr<IPresetReverbOnParameterChangeListener> l;
 
@@ -95,13 +95,13 @@ ECode CPresetReverb::BaseParameterListener::OnParameterChange(
         Int32 p = -1;
         Int16 v = -1;
 
-        if (param.GetLength() == 4) {
+        if (param->GetLength() == 4) {
             AutoPtr<IAudioEffect> obj;
             CAudioEffect::New((IUUID*) 0,(IUUID*) 0,0,0,(IAudioEffect**)&obj);
             obj->ByteArrayToInt32Ex(param, 0, &p);
             obj->Release();
         }
-        if (value.GetLength() == 2) {
+        if (value->GetLength() == 2) {
             AutoPtr<IAudioEffect> obj;
             CAudioEffect::New((IUUID*) 0,(IUUID*) 0,0,0,(IAudioEffect**)&obj);
             obj->ByteArrayToInt16Ex(value, 0, &v);
@@ -401,14 +401,14 @@ ECode CPresetReverb::CheckStatus(
 }
 
 ECode CPresetReverb::ByteArrayToInt32(
-    /* [in] */ const ArrayOf<Byte>& valueBuf,
+    /* [in] */ ArrayOf<Byte>* valueBuf,
     /* [out] */ Int32* result)
 {
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CPresetReverb::ByteArrayToInt32Ex(
-    /* [in] */ const ArrayOf<Byte>& valueBuf,
+    /* [in] */ ArrayOf<Byte>* valueBuf,
     /* [in] */ Int32 offset,
     /* [out] */ Int32* result)
 {
@@ -423,14 +423,14 @@ ECode CPresetReverb::Int32ToByteArray(
 }
 
 ECode CPresetReverb::ByteArrayToInt16(
-    /* [in] */ const ArrayOf<Byte>& valueBuf,
+    /* [in] */ ArrayOf<Byte>* valueBuf,
     /* [out] */ Int16* result)
 {
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CPresetReverb::ByteArrayToInt16Ex(
-    /* [in] */ const ArrayOf<Byte>& valueBuf,
+    /* [in] */ ArrayOf<Byte>* valueBuf,
     /* [in] */ Int32 offset,
     /* [out] */ Int16* result)
 {
@@ -445,8 +445,8 @@ ECode CPresetReverb::Int16ToByteArray(
 }
 
 ECode CPresetReverb::ConcatArrays(
-    /* [in] */ const ArrayOf<Byte>& array1,
-    /* [in] */ const ArrayOf<Byte>& array2,
+    /* [in] */ ArrayOf<Byte>* array1,
+    /* [in] */ ArrayOf<Byte>* array2,
     /* [out, callee] */ ArrayOf<Byte>** result)
 {
     return E_NOT_IMPLEMENTED;

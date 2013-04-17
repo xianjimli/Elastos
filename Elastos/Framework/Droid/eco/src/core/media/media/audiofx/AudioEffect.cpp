@@ -271,7 +271,7 @@ ECode AudioEffect::SetParameterEx4(
         AutoFree< ArrayOf<Byte> > p2;
         Int32ToByteArray((*param)[1],(ArrayOf<Byte>**)&p2);
         AutoFree< ArrayOf<Byte> > tempArrayByte;
-        ConcatArrays(*p, *p2, (ArrayOf<Byte>**)&tempArrayByte);
+        ConcatArrays(p, p2, (ArrayOf<Byte>**)&tempArrayByte);
         p = tempArrayByte;
     }
     AutoFree< ArrayOf<Byte> > v;
@@ -280,7 +280,7 @@ ECode AudioEffect::SetParameterEx4(
         AutoFree< ArrayOf<Byte> > v2;
         Int32ToByteArray((*value)[1],(ArrayOf<Byte>**)&v2);
         AutoFree< ArrayOf<Byte> > tempArrayByte;
-        ConcatArrays(*v, *v2, (ArrayOf<Byte>**)&tempArrayByte);
+        ConcatArrays(v, v2, (ArrayOf<Byte>**)&tempArrayByte);
         v = tempArrayByte;
     }
     *result = SetParameter(p.Get(), v.Get(), result);
@@ -305,7 +305,7 @@ ECode AudioEffect::SetParameterEx5(
         AutoFree< ArrayOf<Byte> > p2;
         Int32ToByteArray((*param)[1],(ArrayOf<Byte>**)&p2);
         AutoFree< ArrayOf<Byte> > tempArrayByte;
-        ConcatArrays(*p, *p2, (ArrayOf<Byte>**)&tempArrayByte);
+        ConcatArrays(p, p2, (ArrayOf<Byte>**)&tempArrayByte);
         p = tempArrayByte;
     }
     AutoFree< ArrayOf<Byte> > v;
@@ -314,7 +314,7 @@ ECode AudioEffect::SetParameterEx5(
         AutoFree< ArrayOf<Byte> > v2;
         Int16ToByteArray((*value)[1],(ArrayOf<Byte>**)&v2);
         AutoFree< ArrayOf<Byte> > tempArrayByte;
-        ConcatArrays(*v, *v2, (ArrayOf<Byte>**)&tempArrayByte);
+        ConcatArrays(v, v2, (ArrayOf<Byte>**)&tempArrayByte);
         v = tempArrayByte;
     }
     *result = SetParameter(p.Get(), v.Get(), result);
@@ -336,7 +336,7 @@ ECode AudioEffect::SetParameterEx6(
         AutoFree< ArrayOf<Byte> > p2;
         Int32ToByteArray((*param)[1],(ArrayOf<Byte>**)&p2);
         AutoFree< ArrayOf<Byte> > tempArrayByte;
-        ConcatArrays(*p, *p2, (ArrayOf<Byte>**)&tempArrayByte);
+        ConcatArrays(p, p2, (ArrayOf<Byte>**)&tempArrayByte);
         p = tempArrayByte;
     }
     *result = SetParameter(p.Get(), value, result);
@@ -398,10 +398,10 @@ ECode AudioEffect::GetParameterEx2(
     *status = GetParameter(p.Get(), v, status);
 
     Int32 tempInt32;
-    ByteArrayToInt32(*v, &tempInt32);
+    ByteArrayToInt32(v, &tempInt32);
     (*value)[0] = tempInt32;
     if ((*v).GetLength() > 4) {
-        ByteArrayToInt32Ex(*v, 4, &tempInt32);
+        ByteArrayToInt32Ex(v, 4, &tempInt32);
         (*value)[1] = tempInt32;
     }
     ArrayOf<Byte>::Free(v);
@@ -428,10 +428,10 @@ ECode AudioEffect::GetParameterEx3(
     *status = GetParameter(p.Get(), v, status);
 
     Int16 tempInt16;
-    ByteArrayToInt16(*v, &tempInt16);
+    ByteArrayToInt16(v, &tempInt16);
     (*value)[0] = tempInt16;
     if ((*v).GetLength() > 2) {
-        ByteArrayToInt16Ex(*v, 2, &tempInt16);
+        ByteArrayToInt16Ex(v, 2, &tempInt16);
         (*value)[1] = tempInt16;
     }
     ArrayOf<Byte>::Free(v);
@@ -455,7 +455,7 @@ ECode AudioEffect::GetParameterEx4(
         AutoFree< ArrayOf<Byte> > p2;
         Int32ToByteArray((*param)[1],(ArrayOf<Byte>**)&p2);
         AutoFree< ArrayOf<Byte> > tempArrayByte;
-        ConcatArrays(*p, *p2, (ArrayOf<Byte>**)&tempArrayByte);
+        ConcatArrays(p, p2, (ArrayOf<Byte>**)&tempArrayByte);
         p = tempArrayByte;
     }
     ArrayOf<Byte>* v = ArrayOf<Byte>::Alloc((*value).GetLength() * 4);
@@ -463,10 +463,10 @@ ECode AudioEffect::GetParameterEx4(
     *status = GetParameter(p.Get(), v, status);
 
     Int32 tempInt32;
-    ByteArrayToInt32(*v, &tempInt32);
+    ByteArrayToInt32(v, &tempInt32);
     (*value)[0] = tempInt32;
     if ((*v).GetLength() > 4) {
-        ByteArrayToInt32Ex(*v, 4, &tempInt32);
+        ByteArrayToInt32Ex(v, 4, &tempInt32);
         (*value)[1] = tempInt32;
     }
     ArrayOf<Byte>::Free(v);
@@ -491,7 +491,7 @@ ECode AudioEffect::GetParameterEx5(
         AutoFree< ArrayOf<Byte> > p2;
         Int32ToByteArray((*param)[1],(ArrayOf<Byte>**)&p2);
         AutoFree< ArrayOf<Byte> > tempArrayByte;
-        ConcatArrays(*p, *p2, (ArrayOf<Byte>**)&tempArrayByte);
+        ConcatArrays(p, p2, (ArrayOf<Byte>**)&tempArrayByte);
         p = tempArrayByte;
     }
     ArrayOf<Byte>* v = ArrayOf<Byte>::Alloc((*value).GetLength() * 2);
@@ -499,10 +499,10 @@ ECode AudioEffect::GetParameterEx5(
     *status = GetParameter(p.Get(), v, status);
 
     Int16 tempInt16;
-    ByteArrayToInt16(*v, &tempInt16);
+    ByteArrayToInt16(v, &tempInt16);
     (*value)[0] = tempInt16;
     if ((*v).GetLength() > 2) {
-        ByteArrayToInt16Ex(*v, 2, &tempInt16);
+        ByteArrayToInt16Ex(v, 2, &tempInt16);
         (*value)[1] = tempInt16;
     }
     ArrayOf<Byte>::Free(v);
@@ -527,7 +527,7 @@ ECode AudioEffect::GetParameterEx6(
         AutoFree< ArrayOf<Byte> > p2;
         Int32ToByteArray((*param)[1], (ArrayOf<Byte>**)&p2);
          AutoFree< ArrayOf<Byte> > tempArrayByte;
-        ConcatArrays(*p, *p2, (ArrayOf<Byte>**)&tempArrayByte);
+        ConcatArrays(p, p2, (ArrayOf<Byte>**)&tempArrayByte);
         p = tempArrayByte;
     }
 
@@ -734,11 +734,11 @@ ECode AudioEffect::NativeEventHandler::HandleMessage(
             Int32 status;
             AutoPtr<IAudioEffect> obj;
 //            AudioEffect::New(0,0,(IAudioEffect**)&obj);
-            obj->ByteArrayToInt32Ex(*p, 0, &status);
+            obj->ByteArrayToInt32Ex(p, 0, &status);
             Int32 psize;
-            obj->ByteArrayToInt32Ex(*p, 4, &status);
+            obj->ByteArrayToInt32Ex(p, 4, &status);
             Int32 vsize;
-            obj->ByteArrayToInt32Ex(*p, 8, &status);
+            obj->ByteArrayToInt32Ex(p, 8, &status);
             ArrayOf<Byte>* param = ArrayOf<Byte>::Alloc(psize);
             ArrayOf<Byte>* value = ArrayOf<Byte>::Alloc(vsize);
             p->Replace(
@@ -1186,7 +1186,7 @@ ECode AudioEffect::CheckStatus(
 }
 
 ECode AudioEffect::ByteArrayToInt32(
-    /* [in] */ const ArrayOf<Byte>& valueBuf,
+    /* [in] */ ArrayOf<Byte>* valueBuf,
     /* [out] */ Int32* result)
 {
     VALIDATE_NOT_NULL(result);
@@ -1195,17 +1195,17 @@ ECode AudioEffect::ByteArrayToInt32(
 }
 
 ECode AudioEffect::ByteArrayToInt32Ex(
-    /* [in] */ const ArrayOf<Byte>& valueBuf,
+    /* [in] */ ArrayOf<Byte>* valueBuf,
     /* [in] */ Int32 offset,
     /* [out] */ Int32* result)
 {
     VALIDATE_NOT_NULL(result);
-    /*
-        ByteBuffer converter = ByteBuffer.wrap(valueBuf);
-        converter.order(ByteOrder.nativeOrder());
-        return converter.getInt(offset);
-    */
-    return E_NOT_IMPLEMENTED;
+
+    AutoPtr<IByteBuffer> converter;
+    AutoPtr<IByteBufferHelper> tempByteBufferHelper;
+    tempByteBufferHelper->Wrap(valueBuf,(IByteBuffer**) &converter);
+    *result = converter->GetInt32Ex(offset, result);
+    return NOERROR;
 }
 
 ECode AudioEffect::Int32ToByteArray(
@@ -1214,17 +1214,19 @@ ECode AudioEffect::Int32ToByteArray(
 {
     VALIDATE_NOT_NULL(result);
 
-    /*
-        ByteBuffer converter = ByteBuffer.allocate(4);
-        converter.order(ByteOrder.nativeOrder());
-        converter.putInt(value);
-        return converter.array();
-    */
-    return E_NOT_IMPLEMENTED;
+    AutoPtr<IByteBuffer> converter;
+    AutoPtr<IByteBufferHelper> tempByteBufferHelper;
+    tempByteBufferHelper->Allocate(4,(IByteBuffer**) &converter);
+    ByteOrder* tempByteOrder;
+    converter->GetOrder(tempByteOrder);
+    converter->PutInt32(value);
+    AutoFree< ArrayOf<Byte> > p;
+    *result = (ArrayOf<Byte>*) converter->Array((ArrayOf<Byte>**) &p);
+    return NOERROR;
 }
 
 ECode AudioEffect::ByteArrayToInt16(
-    /* [in] */ const ArrayOf<Byte>& valueBuf,
+    /* [in] */ ArrayOf<Byte>* valueBuf,
     /* [out] */ Int16* result)
 {
     VALIDATE_NOT_NULL(result);
@@ -1233,18 +1235,19 @@ ECode AudioEffect::ByteArrayToInt16(
 }
 
 ECode AudioEffect::ByteArrayToInt16Ex(
-    /* [in] */ const ArrayOf<Byte>& valueBuf,
+    /* [in] */ ArrayOf<Byte>* valueBuf,
     /* [in] */ Int32 offset,
     /* [out] */ Int16* result)
 {
     VALIDATE_NOT_NULL(result);
 
-    /*
-        ByteBuffer converter = ByteBuffer.wrap(valueBuf);
-        converter.order(ByteOrder.nativeOrder());
-        return converter.getShort(offset);
-    */
-    return E_NOT_IMPLEMENTED;
+    AutoPtr<IByteBuffer> converter;
+    AutoPtr<IByteBufferHelper> tempByteBufferHelper;
+    tempByteBufferHelper->Wrap(valueBuf,(IByteBuffer**) &converter);
+    ByteOrder* tempByteOrder;
+    converter->GetOrder(tempByteOrder);
+    *result = converter->GetInt16Ex(offset, result);
+    return NOERROR;
 }
 
 ECode AudioEffect::Int16ToByteArray(
@@ -1253,32 +1256,33 @@ ECode AudioEffect::Int16ToByteArray(
 {
     VALIDATE_NOT_NULL(result);
 
-    /*
-        ByteBuffer converter = ByteBuffer.allocate(2);
-        converter.order(ByteOrder.nativeOrder());
-        short sValue = (short) value;
-        converter.putShort(sValue);
-        return converter.array();
-    */
-    return E_NOT_IMPLEMENTED;
+    AutoPtr<IByteBuffer> converter;
+    AutoPtr<IByteBufferHelper> tempByteBufferHelper;
+    tempByteBufferHelper->Allocate(2,(IByteBuffer**) &converter);
+    ByteOrder* tempByteOrder;
+    converter->GetOrder(tempByteOrder);
+    Int16 sValue = (Int16) value;
+    converter->PutInt16(sValue);
+    AutoFree< ArrayOf<Byte> > p;
+    *result = (ArrayOf<Byte>*) converter->Array((ArrayOf<Byte>**) &p);
+    return NOERROR;
 }
 
 ECode AudioEffect::ConcatArrays(
-    /* [in] */ const ArrayOf<Byte>& array1,
-    /* [in] */ const ArrayOf<byte>& array2,
+    /* [in] */ ArrayOf<Byte>* array1,
+    /* [in] */ ArrayOf<Byte>* array2,
     /* [out, callee] */ ArrayOf<Byte>** result)
 {
     VALIDATE_NOT_NULL(result);
 
-    Int32 len = 0;
-    len = array1.GetLength() + array2.GetLength();
+    Int32 len = array1->GetLength() + array2->GetLength();
+    ArrayOf<Byte>* newArray = ArrayOf<Byte>::Alloc(len);
+    if (newArray == NULL) {
+        *result = NULL;
+        return E_OUT_OF_MEMORY_ERROR;
+    }
 
-    ArrayOf<Byte>* b = ArrayOf<Byte>::Alloc(len);
-
-    ArrayOf<Byte>* tempResult1 = array1.Clone();
-    tempResult1->Replace(
-        0, b->GetPayload(),array1.GetLength());
-    ArrayOf<Byte>::Free(b);
-    *result = b;
+    memcpy(newArray->GetPayload(), array1->GetPayload(), array1->GetLength());
+    memcpy(newArray->GetPayload() + array1->GetLength(), array2->GetPayload(), array2->GetLength());
     return NOERROR;
 }
