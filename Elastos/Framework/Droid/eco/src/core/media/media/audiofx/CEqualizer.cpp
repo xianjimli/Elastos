@@ -255,8 +255,8 @@ ECode CEqualizer::GetPresetName(
 ECode CEqualizer::BaseParameterListener::OnParameterChange(
     /* [in] */ IAudioEffect* effect,
     /* [in] */ Int32 status,
-    /* [in] */ const ArrayOf<Byte>& param,
-    /* [in] */ const ArrayOf<Byte>& value)
+    /* [in] */ ArrayOf<Byte>* param,
+    /* [in] */ ArrayOf<Byte>* value)
 {
     AutoPtr<IEqualizerOnParameterChangeListener> l;
 
@@ -269,23 +269,23 @@ ECode CEqualizer::BaseParameterListener::OnParameterChange(
         Int32 p2 = -1;
         Int32 v = -1;
 
-        if (param.GetLength() >= 4) {
+        if (param->GetLength() >= 4) {
             AutoPtr<IAudioEffect> obj;
             CAudioEffect::New((IUUID*) 0,(IUUID*) 0,0,0,(IAudioEffect**)&obj);
             obj->ByteArrayToInt32Ex(param, 0, &p1);
-            if (param.GetLength() >= 8) {
+            if (param->GetLength() >= 8) {
                 obj->ByteArrayToInt32Ex(param, 4, &p2);
             }
             obj->Release();
         }
-        if (value.GetLength() == 2) {
+        if (value->GetLength() == 2) {
             AutoPtr<IAudioEffect> obj;
             CAudioEffect::New((IUUID*) 0,(IUUID*) 0,0,0,(IAudioEffect**)&obj);
             Int16 status;
             obj->ByteArrayToInt16Ex(value, 0, &status);
             v = (Int32) status;
             obj->Release();
-        } else if (value.GetLength() == 4) {
+        } else if (value->GetLength() == 4) {
             AutoPtr<IAudioEffect> obj;
             CAudioEffect::New((IUUID*) 0,(IUUID*) 0,0,0,(IAudioEffect**)&obj);
             obj->ByteArrayToInt32Ex(value, 0, &v);
@@ -438,13 +438,13 @@ ECode CEqualizer::GetProperties(
     FAIL_RETURN(obj->CheckStatus(obj->GetParameterEx(Equalizer_PARAM_PROPERTIES,param,&status)));
     AutoPtr<IEqualizerSettings> settings;
     Int16 statusInt16;
-    obj->ByteArrayToInt16Ex(*param, 0, &statusInt16);
+    obj->ByteArrayToInt16Ex(param, 0, &statusInt16);
     // settings->SetParameterInt16(String("curPreset"), statusInt16);
-    obj->ByteArrayToInt16Ex(*param, 2, &statusInt16);
+    obj->ByteArrayToInt16Ex(param, 2, &statusInt16);
     // settings->SetParameterInt16(String("numBands"), statusInt16);
     ArrayOf<Int16>* tempInt16Array1 = ArrayOf<Int16>::Alloc(mNumBands);
     for (int i = 0; i < mNumBands; i++) {
-        obj->ByteArrayToInt16Ex(*param, 4 + 2*i, &statusInt16);
+        obj->ByteArrayToInt16Ex(param, 4 + 2*i, &statusInt16);
         (*tempInt16Array1)[i] = statusInt16;
     }
     // settings->SetParameterInt16Array(String("bandLevels"), *tempInt16Array1);
@@ -473,14 +473,14 @@ ECode CEqualizer::SetProperties(
     // settings->GetParameterInt16(String("curPreset"), &tempInt16Parameter1);
     // obj->Int16ToByteArray(tempInt16Parameter1, tempByteArray1);
     // obj->Int16ToByteArray(mNumBands, tempByteArray2);
-    obj->ConcatArrays(*tempByteArray1, *tempByteArray2, (ArrayOf<Byte>**)&tempResult1);
+    obj->ConcatArrays(tempByteArray1, tempByteArray2, (ArrayOf<Byte>**)&tempResult1);
     ArrayOf<Byte>* param = tempResult1;
 
     for (int i = 0; i < mNumBands; i++) {
         AutoPtr<IAudioEffect> obj;
         CAudioEffect::New((IUUID*) 0,(IUUID*) 0,0,0,(IAudioEffect**)&obj);
         // obj->Int16ToByteArray((*tempInt16Array1)[i], tempByteArray1);
-        obj->ConcatArrays(*param, *tempByteArray1, &param);
+        obj->ConcatArrays(param, tempByteArray1, &param);
         obj->Release();
     }
     Int32 status;
@@ -678,14 +678,14 @@ ECode CEqualizer::CheckStatus(
 }
 
 ECode CEqualizer::ByteArrayToInt32(
-    /* [in] */ const ArrayOf<Byte>& valueBuf,
+    /* [in] */ ArrayOf<Byte>* valueBuf,
     /* [out] */ Int32* result)
 {
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CEqualizer::ByteArrayToInt32Ex(
-    /* [in] */ const ArrayOf<Byte>& valueBuf,
+    /* [in] */ ArrayOf<Byte>* valueBuf,
     /* [in] */ Int32 offset,
     /* [out] */ Int32* result)
 {
@@ -700,14 +700,14 @@ ECode CEqualizer::Int32ToByteArray(
 }
 
 ECode CEqualizer::ByteArrayToInt16(
-    /* [in] */ const ArrayOf<Byte>& valueBuf,
+    /* [in] */ ArrayOf<Byte>* valueBuf,
     /* [out] */ Int16* result)
 {
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CEqualizer::ByteArrayToInt16Ex(
-    /* [in] */ const ArrayOf<Byte>& valueBuf,
+    /* [in] */ ArrayOf<Byte>* valueBuf,
     /* [in] */ Int32 offset,
     /* [out] */ Int16* result)
 {
@@ -722,8 +722,8 @@ ECode CEqualizer::Int16ToByteArray(
 }
 
 ECode CEqualizer::ConcatArrays(
-    /* [in] */ const ArrayOf<Byte>& array1,
-    /* [in] */ const ArrayOf<Byte>& array2,
+    /* [in] */ ArrayOf<Byte>* array1,
+    /* [in] */ ArrayOf<Byte>* array2,
     /* [out, callee] */ ArrayOf<Byte>** result)
 {
     return E_NOT_IMPLEMENTED;
