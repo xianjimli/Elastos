@@ -22,7 +22,7 @@ module
         OnPeriodicNotification(
             [in] IAudioTrack* track);
     }
-
+    [deprecated]
     interface IAudioTrack {
         /**
          * Releases the native AudioTrack resources.
@@ -264,7 +264,7 @@ module
          *    the parameters don't resolve to valid data and indexes.
          */
         Write(
-            [in] ArrayOf<Byte> audioData,
+            [in] ArrayOf<Byte>* audioData,
             [in] Int32 offsetInBytes,
             [in] Int32 sizeInBytes,
             [out] Int32* num);
@@ -280,7 +280,7 @@ module
          *    the parameters don't resolve to valid data and indexes.
          */
         WriteEx(
-            [in] ArrayOf<Int16> audioData,
+            [in] ArrayOf<Int16>* audioData,
             [in] Int32 offsetInShorts,
             [in] Int32 sizeInShorts,
             [out] Int32* num);
