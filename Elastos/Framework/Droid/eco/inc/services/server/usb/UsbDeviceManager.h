@@ -216,6 +216,8 @@ public:
         /* [in] */ IContext* context,
         /* [in] */ UsbSettingsManager* settingsManager);
 
+    ~UsbDeviceManager();
+
     CARAPI_(UInt32) AddRef();
 
     CARAPI_(UInt32) Release();
@@ -291,7 +293,8 @@ private:
     CARAPI_(ArrayOf<String>*) GetAccessoryStringsRef();
 
     CARAPI_(void) GetOemModeListRef(
-        /* [in] */ const String& mode);
+        /* [in] */ const String& mode,
+        /* [out] */ List< Pair<String, String> >** list);
 
     CARAPI_(Boolean) IsOemModeExistsRef(
         /* [in] */ const String& mode);
@@ -336,7 +339,7 @@ private:
     Boolean mAudioSourceEnabled;
 
     ArrayOf<String>* mAccessoryStrings;
-    HashMap< String, List< Pair<String, String> > > mOemModeMap;
+    HashMap< String, List< Pair<String, String> > >* mOemModeMap;
 };
 
 #endif // __USBDEVICEMANAGER_H__

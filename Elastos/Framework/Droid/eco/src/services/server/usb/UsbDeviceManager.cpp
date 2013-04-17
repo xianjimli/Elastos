@@ -1,5 +1,7 @@
 
 #include "server/usb/UsbDeviceManager.h"
+#include "os/SystemProperties.h"
+#include <Elastos.IO.h>
 
 const Boolean UsbDeviceManager::DEBUG = FALSE;
 
@@ -49,9 +51,11 @@ ECode UsbDeviceManager::AdbSettingsObserver::OnChange(
     /* [in] */ Boolean selfChange)
 {
     Boolean enable = FALSE;
+    // RYAN
     // Java
     // boolean enable = (Settings.Secure.getInt(mContentResolver, Settings.Secure.ADB_ENABLED, 0) > 0);
 
+    // RYAN
     // Elastos
     // Settings.Secure.getInt(mHost->GetContentResolverRef(), SettingsSecure_ADB_ENABLED);
     mHost->mHandler->SendMessage(MSG_ENABLE_ADB, enable);
@@ -478,6 +482,16 @@ UsbDeviceManager::UsbDeviceManager(
     // NOT IMPLEMENTED
 }
 
+UsbDeviceManager::~UsbDeviceManager()
+{
+    if (mOemModeMap == NULL) {
+        return;
+    }
+
+    mOemModeMap->Clear();
+    delete mOemModeMap;
+}
+
 UInt32 UsbDeviceManager::AddRef()
 {
     return ElRefBase::AddRef();
@@ -548,9 +562,8 @@ void UsbDeviceManager::SetCurrentFunctions(
         Logger::D(UsbDeviceManager::TAG, (String)buf);
     }
 
-    //mHandler->SendMessage(MSG_SET_CURRENT_FUNCTIONS, functions, makeDefault);
-
-    // NOT IMPLEMENTED
+    CString arg = CString(functions.string());
+    mHandler->SendMessage(MSG_SET_CURRENT_FUNCTIONS, (IInterface*)&arg, makeDefault);
 }
 
 void UsbDeviceManager::SetMassStorageBackingFile(
@@ -561,7 +574,50 @@ void UsbDeviceManager::SetMassStorageBackingFile(
 
 void UsbDeviceManager::InitRndisAddress()
 {
-    // NOT IMPLEMENTED
+    // configure RNDIS ethernet address based on our serial number using the same algorithm
+    // we had been previously using in kernel board files
+    Int32 ETH_ALEN = 6;
+    Int32* address = new Int32[ETH_ALEN];
+
+    // first byte is 0x02 to signify a locally administered address
+    address[0] = 0x02;
+
+    String serial = SystemProperties::Get("ro.serialno", "1234567890ABCDEF");
+
+    Int32 serialLength = serial.GetLength();
+
+    // XOR the USB serial across the remaining 5 bytes
+    for (Int32 i = 0; i < serialLength; i++) {
+        address[i % (ETH_ALEN - 1) + 1] ^= (Int32)serial.GetChar(i);
+    }
+
+    // RYAN
+    //String addrString = String.format("%02X:%02X:%02X:%02X:%02X:%02X",
+    //    address[0], address[1], address[2], address[3], address[4], address[5]);
+
+    String addrString;
+
+    AutoPtr<IFile> file;
+    CFile::New(RNDIS_ETH_ADDR_PATH, (IFile**)&file);
+
+    ECode ec;
+    IOutputStreamWriter* writer = NULL;
+    ec = CFileWriter::New(file, (IOutputStreamWriter**)&writer);
+
+    ec = writer->WriteString(addrString);
+
+    if (FAILED(ec)) {
+        StringBuffer buf;
+        buf += "failed to write to ";
+        buf += RNDIS_ETH_ADDR_PATH;
+
+        Logger::E(UsbDeviceManager::TAG, (String)buf);
+        writer->Release();
+        return;
+    }
+
+    writer->Close();
+    writer->Release();
 }
 
 String UsbDeviceManager::AddFunction(
@@ -657,7 +713,35 @@ Boolean UsbDeviceManager::ContainsFunction(
 
 void UsbDeviceManager::StartAccessoryMode()
 {
-    // NOT IMPLEMENTED
+    mAccessoryStrings = NativeGetAccessoryStrings();
+
+    Boolean enableAudio = (NativeGetAudioMode() == AUDIO_MODE_SOURCE);
+
+    // don't start accessory mode if our mandatory strings have not been set
+    Boolean enableAccessory = (mAccessoryStrings != NULL &&
+                               mAccessoryStrings[UsbAccessory_MANUFACTURER_STRING] != NULL &&
+                               mAccessoryStrings[UsbAccessory_MODEL_STRING] != NULL);
+
+    String functions = (String)NULL;
+
+    if (enableAccessory && enableAudio) {
+        StringBuffer buf;
+        buf += UsbManager_USB_FUNCTION_ACCESSORY;
+        buf += ",";
+        buf += UsbManager_USB_FUNCTION_AUDIO_SOURCE;
+
+        functions = (String)buf;
+    } else if (enableAccessory) {
+        functions = UsbManager_USB_FUNCTION_ACCESSORY;
+    } else if (enableAudio) {
+        functions = UsbManager_USB_FUNCTION_AUDIO_SOURCE;
+    }
+
+    if (functions == NULL) {
+        return;
+    }
+
+    SetCurrentFunctions(functions, FALSE);
 }
 
 void UsbDeviceManager::ReadOemUsbOverrideConfig()
@@ -674,27 +758,34 @@ void UsbDeviceManager::ReadOemUsbOverrideConfig()
     for (Int32 i = 0, size = configList->GetLength(); i < size; i++) {
         String config = (*configList)[i];
 
-        ArrayOf<String>* strArray;
-        CommonUtil::SplitString(config, ':', &strArray);
+        ArrayOf<String>* items;
+        CommonUtil::SplitString(config, ':', &items);
 
-        if (strArray->GetLength() != 3) {
+        if (items->GetLength() != 3) {
             continue;
         }
 
+        if (mOemModeMap == NULL) {
+            mOemModeMap == new HashMap< String, List< Pair<String, String> > >();
+        }
 
-        // ...
+        List< Pair<String, String> >* overrideList;
+        GetOemModeListRef((*items)[0], &overrideList);
+
+        if (overrideList == NULL) {
+            overrideList = new List< Pair<String, String> >;
+            (*mOemModeMap)[(*items)[0]] = *overrideList;
+        }
+
+        overrideList->PushBack(Pair<String, String>((*items)[1], (*items)[2]));
     }
-
-    // NOT IMPLEMENTED
 }
 
 Boolean UsbDeviceManager::NeedsOemUsbOverride()
 {
-    /* RYAN
     if (mOemModeMap == NULL) {
-        return false;
+        return FALSE;
     }
-    */
 
     String bootMode = SystemProperties::Get(BOOT_MODE_PROPERTY, "unknown");
     return (IsOemModeExistsRef(bootMode) == TRUE) ? TRUE : FALSE;
@@ -703,8 +794,39 @@ Boolean UsbDeviceManager::NeedsOemUsbOverride()
 String UsbDeviceManager::ProcessOemUsbOverride(
     /* [in] */ const String& usbFunctions)
 {
-    // NOT IMPLEMENTED
-    return String("");
+    if ((usbFunctions == NULL) || (mOemModeMap == NULL)) {
+        return usbFunctions;
+    }
+
+    String bootMode = SystemProperties::Get(BOOT_MODE_PROPERTY, "unknown");
+
+    List< Pair<String, String> >* overrides;
+    GetOemModeListRef(bootMode, &overrides);
+
+    if (overrides == NULL) {
+        return usbFunctions;
+    }
+
+    List< Pair<String, String> >::Iterator it;
+    for (it = overrides->Begin(); it != overrides->End(); ++it)
+    {
+        Pair<String, String> pair = *it;
+
+        if (pair.mFirst != usbFunctions) {
+            continue;
+        }
+
+        StringBuffer buf;
+        buf += "OEM USB override: ";
+        buf += pair.mFirst;
+        buf += " ==> ";
+        buf += pair.mSecond;
+
+        Logger::D(UsbDeviceManager::TAG, (String)buf);
+        return pair.mSecond;
+    }
+
+    return usbFunctions;
 }
 
 ArrayOf<String>* UsbDeviceManager::NativeGetAccessoryStrings()
@@ -768,17 +890,26 @@ ArrayOf<String>* UsbDeviceManager::GetAccessoryStringsRef()
 }
 
 void UsbDeviceManager::GetOemModeListRef(
-    /* [in] */ const String& mode)
+    /* [in] */ const String& mode,
+    /* [out] */ List< Pair<String, String> >** list)
 {
-    //return NULL;
+    HashMap< String, List< Pair<String, String> > >::Iterator it = mOemModeMap->Find(mode);
+
+    if (it == mOemModeMap->End()) {
+        *list = NULL;
+        return;
+    }
+
+    *list = &(it->mSecond);
+    return;
 }
 
 Boolean UsbDeviceManager::IsOemModeExistsRef(
     /* [in] */ const String& mode)
 {
-    HashMap< String, List< Pair<String, String> > >::Iterator it = mOemModeMap.Find(mode);
+    HashMap< String, List< Pair<String, String> > >::Iterator it = mOemModeMap->Find(mode);
 
-    if (it == mOemModeMap.End()) {
+    if (it == mOemModeMap->End()) {
         return FALSE;
     }
 

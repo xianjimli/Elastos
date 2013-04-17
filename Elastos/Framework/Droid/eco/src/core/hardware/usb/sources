@@ -13,7 +13,7 @@ INCLUDES += $(PREBUILD_INC)/skia/images
 
 C_DEFINES += -D_FRAMEWORK_CORE
 
-SOURCES = CUsbAccessory.cpp
+SOURCES += CUsbAccessory.cpp
 SOURCES += CUsbEndpoint.cpp
 SOURCES += CUsbInterface.cpp
 SOURCES += CUsbDevice.cpp

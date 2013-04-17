@@ -178,17 +178,23 @@ private:
         /* [in] */ const String& packageName);
 
 private:
-    CARAPI_(Boolean) IsDeviceFilterExistsRef(
+    CARAPI_(Boolean) IsDevicePreferenceExistsRef(
         /* [in] */ const String& packageName);
 
-    CARAPI_(Boolean) IsAccessoryFilterExistsRef(
+    CARAPI_(Boolean) IsAccessoryPreferenceExistsRef(
         /* [in] */ const String& packageName);
+
+    CARAPI_(void) RemoveDevicePreferenceRef(
+        /* [in] */ const String& packageName,
+        /* [out] */ Boolean* result);
+
+    CARAPI_(void) RemoveAccessoryPreferenceRef(
+        /* [in] */ const String& packageName,
+        /* [out] */ Boolean* result);
 
     CARAPI_(void) ClearDevicePermissionMapRecursiveRef();
 
     CARAPI_(void) ClearAccessoryPermissionMapRecursiveRef();
-
-
 
 private:
     static const Boolean DEBUG;
@@ -208,7 +214,8 @@ private:
     HashMap< String, HashMap<Int32, Boolean> > mDevicePermissionMap;
 
     // Temporary mapping UsbAccessory to list of UIDs with permissions for the accessory
-    HashMap< AutoPtr<IUsbAccessory>, HashMap<Int32, Boolean> > mAccessoryPermissionMap;
+    //HashMap< AutoPtr<IUsbAccessory>, HashMap<Int32, Boolean> > mAccessoryPermissionMap;
+    HashMap< IUsbAccessory*, HashMap<Int32, Boolean>* > mAccessoryPermissionMap;
 
     // Maps DeviceFilter to user preferred application package
     HashMap< AutoPtr<DeviceFilter>, String > mDevicePreferenceMap;
