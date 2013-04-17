@@ -252,3 +252,18 @@ ECode CResolveInfo::WriteToParcel(
 {
     return NOERROR;
 }
+
+ECode CResolveInfo::LoadLabel(
+    /* [in] */ ILocalCapsuleManager* pm,
+    /* [out] */ ICharSequence** label)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CResolveInfo::LoadIcon(
+    /* [in] */ ILocalCapsuleManager* pm,
+    /* [out] */ IDrawable** icon)
+{
+    return E_NOT_IMPLEMENTED;
+}
+

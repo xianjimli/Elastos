@@ -54,6 +54,11 @@ SOURCES += CPendingIntentHelper.cpp
 SOURCES += CFinishedDispatcher.cpp
 SOURCES += CActivityGroup.cpp
 SOURCES += CLocalActivityManager.cpp
+SOURCES += CListActivity.cpp
+SOURCES += ListActivity.cpp
+SOURCES += CLauncherActivity.cpp
+SOURCES += CLauncherActivityListItem.cpp
+SOURCES += CLauncherActivityIconResizer.cpp
 
 LIBRARIES += backup/backup.lib
 

@@ -541,6 +541,19 @@ ECode Activity::OnCreate(
     return NOERROR;
 }
 
+ECode Activity::OnRestoreInstanceState(
+    /* [in] */ IBundle* savedInstanceState)
+{
+    if (mWindow != NULL) {
+        AutoPtr<IBundle> windowState;
+        savedInstanceState->GetBundle(WINDOW_HIERARCHY_TAG, (IBundle**)&windowState);
+        if (windowState != NULL) {
+            mWindow->RestoreHierarchyState(windowState);
+        }
+    }
+    return NOERROR;
+}
+
 AutoPtr<IDialog> Activity::CreateDialog(
     /* [in] */ Int32 dialogId,
     /* [in] */ IBundle* state,
@@ -1182,6 +1195,15 @@ ECode Activity::OnTitleChanged(
     return NOERROR;
 }
 
+ECode Activity::SetProgressBarIndeterminateVisibility(
+    /* [in] */ Boolean visible)
+{
+    return GetWindow()->SetFeatureInt(Window_FEATURE_INDETERMINATE_PROGRESS,
+            visible ? Window_PROGRESS_VISIBILITY_ON : Window_PROGRESS_VISIBILITY_OFF);
+
+}
+
+
 ECode Activity::DispatchActivityResult(
     /* [in] */ const String& who,
     /* [in] */ Int32 requestCode,
@@ -1707,6 +1729,13 @@ ECode Activity::RemoveDialog(
     }
 
     return NOERROR;
+}
+
+ECode Activity::RequestWindowFeature(
+    /* [in] */ Int32 featureId,
+    /* [out] */ Boolean* result)
+{
+    return GetWindow()->RequestFeature(featureId, result);
 }
 
 ECode Activity::OnCreatePanelMenu(
