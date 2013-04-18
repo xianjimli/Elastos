@@ -5,6 +5,7 @@ module
     merge("provider/calllog.car");
     merge("provider/basecolumns.car");
     merge("provider/settings.car");
+    merge("provider/MediaStore.car");
 
     singleton class CSettings {
         interface ISettings;

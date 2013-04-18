@@ -57,5 +57,6 @@ SOURCES += ContextThemeWrapper.cpp
 SOURCES += CContextThemeWrapper.cpp
 SOURCES += COpenResourceIdResult.cpp
 SOURCES += CContentService.cpp
+SOURCES += ContentUris.cpp
 
 LIBRARIES += cm/cm.lib

@@ -1,0 +1,541 @@
+
+module {
+
+    /**
+     * The data stream for the file
+     * <P>Type: DATA STREAM</P>
+     */
+    const MediaColumns_DATA = "_data";
+
+    /**
+     * The size of the file in bytes
+     * <P>Type: INTEGER (Int64)</P>
+     */
+    const MediaColumns_SIZE = "_size";
+
+    /**
+     * The display name of the file
+     * <P>Type: TEXT</P>
+     */
+    const MediaColumns_DISPLAY_NAME = "_display_name";
+
+    /**
+     * The title of the content
+     * <P>Type: TEXT</P>
+     */
+    const MediaColumns_TITLE = "title";
+
+    /**
+     * The time the file was added to the media provider
+     * Units are seconds since 1970.
+     * <P>Type: INTEGER (Int64)</P>
+     */
+    const MediaColumns_DATE_ADDED = "date_added";
+
+    /**
+     * The time the file was last modified
+     * Units are seconds since 1970.
+     * NOTE: This is for internal use by the media scanner.  Do not modify this field.
+     * <P>Type: INTEGER (Int64)</P>
+     */
+    const MediaColumns_DATE_MODIFIED = "date_modified";
+
+    /**
+     * The MIME type of the file
+     * <P>Type: TEXT</P>
+     */
+    const MediaColumns_MIME_TYPE = "mime_type";
+
+    /**
+     * Common fields for most MediaProvider tables
+     */
+    interface IMediaColumns extends IBaseColumns 
+    {
+        
+    }
+
+    //////////////////////////////////////////////////////////////////////////
+
+    /**
+     * The description of the image
+     * <P>Type: TEXT</P>
+     */
+    const ImageColumns_DESCRIPTION = "description";
+
+    /**
+     * The picasa id of the image
+     * <P>Type: TEXT</P>
+     */
+    const ImageColumns_PICASA_ID = "picasa_id";
+
+    /**
+     * Whether the video should be published as public or private
+     * <P>Type: INTEGER</P>
+     */
+    const ImageColumns_IS_PRIVATE = "isprivate";
+
+    /**
+     * The latitude where the image was captured.
+     * <P>Type: DOUBLE</P>
+     */
+    const ImageColumns_LATITUDE = "latitude";
+
+    /**
+     * The longitude where the image was captured.
+     * <P>Type: DOUBLE</P>
+     */
+    const ImageColumns_LONGITUDE = "longitude";
+
+    /**
+     * The date & time that the image was taken in units
+     * of milliseconds since jan 1, 1970.
+     * <P>Type: INTEGER</P>
+     */
+    const ImageColumns_DATE_TAKEN = "datetaken";
+
+    /**
+     * The orientation for the image expressed as degrees.
+     * Only degrees 0, 90, 180, 270 will work.
+     * <P>Type: INTEGER</P>
+     */
+    const ImageColumns_ORIENTATION = "orientation";
+
+    /**
+     * The mini thumb id.
+     * <P>Type: INTEGER</P>
+     */
+    const ImageColumns_MINI_THUMB_MAGIC = "mini_thumb_magic";
+
+    /**
+     * The bucket id of the image. This is a read-only property that
+     * is automatically computed from the DATA column.
+     * <P>Type: TEXT</P>
+     */
+    const ImageColumns_BUCKET_ID = "bucket_id";
+
+    /**
+     * The bucket display name of the image. This is a read-only property that
+     * is automatically computed from the DATA column.
+     * <P>Type: TEXT</P>
+     */
+    const ImageColumns_BUCKET_DISPLAY_NAME = "bucket_display_name";
+
+    interface IImageColumns extends IMediaColumns 
+    {
+            
+    }
+
+    //////////////////////////////////////////////////////////////////////////
+
+
+    /**
+     * A non human readable key calculated from the TITLE, used for
+     * searching, sorting and grouping
+     * <P>Type: TEXT</P>
+     */
+    const AudioColumns_TITLE_KEY = "title_key";
+
+    /**
+     * The duration of the audio file, in ms
+     * <P>Type: INTEGER (Int64)</P>
+     */
+    const AudioColumns_DURATION = "duration";
+
+    /**
+     * The position, in ms, playback was at when playback for this file
+     * was last stopped.
+     * <P>Type: INTEGER (Int64)</P>
+     */
+    const AudioColumns_BOOKMARK = "bookmark";
+
+    /**
+     * The id of the artist who created the audio file, if any
+     * <P>Type: INTEGER (Int64)</P>
+     */
+    const AudioColumns_ARTIST_ID = "artist_id";
+
+    /**
+     * The artist who created the audio file, if any
+     * <P>Type: TEXT</P>
+     */
+    const AudioColumns_ARTIST = "artist";
+
+    /**
+     * The artist credited for the album that contains the audio file
+     * <P>Type: TEXT</P>
+     * @hide
+     */
+    const AudioColumns_ALBUM_ARTIST = "album_artist";
+
+    /**
+     * Whether the song is part of a compilation
+     * <P>Type: TEXT</P>
+     * @hide
+     */
+    const AudioColumns_COMPILATION = "compilation";
+
+    /**
+     * A non human readable key calculated from the ARTIST, used for
+     * searching, sorting and grouping
+     * <P>Type: TEXT</P>
+     */
+    const AudioColumns_ARTIST_KEY = "artist_key";
+
+    /**
+     * The composer of the audio file, if any
+     * <P>Type: TEXT</P>
+     */
+    const AudioColumns_COMPOSER = "composer";
+
+    /**
+     * The id of the album the audio file is from, if any
+     * <P>Type: INTEGER (Int64)</P>
+     */
+    const AudioColumns_ALBUM_ID = "album_id";
+
+    /**
+     * The album the audio file is from, if any
+     * <P>Type: TEXT</P>
+     */
+    const AudioColumns_ALBUM = "album";
+
+    /**
+     * A non human readable key calculated from the ALBUM, used for
+     * searching, sorting and grouping
+     * <P>Type: TEXT</P>
+     */
+    const AudioColumns_ALBUM_KEY = "album_key";
+
+    /**
+     * A URI to the album art, if any
+     * <P>Type: TEXT</P>
+     */
+    const AudioColumns_ALBUM_ART = "album_art";
+
+    /**
+     * The track number of this song on the album, if any.
+     * This number encodes both the track number and the
+     * disc number. For multi-disc sets, this number will
+     * be 1xxx for tracks on the first disc, 2xxx for tracks
+     * on the second disc, etc.
+     * <P>Type: INTEGER</P>
+     */
+    const AudioColumns_TRACK = "track";
+
+    /**
+     * The year the audio file was recorded, if any
+     * <P>Type: INTEGER</P>
+     */
+    const AudioColumns_YEAR = "year";
+
+    /**
+     * Non-zero if the audio file is music
+     * <P>Type: INTEGER (boolean)</P>
+     */
+    const AudioColumns_IS_MUSIC = "is_music";
+
+    /**
+     * Non-zero if the audio file is a podcast
+     * <P>Type: INTEGER (boolean)</P>
+     */
+    const AudioColumns_IS_PODCAST = "is_podcast";
+
+    /**
+     * Non-zero id the audio file may be a ringtone
+     * <P>Type: INTEGER (boolean)</P>
+     */
+    const AudioColumns_IS_RINGTONE = "is_ringtone";
+
+    /**
+     * Non-zero id the audio file may be an alarm
+     * <P>Type: INTEGER (boolean)</P>
+     */
+    const AudioColumns_IS_ALARM = "is_alarm";
+
+    /**
+     * Non-zero id the audio file may be a notification sound
+     * <P>Type: INTEGER (boolean)</P>
+     */
+    const AudioColumns_IS_NOTIFICATION = "is_notification";
+
+    /**
+     * Columns for audio file that show up in multiple tables.
+     */
+    interface IAudioColumns extends IMediaColumns
+    {
+
+        
+    }
+
+    //////////////////////////////////////////////////////////////////////////
+
+    /**
+     * The name of the genre
+     * <P>Type: TEXT</P>
+     */
+    const GenresColumns_NAME = "name";
+
+    /**
+     * Columns representing an audio genre
+     */
+    interface IGenresColumns 
+    {
+        
+    }
+
+    //////////////////////////////////////////////////////////////////////////
+
+    /**
+     * The name of the playlist
+     * <P>Type: TEXT</P>
+     */
+    const PlaylistsColumns_NAME = "name";
+
+    /**
+     * The data stream for the playlist file
+     * <P>Type: DATA STREAM</P>
+     */
+    const PlaylistsColumns_DATA = "_data";
+
+    /**
+     * The time the file was added to the media provider
+     * Units are seconds since 1970.
+     * <P>Type: INTEGER (Int64)</P>
+     */
+    const PlaylistsColumns_DATE_ADDED = "date_added";
+
+    /**
+     * The time the file was last modified
+     * Units are seconds since 1970.
+     * NOTE: This is for internal use by the media scanner.  Do not modify this field.
+     * <P>Type: INTEGER (Int64)</P>
+     */
+    const PlaylistsColumns_DATE_MODIFIED = "date_modified";
+
+    /**
+     * Columns representing a playlist
+     */
+    interface IPlaylistsColumns
+    {
+            
+    }
+
+
+    //////////////////////////////////////////////////////////////////////////
+
+
+    /**
+     * The artist who created the audio file, if any
+     * <P>Type: TEXT</P>
+     */
+    const ArtistColumns_ARTIST = "artist";
+
+    /**
+     * A non human readable key calculated from the ARTIST, used for
+     * searching, sorting and grouping
+     * <P>Type: TEXT</P>
+     */
+    const ArtistColumns_ARTIST_KEY = "artist_key";
+
+    /**
+     * The number of albums in the database for this artist
+     */
+    const ArtistColumns_NUMBER_OF_ALBUMS = "number_of_albums";
+
+    /**
+     * The number of albums in the database for this artist
+     */
+    const ArtistColumns_NUMBER_OF_TRACKS = "number_of_tracks";
+
+    /**
+     * Columns representing an artist
+     */
+    interface IArtistColumns
+    {
+        
+    }
+
+
+    /**
+     * The id for the album
+     * <P>Type: INTEGER</P>
+     */
+    const AlbumColumns_ALBUM_ID = "album_id";
+
+    /**
+     * The album on which the audio file appears, if any
+     * <P>Type: TEXT</P>
+     */
+    const AlbumColumns_ALBUM = "album";
+
+    /**
+     * The artist whose songs appear on this album
+     * <P>Type: TEXT</P>
+     */
+    const AlbumColumns_ARTIST = "artist";
+
+    /**
+     * The number of songs on this album
+     * <P>Type: INTEGER</P>
+     */
+    const AlbumColumns_NUMBER_OF_SONGS = "numsongs";
+
+    /**
+     * This column is available when getting album info via artist,
+     * and indicates the number of songs on the album by the given
+     * artist.
+     * <P>Type: INTEGER</P>
+     */
+    const AlbumColumns_NUMBER_OF_SONGS_FOR_ARTIST = "numsongs_by_artist";
+
+    /**
+     * The year in which the earliest songs
+     * on this album were released. This will often
+     * be the same as {@link #LAST_YEAR}, but for compilation albums
+     * they might differ.
+     * <P>Type: INTEGER</P>
+     */
+    const AlbumColumns_FIRST_YEAR = "minyear";
+
+    /**
+     * The year in which the latest songs
+     * on this album were released. This will often
+     * be the same as {@link #FIRST_YEAR}, but for compilation albums
+     * they might differ.
+     * <P>Type: INTEGER</P>
+     */
+    const AlbumColumns_LAST_YEAR = "maxyear";
+
+    /**
+     * A non human readable key calculated from the ALBUM, used for
+     * searching, sorting and grouping
+     * <P>Type: TEXT</P>
+     */
+    const AlbumColumns_ALBUM_KEY = "album_key";
+
+    /**
+     * Cached album art.
+     * <P>Type: TEXT</P>
+     */
+    const AlbumColumns_ALBUM_ART = "album_art";
+
+    /**
+     * Columns representing an album
+     */
+    interface IAlbumColumns
+    {
+
+    }
+
+
+    //////////////////////////////////////////////////////////////////////////
+
+    /**
+     * The duration of the video file, in ms
+     * <P>Type: INTEGER (Int64)</P>
+     */
+    const VideoColumns_DURATION = "duration";
+
+    /**
+     * The artist who created the video file, if any
+     * <P>Type: TEXT</P>
+     */
+    const VideoColumns_ARTIST = "artist";
+
+    /**
+     * The album the video file is from, if any
+     * <P>Type: TEXT</P>
+     */
+    const VideoColumns_ALBUM = "album";
+
+    /**
+     * The resolution of the video file, formatted as "XxY"
+     * <P>Type: TEXT</P>
+     */
+    const VideoColumns_RESOLUTION = "resolution";
+
+    /**
+     * The description of the video recording
+     * <P>Type: TEXT</P>
+     */
+    const VideoColumns_DESCRIPTION = "description";
+
+    /**
+     * Whether the video should be published as public or private
+     * <P>Type: INTEGER</P>
+     */
+    const VideoColumns_IS_PRIVATE = "isprivate";
+
+    /**
+     * The user-added tags associated with a video
+     * <P>Type: TEXT</P>
+     */
+    const VideoColumns_TAGS = "tags";
+
+    /**
+     * The YouTube category of the video
+     * <P>Type: TEXT</P>
+     */
+    const VideoColumns_CATEGORY = "category";
+
+    /**
+     * The language of the video
+     * <P>Type: TEXT</P>
+     */
+    const VideoColumns_LANGUAGE = "language";
+
+    /**
+     * The latitude where the image was captured.
+     * <P>Type: DOUBLE</P>
+     */
+    const VideoColumns_LATITUDE = "latitude";
+
+    /**
+     * The longitude where the image was captured.
+     * <P>Type: DOUBLE</P>
+     */
+    const VideoColumns_LONGITUDE = "longitude";
+
+    /**
+     * The date & time that the image was taken in units
+     * of milliseconds since jan 1, 1970.
+     * <P>Type: INTEGER</P>
+     */
+    const VideoColumns_DATE_TAKEN = "datetaken";
+
+    /**
+     * The mini thumb id.
+     * <P>Type: INTEGER</P>
+     */
+    const VideoColumns_MINI_THUMB_MAGIC = "mini_thumb_magic";
+
+    /**
+     * The bucket id of the video. This is a read-only property that
+     * is automatically computed from the DATA column.
+     * <P>Type: TEXT</P>
+     */
+    const VideoColumns_BUCKET_ID = "bucket_id";
+
+    /**
+     * The bucket display name of the video. This is a read-only property that
+     * is automatically computed from the DATA column.
+     * <P>Type: TEXT</P>
+     */
+    const VideoColumns_BUCKET_DISPLAY_NAME = "bucket_display_name";
+
+    /**
+     * The bookmark for the video. Time in ms. Represents the location in the video that the
+     * video should start playing at the next time it is opened. If the value is NULL or
+     * out of the range 0..DURATION-1 then the video should start playing from the
+     * beginning.
+     * <P>Type: INTEGER</P>
+     */
+    const VideoColumns_BOOKMARK = "bookmark";
+
+    interface IVideoColumns extends IMediaColumns 
+    {
+
+       
+    }
+
+}
