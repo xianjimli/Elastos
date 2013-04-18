@@ -66,16 +66,33 @@ UsbSettingsManager::UsbSettingsManager(
     // RYAN
     //mPackageMonitor.register(context, null, true);
 
-    // NOT IMPLEMENTED
+    mDevicePermissionMap = new HashMap< String, HashMap<Int32, Boolean>* >();
+    mAccessoryPermissionMap = new HashMap< AutoPtr<IUsbAccessory>, HashMap<Int32, Boolean>* >();
+    mDevicePreferenceMap = new HashMap< AutoPtr<DeviceFilter>, String >();
+    mAccessoryPreferenceMap = new HashMap< AutoPtr<AccessoryFilter>, String >();
 }
 
 UsbSettingsManager::~UsbSettingsManager()
 {
-    ClearDevicePermissionMapRecursiveRef();
-    ClearAccessoryPermissionMapRecursiveRef();
+    if (mDevicePermissionMap != NULL) {
+        mDevicePermissionMap->Clear();
+        delete mDevicePermissionMap;
+    }
 
-    mDevicePreferenceMap.Clear();
-    mAccessoryPreferenceMap.Clear();
+    if (mAccessoryPermissionMap != NULL) {
+        mAccessoryPermissionMap->Clear();
+        delete mAccessoryPermissionMap;
+    }
+
+    if (mDevicePreferenceMap != NULL) {
+        mDevicePreferenceMap->Clear();
+        delete mDevicePreferenceMap;
+    }
+
+    if (mAccessoryPreferenceMap != NULL) {
+        mAccessoryPreferenceMap->Clear();
+        delete mAccessoryPreferenceMap;
+    }
 }
 
 UInt32 UsbSettingsManager::AddRef()
@@ -179,21 +196,77 @@ void UsbSettingsManager::SetDevicePackage(
     /* [in] */ IUsbDevice* device,
     /* [in] */ const String& packageName)
 {
-    // NOT IMPLEMENTED
+    AutoPtr<DeviceFilter> filter = new DeviceFilter(device);
+    Boolean changed = FALSE;
+
+    {
+        Mutex::Autolock lock(mLock);
+
+        if (packageName.IsNull() == TRUE) {
+            RemoveDevicePreferenceRef(filter, &changed);
+        } else {
+            String preference = GetDevicePreferenceRef(filter);
+
+            changed = (packageName == preference) ? FALSE : TRUE;
+
+            if (changed == TRUE) {
+                (*mDevicePreferenceMap)[filter] = packageName;
+            }
+        }
+
+        if (changed == TRUE) {
+            WriteSettingsLocked();
+        }
+    }
 }
 
 void UsbSettingsManager::SetAccessoryPackage(
     /* [in] */ IUsbAccessory* accessory,
     /* [in] */ const String& packageName)
 {
-    // NOT IMPLEMENTED
+    AutoPtr<AccessoryFilter> filter = new AccessoryFilter(accessory);
+    Boolean changed = FALSE;
+
+    {
+        Mutex::Autolock lock(mLock);
+
+        if (packageName.IsNull() == TRUE) {
+            RemoveAccessoryPreferenceRef(filter, &changed);
+        } else {
+            String preference = GetAccessoryPreferenceRef(filter);
+
+            changed = (packageName == preference) ? FALSE : TRUE;
+
+            if (changed == TRUE) {
+                (*mAccessoryPreferenceMap)[filter] = packageName;
+            }
+        }
+
+        if (changed == TRUE) {
+            WriteSettingsLocked();
+        }
+    }
 }
 
 void UsbSettingsManager::GrantDevicePermission(
     /* [in] */ IUsbDevice* device,
     /* [in] */ Int32 uid)
 {
-    // NOT IMPLEMENTED
+    Mutex::Autolock lock(mLock);
+
+    String deviceName;
+    device->GetDeviceName(&deviceName);
+
+    HashMap< String, HashMap<Int32, Boolean>* >::Iterator it = mDevicePermissionMap->Find(deviceName);
+
+    HashMap<Int32, Boolean>* uidList;
+
+    if (it == mDevicePermissionMap->End()) {
+        uidList = new HashMap<Int32, Boolean>();
+        (*mDevicePermissionMap)[deviceName] = uidList;
+    }
+
+    (*uidList)[uid] = TRUE;
 }
 
 void UsbSettingsManager::GrantAccessoryPermission(
@@ -202,22 +275,16 @@ void UsbSettingsManager::GrantAccessoryPermission(
 {
     Mutex::Autolock lock(mLock);
 
-    //AutoPtr<IUsbAccessory> key = accessory;
-    //HashMap< IUsbAccessory*, HashMap<Int32, Boolean>* >::Iterator it = mAccessoryPermissionMap.Find(accessory);
+    HashMap< AutoPtr<IUsbAccessory>, HashMap<Int32, Boolean>* >::Iterator it = mAccessoryPermissionMap->Find(accessory);
 
-    //HashMap<Int32, Boolean> uidList =
+    HashMap<Int32, Boolean>* uidList;
 
-    /*
-    synchronized (mLock) {
-        SparseBooleanArray uidList = mAccessoryPermissionMap.get(accessory);
-        if (uidList == null) {
-            uidList = new SparseBooleanArray(1);
-            mAccessoryPermissionMap.put(accessory, uidList);
-        }
-        uidList.put(uid, true);
+    if (it == mAccessoryPermissionMap->End()) {
+        uidList = new HashMap<Int32, Boolean>();
+        (*mAccessoryPermissionMap)[accessory] = uidList;
     }
-    */
-    // NOT IMPLEMENTED
+
+    (*uidList)[uid] = TRUE;
 }
 
 Boolean UsbSettingsManager::HasDefaults(
@@ -276,11 +343,11 @@ ECode UsbSettingsManager::ReadPreference(
     if (elmtName == "usb-device") {
         AutoPtr<DeviceFilter> filter;
         DeviceFilter::Read(parser, (DeviceFilter**)&filter);
-        mDevicePreferenceMap[filter] = packageName;
+        (*mDevicePreferenceMap)[filter] = packageName;
     } else if (elmtName == "usb-accessory") {
         AutoPtr<AccessoryFilter> filter;
         AccessoryFilter::Read(parser, (AccessoryFilter**)&filter);
-        mAccessoryPreferenceMap[filter] = packageName;
+        (*mAccessoryPreferenceMap)[filter] = packageName;
     }
 
     XmlUtils::NextElement(parser);
@@ -386,12 +453,122 @@ Boolean UsbSettingsManager::ClearPackageDefaultsLocked(
     return cleared;
 }
 
+String UsbSettingsManager::GetDevicePreferenceRef(
+    /* [in] */ DeviceFilter* filter)
+{
+    HashMap< AutoPtr<DeviceFilter>, String >::Iterator it = mDevicePreferenceMap->Find(filter);
+
+    if (it == mDevicePreferenceMap->End()) {
+        return String(NULL);
+    }
+
+    return it->mSecond;
+}
+
+String UsbSettingsManager::GetAccessoryPreferenceRef(
+    /* [in] */ AccessoryFilter* filter)
+{
+    HashMap< AutoPtr<AccessoryFilter>, String >::Iterator it = mAccessoryPreferenceMap->Find(filter);
+
+    if (it == mAccessoryPreferenceMap->End()) {
+        return String(NULL);
+    }
+
+    return it->mSecond;
+}
+
+void UsbSettingsManager::RemoveDevicePreferenceRef(
+    /* [in] */ const String& packageName,
+    /* [out] */ Boolean* result)
+{
+    *result = FALSE;
+
+    // make a copy of the key set to avoid ConcurrentModificationException
+    HashMap< AutoPtr<DeviceFilter>, String >::Iterator it;
+
+    for (it = mDevicePreferenceMap->Begin(); it != mDevicePreferenceMap->End(); ++it)
+    {
+        String name = it->mSecond;
+
+        if (name != packageName) {
+            continue;
+        }
+
+        *result = TRUE;
+        mDevicePreferenceMap->Erase(it);
+    }
+}
+
+void UsbSettingsManager::RemoveDevicePreferenceRef(
+    /* [in] */ DeviceFilter* filter,
+    /* [out] */ Boolean* result)
+{
+    *result = FALSE;
+    HashMap< AutoPtr<DeviceFilter>, String >::Iterator it;
+
+    for (it = mDevicePreferenceMap->Begin(); it != mDevicePreferenceMap->End(); ++it)
+    {
+        Boolean isEquals = FALSE;
+        it->mFirst->Equals(filter, &isEquals);
+
+        if (isEquals == FALSE) {
+            continue;
+        }
+
+        *result = TRUE;
+        mDevicePreferenceMap->Erase(it);
+    }
+}
+
+void UsbSettingsManager::RemoveAccessoryPreferenceRef(
+    /* [in] */ const String& packageName,
+    /* [out] */ Boolean* result)
+{
+    *result = FALSE;
+
+    // make a copy of the key set to avoid ConcurrentModificationException
+    HashMap< AutoPtr<AccessoryFilter>, String >::Iterator it;
+
+    for (it = mAccessoryPreferenceMap->Begin(); it != mAccessoryPreferenceMap->End(); ++it)
+    {
+        String name = it->mSecond;
+
+        if (name != packageName) {
+            continue;
+        }
+
+        *result = TRUE;
+        mAccessoryPreferenceMap->Erase(it);
+    }
+}
+
+void UsbSettingsManager::RemoveAccessoryPreferenceRef(
+    /* [in] */ AccessoryFilter* filter,
+    /* [out] */ Boolean* result)
+{
+    *result = FALSE;
+    HashMap< AutoPtr<AccessoryFilter>, String >::Iterator it;
+
+    for (it = mAccessoryPreferenceMap->Begin(); it != mAccessoryPreferenceMap->End(); ++it)
+    {
+        Boolean isEquals = FALSE;
+        it->mFirst->Equals(filter, &isEquals);
+
+        if (isEquals == FALSE) {
+            continue;
+        }
+
+        *result = TRUE;
+        mAccessoryPreferenceMap->Erase(it);
+    }
+}
+
 Boolean UsbSettingsManager::IsDevicePreferenceExistsRef(
     /* [in] */ const String& packageName)
 {
     HashMap< AutoPtr<DeviceFilter>, String >::Iterator it;
 
-    for (it = mDevicePreferenceMap.Begin(); it != mDevicePreferenceMap.End(); ++it)
+    for (it = mDevicePreferenceMap->Begin(); it != mDevicePreferenceMap->End(); ++it)
     {
         String name = it->mSecond;
 
@@ -410,7 +587,7 @@ Boolean UsbSettingsManager::IsAccessoryPreferenceExistsRef(
 {
     HashMap< AutoPtr<AccessoryFilter>, String >::Iterator it;
 
-    for (it = mAccessoryPreferenceMap.Begin(); it != mAccessoryPreferenceMap.End(); ++it)
+    for (it = mAccessoryPreferenceMap->Begin(); it != mAccessoryPreferenceMap->End(); ++it)
     {
         String name = it->mSecond;
 
@@ -422,54 +599,4 @@ Boolean UsbSettingsManager::IsAccessoryPreferenceExistsRef(
     }
 
     return FALSE;
-}
-
-void UsbSettingsManager::RemoveDevicePreferenceRef(
-    /* [in] */ const String& packageName,
-    /* [out] */ Boolean* result)
-{
-    // make a copy of the key set to avoid ConcurrentModificationException
-    HashMap< AutoPtr<DeviceFilter>, String >::Iterator it;
-
-    for (it = mDevicePreferenceMap.Begin(); it != mDevicePreferenceMap.End(); ++it)
-    {
-        String name = it->mSecond;
-
-        if (name != packageName) {
-            continue;
-        }
-
-        *result = TRUE;
-        mDevicePreferenceMap.Erase(it);
-    }
-}
-
-void UsbSettingsManager::RemoveAccessoryPreferenceRef(
-    /* [in] */ const String& packageName,
-    /* [out] */ Boolean* result)
-{
-    // make a copy of the key set to avoid ConcurrentModificationException
-    HashMap< AutoPtr<AccessoryFilter>, String >::Iterator it;
-
-    for (it = mAccessoryPreferenceMap.Begin(); it != mAccessoryPreferenceMap.End(); ++it)
-    {
-        String name = it->mSecond;
-
-        if (name != packageName) {
-            continue;
-        }
-
-        *result = TRUE;
-        mAccessoryPreferenceMap.Erase(it);
-    }
-}
-
-void UsbSettingsManager::ClearDevicePermissionMapRecursiveRef()
-{
-    mDevicePermissionMap.Clear();
-}
-
-void UsbSettingsManager::ClearAccessoryPermissionMapRecursiveRef()
-{
-    mAccessoryPermissionMap.Clear();
 }

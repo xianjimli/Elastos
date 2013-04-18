@@ -17,6 +17,27 @@ using namespace Elastos;
 using namespace Elastos::Core::Threading;
 using namespace Elastos::Utility::Logging;
 
+_ELASTOS_NAMESPACE_BEGIN
+
+template<> struct Hash<AutoPtr<IUsbAccessory> >
+{
+    size_t operator()(AutoPtr<IUsbAccessory> name) const
+    {
+        return (size_t)name.Get();
+    }
+};
+
+template<> struct EqualTo<AutoPtr<IUsbAccessory> >
+{
+    Boolean operator()(const AutoPtr<IUsbAccessory>& x,
+                       const AutoPtr<IUsbAccessory>& y) const
+    {
+        return x.Get() == y.Get();
+    }
+};
+
+_ELASTOS_NAMESPACE_END
+
 class UsbSettingsManager : public ElRefBase
 {
 public:
@@ -178,23 +199,33 @@ private:
         /* [in] */ const String& packageName);
 
 private:
-    CARAPI_(Boolean) IsDevicePreferenceExistsRef(
-        /* [in] */ const String& packageName);
+    CARAPI_(String) GetDevicePreferenceRef(
+        /* [in] */ DeviceFilter* filter);
 
-    CARAPI_(Boolean) IsAccessoryPreferenceExistsRef(
-        /* [in] */ const String& packageName);
+    CARAPI_(String) GetAccessoryPreferenceRef(
+        /* [in] */ AccessoryFilter* filter);
 
     CARAPI_(void) RemoveDevicePreferenceRef(
         /* [in] */ const String& packageName,
+        /* [out] */ Boolean* result);
+
+    CARAPI_(void) RemoveDevicePreferenceRef(
+        /* [in] */ DeviceFilter* filter,
         /* [out] */ Boolean* result);
 
     CARAPI_(void) RemoveAccessoryPreferenceRef(
         /* [in] */ const String& packageName,
         /* [out] */ Boolean* result);
 
-    CARAPI_(void) ClearDevicePermissionMapRecursiveRef();
+    CARAPI_(void) RemoveAccessoryPreferenceRef(
+        /* [in] */ AccessoryFilter* filter,
+        /* [out] */ Boolean* result);
 
-    CARAPI_(void) ClearAccessoryPermissionMapRecursiveRef();
+    CARAPI_(Boolean) IsDevicePreferenceExistsRef(
+        /* [in] */ const String& packageName);
+
+    CARAPI_(Boolean) IsAccessoryPreferenceExistsRef(
+        /* [in] */ const String& packageName);
 
 private:
     static const Boolean DEBUG;
@@ -211,17 +242,17 @@ private:
     AutoPtr<ILocalCapsuleManager> mPackageManager;
 
     // Temporary mapping USB device name to list of UIDs with permissions for the device
-    HashMap< String, HashMap<Int32, Boolean> > mDevicePermissionMap;
+    HashMap< String, HashMap<Int32, Boolean>* >* mDevicePermissionMap;
 
     // Temporary mapping UsbAccessory to list of UIDs with permissions for the accessory
     //HashMap< AutoPtr<IUsbAccessory>, HashMap<Int32, Boolean> > mAccessoryPermissionMap;
-    HashMap< IUsbAccessory*, HashMap<Int32, Boolean>* > mAccessoryPermissionMap;
+    HashMap< AutoPtr<IUsbAccessory>, HashMap<Int32, Boolean>* >* mAccessoryPermissionMap;
 
     // Maps DeviceFilter to user preferred application package
-    HashMap< AutoPtr<DeviceFilter>, String > mDevicePreferenceMap;
+    HashMap< AutoPtr<DeviceFilter>, String >* mDevicePreferenceMap;
 
     // Maps AccessoryFilter to user preferred application package
-    HashMap< AutoPtr<AccessoryFilter>, String > mAccessoryPreferenceMap;
+    HashMap< AutoPtr<AccessoryFilter>, String >* mAccessoryPreferenceMap;
 
     Mutex mLock;
 
