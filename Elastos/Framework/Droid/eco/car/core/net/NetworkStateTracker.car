@@ -4,6 +4,13 @@ module
     interface INetworkInfo;
     enum NetworkInfoDetailedState;
 
+    const NetworkStateTracker_EVENT_STATE_CHANGED = 1;
+    const NetworkStateTracker_EVENT_SCAN_RESULTS_AVAILABLE = 2;
+    const NetworkStateTracker_EVENT_NOTIFICATION_CHANGED = 3;
+    const NetworkStateTracker_EVENT_CONFIGURATION_CHANGED = 4;
+    const NetworkStateTracker_EVENT_ROAMING_CHANGED = 5;
+    const NetworkStateTracker_EVENT_NETWORK_SUBTYPE_CHANGED = 6;
+
     interface INetworkStateTracker {
         GetNetworkInfo(
             [out] INetworkInfo** networkInfo);
@@ -62,7 +69,7 @@ module
          * if one was supplied. May be {@code null}.
          * @param extraInfo optional {@code String} providing extra information about the state change
          */
-        SetDetailedState(
+        SetDetailedStateEx(
             [in] NetworkInfoDetailedState state,
             [in] String reason,
             [in] String extraInfo);

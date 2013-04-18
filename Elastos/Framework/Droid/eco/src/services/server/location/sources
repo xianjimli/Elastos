@@ -7,9 +7,6 @@ include $(MAKEDIR)/../../../../../sources.inc
 INCLUDES += $(MAKEDIR)/../../../../inc/core
 INCLUDES += $(MAKEDIR)/../../../../inc/services
 INCLUDES += ../../
-INCLUDES += $(PREBUILD_INC)/skia/utils
-INCLUDES += $(PREBUILD_INC)/skia/core
-INCLUDES += $(PREBUILD_INC)/skia/effects
 
 C_DEFINES += -D_FRAMEWORK_SERVER
 

@@ -1,0 +1,35 @@
+
+module {
+    /**
+     * Callback class for receiving events from an INetworkManagementService
+     *
+     * @hide
+     */
+    interface INetworkManagementEventObserver {
+        /**
+         * Interface link status has changed.
+         *
+         * @param iface The interface.
+         * @param link True if link is up.
+         */
+        InterfaceLinkStatusChanged(
+            [in] String iface,
+            [in] Boolean link);
+
+        /**
+         * An interface has been added to the system
+         *
+         * @param iface The interface.
+         */
+        InterfaceAdded(
+            [in] String iface);
+
+        /**
+         * An interface has been removed from the system
+         *
+         * @param iface The interface.
+         */
+        InterfaceRemoved(
+            [in] String iface);
+    }
+}

@@ -1,10 +1,12 @@
 
 module
 {
+    merge("server/connectivity/Tethering.car");
+    merge("server/am.car");
     merge("server/LightsService.car");
     merge("server/InputMethodManagerService.car");
-    merge("server/am.car");
     merge("server/BatteryService.car");
+    merge("server/ConnectivityService.car");
 
     class CWindowSession {
         constructor(
@@ -125,4 +127,21 @@ module
 
         interface IBatteryService;
     }
+
+    class CConnectivityService {
+        constructor(
+            [in] IContext* context);
+
+        //interface IConnectivityManagerStub;
+        interface IConnectivityService;
+    }
+
+    class CTethering {
+        constructor(
+            [in] IContext* context,
+            [in] IApartment* looper);
+
+        interface ITethering;
+    }
+
 }

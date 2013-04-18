@@ -1,0 +1,14 @@
+
+
+module
+{
+    interface INetworkInfo;
+    interface IBinder;
+
+    /**
+     * @hide
+     */
+    interface IConnectivityService extends IConnectivityManager {
+        SystemReady();
+    }
+}

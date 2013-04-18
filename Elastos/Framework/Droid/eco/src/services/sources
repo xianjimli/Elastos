@@ -38,6 +38,7 @@ INCLUDES += $(MAKEDIR)/../../inc/services
 INCLUDES += $(MAKEDIR)/../../inc/services/server
 INCLUDES += $(MAKEDIR)/../../inc/services/server/location
 INCLUDES += $(MAKEDIR)/../../inc/services/server/usb
+INCLUDES += $(MAKEDIR)/../../inc/services/server/connectivity
 ifeq "$(XDK_TARGET_PLATFORM)" "linux"
 INCLUDES += $(PREBUILD_INC)/skia/utils
 INCLUDES += $(PREBUILD_INC)/skia/core
@@ -81,6 +82,7 @@ SOURCES += Binder.cpp
 SOURCES += SparseInt32Array.cpp
 SOURCES += ElPixelFormat.cpp
 SOURCES += Settings.cpp
+SOURCES += HierarchicalState.cpp
 
 LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.lib
 LIBRARIES += $(XDK_USER_LIB)/Elastos.Utility.lib

@@ -8,7 +8,8 @@ module
     merge("net/NetworkInfo.car");
     merge("net/ConnectivityManager.car");
     merge("net/IConnectivityManager.car");
-
+    merge("net/INetworkManagementEventObserver.car");
+    merge("net/NetworkStateTracker.car");
     merge("net/http/Headers.car");
     merge("net/http/SslCertificate.car");
     merge("net/http/HttpAuthHandler.car");

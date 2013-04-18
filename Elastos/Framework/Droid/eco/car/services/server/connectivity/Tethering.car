@@ -1,0 +1,43 @@
+
+
+module
+{
+    interface ITethering extends INetworkManagementEventObserver {
+        IsWifi(
+            [in] String iface,
+            [out] Boolean* isWifi);
+
+        Tether(
+            [in] String iface,
+            [out] Int32* result);
+
+        Untether(
+            [in] String iface,
+            [out] Int32* result);
+
+        GetLastTetherError(
+            [in] String iface,
+            [out] Int32* error);
+
+        GetTetherableUsbRegexs(
+            [out, callee] ArrayOf<String>* usbRegexs);
+
+        GetTetherableWifiRegexs(
+            [out, callee] ArrayOf<String>* wifiRegexs);
+
+        GetUpstreamIfaceRegexs(
+            [out, callee] ArrayOf<String>* ifaceRegexs);
+
+        IsDunRequired(
+            [out] Boolean* required);
+
+        GetTetheredIfaces(
+            [out, callee] ArrayOf<String>* ifaces);
+
+        GetTetherableIfaces(
+            [out, callee] ArrayOf<String>* ifaces);
+
+        GetErroredIfaces(
+            [out, callee] ArrayOf<String>* ifaces);
+    }
+}
