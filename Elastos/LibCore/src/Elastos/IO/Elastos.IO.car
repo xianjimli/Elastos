@@ -803,6 +803,10 @@ module
         interface ICoderResult;
     }
 
+    singleton class CCoderResultHelper {
+        interface ICoderResultHelper;
+    }
+
     class CCodingErrorAction {
         interface ICodingErrorAction;
     }

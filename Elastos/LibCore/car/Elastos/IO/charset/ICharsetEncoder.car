@@ -259,7 +259,7 @@ module
          */
         EncodeLoop(
             [in] ICharBuffer* charBuffer,
-            [out] IByteBuffer** byteBuffer,
+            [in /*in, out*/] IByteBuffer* byteBuffer,
             [out] ICoderResult** resulte);
 
         /**
@@ -294,7 +294,7 @@ module
          *             for the last boolean parameter.
          */
         Flush(
-            [out] IByteBuffer** byteBuffer,
+            [in /*in, out*/] IByteBuffer* byteBuffer,
             [out] ICoderResult** result);
 
         /**

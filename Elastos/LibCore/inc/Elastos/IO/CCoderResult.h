@@ -8,11 +8,17 @@
 CarClass(CCoderResult)
 {
 public:
-    CARAPI MalformedForLength(
+    static CARAPI GetUNDERFLOW(
+        /* [out] */ ICoderResult** result);
+
+    static CARAPI GetOVERFLOW(
+        /* [out] */ ICoderResult** result);
+
+    static CARAPI MalformedForLength(
         /* [in] */ Int32 length,
         /* [out] */ ICoderResult** result);
 
-    CARAPI UnmappableForLength(
+    static CARAPI UnmappableForLength(
         /* [in] */ Int32 length,
         /* [out] */ ICoderResult** result);
 
@@ -57,6 +63,10 @@ private:
     static const Int32 TYPE_MALFORMED_INPUT = 3;
 
     static const Int32 TYPE_UNMAPPABLE_CHAR = 4;
+
+    static Mutex mMalformedMutex;
+
+    static Mutex mUnmappableMutex;
 
     // TODO:
     // static WeakHashMap<Integer, CoderResult> _malformedErrors = new WeakHashMap<Integer, CoderResult>();

@@ -1,5 +1,6 @@
 
 #include "CCharsets.h"
+#include "Charset.h"
 #include "CCharsetHelper.h"
 #include <cmdef.h>
 
@@ -14,14 +15,9 @@
 AutoPtr<ICharset> CreateCharSet(
     /* [in] */ String name)
 {
-    // AutoPtr<ICharsetHelper> helper;
-    // CCharsetHelper::AcquireSingleton((ICharsetHelper **)&helper);
-
-    // ICharset* charset;
-    // helper->ForName(name, &charset);
-
-    // return charset;
-    return NULL;
+    AutoPtr<ICharset> charset;
+    Charset::ForName(name, (ICharset **)&charset);
+    return charset;
 }
 
 const AutoPtr<ICharset> CCharsets::ISO_8859_1 = CreateCharSet(String("ISO-8859-1"));

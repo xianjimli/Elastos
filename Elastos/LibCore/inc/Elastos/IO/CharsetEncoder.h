@@ -22,6 +22,8 @@ public:
         /* [in] */ Float maxBytesPerChar,
         /* [in] */ const ArrayOf<Byte>& replacement);
 
+    ~CharsetEncoder();
+
     CARAPI AverageBytesPerChar(
         /* [out] */ Float* averageNumber);
 
@@ -42,17 +44,17 @@ public:
 
     CARAPI EncodeEx(
         /* [in] */ ICharBuffer* charBuffer,
-        /* [out] */ IByteBuffer** byteBuffer,
+        /* [in, out] */ IByteBuffer* byteBuffer,
         /* [in] */ Boolean endOfInput,
         /* [out] */ ICoderResult** result);
 
     virtual CARAPI EncodeLoop(
         /* [in] */ ICharBuffer* charBuffer,
-        /* [out] */ IByteBuffer** byteBuffer,
+        /* [in, out] */ IByteBuffer* byteBuffer,
         /* [out] */ ICoderResult** result) = 0;
 
     CARAPI Flush(
-        /* [out] */ IByteBuffer** byteBuffer,
+        /* [in, out] */ IByteBuffer* byteBuffer,
         /* [out] */ ICoderResult** result);
 
     CARAPI IsLegalReplacement(
@@ -100,7 +102,7 @@ private:
 
     // allocate more spaces to the given ByteBuffer
     CARAPI AllocateMore(
-        /* [in] */ IByteBuffer* output,
+        /* [in, out] */ IByteBuffer* output,
         /* [out] */ IByteBuffer** byteBuffer);
 
     /**
@@ -156,7 +158,13 @@ private:
     CARAPI ImplReset();
 
     CARAPI UncheckedReplaceWith(
-        /* [in] */ ArrayOf<Byte>& replacement);
+        /* [in] */ const ArrayOf<Byte>& replacement);
+
+    CARAPI Init(
+        /* [in] */ ICharset* cs,
+        /* [in] */ Float averageBytesPerChar,
+        /* [in] */ Float maxBytesPerChar,
+        /* [in] */ const ArrayOf<Byte>& replacement);
 
 private:
     /*

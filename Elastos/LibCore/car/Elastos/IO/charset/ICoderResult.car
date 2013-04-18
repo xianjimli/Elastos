@@ -21,37 +21,6 @@ module
      */
     interface ICoderResult {
         /**
-         * Gets a <code>CoderResult</code> object indicating a malformed-input
-         * error.
-         *
-         * @param length
-         *            the length of the malformed-input.
-         * @return a <code>CoderResult</code> object indicating a malformed-input
-         *         error.
-         * @throws IllegalArgumentException
-         *             if <code>length</code> is non-positive.
-         */
-        MalformedForLength(
-            [in] Int32 length,
-            [out] ICoderResult** result);
-
-        /**
-         * Gets a <code>CoderResult</code> object indicating an unmappable
-         * character error.
-         *
-         * @param length
-         *            the length of the input unit sequence denoting the unmappable
-         *            character.
-         * @return a <code>CoderResult</code> object indicating an unmappable
-         *         character error.
-         * @throws IllegalArgumentException
-         *             if <code>length</code> is non-positive.
-         */
-        UnmappableForLength(
-            [in] Int32 length,
-            [out] ICoderResult** result);
-
-        /**
          * Returns true if this result is an underflow condition.
          *
          * @return true if an underflow, otherwise false.
@@ -127,5 +96,44 @@ module
          */
         ToString(
             [out] String* toString);
+    }
+
+    interface ICoderResultHelper {
+        GetUNDERFLOW(
+            [out] ICoderResult** result);
+
+        GetOVERFLOW(
+            [out] ICoderResult** result);
+
+        /**
+         * Gets a <code>CoderResult</code> object indicating a malformed-input
+         * error.
+         *
+         * @param length
+         *            the length of the malformed-input.
+         * @return a <code>CoderResult</code> object indicating a malformed-input
+         *         error.
+         * @throws IllegalArgumentException
+         *             if <code>length</code> is non-positive.
+         */
+        MalformedForLength(
+            [in] Int32 length,
+            [out] ICoderResult** result);
+
+        /**
+         * Gets a <code>CoderResult</code> object indicating an unmappable
+         * character error.
+         *
+         * @param length
+         *            the length of the input unit sequence denoting the unmappable
+         *            character.
+         * @return a <code>CoderResult</code> object indicating an unmappable
+         *         character error.
+         * @throws IllegalArgumentException
+         *             if <code>length</code> is non-positive.
+         */
+        UnmappableForLength(
+            [in] Int32 length,
+            [out] ICoderResult** result);
     }
 }

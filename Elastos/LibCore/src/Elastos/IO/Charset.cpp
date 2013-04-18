@@ -6,8 +6,7 @@
 
 using namespace Elastos::Core::Threading;
 
-HashMap<String, Charset*>* const Charset::CACHED_CHARSETS
-    = new HashMap<String, Charset*>();
+HashMap<String, Charset*>* Charset::CACHED_CHARSETS;
 
 const Charset* Charset::DEFAULT_CHARSET
     = Charset::GetDefaultCharset();
@@ -66,6 +65,10 @@ ECode Charset::ForName(
     Charset* cs;
     {
         Mutex::Autolock lock(gCachedCharsetsLock);
+        if (CACHED_CHARSETS == NULL) {
+            CACHED_CHARSETS = new HashMap<String, Charset*>();
+        }
+
         HashMap<String, Charset*>::Iterator it = CACHED_CHARSETS->Find(charsetName);
         if (it != CACHED_CHARSETS->End()) {
             *charset = (ICharset *)it->mSecond;
@@ -297,6 +300,11 @@ ECode Charset::CacheCharset(
     String canonicalName;
     cs->Name(&canonicalName);
     Charset* canonicalCharset;
+
+    if (CACHED_CHARSETS == NULL) {
+        CACHED_CHARSETS = new HashMap<String, Charset*>();
+    }
+
     HashMap<String, Charset*>::Iterator it = CACHED_CHARSETS->Find(canonicalName);
     if (it == CACHED_CHARSETS->End()) {
         canonicalCharset = cs;

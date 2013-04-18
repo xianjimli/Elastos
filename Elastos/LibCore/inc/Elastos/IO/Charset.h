@@ -103,7 +103,7 @@ public:
     String mCanonicalName;
 
 private:
-    static HashMap<String, Charset*>* const CACHED_CHARSETS;
+    static HashMap<String, Charset*>* CACHED_CHARSETS;
         // = new HashMap<String, Charset>();
 
     static const Charset* DEFAULT_CHARSET;

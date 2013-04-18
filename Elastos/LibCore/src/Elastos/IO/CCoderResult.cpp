@@ -1,6 +1,7 @@
 
 #include "CCoderResult.h"
 #include "cmdef.h"
+#include <elastos/Mutex.h>
 
 AutoPtr<ICoderResult> CreateCoderResult(
     /* [in] */ Int32 type,
@@ -16,13 +17,33 @@ AutoPtr<ICoderResult> CreateCoderResult(
 
 const AutoPtr<ICoderResult> CCoderResult::UNDERFLOW = CreateCoderResult(TYPE_UNDERFLOW, 0);
 const AutoPtr<ICoderResult> CCoderResult::OVERFLOW = CreateCoderResult(TYPE_OVERFLOW, 0);
+Mutex CCoderResult::mMalformedMutex;
+Mutex CCoderResult::mUnmappableMutex;
+
+ECode CCoderResult::GetUNDERFLOW(
+    /* [out] */ ICoderResult** result){
+    VALIDATE_NOT_NULL(result);
+    *result = UNDERFLOW.Get();
+    return NOERROR;
+}
+
+ECode CCoderResult::GetOVERFLOW(
+    /* [out] */ ICoderResult** result){
+    VALIDATE_NOT_NULL(result);
+    *result = OVERFLOW.Get();
+    return NOERROR;
+}
 
 ECode CCoderResult::MalformedForLength(
     /* [in] */ Int32 length,
     /* [out] */ ICoderResult** result)
 {
+    VALIDATE_NOT_NULL(result);
+
+    Mutex::Autolock lock(mMalformedMutex);
+
+    if (length > 0) {
     // TODO:
-    // if (length > 0) {
     //     Integer key = Integer.valueOf(length);
     //     synchronized (_malformedErrors) {
     //         CoderResult r = _malformedErrors.get(key);
@@ -32,17 +53,21 @@ ECode CCoderResult::MalformedForLength(
     //         }
     //         return r;
     //     }
-    // }
+    }
     // throw new IllegalArgumentException("Length must be greater than 0; was " + length);
-    return E_NOT_IMPLEMENTED;
+    return E_ILLEGAL_ARGUMENT_EXCEPTION;
 }
 
 ECode CCoderResult::UnmappableForLength(
     /* [in] */ Int32 length,
     /* [out] */ ICoderResult** result)
 {
+    VALIDATE_NOT_NULL(result);
+
+    Mutex::Autolock lock(mUnmappableMutex);
+
+    if (length > 0) {
     // TODO:
-    // if (length > 0) {
     //     Integer key = Integer.valueOf(length);
     //     synchronized (_unmappableErrors) {
     //         CoderResult r = _unmappableErrors.get(key);
@@ -52,9 +77,9 @@ ECode CCoderResult::UnmappableForLength(
     //         }
     //         return r;
     //     }
-    // }
+    }
     // throw new IllegalArgumentException("Length must be greater than 0; was " + length);
-    return E_NOT_IMPLEMENTED;
+    return E_ILLEGAL_ARGUMENT_EXCEPTION;
 }
 
 ECode CCoderResult::IsUnderflow(

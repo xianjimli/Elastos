@@ -12,30 +12,30 @@ class CharsetDecoder
 {
 public:
     CharsetDecoder(
-        /* [in] */ ICharset* pCharset,
+        /* [in] */ ICharset* charset,
         /* [in] */ Float averageCharsPerByte,
         /* [in] */ Float maxCharsPerByte);
             
     CARAPI AverageCharsPerByte(
-        /* [out] */ Float* pAverage);
+        /* [out] */ Float* average);
 
     CARAPI Charset(
-        /* [out] */ ICharset** ppCharset);
+        /* [out] */ ICharset** charset);
 
     CARAPI Decode(
-        /* [in] */ IByteBuffer* pByteBuffer,
-        /* [out] */ ICharBuffer** ppCharBuffer);
+        /* [in] */ IByteBuffer* byteBuffer,
+        /* [out] */ ICharBuffer** charBuffer);
 
     CARAPI DecodeEx(
-        /* [in] */ IByteBuffer* pByteBuffer,
-        /* [out] */ ICharBuffer** ppCharBuffer,
+        /* [in] */ IByteBuffer* byteBuffer,
+        /* [out] */ ICharBuffer** charBuffer,
         /* [in] */ Boolean endOfInput,
-        /* [out] */ ICoderResult** ppResult);
+        /* [out] */ ICoderResult** result);
 
     CARAPI DecodeLoop(
-        /* [in] */ IByteBuffer* pByteBuffer,
-        /* [out] */ ICharBuffer** ppCharBuffer,
-        /* [out] */ ICoderResult** ppResult);
+        /* [in] */ IByteBuffer* byteBuffer,
+        /* [out] */ ICharBuffer** charBuffer,
+        /* [out] */ ICoderResult** result);
 
     virtual CARAPI DecodeLoop(
         /* [in] */ IByteBuffer* byteBuffer,
@@ -43,44 +43,44 @@ public:
         /* [out] */ ICoderResult** result) = 0;
 
     CARAPI DetectedCharset(
-        /* [out] */ ICharset** ppCharset);
+        /* [out] */ ICharset** charset);
 
     CARAPI Flush(
-        /* [out] */ ICharBuffer** ppCharBuffer,
-        /* [out] */ ICoderResult** ppResult);
+        /* [out] */ ICharBuffer** charBuffer,
+        /* [out] */ ICoderResult** result);
 
     CARAPI IsAutoDetecting(
-        /* [out] */ Boolean* pResult);
+        /* [out] */ Boolean* result);
 
     CARAPI IsCharsetDetected(
-        /* [out] */ Boolean* pResult);
+        /* [out] */ Boolean* result);
 
     CARAPI MalformedInputAction(
-        /* [out] */ ICodingErrorAction** ppCodingErrorAction);
+        /* [out] */ ICodingErrorAction** codingErrorAction);
 
     CARAPI MaxCharsPerByte(
-        /* [out] */ Float* pMaxNumber);
+        /* [out] */ Float* maxNumber);
 
     CARAPI OnMalformedInput(
-        /* [in] */ ICodingErrorAction* pNewAction,
-        /* [out] */ ICharsetDecoder** ppCharsetDecoder);
+        /* [in] */ ICodingErrorAction* newAction,
+        /* [out] */ ICharsetDecoder** charsetDecoder);
 
     CARAPI OnUnmappableCharacter(
-        /* [in] */ ICodingErrorAction* pNewAction,
-        /* [out] */ ICharsetDecoder** ppCharsetDecoder);
+        /* [in] */ ICodingErrorAction* newAction,
+        /* [out] */ ICharsetDecoder** charsetDecoder);
 
     CARAPI Replacement(
         /* [out] */ String* pReplacement);
 
     CARAPI ReplaceWith(
         /* [in] */ const String& newReplacement,
-        /* [out] */ ICharsetDecoder** ppCharsetDecoder);
+        /* [out] */ ICharsetDecoder** charsetDecoder);
 
     CARAPI Reset(
-        /* [out] */ ICharsetDecoder** ppCharsetDecoder);
+        /* [out] */ ICharsetDecoder** charsetDecoder);
 
     CARAPI UnmappableCharacterAction(
-        /* [out] */ ICodingErrorAction** ppCodingErrorAction);
+        /* [out] */ ICodingErrorAction** codingErrorAction);
 
 private:
     /*
