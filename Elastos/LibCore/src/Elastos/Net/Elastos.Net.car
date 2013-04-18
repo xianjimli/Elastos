@@ -49,6 +49,8 @@ module
     merge("../../../car/Elastos/Net/ICacheResponse.car");
     merge("../../../car/Elastos/Net/IIDN.car");
     merge("../../../car/Elastos/Net/ISecureCacheResponse.car");
+    merge("../../../car/Elastos/Net/ISocketInputStream.car");
+    merge("../../../car/Elastos/Net/ISocketOutputStream.car");
 
     class CInet4Address {
         constructor(
@@ -1150,5 +1152,19 @@ module
             [in] ArrayOf<Char32> password);
 
         interface IPasswordAuthentication;
+    }
+
+    class CSocketInputStream {
+        constructor(
+            [in] ISocketImpl* impl);
+
+        interface ISocketInputStream;
+    }
+
+    class CSocketOutputStream {
+        constructor(
+            [in] ISocketImpl* impl);
+
+        interface ISocketOutputStream;
     }
 }

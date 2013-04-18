@@ -6,7 +6,7 @@
 #include "CURL.h"
 #include <StringBuffer.h>
 #include <elastos/Character.h>
-
+#include <stdio.h>
 
 const String CURI::UNRESERVED = String("_-!.~\'()*");
 const String CURI::PUNCTUATION = String(",;:$&+=");
@@ -14,16 +14,20 @@ const String CURI::RESERVED = String(",;:$&+=?/[]@");
 const String CURI::SOME_LEGAL = String("_-!.~\'()*,;:$&+=");
 const String CURI::ALL_LEGAL = String("_-!.~\'()*,;:$&+=?/[]@");
 
-AutoPtr<INetworkSystem> InitNetworkSystem()
-{
-    AutoPtr<IPlatform> platform;
-    ASSERT_SUCCEEDED(CPlatform::AcquireSingleton((IPlatform**)&platform));
-    AutoPtr<INetworkSystem> networkSystem;
-    platform->GetNetworkSystem((INetworkSystem**)&networkSystem);
-    return networkSystem;
-}
-
-AutoPtr<INetworkSystem> CURI::NETWORK_SYSTEM = InitNetworkSystem();
+//AutoPtr<INetworkSystem> InitNetworkSystem()
+//{
+//    printf("++%s, %d\n", __FILE__, __LINE__);
+//    AutoPtr<IPlatform> platform;
+//    ASSERT_SUCCEEDED(CPlatform::AcquireSingleton((IPlatform**)&platform));
+//    printf("++%s, %d\n", __FILE__, __LINE__);
+//    AutoPtr<INetworkSystem> networkSystem;
+//    printf("++%s, %d\n", __FILE__, __LINE__);
+//    platform->GetNetworkSystem((INetworkSystem**)&networkSystem);
+//    printf("++%s, %d\n", __FILE__, __LINE__);
+//    return networkSystem;
+//}
+//
+//AutoPtr<INetworkSystem> CURI::NETWORK_SYSTEM = InitNetworkSystem();
 
 CURI::CURI()
     : mPort(-1)
@@ -31,7 +35,11 @@ CURI::CURI()
     , mAbsolute(FALSE)
     , mServerAuthority(FALSE)
     , mHash(-1)
-{}
+{
+    AutoPtr<IPlatform> platform;
+    ASSERT_SUCCEEDED(CPlatform::AcquireSingleton((IPlatform**)&platform));
+    platform->GetNetworkSystem((INetworkSystem**)&NETWORK_SYSTEM);
+}
 
 ECode CURI::constructor()
 {

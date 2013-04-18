@@ -6,22 +6,20 @@
 #include <Com.Kortide.Platform.h>
 
 
-AutoPtr<INetPermission> InitProxySelectorPermission(
-    /* [in] */ const String& name)
-{
-    AutoPtr<INetPermission> netPermission;
-    assert(CNetPermission::New(name, (INetPermission**)&netPermission));
+//AutoPtr<INetPermission> InitProxySelectorPermission(
+//    /* [in] */ const String& name)
+//{
+//    AutoPtr<INetPermission> netPermission;
+//    assert(CNetPermission::New(name, (INetPermission**)&netPermission));
+//
+//    return netPermission;
+//}
 
-    return netPermission;
-}
+AutoPtr<IProxySelector> ProxySelector::sDefaultSelector;
 
-AutoPtr<IProxySelector> ProxySelector::sDefaultSelector = new ProxySelectorImpl();
+AutoPtr<INetPermission> ProxySelector::sGetProxySelectorPermission;
 
-AutoPtr<INetPermission> ProxySelector::sGetProxySelectorPermission =
-        InitProxySelectorPermission(String("getProxySelector"));
-
-AutoPtr<INetPermission> ProxySelector::sSetProxySelectorPermission =
-        InitProxySelectorPermission(String("setProxySelector"));
+AutoPtr<INetPermission> ProxySelector::sSetProxySelectorPermission;
 
 
 ECode ProxySelector::GetDefault(

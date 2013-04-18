@@ -20,4 +20,7 @@ module
     const E_UNKNOWN_HOST_EXCEPTION                          = 0xAB0A0000;
     const E_UNKNOWN_SERVICE_EXCEPTION                       = 0xAB0B0000;
     const E_URI_SYNTAX_EXCEPTION                            = 0xAB0C0000;
+    const E_SOCKET_CLOSE_EXCEPTION                          = 0xAB0D0000;
+    const E_MALFORMED_REPLY_EXCEPTION                       = 0xAB0E0000;
+    const E_INVALID_SOCKET_EXCEPTION                        = 0xAB0F0000;
 }

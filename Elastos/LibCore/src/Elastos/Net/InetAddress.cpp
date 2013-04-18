@@ -1,5 +1,7 @@
 
 #include "cmdef.h"
+
+
 #include "InetAddress.h"
 #include "CInet4Address.h"
 #include "CInet6Address.h"
@@ -178,9 +180,9 @@ ECode InetAddress::GetAllByNameImpl(
     if (host.IsNullOrEmpty()) {
         if (PreferIPv6Addresses()) {
             *addresses = ArrayOf<IInetAddress*>::Alloc(2);
-            (**addresses)[0] = CInet6Address::LOOPBACK.Get();
+            (**addresses)[0] = CInet6Address::ANY.Get();
             (**addresses)[0]->AddRef();
-            (**addresses)[1] = CInet4Address::LOOPBACK.Get();
+            (**addresses)[1] = CInet4Address::ANY.Get();
             (**addresses)[1]->AddRef();
             return NOERROR;
         }

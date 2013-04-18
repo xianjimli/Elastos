@@ -3,30 +3,29 @@
 #include "CInet6Address.h"
 
 
-static AutoPtr<IInetAddress> InitANY()
-{
-    ArrayOf<Byte>* ipAddress = ArrayOf<Byte>::Alloc(16);
-    memset(ipAddress->GetPayload(), 0, 16);
-    AutoPtr<CInet6Address> ipv6Addr;
-    CInet6Address::NewByFriend(*ipAddress, (CInet6Address**)&ipv6Addr);
-    return (IInetAddress*)(IInet6Address*)ipv6Addr.Get();
-}
-
-static AutoPtr<IInetAddress> InitLOOPBACK()
-{
-    ArrayOf<Byte>* ipAddress = ArrayOf<Byte>::Alloc(16);
-    memset(ipAddress->GetPayload(), 0, 16);
-    (*ipAddress)[15] = 1;
-    AutoPtr<CInet6Address> ipv6Addr;
-    CInet6Address::NewByFriend(*ipAddress, String("localhost"),
-            (CInet6Address**)&ipv6Addr);
-    return (IInetAddress*)(IInet6Address*)ipv6Addr.Get();
-}
+//static AutoPtr<IInetAddress> InitANY()
+//{
+//    ArrayOf<Byte>* ipAddress = ArrayOf<Byte>::Alloc(16);
+//    memset(ipAddress->GetPayload(), 0, 16);
+//    AutoPtr<CInet6Address> ipv6Addr;
+//    CInet6Address::NewByFriend(*ipAddress, (CInet6Address**)&ipv6Addr);
+//    return (IInetAddress*)(IInet6Address*)ipv6Addr.Get();
+//}
+//
+//static AutoPtr<IInetAddress> InitLOOPBACK()
+//{
+//    ArrayOf<Byte>* ipAddress = ArrayOf<Byte>::Alloc(16);
+//    memset(ipAddress->GetPayload(), 0, 16);
+//    (*ipAddress)[15] = 1;
+//    AutoPtr<CInet6Address> ipv6Addr;
+//    CInet6Address::NewByFriend(*ipAddress, String("localhost"),
+//            (CInet6Address**)&ipv6Addr);
+//    return (IInetAddress*)(IInet6Address*)ipv6Addr.Get();
+//}
 
 const Int32 CInet6Address::AF_INET6;
-AutoPtr<IInetAddress> CInet6Address::ANY = InitANY();
-AutoPtr<IInetAddress> CInet6Address::LOOPBACK = InitLOOPBACK();
-
+AutoPtr<IInetAddress> CInet6Address::ANY;
+AutoPtr<IInetAddress> CInet6Address::LOOPBACK;
 
 CInet6Address::CInet6Address()
     : mScopeIdSet(FALSE)

@@ -4,6 +4,7 @@
 #include "CInet4Address.h"
 #include "InetAddress.h"
 #include "CInetSocketAddress.h"
+#include <stdio.h>
 
 
 AutoPtr<ISocketImplFactory> Socket::sFactory;
@@ -474,6 +475,7 @@ ECode Socket::StartupSocket(
     /* [in] */ Int32 localPort,
     /* [in] */ Boolean streaming)
 {
+    printf("%s, %d\n", __FILE__, __LINE__);
     if (localPort < 0 || localPort > 65535) {
 //        throw new IllegalArgumentException("Local port out of range: " + localPort);
         return E_ILLEGAL_ARGUMENT_EXCEPTION;

@@ -14,11 +14,9 @@ AutoPtr<INetPermission> InitNetPermission(
 
 AutoPtr<ICookieHandler> CookieHandler::sSystemWideCookieHandler;
 
-AutoPtr<INetPermission> CookieHandler::sGetCookieHandlerPermission =
-        InitNetPermission(String("getCookieHandler"));
+AutoPtr<INetPermission> CookieHandler::sGetCookieHandlerPermission;
 
-AutoPtr<INetPermission> CookieHandler::sSetCookieHandlerPermission =
-        InitNetPermission(String("setCookieHandler"));
+AutoPtr<INetPermission> CookieHandler::sSetCookieHandlerPermission;
 
 ECode CookieHandler::GetDefault(
     /* [out] */ ICookieHandler** handler)
