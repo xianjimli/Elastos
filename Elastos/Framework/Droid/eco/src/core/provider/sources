@@ -6,6 +6,11 @@ include $(MAKEDIR)/../../../../sources.inc
 INCLUDES += $(MAKEDIR)/../../../inc/core
 INCLUDES += ../
 
+INCLUDES += $(PREBUILD_INC)/skia/utils
+INCLUDES += $(PREBUILD_INC)/skia/core
+INCLUDES += $(PREBUILD_INC)/skia/effects
+INCLUDES += $(PREBUILD_INC)/skia/images
+
 C_DEFINES += -D_FRAMEWORK_CORE
 
 SOURCES += Settings.cpp
@@ -14,5 +19,6 @@ SOURCES += CSettingsNameValueTable.cpp
 SOURCES += CSettingsSystem.cpp
 SOURCES += CSettingsSecure.cpp
 SOURCES += CSettingsBookmarks.cpp
+SOURCES += MediaStore.cpp
 
 
