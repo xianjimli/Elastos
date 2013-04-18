@@ -109,7 +109,7 @@ ECode UsbService::SetDevicePackage(
     /* [in] */ IUsbDevice* device,
     /* [in] */ const String& packageName)
 {
-    mContext->EnforceCallingOrSelfPermission(MANIFEST_PERMISSION_MANAGE_USB, NULL);
+    mContext->EnforceCallingOrSelfPermission(MANIFEST_PERMISSION_MANAGE_USB, String(""));
     mSettingsManager->SetDevicePackage(device, packageName);
 
     return NOERROR;
@@ -119,7 +119,7 @@ ECode UsbService::SetAccessoryPackage(
     /* [in] */ IUsbAccessory* accessory,
     /* [in] */ const String& packageName)
 {
-    mContext->EnforceCallingOrSelfPermission(MANIFEST_PERMISSION_MANAGE_USB, NULL);
+    mContext->EnforceCallingOrSelfPermission(MANIFEST_PERMISSION_MANAGE_USB, String(""));
     mSettingsManager->SetAccessoryPackage(accessory, packageName);
 
     return NOERROR;
@@ -169,7 +169,7 @@ ECode UsbService::GrantDevicePermission(
     /* [in] */ IUsbDevice* device,
     /* [in] */ Int32 uid)
 {
-    mContext->EnforceCallingOrSelfPermission(MANIFEST_PERMISSION_MANAGE_USB, NULL);
+    mContext->EnforceCallingOrSelfPermission(MANIFEST_PERMISSION_MANAGE_USB, String(""));
     mSettingsManager->GrantDevicePermission(device, uid);
 
     return NOERROR;
@@ -179,7 +179,7 @@ ECode UsbService::GrantAccessoryPermission(
     /* [in] */ IUsbAccessory* accessory,
     /* [in] */ Int32 uid)
 {
-    mContext->EnforceCallingOrSelfPermission(MANIFEST_PERMISSION_MANAGE_USB, NULL);
+    mContext->EnforceCallingOrSelfPermission(MANIFEST_PERMISSION_MANAGE_USB, String(""));
     mSettingsManager->GrantAccessoryPermission(accessory, uid);
 
     return NOERROR;
@@ -191,7 +191,7 @@ ECode UsbService::HasDefaults(
 {
     VALIDATE_NOT_NULL(result);
 
-    mContext->EnforceCallingOrSelfPermission(MANIFEST_PERMISSION_MANAGE_USB, NULL);
+    mContext->EnforceCallingOrSelfPermission(MANIFEST_PERMISSION_MANAGE_USB, String(""));
     *result = mSettingsManager->HasDefaults(packageName);
 
     return NOERROR;
@@ -200,7 +200,7 @@ ECode UsbService::HasDefaults(
 ECode UsbService::ClearDefaults(
     /* [in] */ const String& packageName)
 {
-    mContext->EnforceCallingOrSelfPermission(MANIFEST_PERMISSION_MANAGE_USB, NULL);
+    mContext->EnforceCallingOrSelfPermission(MANIFEST_PERMISSION_MANAGE_USB, String(""));
     mSettingsManager->ClearDefaults(packageName);
 
     return NOERROR;
@@ -210,7 +210,7 @@ ECode UsbService::SetCurrentFunction(
     /* [in] */ const String& function,
     /* [in] */ Boolean makeDefault)
 {
-    mContext->EnforceCallingOrSelfPermission(MANIFEST_PERMISSION_MANAGE_USB, NULL);
+    mContext->EnforceCallingOrSelfPermission(MANIFEST_PERMISSION_MANAGE_USB, String(""));
 
     if (mDeviceManager == NULL) {
         // throw new IllegalStateException("USB device mode not supported");
@@ -224,7 +224,7 @@ ECode UsbService::SetCurrentFunction(
 ECode UsbService::SetMassStorageBackingFile(
     /* [in] */ const String& path)
 {
-    mContext->EnforceCallingOrSelfPermission(MANIFEST_PERMISSION_MANAGE_USB, NULL);
+    mContext->EnforceCallingOrSelfPermission(MANIFEST_PERMISSION_MANAGE_USB, String(""));
 
     if (mDeviceManager == NULL) {
         // throw new IllegalStateException("USB device mode not supported");
