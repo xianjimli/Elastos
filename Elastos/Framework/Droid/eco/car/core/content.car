@@ -51,7 +51,8 @@ module
     merge("content/ContextThemeWrapper.car");
     merge("content/PathPermission.car");
     merge("content/SharedPreferences.car");
-
+    merge("content/ContentService.car");
+    
     interface ICursor;
 
     class CCursorWrapperInner {
@@ -554,6 +555,14 @@ module
 
         interface ISignature;
         interface IParcelable;
+    }
+    
+    class CContentService {
+        constructor(
+            [in] IContext* ctx,
+            [in] Boolean factoryTest);
+            
+        interface IContentService;
     }
 }
 
