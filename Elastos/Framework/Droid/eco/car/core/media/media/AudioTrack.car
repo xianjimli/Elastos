@@ -1,6 +1,104 @@
 
 module
 {
+    /** indicates AudioTrack state is stopped */
+    const AudioTrack_PLAYSTATE_STOPPED = 1;  // matches SL_PLAYSTATE_STOPPED
+    /** indicates AudioTrack state is paused */
+    const AudioTrack_PLAYSTATE_PAUSED  = 2;  // matches SL_PLAYSTATE_PAUSED
+    /** indicates AudioTrack state is playing */
+    const AudioTrack_PLAYSTATE_PLAYING = 3;  // matches SL_PLAYSTATE_PLAYING
+    /**
+     * Creation mode where audio data is transferred from Java to the native layer
+     * only once before the audio starts playing.
+     */
+    const AudioTrack_MODE_STATIC = 0;
+    /**
+     * Creation mode where audio data is streamed from Java to the native layer
+     * as the audio is playing.
+     */
+    const AudioTrack_MODE_STREAM = 1;
+
+    /**
+     * State of an AudioTrack that was not successfully initialized upon creation.
+     */
+    const AudioTrack_STATE_UNINITIALIZED = 0;
+    /**
+     * State of an AudioTrack that is ready to be used.
+     */
+    const AudioTrack_STATE_INITIALIZED = 1;
+    /**
+     * State of a successfully initialized AudioTrack that uses static data,
+     * but that hasn't received that data yet.
+     */
+    const AudioTrack_STATE_NO_STATIC_DATA = 2;
+
+    // Error codes:
+    // to keep in sync with frameworks/base/core/jni/android_media_AudioTrack.cpp
+    /**
+     * Denotes a successful operation.
+     */
+    const AudioTrack_SUCCESS = 0;
+    /**
+     * Denotes a generic operation failure.
+     */
+    const AudioTrack_ERROR = -1;
+    /**
+     * Denotes a failure due to the use of an invalid value.
+     */
+    const AudioTrack_ERROR_BAD_VALUE = -2;
+    
+    /**
+     * Denotes a failure due to the improper use of a method.
+     */
+    const AudioTrack_ERROR_INVALID_OPERATION = -3;
+
+    //from AudioFormat.h
+        /** Invalid audio data format */
+    const AudioTrack_ENCODING_INVALID = 0;
+    /** Default audio data format */
+    const AudioTrack_ENCODING_DEFAULT = 1;
+    /** Audio data format: PCM 16 bit per sample */
+    const AudioTrack_ENCODING_PCM_16BIT = 2; // accessed by native code
+    /** Audio data format: PCM 8 bit per sample */
+    const AudioTrack_ENCODING_PCM_8BIT = 3;  // accessed by native code
+    /** Invalid audio channel configuration */
+    /** @deprecated use CHANNEL_INVALID instead  */
+    const AudioTrack_CHANNEL_CONFIGURATION_INVALID = 0;
+    /** Default audio channel configuration */
+    /** @deprecated use CHANNEL_OUT_DEFAULT or CHANNEL_IN_DEFAULT instead  */
+    const AudioTrack_CHANNEL_CONFIGURATION_DEFAULT = 1;
+    /** Mono audio configuration */
+    /** @deprecated use CHANNEL_OUT_MONO or CHANNEL_IN_MONO instead  */
+    const AudioTrack_CHANNEL_CONFIGURATION_MONO = 2;
+    /** Stereo (2 channel) audio configuration */
+    /** @deprecated use CHANNEL_OUT_STEREO or CHANNEL_IN_STEREO instead  */
+    const AudioTrack_CHANNEL_CONFIGURATION_STEREO = 3;
+
+    // Channel mask definitions must be kept in sync with native values in include/media/AudioSystem.h
+    const AudioTrack_CHANNEL_OUT_FRONT_LEFT = 0x4;
+    const AudioTrack_CHANNEL_OUT_FRONT_RIGHT = 0x8;
+    const AudioTrack_CHANNEL_OUT_FRONT_CENTER = 0x10;
+    const AudioTrack_CHANNEL_OUT_LOW_FREQUENCY = 0x20;
+    const AudioTrack_CHANNEL_OUT_BACK_LEFT = 0x40;
+    const AudioTrack_CHANNEL_OUT_BACK_RIGHT = 0x80;
+    const AudioTrack_CHANNEL_OUT_FRONT_LEFT_OF_CENTER = 0x100;
+    const AudioTrack_CHANNEL_OUT_FRONT_RIGHT_OF_CENTER = 0x200;
+    const AudioTrack_CHANNEL_OUT_BACK_CENTER = 0x400;
+    const AudioTrack_CHANNEL_OUT_MONO = 0x4; //CHANNEL_OUT_FRONT_LEFT;
+    const AudioTrack_CHANNEL_OUT_STEREO = 0x12; //(CHANNEL_OUT_FRONT_LEFT | CHANNEL_OUT_FRONT_RIGHT);
+
+    const AudioTrack_CHANNEL_OUT_QUAD = 0xCC;
+    //(CHANNEL_OUT_FRONT_LEFT | CHANNEL_OUT_FRONT_RIGHT | CHANNEL_OUT_BACK_LEFT | CHANNEL_OUT_BACK_RIGHT);
+
+    const AudioTrack_CHANNEL_OUT_SURROUND = 0x41C;
+    //(CHANNEL_OUT_FRONT_LEFT | CHANNEL_OUT_FRONT_RIGHT | CHANNEL_OUT_FRONT_CENTER | CHANNEL_OUT_BACK_CENTER);
+
+    const AudioTrack_CHANNEL_OUT_5POINT1 = 0xFC;
+    //(CHANNEL_OUT_FRONT_LEFT | CHANNEL_OUT_FRONT_RIGHT | CHANNEL_OUT_FRONT_CENTER | CHANNEL_OUT_LOW_FREQUENCY | CHANNEL_OUT_BACK_LEFT | CHANNEL_OUT_BACK_RIGHT);
+    
+    const AudioTrack_CHANNEL_OUT_7POINT1 = 0x3FC;
+    //(CHANNEL_OUT_FRONT_LEFT | CHANNEL_OUT_FRONT_RIGHT | CHANNEL_OUT_FRONT_CENTER | CHANNEL_OUT_LOW_FREQUENCY | CHANNEL_OUT_BACK_LEFT | CHANNEL_OUT_BACK_RIGHT | CHANNEL_OUT_FRONT_LEFT_OF_CENTER | CHANNEL_OUT_FRONT_RIGHT_OF_CENTER);
+
     interface IAudioTrack;
 
     /**
