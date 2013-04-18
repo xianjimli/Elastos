@@ -59,6 +59,11 @@ SOURCES += IDN.cpp
 SOURCES += CIDNHelper.cpp
 SOURCES += ContentHandler.cpp
 SOURCES += CPasswordAuthentication.cpp
+SOURCES += CSocketInputStream.cpp
+SOURCES += CSocketOutputStream.cpp
+SOURCES += PlainSocketImpl.cpp
+SOURCES += PlainServerSocketImpl.cpp
+SOURCES += Socks4Message.cpp
 
 #SOURCES += netext.cpp
 

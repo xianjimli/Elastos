@@ -26,8 +26,8 @@ static AutoPtr<IInetAddress> InitLOOPBACK()
 }
 
 const Int32 CInet4Address::AF_INET;
-AutoPtr<IInetAddress> CInet4Address::ANY = InitANY();
-AutoPtr<IInetAddress> CInet4Address::LOOPBACK = InitLOOPBACK();
+AutoPtr<IInetAddress> CInet4Address::ANY;
+AutoPtr<IInetAddress> CInet4Address::LOOPBACK;
 
 PInterface CInet4Address::Probe(
     /* [in]  */ REIID riid)

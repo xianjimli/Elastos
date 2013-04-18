@@ -166,12 +166,9 @@ ECode CCookiePolicyHelper::CookiePolicyAcceptOriginalServer::ShouldAccept(
 }
 
 
-AutoPtr<ICookiePolicy> CCookiePolicyHelper::ACCEPT_ALL =
-        new CCookiePolicyHelper::CookiePolicyAcceptAll();
-AutoPtr<ICookiePolicy> CCookiePolicyHelper::ACCEPT_NONE =
-        new CCookiePolicyHelper::CookiePolicyAcceptNone();
-AutoPtr<ICookiePolicy> CCookiePolicyHelper::ACCEPT_ORIGINAL_SERVER =
-        new CCookiePolicyHelper::CookiePolicyAcceptOriginalServer();
+AutoPtr<ICookiePolicy> CCookiePolicyHelper::ACCEPT_ALL;
+AutoPtr<ICookiePolicy> CCookiePolicyHelper::ACCEPT_NONE;
+AutoPtr<ICookiePolicy> CCookiePolicyHelper::ACCEPT_ORIGINAL_SERVER;
 
 ECode CCookiePolicyHelper::GetCookiePolicy(
     /* [in] */ CookiePolicyKind kind,

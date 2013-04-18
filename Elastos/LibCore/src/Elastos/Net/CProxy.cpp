@@ -3,14 +3,14 @@
 #include "CProxy.h"
 
 
-AutoPtr<IProxy> StaticInitProxy()
-{
-    AutoPtr<CProxy> proxy;
-    CProxy::NewByFriend((CProxy**)&proxy);
-    return (IProxy*)proxy.Get();
-}
+//AutoPtr<IProxy> StaticInitProxy()
+//{
+//    AutoPtr<CProxy> proxy;
+//    CProxy::NewByFriend((CProxy**)&proxy);
+//    return (IProxy*)proxy.Get();
+//}
 
-AutoPtr<IProxy> CProxy::NO_PROXY = StaticInitProxy();
+AutoPtr<IProxy> CProxy::NO_PROXY;
 
 ECode CProxy::constructor(
     /* [in] */ ProxyType type,

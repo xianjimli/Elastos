@@ -579,7 +579,7 @@ public:
     static const String ALL_LEGAL;
 
 private:
-    static AutoPtr<INetworkSystem> NETWORK_SYSTEM;
+    AutoPtr<INetworkSystem> NETWORK_SYSTEM;
 
     String mString;
     String mScheme;

@@ -20,11 +20,9 @@ AutoPtr<INetPermission> InitAuthenticationPermission(
 
 AutoPtr<Authenticator> Authenticator::sThisAuthenticator;
 
-AutoPtr<INetPermission> Authenticator::sRequestPasswordAuthenticationPermission =
-        InitAuthenticationPermission(String("requestPasswordAuthentication"));
+AutoPtr<INetPermission> Authenticator::sRequestPasswordAuthenticationPermission;
 
-AutoPtr<INetPermission> Authenticator::sSetDefaultAuthenticatorPermission =
-        InitAuthenticationPermission(String("setDefaultAuthenticator"));
+AutoPtr<INetPermission> Authenticator::sSetDefaultAuthenticatorPermission;
 
 Mutex Authenticator::sLock;
 
