@@ -4,12 +4,10 @@
 
 #include "_CAudioTrack.h"
 #include <elastos/AutoPtr.h>
-
 #include <utils/RefBase.h>
 
 #include <media/AudioSystem.h>
 #include <media/AudioTrack.h>
-#include "media/ElAudioTrack.h"
 
 CarClass(CAudioTrack)//, public AudioTrack
 {
@@ -24,7 +22,7 @@ private:
             mAudioTrack = track;
             // find the looper for our new event handler
             Looper looper;
-            if (handler != null ){
+            if (handler != NULL ){
                 looper = handler.getLooper();
             } else {
                 // no given handler, use the looper the AudioTrack was created in
@@ -32,26 +30,26 @@ private:
             }
             
             // construct the event handler with this looper
-            if (looper != null) {
+            if (looper != NULL) {
                 // implement the event handler delegate
                 mHandler = new Handler(looper) {
                     //@Override
                     public void handleMessage(Message msg) {
-                        if (mAudioTrack == null) {
+                        if (mAudioTrack == NULL) {
                             return;
                         }
-                        OnPlaybackPositionUpdateListener listener = null;
+                        OnPlaybackPositionUpdateListener listener = NULL;
                         synchronized (mPositionListenerLock) {
                             listener = mAudioTrack.mPositionListener;
                         }
                         switch(msg.what) {
                         case NATIVE_EVENT_MARKER:
-                            if (listener != null) {
+                            if (listener != NULL) {
                                 listener.onMarkerReached(mAudioTrack);
                             }
                             break;
                         case NATIVE_EVENT_NEW_POS:
-                            if (listener != null) {
+                            if (listener != NULL) {
                                 listener.onPeriodicNotification(mAudioTrack);
                             }
                             break;
@@ -62,7 +60,7 @@ private:
                     }
                 };
             } else {
-                mHandler = null;
+                mHandler = NULL;
             } 
         }
         
@@ -209,82 +207,128 @@ public:
         /* [in] */ Int32 sessionId);
 
 private:
+
+    CARAPI_(Int32) NativeSetup(
+        /* [in] */ IInterface* audiotrack_this,
+        /* [in] */ Int32 streamType,
+        /* [in] */ Int32 sampleRate,
+        /* [in] */ Int32 nbChannels,
+        /* [in] */ Int32 audioFormat,
+        /* [in] */ Int32 buffSizeInBytes,
+        /* [in] */ Int32 mode,
+        /* [in] */ Int32* sessionId);
+
     CARAPI_(Int32) GetMinFrameCount(
-      /* [in] */ Int32* frameCount,
-      /* [in] */ Int32 streamType,
-      /* [in] */ uint32_t sampleRate);
+        /* [in] */ Int32* frameCount,
+        /* [in] */ Int32 streamType,
+        /* [in] */ uint32_t sampleRate);
 
-    CARAPI_(Int32) Native_get_playback_rate();
+    CARAPI_(Int32) NativeGetPlaybackRate();
 
-    CARAPI_(Int32) Native_get_marker_pos();
+    CARAPI_(Int32) NativeGetMarkerPos();
 
-    CARAPI_(Int32) Native_get_pos_update_period();
+    CARAPI_(Int32) NativeGetPosUpdatePeriod();
 
-    CARAPI_(Int32) Native_get_position();
+    CARAPI_(Int32) NativeGetPosition();
 
-    CARAPI_(Int32) Native_get_output_sample_rate(
-      /* [in] */ Int32 javaStreamType);
+    CARAPI_(Int32) NativeGetOutputSampleRate(
+        /* [in] */ Int32 javaStreamType);
 
-    CARAPI_(Int32) Native_get_min_buff_size(
-      /* [in] */ Int32 sampleRateInHertz, 
-      /* [in] */ Int32 nbChannels,
-      /* [in] */ Int32 audioFormat);
+    CARAPI_(Int32) NativeGetMinBuffSize(
+        /* [in] */ Int32 sampleRateInHertz, 
+        /* [in] */ Int32 nbChannels,
+        /* [in] */ Int32 audioFormat);
 
-    CARAPI_(void) Native_setVolume(
-      /* [in] */ Float left, 
-      /* [in] */ Float right);
+    CARAPI_(void) NativeSetVolume(
+        /* [in] */ Float left, 
+        /* [in] */ Float right);
 
-    CARAPI_(Int32) Android_media_translateErrorCode(
-      /* [in] */ Int32 code);
+    CARAPI_(Int32) AndroidMediaTranslateErrorCode(
+        /* [in] */ Int32 code);
 
-    CARAPI_(Int32) Native_set_playback_rate(
-      /* [in] */ Int32 sampleRateInHz);
+    CARAPI_(Int32) NativeSetPlaybackRate(
+        /* [in] */ Int32 sampleRateInHz);
 
-    CARAPI_(Int32) Native_set_marker_pos(
-      /* [in] */ Int32 markerPos);
+    CARAPI_(Int32) NativeSetMarkerPos(
+        /* [in] */ Int32 markerPos);
 
-    CARAPI_(Int32) Native_set_pos_update_period(
-      /* [in] */ Int32 periodInFrames);
+    CARAPI_(Int32) NativeSetPosUpdatePeriod(
+        /* [in] */ Int32 periodInFrames);
 
-    CARAPI_(Int32) Native_set_position(
-      /* [in] */ Int32 positionInFrames);
+    CARAPI_(Int32) NativeSetPosition(
+        /* [in] */ Int32 positionInFrames);
 
-    CARAPI_(Int32) Native_set_loop(
-      /* [in] */ Int32 loopStart, 
-      /* [in] */ Int32 loopEnd, 
-      /* [in] */ Int32 loopCount);
+    CARAPI_(Int32) NativeSetLoop(
+        /* [in] */ Int32 loopStart, 
+        /* [in] */ Int32 loopEnd, 
+        /* [in] */ Int32 loopCount);
 
-    CARAPI_(void) Native_Start();
-    CARAPI_(void) Native_Stop();
-    CARAPI_(void) Native_Pause();
-    CARAPI_(void) Native_Flush();
+    CARAPI_(void) NativeStart();
+    CARAPI_(void) NativeStop();
+    CARAPI_(void) NativePause();
+    CARAPI_(void) NativeFlush();
 
-    CARAPI_(Int32) writeToTrack(
-      /* [in] */ android::AudioTrack* pTrack, 
-      /* [in] */ Int32 audioFormat, 
-      /* [in] */ Byte* data,
-      /* [in] */ Int32 offsetInBytes, 
-      /* [in] */ Int32 sizeInBytes) ;
+    CARAPI_(Int32) WriteToTrack(
+        /* [in] */ android::AudioTrack* pTrack, 
+        /* [in] */ Int32 audioFormat, 
+        /* [in] */ Byte* data,
+        /* [in] */ Int32 offsetInBytes, 
+        /* [in] */ Int32 sizeInBytes) ;
 
-    CARAPI_(Int32) Native_write_byte(    
-      /* [in] */ ArrayOf<Byte> *javaAudioData,
-      /* [in] */ Int32 offsetInBytes,
-      /* [in] */ Int32 sizeInBytes,
-      /* [in] */ Int32 javaAudioFormat); 
+    CARAPI_(Int32) NativeWriteByte(    
+        /* [in] */ ArrayOf<Byte> *javaAudioData,
+        /* [in] */ Int32 offsetInBytes,
+        /* [in] */ Int32 sizeInBytes,
+        /* [in] */ Int32 javaAudioFormat); 
 
-    CARAPI_(Int32) Native_write_short(
-      /* [in] */ ArrayOf<Int16> *javaAudioData,
-      /* [in] */ Int32 offsetInShorts,
-      /* [in] */ Int32 sizeInShorts,
-      /* [in] */ Int32 javaAudioFormat);
+    CARAPI_(Int32) NativeWriteShort(
+        /* [in] */ ArrayOf<Int16> *javaAudioData,
+        /* [in] */ Int32 offsetInShorts,
+        /* [in] */ Int32 sizeInShorts,
+        /* [in] */ Int32 javaAudioFormat);
 
-    CARAPI_(Int32) Native_reload_static();
+    CARAPI_(Int32) NativeReloadStatic();
 
-    CARAPI_(Int32) Native_attachAuxEffect(
-      /* [in] */ Int32 effectId);
+    CARAPI_(Int32) NativeAttachAuxEffect(
+        /* [in] */ Int32 effectId);
 
-    CARAPI_(void) Native_setAuxEffectSendLevel(
-      /* [in] */ Float level);
+    CARAPI_(void) NativeSetAuxEffectSendLevel(
+        /* [in] */ Float level);
+
+    CARAPI_(void) NativeFinalize();
+    
+    CARAPI_(void) NativeRelease();
+
+    CARAPI_(void) Init(
+        /* [in] */ Int32 streamType,
+        /* [in] */ Int32 sampleRateInHz,
+        /* [in] */ Int32 channelConfig,
+        /* [in] */ Int32 audioFormat,
+        /* [in] */ Int32 bufferSizeInBytes,
+        /* [in] */ Int32 mode,
+        /* [in] */ Int32 sessionId);
+
+    CARAPI_(void) AudioParamCheck(
+        /* [in] */ Int32 streamType,
+        /* [in] */ Int32 sampleRateInHz,
+        /* [in] */ Int32 channelConfig,
+        /* [in] */ Int32 audioFormat,
+        /* [in] */ Int32 mode);
+
+    CARAPI_(void)AudioBuffSizeCheck(
+        /* [in] */ Int32 audioBufferSize);
+
+    CARAPI_(void) SetState(
+        /* [in] */ Int32 state);
+
+    CARAPI_(void) Finalize();
+
+    CARAPI_(void) PostEventFromNative(
+    /* [in] */ IInterface* audiotrack_ref,
+    /* [in] */ Int32 what,
+    /* [in] */ Int32 arg1,
+    /* [in] */ Int32 arg2,
+    /* [in] */ IInterface* obj);
 
     struct fields_t {
     // these fields provide access from C++ to the...
@@ -301,104 +345,6 @@ private:
     Int32       MODE_STREAM;           //...  memory mode
     Int32       MODE_STATIC;           //...  memory mode
     };
-
-public:
-    /** indicates AudioTrack state is stopped */
-    static const Int32 PLAYSTATE_STOPPED = 1;  // matches SL_PLAYSTATE_STOPPED
-    /** indicates AudioTrack state is paused */
-    static const Int32 PLAYSTATE_PAUSED  = 2;  // matches SL_PLAYSTATE_PAUSED
-    /** indicates AudioTrack state is playing */
-    static const Int32 PLAYSTATE_PLAYING = 3;  // matches SL_PLAYSTATE_PLAYING
-    /**
-     * Creation mode where audio data is transferred from Java to the native layer
-     * only once before the audio starts playing.
-     */
-    static const Int32 MODE_STATIC = 0;
-    /**
-     * Creation mode where audio data is streamed from Java to the native layer
-     * as the audio is playing.
-     */
-    static const Int32 MODE_STREAM = 1;
-
-    /**
-     * State of an AudioTrack that was not successfully initialized upon creation.
-     */
-    static const Int32 STATE_UNINITIALIZED = 0;
-    /**
-     * State of an AudioTrack that is ready to be used.
-     */
-    static const Int32 STATE_INITIALIZED   = 1;
-    /**
-     * State of a successfully initialized AudioTrack that uses static data,
-     * but that hasn't received that data yet.
-     */
-    static const Int32 STATE_NO_STATIC_DATA = 2;
-
-    // Error codes:
-    // to keep in sync with frameworks/base/core/jni/android_media_AudioTrack.cpp
-    /**
-     * Denotes a successful operation.
-     */
-    static const Int32 SUCCESS                               = 0;
-    /**
-     * Denotes a generic operation failure.
-     */
-    static const Int32 ERROR                                 = -1;
-    /**
-     * Denotes a failure due to the use of an invalid value.
-     */
-    static const Int32 ERROR_BAD_VALUE                       = -2;
-    
-    /**
-     * Denotes a failure due to the improper use of a method.
-     */
-    static const Int32 ERROR_INVALID_OPERATION               = -3;
-
-
-    //from AudioFormat.h
-        /** Invalid audio data format */
-    static const Int32 ENCODING_INVALID = 0;
-    /** Default audio data format */
-    static const Int32 ENCODING_DEFAULT = 1;
-    /** Audio data format: PCM 16 bit per sample */
-    static const Int32 ENCODING_PCM_16BIT = 2; // accessed by native code
-    /** Audio data format: PCM 8 bit per sample */
-    static const Int32 ENCODING_PCM_8BIT = 3;  // accessed by native code
-    /** Invalid audio channel configuration */
-    /** @deprecated use CHANNEL_INVALID instead  */
-    static const Int32 CHANNEL_CONFIGURATION_INVALID   = 0;
-    /** Default audio channel configuration */
-    /** @deprecated use CHANNEL_OUT_DEFAULT or CHANNEL_IN_DEFAULT instead  */
-    static const Int32 CHANNEL_CONFIGURATION_DEFAULT   = 1;
-    /** Mono audio configuration */
-    /** @deprecated use CHANNEL_OUT_MONO or CHANNEL_IN_MONO instead  */
-    static const Int32 CHANNEL_CONFIGURATION_MONO      = 2;
-    /** Stereo (2 channel) audio configuration */
-    /** @deprecated use CHANNEL_OUT_STEREO or CHANNEL_IN_STEREO instead  */
-    static const Int32 CHANNEL_CONFIGURATION_STEREO    = 3;
-    // Channel mask definitions must be kept in sync with native values in include/media/AudioSystem.h
-    static const Int32 CHANNEL_OUT_FRONT_LEFT = 0x4;
-    static const Int32 CHANNEL_OUT_FRONT_RIGHT = 0x8;
-    static const Int32 CHANNEL_OUT_FRONT_CENTER = 0x10;
-    static const Int32 CHANNEL_OUT_LOW_FREQUENCY = 0x20;
-    static const Int32 CHANNEL_OUT_BACK_LEFT = 0x40;
-    static const Int32 CHANNEL_OUT_BACK_RIGHT = 0x80;
-    static const Int32 CHANNEL_OUT_FRONT_LEFT_OF_CENTER = 0x100;
-    static const Int32 CHANNEL_OUT_FRONT_RIGHT_OF_CENTER = 0x200;
-    static const Int32 CHANNEL_OUT_BACK_CENTER = 0x400;
-    static const Int32 CHANNEL_OUT_MONO = CHANNEL_OUT_FRONT_LEFT;
-    static const Int32 CHANNEL_OUT_STEREO = (CHANNEL_OUT_FRONT_LEFT | CHANNEL_OUT_FRONT_RIGHT);
-    static const Int32 CHANNEL_OUT_QUAD = (CHANNEL_OUT_FRONT_LEFT | CHANNEL_OUT_FRONT_RIGHT |
-            CHANNEL_OUT_BACK_LEFT | CHANNEL_OUT_BACK_RIGHT);
-    static const Int32 CHANNEL_OUT_SURROUND = (CHANNEL_OUT_FRONT_LEFT | CHANNEL_OUT_FRONT_RIGHT |
-            CHANNEL_OUT_FRONT_CENTER | CHANNEL_OUT_BACK_CENTER);
-    static const Int32 CHANNEL_OUT_5POINT1 = (CHANNEL_OUT_FRONT_LEFT | CHANNEL_OUT_FRONT_RIGHT |
-            CHANNEL_OUT_FRONT_CENTER | CHANNEL_OUT_LOW_FREQUENCY | CHANNEL_OUT_BACK_LEFT | CHANNEL_OUT_BACK_RIGHT);
-    static const Int32 CHANNEL_OUT_7POINT1 = (CHANNEL_OUT_FRONT_LEFT | CHANNEL_OUT_FRONT_RIGHT |
-            CHANNEL_OUT_FRONT_CENTER | CHANNEL_OUT_LOW_FREQUENCY | CHANNEL_OUT_BACK_LEFT | CHANNEL_OUT_BACK_RIGHT |
-            CHANNEL_OUT_FRONT_LEFT_OF_CENTER | CHANNEL_OUT_FRONT_RIGHT_OF_CENTER);
-
-
 
 private:  
     /** Minimum value for a channel volume */
@@ -435,31 +381,35 @@ private:
     /**
      * The audio data sampling rate in Hz.
      */
-    static const Int32 mSampleRate  = 22050;
+     Int32 mSampleRate ;// = 22050;
 
     /**
      * The way audio is consumed by the hardware, streaming or static.
      */
-    static const Int32 mDataLoadMode = MODE_STREAM;
+    Int32 mDataLoadMode ;// = AudioTrack_MODE_STREAM;
 
     /**
      * The number of audio output channels (1 is mono, 2 is stereo).
      */
-    static const Int32 mChannelCount = 1;
+     Int32 mChannelCount ;//= 1;
+
+     Int32 mChannels; //= AudioFormat.CHANNEL_OUT_MONO;
+
+     Int32 mNativeBufferSizeInBytes ;//= 0;
 
      /**
      * The encoding of the audio samples.
      * @see AudioFormat#ENCODING_PCM_8BIT
      * @see AudioFormat#ENCODING_PCM_16BIT
      */
-    static const Int32 mAudioFormat = ENCODING_PCM_16BIT;
+    Int32 mAudioFormat ;//= AudioTrack_ENCODING_PCM_16BIT;
 
      /**
      * The current audio channel configuration.
      */
-    static const Int32 mChannelConfiguration = CHANNEL_OUT_MONO;
+    Int32 mChannelConfiguration;// = AudioTrack_CHANNEL_OUT_MONO;
 
-    static const Int32 mSessionId = 0;
+    Int32 mSessionId ;//= 0;
 
     static const Int32 mStreamType = 3;//:AudioManager.STREAM_MUSIC;
 

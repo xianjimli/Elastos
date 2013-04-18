@@ -13,7 +13,7 @@ INCLUDES += $(PREBUILD_INC)/skia/core
 
 C_DEFINES += -D_FRAMEWORK_CORE
 
-SOURCES = AudioTrack.cpp
+//SOURCES = AudioTrack.cpp
 SOURCES += CAudioTrack.cpp
 SOURCES += ElAudioSystem.cpp
 SOURCES += CAudioManager.cpp
