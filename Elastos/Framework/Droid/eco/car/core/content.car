@@ -62,7 +62,6 @@ module
     merge("content/ContextThemeWrapper.car");
     merge("content/PathPermission.car");
     merge("content/SharedPreferences.car");
-    merge("content/ContentService.car");
     
     interface ICursor;
 

@@ -102,9 +102,9 @@ CarClass(CContentService)
                 /* [in] */ List<ObserverCall*>* calls);
 
         public:
-            static const INSERT_TYPE = 0;
-            static const UPDATE_TYPE = 1;
-            static const DELETE_TYPE = 2;
+            static const Int32 INSERT_TYPE = 0;
+            static const Int32 UPDATE_TYPE = 1;
+            static const Int32 DELETE_TYPE = 2;
 
         private:
             CARAPI_(String) GetUriSegment(
@@ -217,8 +217,8 @@ public:
     //CARAPI GetCurrentSync(
     //    /*[out]*/ ISyncInfo** syncInfo);
 
-    //CARAPI GetSyncAdapterTypes(
-    //    /*[out, callee]*/ ArrayOf<ISyncAdapterType*>* result);
+    CARAPI GetSyncAdapterTypes(
+        /*[out, callee]*/ ArrayOf<ISyncAdapterType*>** result);
 
     //CARAPI GetSyncStatus(
     //    /*[in]*/ IAccount* account,

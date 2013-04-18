@@ -548,11 +548,11 @@ ECode CContentService::IsSyncActive(
 //    return E_NOT_IMPLEMENTED;
 //}
 
-//ECode CContentService::GetSyncAdapterTypes(
-//    /*[out, callee]*/ ArrayOf<ISyncAdapterType*>* result)
-//{
-//    return E_NOT_IMPLEMENTED;
-//}
+ECode CContentService::GetSyncAdapterTypes(
+    /*[out, callee]*/ ArrayOf<ISyncAdapterType*>** result)
+{
+    return E_NOT_IMPLEMENTED;
+}
 
 //ECode CContentService::GetSyncStatus(
 //    /*[in]*/ IAccount* account,
