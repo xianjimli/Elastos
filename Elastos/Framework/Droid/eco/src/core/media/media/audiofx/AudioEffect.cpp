@@ -21,10 +21,10 @@ AudioEffect::Descriptor::Descriptor(
     , mName(name1)
     , mImplementor(implementor1)
 {
-/*
-    this.type = UUID.fromString(type);
-    this.uuid = UUID.fromString(uuid);
-*/
+    AutoPtr<IUUIDHelper> tempUUIDHelper;
+    tempUUIDHelper->FromString(type1,(IUUID**) &mType);
+    AutoPtr<IUUIDHelper> tempUUIDHelper1;
+    tempUUIDHelper1->FromString(uuid1,(IUUID**) &mType);
 }
 
 ECode AudioEffect::Descriptor::GetType(
@@ -118,14 +118,13 @@ ECode AudioEffect::Init(
     /* [in] */ Int32 audioSession)
 {
     ArrayOf_<Int32, 1> id;
-    ArrayOf_< AutoPtr<IAudioEffectDescriptor>, 1> desc;
+    ArrayOf_< IAudioEffectDescriptor*, 1> desc;
     // native initialization
-/*
-    int initResult = native_setup(new WeakReference<AudioEffect>(this),
-        type.toString(), uuid.toString(), priority, audioSession, id,
-        desc);
-*/
     Int32 initResult = 0;
+    String tempString1,tempString2;
+    type->ToString(&tempString1);
+    type->ToString(&tempString2);
+    initResult = NativeSetup((IObject*) this, tempString1, tempString2,priority,audioSession,(ArrayOf<Int32>*) (&id),(ArrayOf<IObject>*) (&desc));
     if (initResult != AudioEffect_SUCCESS && initResult != AudioEffect_ALREADY_EXISTS) {
         /*
             Log.e(TAG, "Error code " + initResult
@@ -625,18 +624,15 @@ ECode AudioEffect::SetParameterListener(
 
 void AudioEffect::CreateNativeEventHandler()
 {
-    //IApartment* apartment;
-/*
-        Looper looper;
-        if ((looper = Looper.myLooper()) != null) {
-            mNativeEventHandler = new NativeEventHandler(this, looper);
-        } else if ((looper = Looper.getMainLooper()) != null) {
-            mNativeEventHandler = new NativeEventHandler(this, looper);
-        } else {
-            mNativeEventHandler = null;
-        }
-*/
-    //E_NOT_IMPLEMENTED;
+    AutoPtr<IApartment> looper;
+    AutoPtr<IApartmentHelper> helper;
+    if (SUCCEEDED(helper->GetMainApartment((IApartment**) &looper)) && (looper != NULL)) {
+        mNativeEventHandler = new NativeEventHandler((IAudioEffect*) this, looper);
+    } else if (SUCCEEDED(helper->GetMyApartment((IApartment**) &looper)) && (looper != NULL)) {
+        mNativeEventHandler = new NativeEventHandler((IAudioEffect*) this, looper);
+    } else {
+        mNativeEventHandler = NULL;
+    }
 }
 
 PInterface AudioEffect::NativeEventHandler::Probe(
@@ -677,15 +673,11 @@ ECode AudioEffect::NativeEventHandler::GetInterfaceID(
     return NOERROR;
 }
 
-ECode AudioEffect::NativeEventHandler::constructor(
+AudioEffect::NativeEventHandler::NativeEventHandler(
     /* [in] */ IAudioEffect* ae,
     /* [in] */ IApartment* looper)
 {
-/*
-    super(looper);
-*/
     mAudioEffect = ae;
-    return E_NOT_IMPLEMENTED;
 }
 
 ECode AudioEffect::NativeEventHandler::HandleMessage(
@@ -695,12 +687,13 @@ ECode AudioEffect::NativeEventHandler::HandleMessage(
         return NOERROR;
     }
 //    switch (msg.what) {
+    Mutex::Autolock lock(&mHost->mListenerLock);
     switch (1) {
     case AudioEffect_NATIVE_EVENT_ENABLED_STATUS:
         IAudioEffectOnEnableStatusChangeListener* enableStatusChangeListener;
-//        synchronized (mListenerLock)
         enableStatusChangeListener = mHost->mEnableStatusChangeListener;
         if (enableStatusChangeListener != NULL) {
+            enableStatusChangeListener->OnEnableStatusChange(mAudioEffect,0);
             /*
             enableStatusChangeListener.onEnableStatusChange(
                 mAudioEffect, (boolean) (msg.arg1 != 0));
@@ -709,9 +702,9 @@ ECode AudioEffect::NativeEventHandler::HandleMessage(
         return NOERROR;
     case AudioEffect_NATIVE_EVENT_CONTROL_STATUS:
         IAudioEffectOnControlStatusChangeListener* controlStatusChangeListener;
-//        synchronized (mListenerLock)
         controlStatusChangeListener = mHost->mControlChangeStatusListener;
         if (controlStatusChangeListener != NULL) {
+            controlStatusChangeListener->OnControlStatusChange(mAudioEffect,0);
 /*
             controlStatusChangeListener.onControlStatusChange(
                 mAudioEffect, (boolean) (msg.arg1 != 0));
@@ -720,7 +713,6 @@ ECode AudioEffect::NativeEventHandler::HandleMessage(
         return NOERROR;
     case AudioEffect_NATIVE_EVENT_PARAMETER_CHANGED:
         IAudioEffectOnParameterChangeListener* parameterChangeListener;
-//        synchronized (mListenerLock)
         parameterChangeListener = mHost->mParameterChangeListener;
         if (parameterChangeListener != NULL) {
             // arg1 contains offset of parameter value from start of
@@ -733,7 +725,6 @@ ECode AudioEffect::NativeEventHandler::HandleMessage(
             // fields offsets
             Int32 status;
             AutoPtr<IAudioEffect> obj;
-//            AudioEffect::New(0,0,(IAudioEffect**)&obj);
             obj->ByteArrayToInt32Ex(p, 0, &status);
             Int32 psize;
             obj->ByteArrayToInt32Ex(p, 4, &status);
@@ -751,6 +742,105 @@ ECode AudioEffect::NativeEventHandler::HandleMessage(
     return E_NOT_IMPLEMENTED;
 }
 
+ECode AudioEffect::NativeEventHandler::Start(
+    /* [in] */ ApartmentAttr attr)
+{
+    assert(0);
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode AudioEffect::NativeEventHandler::Finish()
+{
+    assert(0);
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode AudioEffect::NativeEventHandler::PostCppCallback(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ IParcel* params,
+    /* [in] */ Int32 id)
+{
+    assert(mApartment != NULL);
+    return mApartment->PostCppCallback(target, func, params, id);
+}
+
+ECode AudioEffect::NativeEventHandler::PostCppCallbackAtTime(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ IParcel* params,
+    /* [in] */ Int32 id,
+    /* [in] */ Millisecond64 uptimeMillis)
+{
+    assert(mApartment != NULL);
+    return mApartment->PostCppCallbackAtTime(target, func, params, id, uptimeMillis);
+}
+
+ECode AudioEffect::NativeEventHandler::PostCppCallbackDelayed(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ IParcel* params,
+    /* [in] */ Int32 id,
+    /* [in] */ Millisecond64 delayMillis)
+{
+    assert(mApartment != NULL);
+    return mApartment->PostCppCallbackDelayed(target, func, params, id, delayMillis);
+}
+
+ECode AudioEffect::NativeEventHandler::PostCppCallbackAtFrontOfQueue(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ IParcel* params,
+    /* [in] */ Int32 id)
+{
+    assert(mApartment != NULL);
+    return mApartment->PostCppCallbackAtFrontOfQueue(target, func, params, id);
+}
+
+ECode AudioEffect::NativeEventHandler::RemoveCppCallbacks(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func)
+{
+    assert(mApartment != NULL);
+    return mApartment->RemoveCppCallbacks(target, func);
+}
+
+ECode AudioEffect::NativeEventHandler::RemoveCppCallbacksEx(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ Int32 id)
+{
+    assert(mApartment != NULL);
+    return mApartment->RemoveCppCallbacksEx(target, func, id);
+}
+
+ECode AudioEffect::NativeEventHandler::HasCppCallbacks(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [out] */ Boolean* result)
+{
+    assert(mApartment != NULL);
+    return mApartment->HasCppCallbacks(target, func, result);
+}
+
+ECode AudioEffect::NativeEventHandler::HasCppCallbacksEx(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ Int32 id,
+    /* [out] */ Boolean* result)
+{
+    assert(mApartment != NULL);
+    return mApartment->HasCppCallbacksEx(target, func, id, result);
+}
+
+ECode AudioEffect::NativeEventHandler::SendMessage(
+    /* [in] */ Int32 message,
+    /* [in] */ IParcel* params)
+{
+    assert(0);
+    return E_NOT_IMPLEMENTED;
+}
+
 void AudioEffect::PostEventFromNative(
     /* [in] */ IObject* effect_ref,
     /* [in] */ Int32 what,
@@ -758,17 +848,17 @@ void AudioEffect::PostEventFromNative(
     /* [in] */ Int32 arg2,
     /* [in] */ IObject* obj)
 {
+    AudioEffect* effect = (AudioEffect*) effect_ref;
+    if (effect == NULL) {
+        return;
+    }
+    if (effect->mNativeEventHandler != NULL) {
 /*
-        AudioEffect effect = (AudioEffect) ((WeakReference) effect_ref).get();
-        if (effect == null) {
-            return;
-        }
-        if (effect.mNativeEventHandler != null) {
             Message m = effect.mNativeEventHandler.obtainMessage(what, arg1,
                     arg2, obj);
             effect.mNativeEventHandler.sendMessage(m);
-        }
 */
+    }
     //E_NOT_IMPLEMENTED;
 }
 
@@ -1217,7 +1307,7 @@ ECode AudioEffect::Int32ToByteArray(
     AutoPtr<IByteBuffer> converter;
     AutoPtr<IByteBufferHelper> tempByteBufferHelper;
     tempByteBufferHelper->Allocate(4,(IByteBuffer**) &converter);
-    ByteOrder* tempByteOrder;
+    ByteOrder* tempByteOrder = NULL;
     converter->GetOrder(tempByteOrder);
     converter->PutInt32(value);
     AutoFree< ArrayOf<Byte> > p;
@@ -1244,7 +1334,7 @@ ECode AudioEffect::ByteArrayToInt16Ex(
     AutoPtr<IByteBuffer> converter;
     AutoPtr<IByteBufferHelper> tempByteBufferHelper;
     tempByteBufferHelper->Wrap(valueBuf,(IByteBuffer**) &converter);
-    ByteOrder* tempByteOrder;
+    ByteOrder* tempByteOrder = NULL;
     converter->GetOrder(tempByteOrder);
     *result = converter->GetInt16Ex(offset, result);
     return NOERROR;
@@ -1259,7 +1349,7 @@ ECode AudioEffect::Int16ToByteArray(
     AutoPtr<IByteBuffer> converter;
     AutoPtr<IByteBufferHelper> tempByteBufferHelper;
     tempByteBufferHelper->Allocate(2,(IByteBuffer**) &converter);
-    ByteOrder* tempByteOrder;
+    ByteOrder* tempByteOrder = NULL;
     converter->GetOrder(tempByteOrder);
     Int16 sValue = (Int16) value;
     converter->PutInt16(sValue);
