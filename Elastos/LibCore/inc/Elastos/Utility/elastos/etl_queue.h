@@ -141,13 +141,13 @@ public:
            const Sequence& s = Sequence())
     : mC(s), comp(x)
     {
-        mC.insert(mC.End(), first, last);
+        mC.Insert(mC.End(), first, last);
         MakeHeap(mC.Begin(), mC.End(), comp);
     }
 
     Boolean IsEmpty() const { return mC.IsEmpty(); }
     SizeType GetSize() const { return mC.GetSize(); }
-    ConstReference top() const { return mC.GetFront(); }
+    ConstReference GetTop() const { return mC.GetFront(); }
 
     void
     Push(const ValueType& x)

@@ -3,6 +3,7 @@
 #define __ETL_ALGO_H__
 
 #include <elastos/etl_def.h>
+#include <elastos/etl_heap.h>
 
 _ELASTOS_NAMESPACE_BEGIN
 
@@ -13,13 +14,13 @@ _ELASTOS_NAMESPACE_BEGIN
  *  @endmaint
 */
 template<typename InputIterator, typename T>
-inline InputIterator 
+inline InputIterator
 Find(InputIterator first, InputIterator last, const T& val, InputIteratorTag)
 {
     while (first != last && !(*first == val)) {
         ++first;
     }
-    
+
     return first;
 }
 
@@ -81,7 +82,7 @@ Find(InputIterator first, InputIterator last, const T& val)
     Concept_FunctionRequires(InputIteratorConcept<InputIterator>)
     Concept_FunctionRequires(EqualOpConcept<
             typename IteratorTraits<InputIterator>::ValueType, T>)
-    
+
     return Find(first, last, val, IteratorCategory(first));
 }
 
@@ -93,7 +94,7 @@ GetLowerBound(ForwardIterator first, ForwardIterator last, const T& val)
 {
     typedef typename IteratorTraits<ForwardIterator>::ValueType ValueType;
     typedef typename IteratorTraits<ForwardIterator>::DifferenceType DistanceType;
-    
+
     // concept requirements
     // Note that these are slightly stricter than those of the 4-argument
     // version, defined next.  The difference is in the strictness of the
@@ -102,7 +103,7 @@ GetLowerBound(ForwardIterator first, ForwardIterator last, const T& val)
     Concept_FunctionRequires(ForwardIteratorConcept<ForwardIterator>)
     Concept_FunctionRequires(SameTypeConcept<T, ValueType>)
     Concept_FunctionRequires(LessThanComparableConcept<T>)
-    
+
     DistanceType len = Distance(first, last);
     DistanceType half;
     ForwardIterator middle;

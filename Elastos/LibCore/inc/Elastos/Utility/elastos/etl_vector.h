@@ -145,7 +145,7 @@ public:
         return SizeType(ConstIterator(mEndOfStorage) - Begin());
     }
 
-    Boolean IsEmpty() { return Begin() == End(); }
+    Boolean IsEmpty() const { return Begin() == End(); }
 
     Reference operator[](SizeType n) { return *(Begin() + n); }
 
