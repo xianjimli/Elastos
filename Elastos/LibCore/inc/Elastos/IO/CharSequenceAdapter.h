@@ -22,6 +22,13 @@ class CharSequenceAdapter
     , public CharBuffer
 {
 public:
+    static CARAPI_(CharSequenceAdapter*) Copy(
+        /* [in] */ CharSequenceAdapter* other);
+
+    CharSequenceAdapter(
+        /* [in] */ Int32 capacity,
+        /* [in] */ ICharSequence* chseq);
+
     CARAPI_(PInterface) Probe(
         /* [in]  */ REIID riid);
 
@@ -32,13 +39,6 @@ public:
     CARAPI GetInterfaceID(
         /* [in] */ IInterface *pObject,
         /* [out] */ InterfaceID *pIID);
-
-    static CARAPI_(CharSequenceAdapter*) Copy(
-    	/* [in] */ CharSequenceAdapter* other);
-
-    CharSequenceAdapter(
-        /* [in] */ Int32 capacity,
-        /* [in] */ ICharSequence* chseq);
 
     CARAPI Array(
         /* [out, callee] */ ArrayOf<Char32>** array);

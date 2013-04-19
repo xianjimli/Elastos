@@ -22,6 +22,16 @@ extern "C" const InterfaceID EIID_CharBuffer;
  */
 class CharBuffer : public Buffer
 {
+protected:
+    /**
+     * Constructs a {@code CharBuffer} with given capacity.
+     *
+     * @param capacity
+     *            the capacity of the buffer.
+     */
+    CharBuffer(
+        /* [in] */ Int32 capacity);
+
 public:
     virtual CARAPI_(PInterface) Probe(
         /* [in]  */ REIID riid) = 0;
@@ -125,12 +135,41 @@ public:
     virtual CARAPI AsReadOnlyBuffer(
         /* [out] */ ICharBuffer** buffer) = 0;
 
+    /**
+     * Get character at the specified index, with the first character
+     * having index zero.
+     *
+     * @param index
+     *            the index of the character to return.
+     *
+     * @param value
+     *            the requested character.
+     *
+     * @Return NOERROR if successful or IndexOutOfBoundsException
+     *             if {@code index < 0} or {@code index} is greater than the
+     *             length of this sequence.
+     */
     CARAPI GetCharAt(
-        /* [in] */ Int32 index,
+        /* [in] */ Int32    index,
         /* [out] */ Char32* value);
 
     virtual CARAPI Compact() = 0;
 
+    /**
+     * Compare the remaining chars of this buffer to another char
+     * buffer's remaining chars.
+     *
+     * @param otherBuffer
+     *      another char buffer.
+     *
+     * @param result
+     *      return a negative value if this is less than {@code otherBuffer}; 0 if
+     *      this equals to {@code otherBuffer}; a positive value if this is
+     *      greater than {@code otherBuffer}.
+     *
+     * @return NOERROR is successful, or  ClassCastException
+     *                if {@code otherBuffer} is not a char buffer.
+     */
     virtual CARAPI CompareTo(
         /* [in] */ ICharBuffer* otherBuffer,
         /* [out] */ Int32* result);
@@ -148,6 +187,25 @@ public:
     virtual CARAPI GetChars(
         /* [out] */ ArrayOf<Char32>* dst);
 
+    /**
+     * Reads chars from the current position into the specified char array,
+     * starting from the specified offset, and increases the position by the
+     * number of chars read.
+     *
+     * @param dst
+     *            the target char array.
+     * @param off
+     *            the offset of the char array, must not be negative and not
+     *            greater than {@code dst.length}.
+     * @param len
+     *            The number of chars to read, must be no less than zero and no
+     *            greater than {@code dst.length - off}.
+     * @return this buffer.
+     * @exception IndexOutOfBoundsException
+     *                if either {@code off} or {@code len} is invalid.
+     * @exception BufferUnderflowException
+     *                if {@code len} is greater than {@code remaining()}.
+     */
     virtual CARAPI GetCharsEx(
         /* [in] */ Int32 off,
         /* [in] */ Int32 len,
@@ -158,30 +216,6 @@ public:
 
     virtual CARAPI GetOrder(
         /* [out] */ ByteOrder* byteOrder) = 0;
-
-    /**
-     * Child class implements this method to realize {@code array()}.
-     *
-     * @see #array()
-     */
-    virtual CARAPI ProtectedArray(
-        /* [out, callee] */ ArrayOf<Char32>** array) = 0;
-
-    /**
-     * Child class implements this method to realize {@code arrayOffset()}.
-     *
-     * @see #arrayOffset()
-     */
-    virtual CARAPI ProtectedArrayOffset(
-        /* [out] */ Int32* offset) = 0;
-
-    /**
-     * Child class implements this method to realize {@code hasArray()}.
-     *
-     * @see #hasArray()
-     */
-    virtual CARAPI ProtectedHasArray(
-        /* [out] */ Boolean* result) = 0;
 
     virtual CARAPI PutChar(
         /* [in] */ Char32 c) = 0;
@@ -236,6 +270,23 @@ public:
         /* [in] */ Int32 start,
         /* [in] */ Int32 end);
 
+    /**
+     * Reads characters from this buffer and puts them into {@code target}. The
+     * number of chars that are copied is either the number of remaining chars
+     * in this buffer or the number of remaining chars in {@code target},
+     * whichever is smaller.
+     *
+     * @param target
+     *            the target char buffer.
+     * @throws IllegalArgumentException
+     *             if {@code target} is this buffer.
+     * @throws IOException
+     *             if an I/O error occurs.
+     * @throws ReadOnlyBufferException
+     *             if no changes may be made to the contents of {@code target}.
+     * @return the number of chars copied or -1 if there are no chars left to be
+     *         read from this buffer.
+     */
     virtual CARAPI Read(
         /* [in] */ ICharBuffer* target,
         /* [out] */ Int32* number);
@@ -244,14 +295,30 @@ public:
         /* [out] */ Boolean* hasArray);
 
 protected:
+
     /**
-     * Constructs a {@code CharBuffer} with given capacity.
+     * Child class implements this method to realize {@code array()}.
      *
-     * @param capacity
-     *            the capacity of the buffer.
+     * @see #array()
      */
-    CharBuffer(
-        /* [in] */ Int32 capacity);
+    virtual CARAPI ProtectedArray(
+        /* [out, callee] */ ArrayOf<Char32>** array) = 0;
+
+    /**
+     * Child class implements this method to realize {@code arrayOffset()}.
+     *
+     * @see #arrayOffset()
+     */
+    virtual CARAPI ProtectedArrayOffset(
+        /* [out] */ Int32* offset) = 0;
+
+    /**
+     * Child class implements this method to realize {@code hasArray()}.
+     *
+     * @see #hasArray()
+     */
+    virtual CARAPI ProtectedHasArray(
+        /* [out] */ Boolean* result) = 0;
 };
 
 #endif // __CHARBUFFER_H__
