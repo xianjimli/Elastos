@@ -115,10 +115,11 @@ ECode CharBuffer::GetCharAt(
 
     Int32 remaining;
     Remaining(&remaining);
+
     if (index < 0 || index >= remaining) {
         return E_INDEX_OUT_OF_BOUNDS_EXCEPTION;
-//        throw new IndexOutOfBoundsException();
     }
+
     return GetCharEx(mPosition + index, value);
 }
 
@@ -127,15 +128,21 @@ ECode CharBuffer::CompareTo(
     /* [out] */ Int32* result)
 {
     VALIDATE_NOT_NULL(result);
+    VALIDATE_NOT_NULL(otherBuffer);
 
-    Int32 remaining, otherRemaining;
+    Int32 remaining;
+    Int32 otherRemaining;
     Remaining(&remaining);
     otherBuffer->Remaining(&otherRemaining);
-    Int32 compareRemaining = (remaining < otherRemaining) ? remaining : otherRemaining;
+
+    Int32 compareRemaining = (remaining < otherRemaining) ?
+                              remaining : otherRemaining;
     Int32 thisPos = mPosition;
     Int32 otherPos;
     otherBuffer->GetPosition(&otherPos);
-    Char32 thisByte, otherByte;
+
+    Char32 thisByte;
+    Char32 otherByte;
     while (compareRemaining > 0) {
         GetCharEx(thisPos, &thisByte);
         otherBuffer->GetCharEx(otherPos, &otherByte);
@@ -143,10 +150,12 @@ ECode CharBuffer::CompareTo(
             *result = thisByte < otherByte ? -1 : 1;
             return NOERROR;
         }
+
         thisPos++;
         otherPos++;
         compareRemaining--;
     }
+
     *result = remaining - otherRemaining;
     return NOERROR;
 }
@@ -167,14 +176,12 @@ ECode CharBuffer::GetCharsEx(
     Int32 length = dst->GetLength();
     if ((off < 0) || (len < 0) || ((Int64) off + (Int64) len > length)) {
         return E_INDEX_OUT_OF_BOUNDS_EXCEPTION;
-//        throw new IndexOutOfBoundsException();
     }
 
     Int32 remaining;
     Remaining(&remaining);
     if (len > remaining) {
         return E_BUFFER_UNDER_FLOW_EXCEPTION;
-//        throw new BufferUnderflowException();
     }
     for (Int32 i = off; i < off + len; i++) {
         GetChar(&(*dst)[i]);
@@ -206,21 +213,23 @@ ECode CharBuffer::PutCharsEx(
     /* [in] */ Int32 len,
     /* [in] */ const ArrayOf<Char32>& src)
 {
-    Int32 length = src.GetLength();
-    if ((off < 0) || (len < 0) || (Int64) off + (Int64) len > length) {
+    Int32 length;
+
+    length = src.GetLength();
+    if ((off < 0) || (len < 0) ||
+        (Int64) off + (Int64) len > length) {
         return E_INDEX_OUT_OF_BOUNDS_EXCEPTION;
-//        throw new IndexOutOfBoundsException();
     }
 
     Int32 remaining;
     Remaining(&remaining);
     if (len > remaining) {
         return E_BUFFER_OVER_FLOW_EXCEPTION;
-//        throw new BufferOverflowException();
     }
     for (Int32 i = off; i < off + len; i++) {
         PutChar(src[i]);
     }
+
     return NOERROR;
 }
 
@@ -229,7 +238,6 @@ ECode CharBuffer::PutCharBuffer(
 {
     if (src == (ICharBuffer*)this->Probe(EIID_ICharBuffer)) {
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
-//        throw new IllegalArgumentException();
     }
 
     Int32 srcRemaining, remaining;
@@ -237,12 +245,13 @@ ECode CharBuffer::PutCharBuffer(
     Remaining(&remaining);
     if (srcRemaining > remaining) {
         return E_BUFFER_OVER_FLOW_EXCEPTION;
-//        throw new BufferOverflowException();
     }
 
     ArrayOf<Char32>* contents = ArrayOf<Char32>::Alloc(srcRemaining);
     src->GetChars(contents);
     PutChars(*contents);
+    ArrayOf<Char32>::Free(contents);
+
     return NOERROR;
 }
 
@@ -340,20 +349,23 @@ ECode CharBuffer::Read(
             *number = -1;
             return NOERROR;
         }
+
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
-//        throw new IllegalArgumentException();
     }
 
     Int32 targetRemaining;
     target->Remaining(&targetRemaining);
     if (remaining == 0) {
         *number = mLimit > 0 && targetRemaining == 0 ? 0 : -1;
+        return NOERROR;
     }
+
     remaining = Math::Min(targetRemaining, remaining);
     if (remaining > 0) {
         ArrayOf<Char32>* chars = ArrayOf<Char32>::Alloc(remaining);
         GetChars(chars);
         target->PutChars(*chars);
+        ArrayOf<Char32>::Free(chars);
     }
 
     *number = remaining;

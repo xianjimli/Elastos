@@ -2,6 +2,37 @@
 #include "cmdef.h"
 #include "CharSequenceAdapter.h"
 
+CharSequenceAdapter* CharSequenceAdapter::Copy(
+    /* [in] */ CharSequenceAdapter* other)
+{
+    if (NULL == other) {
+        return NULL;
+    }
+
+    Int32 len;
+    other->mSequence->GetLength(&len);
+
+    CharSequenceAdapter* buf = new CharSequenceAdapter(len, other->mSequence);
+    if (NULL == buf) {
+        return NULL;
+    }
+
+    buf->mLimit     = other->mLimit;
+    buf->mPosition  = other->mPosition;
+    buf->mMark      = other->mMark;
+
+    return buf;
+}
+
+CharSequenceAdapter::CharSequenceAdapter(
+    /* [in] */ Int32 capacity,
+    /* [in] */ ICharSequence* chseq)
+    : CharBuffer(capacity)
+    , mSequence(chseq)
+{
+    assert(NULL != mSequence);
+}
+
 PInterface CharSequenceAdapter::Probe(
         /* [in]  */ REIID riid)
 {
@@ -45,25 +76,6 @@ ECode CharSequenceAdapter::GetInterfaceID(
     return E_NOT_IMPLEMENTED;
 }
 
-CharSequenceAdapter* CharSequenceAdapter::Copy(
-    /* [in] */ CharSequenceAdapter* other)
-{
-    Int32 len;
-    other->mSequence->GetLength(&len);
-    CharSequenceAdapter* buf = new CharSequenceAdapter(len, other->mSequence);
-    buf->mLimit = other->mLimit;
-    buf->mPosition = other->mPosition;
-    buf->mMark = other->mMark;
-    return buf;
-}
-
-CharSequenceAdapter::CharSequenceAdapter(
-    /* [in] */ Int32 capacity,
-    /* [in] */ ICharSequence* chseq)
-    : CharBuffer(capacity)
-    , mSequence(chseq)
-{}
-
 ECode CharSequenceAdapter::Array(
     /* [out, callee] */ ArrayOf<Char32>** array)
 {
@@ -99,13 +111,22 @@ ECode CharSequenceAdapter::Duplicate(
     /* [out] */ ICharBuffer** buffer)
 {
     VALIDATE_NOT_NULL(buffer);
+
     CharSequenceAdapter* buf = Copy(this);
+    /*
     if (buf->Probe(EIID_ICharBuffer) != NULL) {
         *buffer = (ICharBuffer*)buf->Probe(EIID_ICharBuffer);
     }
     else {
         *buffer = NULL;
     }
+    */
+    if (NULL == buf) {
+        *buffer = NULL;
+        return NOERROR;
+    }
+
+    *buffer = (ICharBuffer*)buf;
 
     return NOERROR;
 }
@@ -114,10 +135,12 @@ ECode CharSequenceAdapter::GetChar(
     /* [out] */ Char32* value)
 {
     VALIDATE_NOT_NULL(value);
+
     if (mPosition == mLimit) {
         return E_BUFFER_UNDER_FLOW_EXCEPTION;
 //        throw new BufferUnderflowException();
     }
+
     return mSequence->GetCharAt(mPosition++, value);
 }
 
@@ -126,10 +149,12 @@ ECode CharSequenceAdapter::GetCharEx(
     /* [out] */ Char32* value)
 {
     VALIDATE_NOT_NULL(value);
+
     if (index < 0 || index >= mLimit) {
         return E_INDEX_OUT_OF_BOUNDS_EXCEPTION;
 //        throw new IndexOutOfBoundsException();
     }
+
     return mSequence->GetCharAt(index, value);
 }
 
@@ -151,12 +176,14 @@ ECode CharSequenceAdapter::GetCharsEx(
         return E_INDEX_OUT_OF_BOUNDS_EXCEPTION;
 //        throw new IndexOutOfBoundsException();
     }
+
     Int32 remaining;
     Remaining(&remaining);
     if (len > remaining) {
         return E_BUFFER_UNDER_FLOW_EXCEPTION;
 //        throw new BufferUnderflowException();
     }
+
     Int32 newPosition = mPosition + len;
     String s;
     mSequence->ToString(&s);
@@ -172,28 +199,31 @@ ECode CharSequenceAdapter::GetCharsEx(
 ECode CharSequenceAdapter::GetOrder(
     /* [out] */ ByteOrder* order)
 {
-    return E_NOT_IMPLEMENTED;
+    *order = ByteOrder_LITTLE_ENDIAN;
+    return NOERROR;
 }
 
-CARAPI CharSequenceAdapter::ProtectedArray(
+ECode CharSequenceAdapter::ProtectedArray(
     /* [out, callee] */ ArrayOf<Char32>** array)
 {
     return E_UNSUPPORTED_OPERATION_EXCEPTION;
 //    throw new UnsupportedOperationException();
 }
 
-CARAPI CharSequenceAdapter::ProtectedArrayOffset(
+ECode CharSequenceAdapter::ProtectedArrayOffset(
     /* [out] */ Int32* offset)
 {
     return E_UNSUPPORTED_OPERATION_EXCEPTION;
 //    throw new UnsupportedOperationException();
 }
 
-CARAPI CharSequenceAdapter::ProtectedHasArray(
+ECode CharSequenceAdapter::ProtectedHasArray(
     /* [out] */ Boolean* result)
 {
     VALIDATE_NOT_NULL(result);
+
     *result = FALSE;
+
     return NOERROR;
 }
 
@@ -223,6 +253,9 @@ ECode CharSequenceAdapter::PutCharsEx(
     /* [in] */ Int32 len,
     /* [in] */ const ArrayOf<Char32>& src)
 {
+    return E_READ_ONLY_BUFFER_EXCEPTION;
+
+    /*
     if ((off < 0) || (len < 0) || (Int64)off + (Int64)len > src.GetLength()) {
         return E_INDEX_OUT_OF_BOUNDS_EXCEPTION;
 //        throw new IndexOutOfBoundsException();
@@ -237,6 +270,8 @@ ECode CharSequenceAdapter::PutCharsEx(
 
     return E_READ_ONLY_BUFFER_EXCEPTION;
 //    throw new ReadOnlyBufferException();
+
+    */
 }
 
 ECode CharSequenceAdapter::PutCharBuffer(
@@ -256,6 +291,9 @@ ECode CharSequenceAdapter::PutStringEx(
     /* [in] */ Int32 start,
     /* [in] */ Int32 end)
 {
+    return E_READ_ONLY_BUFFER_EXCEPTION;
+
+    /*
     if ((start < 0) || (end < 0)
             || (Int64)start + (Int64) end > str.GetLength()) {
         return E_INDEX_OUT_OF_BOUNDS_EXCEPTION;
@@ -263,6 +301,8 @@ ECode CharSequenceAdapter::PutStringEx(
     }
     return E_READ_ONLY_BUFFER_EXCEPTION;
 //    throw new ReadOnlyBufferException();
+
+    */
 }
 
 ECode CharSequenceAdapter::Slice(
@@ -272,15 +312,29 @@ ECode CharSequenceAdapter::Slice(
 
     AutoPtr<ICharSequence> seq;
     mSequence->SubSequence(mPosition, mLimit, (ICharSequence**)&seq);
+    if (NULL == seq) {
+        *buffer = NULL;
+        return E_NULL_POINTER_EXCEPTION;
+    }
+
     Int32 len;
     seq->GetLength(&len);
     CharSequenceAdapter* buf = new CharSequenceAdapter(len, seq);
+    if (NULL == buf) {
+        *buffer = NULL;
+        return E_NULL_POINTER_EXCEPTION;
+    }
+
+    /*
     if (buf->Probe(EIID_ICharBuffer) != NULL) {
         *buffer = (ICharBuffer*)buf->Probe(EIID_ICharBuffer);
     }
     else {
         *buffer = NULL;
     }
+    */
+    *buffer = (ICharBuffer*)buf;
+
     return NOERROR;
 }
 

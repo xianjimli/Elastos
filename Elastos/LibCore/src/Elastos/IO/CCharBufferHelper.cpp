@@ -5,7 +5,9 @@
 #include "CharBuffer.h"
 
 ECode CCharBufferHelper::constructor()
-{}
+{
+    return NOERROR;
+}
 
 ECode CCharBufferHelper::Allocate(
     /* [in]  */ Int32         capacity,
