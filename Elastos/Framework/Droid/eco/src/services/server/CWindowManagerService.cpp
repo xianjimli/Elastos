@@ -9,6 +9,7 @@
 #include "os/Binder.h"
 #include <elastos/Math.h>
 #include <Logger.h>
+#include <stdio.h>
 
 
 using namespace Elastos::Core;
@@ -3815,7 +3816,7 @@ Int32 CWindowManagerService::RelayoutWindow(
             mPolicy->AdjustWindowParamsLw(attrs);
         }
 
-        Int32 winFlags;
+        Int32 winFlags = 0;
         win->mAttrs->GetFlags(&winFlags);
         Int32 attrChanges = 0;
         Int32 flagChanges = 0;
@@ -3823,6 +3824,7 @@ Int32 CWindowManagerService::RelayoutWindow(
             Int32 attrsFlags;
             attrs->GetFlags(&attrsFlags);
             flagChanges = winFlags ^= attrsFlags;
+            win->mAttrs->SetFlags(winFlags);
             win->mAttrs->CopyFrom(attrs, &attrChanges);
         }
 
