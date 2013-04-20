@@ -3,6 +3,7 @@ DIRS = TextViewDemo
 DIRS += SoftKeyboard
 DIRS += EditTextDemo
 DIRS += SurfaceViewDemo
+DIRS += WifiSetting
 #DIRS += ActivityDemo
 #DIRS += ServiceDemo
 #DIRS += ContentProviderDemo
