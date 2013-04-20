@@ -1181,6 +1181,18 @@ ECode CCallbackParcel::WriteDupFileDescriptor(
     return E_NOT_IMPLEMENTED;
 }
 
+ECode CCallbackParcel::GetDataPosition(
+    /* [out] */ Int32* position)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CCallbackParcel::SetDataPosition(
+    /* [in] */ Int32 position)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
 ECode CCallbackParcel::GetElementPayload(
     /* [out] */ Handle32* pBuffer)
 {

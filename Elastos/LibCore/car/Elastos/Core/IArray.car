@@ -1,0 +1,16 @@
+
+module
+{
+    interface IArray {
+        GetLength(
+            [out] Int32* size);
+
+        Get(
+            [in] Int32 index,
+            [out] IInterface** element);
+
+        Put(
+            [in] Int32 index,
+            [in] IInterface* element);
+    }
+}

@@ -37,14 +37,14 @@ module
          */
         // @Override
         Clone(
-            [out] IInterface** result);
+            [out] IBundle** result);
 
         /**
          * Returns the number of mappings contained in this Bundle.
          *
          * @return the number of mappings as an int.
          */
-        Size(
+        GetSize(
             [out] Int32* result);
 
         /**

@@ -269,6 +269,12 @@ library
         Clone(
             [in] IParcel* srcParcel);
 
+        GetDataPosition(
+            [out] Int32* position);
+
+        SetDataPosition(
+            [in] Int32 position);
+
         GetElementPayload(
             [out] Handle32* buffer);
 

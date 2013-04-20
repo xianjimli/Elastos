@@ -1,0 +1,8 @@
+
+module
+{
+    interface IChar32 {
+        GetValue(
+            [out] Char32* value);
+    }
+}

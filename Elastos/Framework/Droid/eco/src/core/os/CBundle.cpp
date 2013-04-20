@@ -1,504 +1,151 @@
 
+#include <binder/Parcel.h>
 #include "os/CBundle.h"
-#include "ext/frameworkdef.h"
-#include <elastos/AutoPtr.h>
+#include <StringBuffer.h>
 
-#define PUT_VALUE(key, type, value) \
-    do { \
-        if ((key).IsNull()) { \
-            return E_INVALID_ARGUMENT; \
-        } \
-        DataWrapper * p = new DataWrapper((type), (value)); \
-        if (!p) { \
-            return E_OUT_OF_MEMORY; \
-        } \
-        mData[(key)] = p; \
-    } while (0)
+using namespace Elastos::Core;
 
-#define GET_DEFAULT_VALUE(key, defaultValue, type, member) \
-    do { \
-        HashMap<String, DataWrapper*>::Iterator it = mData.Find((key)); \
-        if (it == mData.End()) { \
-            *value = (defaultValue); \
-            return NOERROR; \
-        } \
-        DataWrapper * data = it->mSecond; \
-        if (data->mType != (type)) { \
-            *value = (defaultValue); \
-        } \
-        else { \
-            *value = data->mValue.member; \
-        } \
-    } while (0)
-
-#define GET_DEFAULT_VALUE2(key, defaultValue, type, member) \
-    do { \
-        HashMap<String, DataWrapper*>::Iterator it = mData.Find((key)); \
-        if (it == mData.End()) { \
-            *value = (defaultValue); \
-            return NOERROR; \
-        } \
-        DataWrapper * data = it->mSecond; \
-        if (data->mType != (type)) { \
-            *value = (defaultValue); \
-        } \
-        else { \
-            *value = data->mValue.member; \
-            if (*value) (*value)->AddRef(); \
-        } \
-    } while (0)
-
-#define GET_DEFAULT_VALUE3(key, defaultValue, type, member) \
-    do { \
-        HashMap<String, DataWrapper*>::Iterator it = mData.Find((key)); \
-        if (it == mData.End()) { \
-            *value = (defaultValue); \
-            return NOERROR; \
-        } \
-        DataWrapper * data = it->mSecond; \
-        if (data->mType != (type)) { \
-            *value = (defaultValue); \
-        } \
-        else { \
-            *value = data->member; \
-        } \
-    } while (0)
-
-#define GET_ARRAY(key, type, valueType, member) \
-    do { \
-        HashMap<String, DataWrapper*>::Iterator it = mData.Find((key)); \
-        if (it == mData.End()) { \
-            *value = NULL; \
-            return NOERROR; \
-        } \
-        DataWrapper * data = it->mSecond; \
-        if (data->mType != (type)) { \
-            *value = NULL; \
-        } \
-        else { \
-            ArrayOf<valueType>* array = \
-                ArrayOf<valueType>::Alloc(data->mValue.member->GetLength()); \
-            if (!array) { \
-                *value = NULL; \
-                return E_OUT_OF_MEMORY; \
-            } \
-            for (Int32 i = 0; i < data->mValue.member->GetLength(); ++i) { \
-                (*array)[i] = (*data->mValue.member)[i]; \
-            } \
-            *value = array; \
-        } \
-    } while (0)
-
-#define GET_ARRAY2(key, type, valueType, member) \
-    do { \
-        HashMap<String, DataWrapper*>::Iterator it = mData.Find((key)); \
-        if (it == mData.End()) { \
-            *value = NULL; \
-            return NOERROR; \
-        } \
-        DataWrapper * data = it->mSecond; \
-        if (data->mType != (type)) { \
-            *value = NULL; \
-        } \
-        else { \
-            ArrayOf<valueType>* array = \
-                ArrayOf<valueType>::Alloc(data->mValue.member->GetLength()); \
-            if (!array) { \
-                *value = NULL; \
-                return E_OUT_OF_MEMORY; \
-            } \
-            for (Int32 i = 0; i < data->mValue.member->GetLength(); ++i) { \
-                (*array)[i] = (*data->mValue.member)[i]; \
-                if ((*array)[i]) (*array)[i]->AddRef(); \
-            } \
-            *value = array; \
-        } \
-    } while (0)
-
-class DataWrapper
+static AutoPtr<CBundle> InitEMPTY()
 {
-public:
-#define BOOLEAN_T (1)
-#define INT32_T (2)
-#define IBUNDLE_T (3)
-#define BYTE_T (4)
-#define CHAR_T (5)
-#define INT16_T (6)
-#define INT64_T (7)
-#define FLOAT_T (8)
-#define DOUBLE_T (9)
-#define STRING_T (10)
-#define PARCELABLE_T (11)
-#define CHARSEQUENCE_T (12)
-#define ARRAYOF_BOOLEAN_T (13)
-#define ARRAYOF_INT32_T (14)
-#define ARRAYOF_IBUNDLE_T (15)
-#define ARRAYOF_BYTE_T (16)
-#define ARRAYOF_CHAR_T (17)
-#define ARRAYOF_INT16_T (18)
-#define ARRAYOF_INT64_T (19)
-#define ARRAYOF_FLOAT_T (20)
-#define ARRAYOF_DOUBLE_T (21)
-#define ARRAYOF_STRING_T (22)
-#define ARRAYOF_PARCELABLE_T (23)
-#define ARRAYOF_CHARSEQUENCE_T (24)
-#define ARRAYLIST_PARCELABLE_T (25)
-#define ARRAYLIST_INTEGER_T (26)
-#define ARRAYLIST_STRING_T (27)
-#define ARRAYLIST_CHARSEQUENCE_T (28)
-
-    ~DataWrapper()
-    {
-        switch (mType) {
-            case IBUNDLE_T:
-                if (!mValue.mBundle) {
-                    break;
-                }
-                mValue.mBundle->Release();
-                break;
-            case PARCELABLE_T:
-                if (!mValue.mParcelable) {
-                    break;
-                }
-                mValue.mParcelable->Release();
-                break;
-            case CHARSEQUENCE_T:
-                if (!mValue.mCharSequence) {
-                    break;
-                }
-                mValue.mCharSequence->Release();
-                break;
-            case ARRAYLIST_PARCELABLE_T:
-            case ARRAYLIST_INTEGER_T:
-            case ARRAYLIST_STRING_T:
-            case ARRAYLIST_CHARSEQUENCE_T:
-                if (!mValue.mObjectContainer) {
-                    break;
-                }
-                mValue.mObjectContainer->Release();
-                break;
-            case ARRAYOF_BOOLEAN_T:
-                if (!mValue.mArrayOfBoolean) {
-                    break;
-                }
-                ArrayOf<Boolean>::Free(mValue.mArrayOfBoolean);
-                break;
-            case ARRAYOF_INT32_T:
-                if (!mValue.mArrayOfInt32) {
-                    break;
-                }
-                ArrayOf<Int32>::Free(mValue.mArrayOfInt32);
-                break;
-            case ARRAYOF_IBUNDLE_T:
-                if (!mValue.mArrayOfBundle) {
-                    break;
-                }
-                for (Int32 i = 0; i < mValue.mArrayOfBundle->GetLength(); ++i) {
-                    if ((*mValue.mArrayOfBundle)[i]) {
-                        (*mValue.mArrayOfBundle)[i]->Release();
-                    }
-                }
-                ArrayOf<IBundle*>::Free(mValue.mArrayOfBundle);
-                break;
-            case ARRAYOF_BYTE_T:
-                if (!mValue.mArrayOfByte) {
-                    break;
-                }
-                ArrayOf<Byte>::Free(mValue.mArrayOfByte);
-                break;
-            case ARRAYOF_CHAR_T:
-                if (!mValue.mArrayOfChar) {
-                    break;
-                }
-                ArrayOf<Char32>::Free(mValue.mArrayOfChar);
-                break;
-            case ARRAYOF_INT16_T:
-                if (!mValue.mArrayOfInt16) {
-                    break;
-                }
-                ArrayOf<Int16>::Free(mValue.mArrayOfInt16);
-                break;
-            case ARRAYOF_INT64_T:
-                if (!mValue.mArrayOfInt64) {
-                    break;
-                }
-                ArrayOf<Int64>::Free(mValue.mArrayOfInt64);
-                break;
-            case ARRAYOF_FLOAT_T:
-                if (!mValue.mArrayOfFloat) {
-                    break;
-                }
-                ArrayOf<Float>::Free(mValue.mArrayOfFloat);
-                break;
-            case ARRAYOF_DOUBLE_T:
-                if (!mValue.mArrayOfDouble) {
-                    break;
-                }
-                ArrayOf<Double>::Free(mValue.mArrayOfDouble);
-                break;
-            case ARRAYOF_STRING_T:
-                if (!mValue.mArrayOfString) {
-                    break;
-                }
-                ArrayOf<String>::Free(mValue.mArrayOfString);
-                break;
-            case ARRAYOF_PARCELABLE_T:
-                if (!mValue.mArrayOfParcelable) {
-                    break;
-                }
-                for (Int32 i = 0; i < mValue.mArrayOfParcelable->GetLength(); ++i) {
-                    if ((*mValue.mArrayOfParcelable)[i]) {
-                        (*mValue.mArrayOfParcelable)[i]->Release();
-                    }
-                }
-                ArrayOf<IParcelable*>::Free(mValue.mArrayOfParcelable);
-                break;
-            case ARRAYOF_CHARSEQUENCE_T:
-                if (!mValue.mArrayOfCharSequence) {
-                    break;
-                }
-                for (Int32 i = 0; i < mValue.mArrayOfCharSequence->GetLength(); ++i) {
-                    if ((*mValue.mArrayOfCharSequence)[i]) {
-                        (*mValue.mArrayOfCharSequence)[i]->Release();
-                    }
-                }
-                ArrayOf<ICharSequence*>::Free(mValue.mArrayOfCharSequence);
-                break;
-            default:
-                break;
-        }
-    }
-
-    DataWrapper(Int32 type, Boolean value)
-    {
-        mType = type;
-        if (type == BYTE_T) {
-            mValue.mByte = value;
-        }
-        else {
-            mValue.mBoolean = value;
-        }
-    }
-
-    DataWrapper(Int32 type, Int32 value)
-    {
-        mType = type;
-        mValue.mInt32 = value;
-    }
-
-    DataWrapper(Int32 type, IBundle* value)
-    {
-        mType = type;
-        mValue.mBundle = value;
-        if (value) {
-            value->AddRef();
-        }
-    }
-
-    DataWrapper(Int32 type, Char32 value)
-    {
-        mType = type;
-        mValue.mChar = value;
-    }
-
-    DataWrapper(Int32 type, Int16 value)
-    {
-        mType = type;
-        mValue.mInt16 = value;
-    }
-
-    DataWrapper(Int32 type, Int64 value)
-    {
-        mType = type;
-        mValue.mInt64 = value;
-    }
-
-    DataWrapper(Int32 type, Float value)
-    {
-        mType = type;
-        mValue.mFloat = value;
-    }
-
-    DataWrapper(Int32 type, Double value)
-    {
-        mType = type;
-        mValue.mDouble = value;
-    }
-
-    DataWrapper(Int32 type, const String& value)
-    {
-        mType = type;
-        mString = value;
-    }
-
-    DataWrapper(Int32 type, IParcelable* value)
-    {
-        mType = type;
-        mValue.mParcelable = value;
-        if (value) {
-            value->AddRef();
-        }
-    }
-
-    DataWrapper(Int32 type, ICharSequence* value)
-    {
-        mType = type;
-        mValue.mCharSequence = value;
-        if (value) {
-            value->AddRef();
-        }
-    }
-
-    DataWrapper(Int32 type, IObjectContainer* value)
-    {
-        mType = type;
-        mValue.mObjectContainer = value;
-        if (value) {
-            value->AddRef();
-        }
-    }
-
-    DataWrapper(Int32 type, ArrayOf<Boolean>* value)
-    {
-        mType = type;
-        if (type == ARRAYOF_BYTE_T) {
-            mValue.mArrayOfByte = value;
-        }
-        else {
-            mValue.mArrayOfBoolean = value;
-        }
-    }
-
-    DataWrapper(Int32 type, ArrayOf<Int32>* value)
-    {
-        mType = type;
-        mValue.mArrayOfInt32 = value;
-    }
-
-    DataWrapper(Int32 type, ArrayOf<IBundle*>* value)
-    {
-        mType = type;
-        mValue.mArrayOfBundle = value;
-    }
-
-    DataWrapper(Int32 type, ArrayOf<Char32>* value)
-    {
-        mType = type;
-        mValue.mArrayOfChar = value;
-    }
-
-    DataWrapper(Int32 type, ArrayOf<Int16>* value)
-    {
-        mType = type;
-        mValue.mArrayOfInt16 = value;
-    }
-
-    DataWrapper(Int32 type, ArrayOf<Int64>* value)
-    {
-        mType = type;
-        mValue.mArrayOfInt64 = value;
-    }
-
-    DataWrapper(Int32 type, ArrayOf<Float>* value)
-    {
-        mType = type;
-        mValue.mArrayOfFloat = value;
-    }
-
-    DataWrapper(Int32 type, ArrayOf<Double>* value)
-    {
-        mType = type;
-        mValue.mArrayOfDouble = value;
-    }
-
-    DataWrapper(Int32 type, ArrayOf<String>* value)
-    {
-        mType = type;
-        mValue.mArrayOfString = value;
-    }
-
-    DataWrapper(Int32 type, ArrayOf<IParcelable*>* value)
-    {
-        mType = type;
-        mValue.mArrayOfParcelable = value;
-    }
-
-    DataWrapper(Int32 type, ArrayOf<ICharSequence*>* value)
-    {
-        mType = type;
-        mValue.mArrayOfCharSequence = value;
-    }
-
-public:
-    Int32 mType;
-    union {
-        Boolean mBoolean;
-        Int32 mInt32;
-        IBundle* mBundle;
-        Byte mByte;
-        Char32 mChar;
-        Int16 mInt16;
-        Int64 mInt64;
-        Float mFloat;
-        Double mDouble;
-        IParcelable* mParcelable;
-        ICharSequence* mCharSequence;
-        IObjectContainer* mObjectContainer;
-        ArrayOf<Boolean>* mArrayOfBoolean;
-        ArrayOf<Int32>* mArrayOfInt32;
-        ArrayOf<IBundle*>* mArrayOfBundle;
-        ArrayOf<Byte>* mArrayOfByte;
-        ArrayOf<Char32>* mArrayOfChar;
-        ArrayOf<Int16>* mArrayOfInt16;
-        ArrayOf<Int64>* mArrayOfInt64;
-        ArrayOf<Float>* mArrayOfFloat;
-        ArrayOf<Double>* mArrayOfDouble;
-        ArrayOf<String>* mArrayOfString;
-        ArrayOf<IParcelable*>* mArrayOfParcelable;
-        ArrayOf<ICharSequence*>* mArrayOfCharSequence;
-    } mValue;
-    String mString;
-};
-
-CBundle::CBundle() :
-    mData(5),
-    mHasFds(FALSE),
-    mFdsKnown(TRUE)
-{
+    AutoPtr<CBundle> empty;
+    CBundle::NewByFriend((CBundle**)&empty);
+    return empty;
 }
+
+const CString CBundle::TAG = "CBundle";
+static AutoPtr<CBundle> EMPTY = InitEMPTY();
+
+CBundle::CBundle()
+    : mMap(NULL)
+    , mParcelledData(0)
+    , mHasFds(FALSE)
+    , mFdsKnown(TRUE)
+{}
 
 CBundle::~CBundle()
 {
-    mData.Clear();
+    if (mMap != NULL) {
+        mMap->Clear();
+        delete mMap;
+    }
+}
+
+ECode CBundle::constructor()
+{
+    mMap = new HashMap<String, AutoPtr<IInterface> >(5);
+    // mClassLoader = getClass().getClassLoader();
+    return NOERROR;
+}
+
+ECode CBundle::constructor(
+    /* [in] */ IParcel* parcelledData)
+{
+    return ReadFromParcel(parcelledData);
+}
+
+ECode CBundle::constructor(
+    /* [in] */ IParcel* parcelledData,
+    /* [in] */ Int32 length)
+{
+    return ReadFromParcelInner(parcelledData, length);
+}
+
+ECode CBundle::constructor(
+    /* [in] */ Int32 capacity)
+{
+    mMap = new HashMap<String, AutoPtr<IInterface> >(capacity);
+    // mClassLoader = getClass().getClassLoader();
+    return NOERROR;
+}
+
+ECode CBundle::constructor(
+    /* [in] */ IBundle * bundle)
+{
+    // if (b.mParcelledData != null) {
+    //     mParcelledData = Parcel.obtain();
+    //     mParcelledData.appendFrom(b.mParcelledData, 0, b.mParcelledData.dataSize());
+    //     mParcelledData.setDataPosition(0);
+    // } else {
+    //     mParcelledData = null;
+    // }
+
+    // if (b.mMap != null) {
+    //     mMap = new HashMap<String, Object>(b.mMap);
+    // } else {
+    //     mMap = null;
+    // }
+
+    // mHasFds = b.mHasFds;
+    // mFdsKnown = b.mFdsKnown;
+    // mClassLoader = b.mClassLoader;
+    return E_NOT_IMPLEMENTED;
 }
 
 ECode CBundle::GetPairValue(
     /* [out] */ String* result)
 {
-    // TODO: Add your code here
+    // unparcel();
+    // int size = mMap->size();
+    // if (size > 1) {
+    //     Log.w(LOG_TAG, "getPairValue() used on Bundle with multiple pairs.");
+    // }
+    // if (size == 0) {
+    //     return null;
+    // }
+    // Object o = mMap->values().iterator().next();
+    // try {
+    //     return (String) o;
+    // } catch (ClassCastException e) {
+    //     typeWarning("getPairValue()", o, "String", e);
+    //     return null;
+    // }
+    assert(0);
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CBundle::SetClassLoader(
     /* [in] */ IClassLoader* loader)
 {
+    mClassLoader = loader;
     return NOERROR;
 }
 
 ECode CBundle::Clone(
-    /* [out] */ IInterface** result)
+    /* [out] */ IBundle** result)
 {
-    // TODO: Add your code here
+    // return new Bundle(this);
+    assert(0);
     return E_NOT_IMPLEMENTED;
 }
 
-ECode CBundle::Size(
+void CBundle::Unparcel()
+{
+    Mutex::Autolock lock(&_m_syncLock);
+
+    if (mParcelledData == 0) {
+        return;
+    }
+
+    int N = ((android::Parcel*)mParcelledData)->readInt32();
+    if (N < 0) {
+        return;
+    }
+    if (mMap == NULL) {
+        mMap = new HashMap<String, AutoPtr<IInterface> >(7);
+    }
+    ReadMapInternal(mParcelledData, N, mClassLoader);
+    ((android::Parcel*)mParcelledData)->freeData();
+    delete (android::Parcel*)mParcelledData;
+    mParcelledData = 0;
+}
+
+ECode CBundle::GetSize(
     /* [out] */ Int32* result)
 {
     VALIDATE_NOT_NULL(result);
-    // unparcel();
-    *result = mData.GetSize();
 
+    Unparcel();
+    *result = mMap->GetSize();
     return NOERROR;
 }
 
@@ -506,19 +153,18 @@ ECode CBundle::IsEmpty(
     /* [out] */ Boolean* result)
 {
     VALIDATE_NOT_NULL(result);
-    // unparcel();
-    *result = mData.IsEmpty();
-    mHasFds = FALSE;
-    mFdsKnown = TRUE;
 
+    Unparcel();
+    *result = mMap->IsEmpty();
     return NOERROR;
 }
 
 ECode CBundle::Clear()
 {
-    // unparcel();
-    mData.Clear();
-
+    Unparcel();
+    mMap->Clear();
+    mHasFds = FALSE;
+    mFdsKnown = TRUE;
     return NOERROR;
 }
 
@@ -528,10 +174,8 @@ ECode CBundle::ContainsKey(
 {
     VALIDATE_NOT_NULL(result);
 
-    // unparcel();
-    HashMap<String, DataWrapper*>::Iterator it = mData.Find(key);
-    *result = (it != mData.End());
-
+    Unparcel();
+    *result = (mMap->Find(key) != mMap->End());
     return NOERROR;
 }
 
@@ -539,21 +183,23 @@ ECode CBundle::Get(
     /* [in] */ const String& key,
     /* [out] */ IInterface** value)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(value);
+
+    Unparcel();
+    HashMap<String, AutoPtr<IInterface> >::Iterator it = mMap->Find(key);
+    *value = NULL;
+    if (it != mMap->End()) {
+        *value = it->mSecond;
+        if (*value != NULL) (*value)->AddRef();
+    }
+    return NOERROR;
 }
 
 ECode CBundle::Remove(
     /* [in] */ const String& key)
 {
-    // unparcel();
-    HashMap<String, DataWrapper*>::Iterator it = mData.Find(key);
-    if (it == mData.End()) {
-        return E_DOES_NOT_EXIST;
-    }
-
-    mData.Erase(it);
-
+    Unparcel();
+    mMap->Erase(key);
     return NOERROR;
 }
 
@@ -561,18 +207,19 @@ ECode CBundle::PutAll(
     /* [in] */ IBundle* map)
 {
     VALIDATE_NOT_NULL(map);
+    CBundle* mapObj = (CBundle*)map;
 
-//    unparcel();
-//    map.unparcel();
-    AutoPtr<CBundle> obj = (CBundle*)map;
-    HashMap<String, DataWrapper*>::Iterator it;
-    for (it = obj->mData.Begin(); it != obj->mData.End(); ++it) {
-        mData[it->mFirst] = it->mSecond;
+    Unparcel();
+    mapObj->Unparcel();
+    HashMap<String, AutoPtr<IInterface> >::Iterator it = mapObj->mMap->Begin();
+    while (it != mapObj->mMap->End()) {
+        (*mMap)[it->mFirst] = it->mSecond;
+        ++it;
     }
 
     // fd state is now known if and only if both bundles already knew
-//    mHasFds |= map.mHasFds;
-//    mFdsKnown = mFdsKnown && map.mFdsKnown;
+    mHasFds |= mapObj->mHasFds;
+    mFdsKnown = mFdsKnown && mapObj->mFdsKnown;
     return NOERROR;
 }
 
@@ -581,28 +228,83 @@ ECode CBundle::KeySet(
 {
     VALIDATE_NOT_NULL(result);
 
-    // unparcel();
+    Unparcel();
     FAIL_RETURN(CObjectContainer::New(result));
-
-    HashMap<String, DataWrapper*>::Iterator it;
-    for (it = mData.Begin(); it != mData.End(); ++it) {
+    HashMap<String, AutoPtr<IInterface> >::Iterator it;
+    for (it = mMap->Begin(); it != mMap->End(); ++it) {
         AutoPtr<ICharSequence> str;
-        if (FAILED(CStringWrapper::New(it->mFirst, (ICharSequence**)&str))) {
-            (*result)->Release();
-            *result = NULL;
-            return E_OUT_OF_MEMORY;
-        }
-
-        (*result)->Add((ICharSequence*)str);
+        CStringWrapper::New(it->mFirst, (ICharSequence**)&str);
+        (*result)->Add(str.Get());
     }
-
     return NOERROR;
 }
 
 ECode CBundle::HasFileDescriptors(
     /* [out] */ Boolean* result)
 {
-    // TODO: Add your code here
+    VALIDATE_NOT_NULL(result);
+
+    // if (!mFdsKnown) {
+    //         boolean fdFound = false;    // keep going until we find one or run out of data
+
+    //         if (mParcelledData != null) {
+    //             if (mParcelledData.hasFileDescriptors()) {
+    //                 fdFound = true;
+    //             }
+    //         } else {
+    //             // It's been unparcelled, so we need to walk the map
+    //             Iterator<Map.Entry<String, Object>> iter = mMap->entrySet().iterator();
+    //             while (!fdFound && iter.hasNext()) {
+    //                 Object obj = iter.next().getValue();
+    //                 if (obj instanceof Parcelable) {
+    //                     if ((((Parcelable)obj).describeContents()
+    //                             & Parcelable.CONTENTS_FILE_DESCRIPTOR) != 0) {
+    //                         fdFound = true;
+    //                         break;
+    //                     }
+    //                 } else if (obj instanceof Parcelable[]) {
+    //                     Parcelable[] array = (Parcelable[]) obj;
+    //                     for (int n = array.length - 1; n >= 0; n--) {
+    //                         if ((array[n].describeContents()
+    //                                 & Parcelable.CONTENTS_FILE_DESCRIPTOR) != 0) {
+    //                             fdFound = true;
+    //                             break;
+    //                         }
+    //                     }
+    //                 } else if (obj instanceof SparseArray) {
+    //                     SparseArray<? extends Parcelable> array =
+    //                             (SparseArray<? extends Parcelable>) obj;
+    //                     for (int n = array.size() - 1; n >= 0; n--) {
+    //                         if ((array.get(n).describeContents()
+    //                                 & Parcelable.CONTENTS_FILE_DESCRIPTOR) != 0) {
+    //                             fdFound = true;
+    //                             break;
+    //                         }
+    //                     }
+    //                 } else if (obj instanceof ArrayList) {
+    //                     ArrayList array = (ArrayList) obj;
+    //                     // an ArrayList here might contain either Strings or
+    //                     // Parcelables; only look inside for Parcelables
+    //                     if ((array.size() > 0)
+    //                             && (array.get(0) instanceof Parcelable)) {
+    //                         for (int n = array.size() - 1; n >= 0; n--) {
+    //                             Parcelable p = (Parcelable) array.get(n);
+    //                             if (p != null && ((p.describeContents()
+    //                                     & Parcelable.CONTENTS_FILE_DESCRIPTOR) != 0)) {
+    //                                 fdFound = true;
+    //                                 break;
+    //                             }
+    //                         }
+    //                     }
+    //                 }
+    //             }
+    //         }
+
+    //         mHasFds = fdFound;
+    //         mFdsKnown = true;
+    //     }
+    //     return mHasFds;
+    *result = FALSE;
     return E_NOT_IMPLEMENTED;
 }
 
@@ -610,9 +312,12 @@ ECode CBundle::PutBoolean(
     /* [in] */ const String& key,
     /* [in] */ Boolean value)
 {
-    // unparcel();
-    PUT_VALUE(key, BOOLEAN_T, value);
+    VALIDATE_STRING_NOT_NULL(key);
 
+    Unparcel();
+    AutoPtr<IBoolean> obj;
+    CBoolean::New(value, (IBoolean**)&obj);
+    (*mMap)[key] = obj.Get();
     return NOERROR;
 }
 
@@ -620,9 +325,12 @@ ECode CBundle::PutByte(
     /* [in] */ const String& key,
     /* [in] */ Byte value)
 {
-    // unparcel();
-    PUT_VALUE(key, BYTE_T, value);
+    VALIDATE_STRING_NOT_NULL(key);
 
+    Unparcel();
+    AutoPtr<IByte> obj;
+    CByte::New(value, (IByte**)&obj);
+    (*mMap)[key] = obj.Get();
     return NOERROR;
 }
 
@@ -630,9 +338,12 @@ ECode CBundle::PutChar(
     /* [in] */ const String& key,
     /* [in] */ Char32 value)
 {
-    // unparcel();
-    PUT_VALUE(key, CHAR_T, value);
+    VALIDATE_STRING_NOT_NULL(key);
 
+    Unparcel();
+    AutoPtr<IChar32> obj;
+    CChar32::New(value, (IChar32**)&obj);
+    (*mMap)[key] = obj.Get();
     return NOERROR;
 }
 
@@ -640,9 +351,12 @@ ECode CBundle::PutInt16(
     /* [in] */ const String& key,
     /* [in] */ Int16 value)
 {
-    // unparcel();
-    PUT_VALUE(key, INT16_T, value);
+    VALIDATE_STRING_NOT_NULL(key);
 
+    Unparcel();
+    AutoPtr<IInteger16> obj;
+    CInteger16::New(value, (IInteger16**)&obj);
+    (*mMap)[key] = obj.Get();
     return NOERROR;
 }
 
@@ -650,9 +364,12 @@ ECode CBundle::PutInt32(
     /* [in] */ const String& key,
     /* [in] */ Int32 value)
 {
-    // unparcel();
-    PUT_VALUE(key, INT32_T, value);
+    VALIDATE_STRING_NOT_NULL(key);
 
+    Unparcel();
+    AutoPtr<IInteger32> obj;
+    CInteger32::New(value, (IInteger32**)&obj);
+    (*mMap)[key] = obj.Get();
     return NOERROR;
 }
 
@@ -660,9 +377,12 @@ ECode CBundle::PutInt64(
     /* [in] */ const String& key,
     /* [in] */ Int64 value)
 {
-    // unparcel();
-    PUT_VALUE(key, INT64_T, value);
+    VALIDATE_STRING_NOT_NULL(key);
 
+    Unparcel();
+    AutoPtr<IInteger64> obj;
+    CInteger64::New(value, (IInteger64**)&obj);
+    (*mMap)[key] = obj.Get();
     return NOERROR;
 }
 
@@ -670,9 +390,12 @@ ECode CBundle::PutFloat(
     /* [in] */ const String& key,
     /* [in] */ Float value)
 {
-    // unparcel();
-    PUT_VALUE(key, FLOAT_T, value);
+    VALIDATE_STRING_NOT_NULL(key);
 
+    Unparcel();
+    AutoPtr<IFloat> obj;
+    CFloat::New(value, (IFloat**)&obj);
+    (*mMap)[key] = obj.Get();
     return NOERROR;
 }
 
@@ -680,9 +403,12 @@ ECode CBundle::PutDouble(
     /* [in] */ const String& key,
     /* [in] */ Double value)
 {
-    // unparcel();
-    PUT_VALUE(key, DOUBLE_T, value);
+    VALIDATE_STRING_NOT_NULL(key);
 
+    Unparcel();
+    AutoPtr<IDouble> obj;
+    CDouble::New(value, (IDouble**)&obj);
+    (*mMap)[key] = obj.Get();
     return NOERROR;
 }
 
@@ -690,9 +416,12 @@ ECode CBundle::PutString(
     /* [in] */ const String& key,
     /* [in] */ const String& value)
 {
-    // unparcel();
-    PUT_VALUE(key, STRING_T, value);
+    VALIDATE_STRING_NOT_NULL(key);
 
+    Unparcel();
+    AutoPtr<ICharSequence> obj;
+    CStringWrapper::New(value, (ICharSequence**)&obj);
+    (*mMap)[key] = obj.Get();
     return NOERROR;
 }
 
@@ -700,9 +429,10 @@ ECode CBundle::PutCharSequence(
     /* [in] */ const String& key,
     /* [in] */ ICharSequence* value)
 {
-    // unparcel();
-    PUT_VALUE(key, CHARSEQUENCE_T, value);
+    VALIDATE_STRING_NOT_NULL(key);
 
+    Unparcel();
+    (*mMap)[key] = value;
     return NOERROR;
 }
 
@@ -710,10 +440,11 @@ ECode CBundle::PutParcelable(
     /* [in] */ const String& key,
     /* [in] */ IParcelable* value)
 {
-    // unparcel();
-    PUT_VALUE(key, PARCELABLE_T, value);
-    mFdsKnown = FALSE;
+    VALIDATE_STRING_NOT_NULL(key);
 
+    Unparcel();
+    (*mMap)[key] = value;
+    mFdsKnown = FALSE;
     return NOERROR;
 }
 
@@ -721,10 +452,18 @@ ECode CBundle::PutParcelableArray(
     /* [in] */ const String& key,
     /* [in] */ ArrayOf<IParcelable*>* value)
 {
-    // unparcel();
-    PUT_VALUE(key, ARRAYOF_PARCELABLE_T, value);
-    mFdsKnown = FALSE;
+    VALIDATE_STRING_NOT_NULL(key);
 
+    Unparcel();
+    AutoPtr<IArray> obj;
+    if (value != NULL) {
+        CArray::New(value->GetLength(), (IArray**)&obj);
+        for (Int32 i = 0; i < value->GetLength(); ++i) {
+            obj->Put(i, (*value)[i]);
+        }
+    }
+    (*mMap)[key] = obj.Get();
+    mFdsKnown = FALSE;
     return NOERROR;
 }
 
@@ -732,10 +471,11 @@ ECode CBundle::PutParcelableArrayList(
     /* [in] */ const String& key,
     /* [in] */ IObjectContainer* value)
 {
-    // unparcel();
-    PUT_VALUE(key, ARRAYLIST_PARCELABLE_T, value);
-    mFdsKnown = FALSE;
+    VALIDATE_STRING_NOT_NULL(key);
 
+    Unparcel();
+    (*mMap)[key] = value;
+    mFdsKnown = FALSE;
     return NOERROR;
 }
 
@@ -743,9 +483,10 @@ ECode CBundle::PutIntegerArrayList(
     /* [in] */ const String& key,
     /* [in] */ IObjectContainer* value)
 {
-    // unparcel();
-    PUT_VALUE(key, ARRAYLIST_INTEGER_T, value);
+    VALIDATE_STRING_NOT_NULL(key);
 
+    Unparcel();
+    (*mMap)[key] = value;
     return NOERROR;
 }
 
@@ -753,9 +494,10 @@ ECode CBundle::PutStringArrayList(
     /* [in] */ const String& key,
     /* [in] */ IObjectContainer* value)
 {
-    // unparcel();
-    PUT_VALUE(key, ARRAYLIST_STRING_T, value);
+    VALIDATE_STRING_NOT_NULL(key);
 
+    Unparcel();
+    (*mMap)[key] = value;
     return NOERROR;
 }
 
@@ -763,9 +505,10 @@ ECode CBundle::PutCharSequenceArrayList(
     /* [in] */ const String& key,
     /* [in] */ IObjectContainer* value)
 {
-    // unparcel();
-    PUT_VALUE(key, ARRAYLIST_CHARSEQUENCE_T, value);
+    VALIDATE_STRING_NOT_NULL(key);
 
+    Unparcel();
+    (*mMap)[key] = value;
     return NOERROR;
 }
 
@@ -777,9 +520,19 @@ ECode CBundle::PutBooleanArray(
     /* [in] */ const String& key,
     /* [in] */ ArrayOf<Boolean>* value)
 {
-    // unparcel();
-    PUT_VALUE(key, ARRAYOF_BOOLEAN_T, value);
+    VALIDATE_STRING_NOT_NULL(key);
 
+    Unparcel();
+    AutoPtr<IArray> obj;
+    if (value != NULL) {
+        CArray::New(value->GetLength(), (IArray**)&obj);
+        for (Int32 i = 0; i < value->GetLength(); ++i) {
+            AutoPtr<IBoolean> bv;
+            CBoolean::New((*value)[i], (IBoolean**)&bv);
+            obj->Put(i, bv.Get());
+        }
+    }
+    (*mMap)[key] = obj.Get();
     return NOERROR;
 }
 
@@ -787,9 +540,19 @@ ECode CBundle::PutByteArray(
     /* [in] */ const String& key,
     /* [in] */ ArrayOf<Byte>* value)
 {
-    // unparcel();
-    PUT_VALUE(key, ARRAYOF_BYTE_T, value);
+    VALIDATE_STRING_NOT_NULL(key);
 
+    Unparcel();
+    AutoPtr<IArray> obj;
+    if (value != NULL) {
+        CArray::New(value->GetLength(), (IArray**)&obj);
+        for (Int32 i = 0; i < value->GetLength(); ++i) {
+            AutoPtr<IByte> bv;
+            CByte::New((*value)[i], (IByte**)&bv);
+            obj->Put(i, bv.Get());
+        }
+    }
+    (*mMap)[key] = obj.Get();
     return NOERROR;
 }
 
@@ -797,9 +560,19 @@ ECode CBundle::PutInt16Array(
     /* [in] */ const String& key,
     /* [in] */ ArrayOf<Int16>* value)
 {
-    // unparcel();
-    PUT_VALUE(key, ARRAYOF_INT16_T, value);
+    VALIDATE_STRING_NOT_NULL(key);
 
+    Unparcel();
+    AutoPtr<IArray> obj;
+    if (value != NULL) {
+        CArray::New(value->GetLength(), (IArray**)&obj);
+        for (Int32 i = 0; i < value->GetLength(); ++i) {
+            AutoPtr<IInteger16> iv;
+            CInteger16::New((*value)[i], (IInteger16**)&iv);
+            obj->Put(i, iv.Get());
+        }
+    }
+    (*mMap)[key] = obj.Get();
     return NOERROR;
 }
 
@@ -807,9 +580,19 @@ ECode CBundle::PutCharArray(
     /* [in] */ const String& key,
     /* [in] */ ArrayOf<Char32>* value)
 {
-    // unparcel();
-    PUT_VALUE(key, ARRAYOF_CHAR_T, value);
+    VALIDATE_STRING_NOT_NULL(key);
 
+    Unparcel();
+    AutoPtr<IArray> obj;
+    if (value != NULL) {
+        CArray::New(value->GetLength(), (IArray**)&obj);
+        for (Int32 i = 0; i < value->GetLength(); ++i) {
+            AutoPtr<IChar32> cv;
+            CChar32::New((*value)[i], (IChar32**)&cv);
+            obj->Put(i, cv.Get());
+        }
+    }
+    (*mMap)[key] = obj.Get();
     return NOERROR;
 }
 
@@ -817,9 +600,19 @@ ECode CBundle::PutInt32Array(
     /* [in] */ const String& key,
     /* [in] */ ArrayOf<Int32>* value)
 {
-    // unparcel();
-    PUT_VALUE(key, ARRAYOF_INT32_T, value);
+    VALIDATE_STRING_NOT_NULL(key);
 
+    Unparcel();
+    AutoPtr<IArray> obj;
+    if (value != NULL) {
+        CArray::New(value->GetLength(), (IArray**)&obj);
+        for (Int32 i = 0; i < value->GetLength(); ++i) {
+            AutoPtr<IInteger32> iv;
+            CInteger32::New((*value)[i], (IInteger32**)&iv);
+            obj->Put(i, iv.Get());
+        }
+    }
+    (*mMap)[key] = obj.Get();
     return NOERROR;
 }
 
@@ -827,9 +620,19 @@ ECode CBundle::PutInt64Array(
     /* [in] */ const String& key,
     /* [in] */ ArrayOf<Int64>* value)
 {
-    // unparcel();
-    PUT_VALUE(key, ARRAYOF_INT64_T, value);
+    VALIDATE_STRING_NOT_NULL(key);
 
+    Unparcel();
+    AutoPtr<IArray> obj;
+    if (value != NULL) {
+        CArray::New(value->GetLength(), (IArray**)&obj);
+        for (Int32 i = 0; i < value->GetLength(); ++i) {
+            AutoPtr<IInteger64> iv;
+            CInteger64::New((*value)[i], (IInteger64**)&iv);
+            obj->Put(i, iv.Get());
+        }
+    }
+    (*mMap)[key] = obj.Get();
     return NOERROR;
 }
 
@@ -837,9 +640,19 @@ ECode CBundle::PutFloatArray(
     /* [in] */ const String& key,
     /* [in] */ ArrayOf<Float>* value)
 {
-    // unparcel();
-    PUT_VALUE(key, ARRAYOF_FLOAT_T, value);
+    VALIDATE_STRING_NOT_NULL(key);
 
+    Unparcel();
+    AutoPtr<IArray> obj;
+    if (value != NULL) {
+        CArray::New(value->GetLength(), (IArray**)&obj);
+        for (Int32 i = 0; i < value->GetLength(); ++i) {
+            AutoPtr<IFloat> fv;
+            CFloat::New((*value)[i], (IFloat**)&fv);
+            obj->Put(i, fv.Get());
+        }
+    }
+    (*mMap)[key] = obj.Get();
     return NOERROR;
 }
 
@@ -847,9 +660,19 @@ ECode CBundle::PutDoubleArray(
     /* [in] */ const String& key,
     /* [in] */ ArrayOf<Double>* value)
 {
-    // unparcel();
-    PUT_VALUE(key, ARRAYOF_DOUBLE_T, value);
+    VALIDATE_STRING_NOT_NULL(key);
 
+    Unparcel();
+    AutoPtr<IArray> obj;
+    if (value != NULL) {
+        CArray::New(value->GetLength(), (IArray**)&obj);
+        for (Int32 i = 0; i < value->GetLength(); ++i) {
+            AutoPtr<IDouble> dv;
+            CDouble::New((*value)[i], (IDouble**)&dv);
+            obj->Put(i, dv.Get());
+        }
+    }
+    (*mMap)[key] = obj.Get();
     return NOERROR;
 }
 
@@ -857,9 +680,19 @@ ECode CBundle::PutStringArray(
     /* [in] */ const String& key,
     /* [in] */ ArrayOf<String>* value)
 {
-    // unparcel();
-    PUT_VALUE(key, ARRAYOF_STRING_T, value);
+    VALIDATE_STRING_NOT_NULL(key);
 
+    Unparcel();
+    AutoPtr<IArray> obj;
+    if (value != NULL) {
+        CArray::New(value->GetLength(), (IArray**)&obj);
+        for (Int32 i = 0; i < value->GetLength(); ++i) {
+            AutoPtr<ICharSequence> sv;
+            CStringWrapper::New((*value)[i], (ICharSequence**)&sv);
+            obj->Put(i, sv.Get());
+        }
+    }
+    (*mMap)[key] = obj.Get();
     return NOERROR;
 }
 
@@ -867,9 +700,17 @@ ECode CBundle::PutCharSequenceArray(
     /* [in] */ const String& key,
     /* [in] */ ArrayOf<ICharSequence*>* value)
 {
-    // unparcel();
-    PUT_VALUE(key, ARRAYOF_CHARSEQUENCE_T, value);
+    VALIDATE_STRING_NOT_NULL(key);
 
+    Unparcel();
+    AutoPtr<IArray> obj;
+    if (value != NULL) {
+        CArray::New(value->GetLength(), (IArray**)&obj);
+        for (Int32 i = 0; i < value->GetLength(); ++i) {
+            obj->Put(i, (*value)[i]);
+        }
+    }
+    (*mMap)[key] = obj.Get();
     return NOERROR;
 }
 
@@ -877,9 +718,10 @@ ECode CBundle::PutBundle(
     /* [in] */ const String& key,
     /* [in] */ IBundle* value)
 {
-    // unparcel();
-    PUT_VALUE(key, IBUNDLE_T, value);
+    VALIDATE_STRING_NOT_NULL(key);
 
+    Unparcel();
+    (*mMap)[key] = value;
     return NOERROR;
 }
 
@@ -887,14 +729,39 @@ ECode CBundle::PutIBinder(
     /* [in] */ const String& key,
     /* [in] */ IBinder* value)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_STRING_NOT_NULL(key);
+
+    Unparcel();
+    (*mMap)[key] = value;
+    return NOERROR;
+}
+
+// Log a message if the value was non-null but not of the expected type
+void CBundle::TypeWarning(
+    /* [in] */ const String& key,
+    /* [in] */ IInterface* value,
+    /* [in] */ CString className)
+{
+    StringBuffer sb;
+    sb += "Key ";
+    sb += key;
+    sb += " expected ";
+    sb += className;
+    sb += " but value was a ";
+    // sb.append(value.getClass().getName());
+    sb += ".";
+    // Log.w(LOG_TAG, sb.toString());
+    // Log.w(LOG_TAG, "Attempt to cast generated internal exception:", e);
 }
 
 ECode CBundle::GetBoolean(
     /* [in] */ const String& key,
     /* [out] */ Boolean* value)
 {
-    // unparcel();
+    VALIDATE_NOT_NULL(value);
+    VALIDATE_STRING_NOT_NULL(key);
+
+    Unparcel();
     return GetBooleanEx(key, FALSE, value);
 }
 
@@ -904,17 +771,36 @@ ECode CBundle::GetBooleanEx(
     /* [out] */ Boolean* value)
 {
     VALIDATE_NOT_NULL(value);
-    // unparcel();
-    GET_DEFAULT_VALUE(key, defaultValue, BOOLEAN_T, mBoolean);
+    VALIDATE_STRING_NOT_NULL(key);
 
-    return NOERROR;
+    Unparcel();
+    HashMap<String, AutoPtr<IInterface> >::Iterator it = mMap->Find(key);
+    if (it == mMap->End()) {
+        *value = defaultValue;
+        return NOERROR;
+    }
+    // try {
+    IBoolean* obj = IBoolean::Probe(it->mSecond);
+    if (obj == NULL) {
+        TypeWarning(key, it->mSecond, "Boolean");
+        *value = defaultValue;
+        return NOERROR;
+    }
+    return obj->GetValue(value);
+    // } catch (ClassCastException e) {
+    //     typeWarning(key, o, "Boolean", defaultValue, e);
+    //     return defaultValue;
+    // }
 }
 
 ECode CBundle::GetByte(
     /* [in] */ const String& key,
     /* [out] */ Byte* value)
 {
-    // unparcel();
+    VALIDATE_NOT_NULL(value);
+    VALIDATE_STRING_NOT_NULL(key);
+
+    Unparcel();
     return GetByteEx(key, 0, value);
 }
 
@@ -924,10 +810,26 @@ ECode CBundle::GetByteEx(
     /* [out] */ Byte* value)
 {
     VALIDATE_NOT_NULL(value);
-    // unparcel();
-    GET_DEFAULT_VALUE(key, defaultValue, BYTE_T, mByte);
+    VALIDATE_STRING_NOT_NULL(key);
 
-    return NOERROR;
+    Unparcel();
+    HashMap<String, AutoPtr<IInterface> >::Iterator it = mMap->Find(key);
+    if (it == mMap->End()) {
+        *value = defaultValue;
+        return NOERROR;
+    }
+    // try {
+    IByte* obj = IByte::Probe(it->mSecond);
+    if (obj == NULL) {
+        TypeWarning(key, it->mSecond, "Byte");
+        *value = defaultValue;
+        return NOERROR;
+    }
+    return obj->GetValue(value);
+    // } catch (ClassCastException e) {
+    //     typeWarning(key, o, "Byte", defaultValue, e);
+    //     return defaultValue;
+    // }
 }
 
 ECode CBundle::GetChar(
@@ -935,7 +837,9 @@ ECode CBundle::GetChar(
     /* [out] */ Char32* value)
 {
     VALIDATE_NOT_NULL(value);
-    // unparcel();
+    VALIDATE_STRING_NOT_NULL(key);
+
+    Unparcel();
     return GetCharEx(key, 0, value);
 }
 
@@ -945,10 +849,26 @@ ECode CBundle::GetCharEx(
     /* [out] */ Char32* value)
 {
     VALIDATE_NOT_NULL(value);
-    // unparcel();
-    GET_DEFAULT_VALUE(key, defaultValue, CHAR_T, mChar);
+    VALIDATE_STRING_NOT_NULL(key);
 
-    return NOERROR;
+    Unparcel();
+    HashMap<String, AutoPtr<IInterface> >::Iterator it = mMap->Find(key);
+    if (it == mMap->End()) {
+        *value = defaultValue;
+        return NOERROR;
+    }
+    // try {
+    IChar32* obj = IChar32::Probe(it->mSecond);
+    if (obj == NULL) {
+        TypeWarning(key, it->mSecond, "Char32");
+        *value = defaultValue;
+        return NOERROR;
+    }
+    return obj->GetValue(value);
+    // } catch (ClassCastException e) {
+    //     typeWarning(key, o, "Character", defaultValue, e);
+    //     return defaultValue;
+    // }
 }
 
 ECode CBundle::GetInt16(
@@ -956,7 +876,9 @@ ECode CBundle::GetInt16(
     /* [out] */ Int16* value)
 {
     VALIDATE_NOT_NULL(value);
-    // unparcel();
+    VALIDATE_STRING_NOT_NULL(key);
+
+    Unparcel();
     return GetInt16Ex(key, 0, value);
 }
 
@@ -966,10 +888,26 @@ ECode CBundle::GetInt16Ex(
     /* [out] */ Int16* value)
 {
     VALIDATE_NOT_NULL(value);
-    // unparcel();
-    GET_DEFAULT_VALUE(key, defaultValue, INT16_T, mInt16);
+    VALIDATE_STRING_NOT_NULL(key);
 
-    return NOERROR;
+    Unparcel();
+    HashMap<String, AutoPtr<IInterface> >::Iterator it = mMap->Find(key);
+    if (it == mMap->End()) {
+        *value = defaultValue;
+        return NOERROR;
+    }
+    // try {
+    IInteger16* obj = IInteger16::Probe(it->mSecond);
+    if (obj == NULL) {
+        TypeWarning(key, it->mSecond, "Int16");
+        *value = defaultValue;
+        return NOERROR;
+    }
+    return obj->GetValue(value);
+    // } catch (ClassCastException e) {
+    //     typeWarning(key, o, "Short", defaultValue, e);
+    //     return defaultValue;
+    // }
 }
 
 ECode CBundle::GetInt32(
@@ -977,7 +915,9 @@ ECode CBundle::GetInt32(
     /* [out] */ Int32* value)
 {
     VALIDATE_NOT_NULL(value);
-    // unparcel();
+    VALIDATE_STRING_NOT_NULL(key);
+
+    Unparcel();
     return GetInt32Ex(key, 0, value);
 }
 
@@ -987,10 +927,26 @@ ECode CBundle::GetInt32Ex(
     /* [out] */ Int32* value)
 {
     VALIDATE_NOT_NULL(value);
-    // unparcel();
-    GET_DEFAULT_VALUE(key, defaultValue, INT32_T, mInt32);
+    VALIDATE_STRING_NOT_NULL(key);
 
-    return NOERROR;
+    Unparcel();
+    HashMap<String, AutoPtr<IInterface> >::Iterator it = mMap->Find(key);
+    if (it == mMap->End()) {
+        *value = defaultValue;
+        return NOERROR;
+    }
+    // try {
+    IInteger32* obj = IInteger32::Probe(it->mSecond);
+    if (obj == NULL) {
+        TypeWarning(key, it->mSecond, "Int32");
+        *value = defaultValue;
+        return NOERROR;
+    }
+    return obj->GetValue(value);
+    // } catch (ClassCastException e) {
+    //     typeWarning(key, o, "Integer", defaultValue, e);
+    //     return defaultValue;
+    // }
 }
 
 ECode CBundle::GetInt64(
@@ -998,8 +954,10 @@ ECode CBundle::GetInt64(
     /* [out] */ Int64* value)
 {
     VALIDATE_NOT_NULL(value);
-    // unparcel();
-    return GetInt64Ex(key, 0L, value);
+    VALIDATE_STRING_NOT_NULL(key);
+
+    Unparcel();
+    return GetInt64Ex(key, 0ll, value);
 }
 
 ECode CBundle::GetInt64Ex(
@@ -1008,10 +966,26 @@ ECode CBundle::GetInt64Ex(
     /* [out] */ Int64* value)
 {
     VALIDATE_NOT_NULL(value);
-    // unparcel();
-    GET_DEFAULT_VALUE(key, defaultValue, INT64_T, mInt64);
+    VALIDATE_STRING_NOT_NULL(key);
 
-    return NOERROR;
+    Unparcel();
+    HashMap<String, AutoPtr<IInterface> >::Iterator it = mMap->Find(key);
+    if (it == mMap->End()) {
+        *value = defaultValue;
+        return NOERROR;
+    }
+    // try {
+    IInteger64* obj = IInteger64::Probe(it->mSecond);
+    if (obj == NULL) {
+        TypeWarning(key, it->mSecond, "Int64");
+        *value = defaultValue;
+        return NOERROR;
+    }
+    return obj->GetValue(value);
+    // } catch (ClassCastException e) {
+    //     typeWarning(key, o, "Long", defaultValue, e);
+    //     return defaultValue;
+    // }
 }
 
 ECode CBundle::GetFloat(
@@ -1019,7 +993,9 @@ ECode CBundle::GetFloat(
     /* [out] */ Float* value)
 {
     VALIDATE_NOT_NULL(value);
-    // unparcel();
+    VALIDATE_STRING_NOT_NULL(key);
+
+    Unparcel();
     return GetFloatEx(key, 0.0f, value);
 }
 
@@ -1029,10 +1005,26 @@ ECode CBundle::GetFloatEx(
     /* [out] */ Float* value)
 {
     VALIDATE_NOT_NULL(value);
-    // unparcel();
-    GET_DEFAULT_VALUE(key, defaultValue, FLOAT_T, mFloat);
+    VALIDATE_STRING_NOT_NULL(key);
 
-    return NOERROR;
+    Unparcel();
+    HashMap<String, AutoPtr<IInterface> >::Iterator it = mMap->Find(key);
+    if (it == mMap->End()) {
+        *value = defaultValue;
+        return NOERROR;
+    }
+    // try {
+    IFloat* obj = IFloat::Probe(it->mSecond);
+    if (obj == NULL) {
+        TypeWarning(key, it->mSecond, "Float");
+        *value = defaultValue;
+        return NOERROR;
+    }
+    return obj->GetValue(value);
+    // } catch (ClassCastException e) {
+    //     typeWarning(key, o, "Float", defaultValue, e);
+    //     return defaultValue;
+    // }
 }
 
 ECode CBundle::GetDouble(
@@ -1040,8 +1032,10 @@ ECode CBundle::GetDouble(
     /* [out] */ Double* value)
 {
     VALIDATE_NOT_NULL(value);
-    // unparcel();
-    return GetDoubleEx(key, 0.0f, value);
+    VALIDATE_STRING_NOT_NULL(key);
+
+    Unparcel();
+    return GetDoubleEx(key, 0.0, value);
 }
 
 ECode CBundle::GetDoubleEx(
@@ -1050,10 +1044,26 @@ ECode CBundle::GetDoubleEx(
     /* [out] */ Double* value)
 {
     VALIDATE_NOT_NULL(value);
-    // unparcel();
-    GET_DEFAULT_VALUE(key, defaultValue, DOUBLE_T, mDouble);
+    VALIDATE_STRING_NOT_NULL(key);
 
-    return NOERROR;
+    Unparcel();
+    HashMap<String, AutoPtr<IInterface> >::Iterator it = mMap->Find(key);
+    if (it == mMap->End()) {
+        *value = defaultValue;
+        return NOERROR;
+    }
+    // try {
+    IDouble* obj = IDouble::Probe(it->mSecond);
+    if (obj == NULL) {
+        TypeWarning(key, it->mSecond, "Double");
+        *value = defaultValue;
+        return NOERROR;
+    }
+    return obj->GetValue(value);
+    // } catch (ClassCastException e) {
+    //     typeWarning(key, o, "Double", defaultValue, e);
+    //     return defaultValue;
+    // }
 }
 
 ECode CBundle::GetString(
@@ -1061,10 +1071,26 @@ ECode CBundle::GetString(
     /* [out] */ String* value)
 {
     VALIDATE_NOT_NULL(value);
-    // unparcel();
-    GET_DEFAULT_VALUE3(key, NULL, STRING_T, mString);
+    VALIDATE_STRING_NOT_NULL(key);
 
-    return NOERROR;
+    Unparcel();
+    HashMap<String, AutoPtr<IInterface> >::Iterator it = mMap->Find(key);
+    if (it == mMap->End()) {
+        *value = NULL;
+        return NOERROR;
+    }
+    // try {
+    ICharSequence* obj = ICharSequence::Probe(it->mSecond);
+    if (obj == NULL) {
+        TypeWarning(key, it->mSecond, "String");
+        *value = NULL;
+        return NOERROR;
+    }
+    return obj->ToString(value);
+    // } catch (ClassCastException e) {
+    //     typeWarning(key, o, "String", defaultValue, e);
+    //     return defaultValue;
+    // }
 }
 
 ECode CBundle::GetCharSequence(
@@ -1072,10 +1098,26 @@ ECode CBundle::GetCharSequence(
     /* [out] */ ICharSequence** value)
 {
     VALIDATE_NOT_NULL(value);
-    // unparcel();
-    GET_DEFAULT_VALUE2(key, NULL, CHARSEQUENCE_T, mCharSequence);
+    VALIDATE_STRING_NOT_NULL(key);
 
+    Unparcel();
+    HashMap<String, AutoPtr<IInterface> >::Iterator it = mMap->Find(key);
+    if (it == mMap->End()) {
+        *value = NULL;
+        return NOERROR;
+    }
+    // try {
+    *value = ICharSequence::Probe(it->mSecond);
+    if (*value == NULL) {
+        TypeWarning(key, it->mSecond, "ICharSequence");
+        return NOERROR;
+    }
+    (*value)->AddRef();
     return NOERROR;
+    // } catch (ClassCastException e) {
+    //     typeWarning(key, o, "CharSequence", defaultValue, e);
+    //     return defaultValue;
+    // }
 }
 
 ECode CBundle::GetBundle(
@@ -1083,10 +1125,26 @@ ECode CBundle::GetBundle(
     /* [out] */ IBundle** value)
 {
     VALIDATE_NOT_NULL(value);
-    // unparcel();
-    GET_DEFAULT_VALUE2(key, NULL, IBUNDLE_T, mBundle);
+    VALIDATE_STRING_NOT_NULL(key);
 
+    Unparcel();
+    HashMap<String, AutoPtr<IInterface> >::Iterator it = mMap->Find(key);
+    if (it == mMap->End()) {
+        *value = NULL;
+        return NOERROR;
+    }
+    // try {
+    *value = IBundle::Probe(it->mSecond);
+    if (*value == NULL) {
+        TypeWarning(key, it->mSecond, "IBundle");
+        return NOERROR;
+    }
+    (*value)->AddRef();
     return NOERROR;
+    // } catch (ClassCastException e) {
+    //     typeWarning(key, o, "Bundle", defaultValue, e);
+    //     return defaultValue;
+    // }
 }
 
 ECode CBundle::GetParcelable(
@@ -1094,10 +1152,26 @@ ECode CBundle::GetParcelable(
     /* [out] */ IParcelable** value)
 {
     VALIDATE_NOT_NULL(value);
-    // unparcel();
-    GET_DEFAULT_VALUE2(key, NULL, PARCELABLE_T, mParcelable);
+    VALIDATE_STRING_NOT_NULL(key);
 
+    Unparcel();
+    HashMap<String, AutoPtr<IInterface> >::Iterator it = mMap->Find(key);
+    if (it == mMap->End()) {
+        *value = NULL;
+        return NOERROR;
+    }
+    // try {
+    *value = IParcelable::Probe(it->mSecond);
+    if (*value == NULL) {
+        TypeWarning(key, it->mSecond, "IParcelable");
+        return NOERROR;
+    }
+    (*value)->AddRef();
     return NOERROR;
+    // } catch (ClassCastException e) {
+    //     typeWarning(key, o, "Parcelable", defaultValue, e);
+    //     return defaultValue;
+    // }
 }
 
 ECode CBundle::GetParcelableArray(
@@ -1105,10 +1179,50 @@ ECode CBundle::GetParcelableArray(
     /* [out, callee] */ ArrayOf<IParcelable*>** value)
 {
     VALIDATE_NOT_NULL(value);
-    // unparcel();
-    GET_ARRAY2(key, ARRAYOF_PARCELABLE_T, IParcelable*, mArrayOfParcelable);
+    VALIDATE_STRING_NOT_NULL(key);
 
+    Unparcel();
+    HashMap<String, AutoPtr<IInterface> >::Iterator it = mMap->Find(key);
+    if (it == mMap->End()) {
+        *value = NULL;
+        return NOERROR;
+    }
+    // try {
+    IArray* obj = IArray::Probe(it->mSecond);
+    if (obj == NULL) {
+        TypeWarning(key, it->mSecond, "IArray");
+        *value = NULL;
+        return NOERROR;
+    }
+
+    Int32 size;
+    obj->GetLength(&size);
+    ArrayOf<IParcelable*>* array = ArrayOf<IParcelable*>::Alloc(size);
+    if (array == NULL) return E_OUT_OF_MEMORY_ERROR;
+
+    for (Int32 i = 0; i < size; ++i) {
+        AutoPtr<IInterface> elem;
+        obj->Get(i, (IInterface**)&elem);
+        if (elem != NULL) {
+            if (IParcelable::Probe(elem) == NULL) goto type_error;
+            (*array)[i] = IParcelable::Probe(elem);
+            (*array)[i]->AddRef();
+        }
+    }
+    *value = array;
     return NOERROR;
+type_error:
+    for (Int32 i = 0; i < array->GetLength(); ++i) {
+        if ((*array)[i] != NULL) (*array)[i]->Release();
+    }
+    ArrayOf<IParcelable*>::Free(array);
+    TypeWarning(key, it->mSecond, "IArray-IParcelable");
+    *value = NULL;
+    return NOERROR;
+    // } catch (ClassCastException e) {
+    //     typeWarning(key, o, "Parcelable[]", defaultValue, e);
+    //     return defaultValue;
+    // }
 }
 
 ECode CBundle::GetParcelableArrayList(
@@ -1116,10 +1230,26 @@ ECode CBundle::GetParcelableArrayList(
     /* [out] */ IObjectContainer** value)
 {
     VALIDATE_NOT_NULL(value);
-    // unparcel();
-    GET_DEFAULT_VALUE2(key, NULL, ARRAYLIST_PARCELABLE_T, mObjectContainer);
+    VALIDATE_STRING_NOT_NULL(key);
 
+    Unparcel();
+    HashMap<String, AutoPtr<IInterface> >::Iterator it = mMap->Find(key);
+    if (it == mMap->End()) {
+        *value = NULL;
+        return NOERROR;
+    }
+    // try {
+    *value = IObjectContainer::Probe(it->mSecond);
+    if (*value == NULL) {
+        TypeWarning(key, it->mSecond, "IObjectContainer");
+        return NOERROR;
+    }
+    (*value)->AddRef();
     return NOERROR;
+    // } catch (ClassCastException e) {
+    //     typeWarning(key, o, "ArrayList", defaultValue, e);
+    //     return defaultValue;
+    // }
 }
 
 // public <T extends Parcelable> SparseArray<T> getSparseParcelableArray(const String& key);
@@ -1133,10 +1263,26 @@ ECode CBundle::GetIntegerArrayList(
     /* [out] */ IObjectContainer** value)
 {
     VALIDATE_NOT_NULL(value);
-    // unparcel();
-    GET_DEFAULT_VALUE2(key, NULL, ARRAYLIST_INTEGER_T, mObjectContainer);
+    VALIDATE_STRING_NOT_NULL(key);
 
+    Unparcel();
+    HashMap<String, AutoPtr<IInterface> >::Iterator it = mMap->Find(key);
+    if (it == mMap->End()) {
+        *value = NULL;
+        return NOERROR;
+    }
+    // try {
+    *value = IObjectContainer::Probe(it->mSecond);
+    if (*value == NULL) {
+        TypeWarning(key, it->mSecond, "IObjectContainer");
+        return NOERROR;
+    }
+    (*value)->AddRef();
     return NOERROR;
+    // } catch (ClassCastException e) {
+    //     typeWarning(key, o, "ArrayList<Integer>", defaultValue, e);
+    //     return defaultValue;
+    // }
 }
 
 ECode CBundle::GetStringArrayList(
@@ -1144,10 +1290,26 @@ ECode CBundle::GetStringArrayList(
     /* [out] */ IObjectContainer** value)
 {
     VALIDATE_NOT_NULL(value);
-    // unparcel();
-    GET_DEFAULT_VALUE2(key, NULL, ARRAYLIST_STRING_T, mObjectContainer);
+    VALIDATE_STRING_NOT_NULL(key);
 
+    Unparcel();
+    HashMap<String, AutoPtr<IInterface> >::Iterator it = mMap->Find(key);
+    if (it == mMap->End()) {
+        *value = NULL;
+        return NOERROR;
+    }
+    // try {
+    *value = IObjectContainer::Probe(it->mSecond);
+    if (*value == NULL) {
+        TypeWarning(key, it->mSecond, "IObjectContainer");
+        return NOERROR;
+    }
+    (*value)->AddRef();
     return NOERROR;
+    // } catch (ClassCastException e) {
+    //     typeWarning(key, o, "ArrayList<String>", defaultValue, e);
+    //     return defaultValue;
+    // }
 }
 
 ECode CBundle::GetCharSequenceArrayList(
@@ -1155,10 +1317,26 @@ ECode CBundle::GetCharSequenceArrayList(
     /* [out] */ IObjectContainer** value)
 {
     VALIDATE_NOT_NULL(value);
-    // unparcel();
-    GET_DEFAULT_VALUE2(key, NULL, ARRAYLIST_CHARSEQUENCE_T, mObjectContainer);
+    VALIDATE_STRING_NOT_NULL(key);
 
+    Unparcel();
+    HashMap<String, AutoPtr<IInterface> >::Iterator it = mMap->Find(key);
+    if (it == mMap->End()) {
+        *value = NULL;
+        return NOERROR;
+    }
+    // try {
+    *value = IObjectContainer::Probe(it->mSecond);
+    if (*value == NULL) {
+        TypeWarning(key, it->mSecond, "IObjectContainer");
+        return NOERROR;
+    }
+    (*value)->AddRef();
     return NOERROR;
+    // } catch (ClassCastException e) {
+    //     typeWarning(key, o, "ArrayList<CharSequence>", defaultValue, e);
+    //     return defaultValue;
+    // }
 }
 
 ECode CBundle::GetBooleanArray(
@@ -1166,10 +1344,46 @@ ECode CBundle::GetBooleanArray(
     /* [out, callee] */ ArrayOf<Boolean>** value)
 {
     VALIDATE_NOT_NULL(value);
-    // unparcel();
-    GET_ARRAY(key, ARRAYOF_BOOLEAN_T, Boolean, mArrayOfBoolean);
+    VALIDATE_STRING_NOT_NULL(key);
 
+    Unparcel();
+    HashMap<String, AutoPtr<IInterface> >::Iterator it = mMap->Find(key);
+    if (it == mMap->End()) {
+        *value = NULL;
+        return NOERROR;
+    }
+    // try {
+    IArray* obj = IArray::Probe(it->mSecond);
+    if (obj == NULL) {
+        TypeWarning(key, it->mSecond, "IArray");
+        *value = NULL;
+        return NOERROR;
+    }
+
+    Int32 size;
+    obj->GetLength(&size);
+    ArrayOf<Boolean>* array = ArrayOf<Boolean>::Alloc(size);
+    if (array == NULL) return E_OUT_OF_MEMORY_ERROR;
+
+    for (Int32 i = 0; i < size; ++i) {
+        AutoPtr<IInterface> elem;
+        obj->Get(i, (IInterface**)&elem);
+        if (IBoolean::Probe(elem) == NULL) goto type_error;
+        Boolean bv;
+        IBoolean::Probe(elem)->GetValue(&bv);
+        (*array)[i] = bv;
+    }
+    *value = array;
     return NOERROR;
+type_error:
+    ArrayOf<Boolean>::Free(array);
+    TypeWarning(key, it->mSecond, "IArray-Boolean");
+    *value = NULL;
+    return NOERROR;
+    // } catch (ClassCastException e) {
+    //     typeWarning(key, o, "boolean[]", defaultValue, e);
+    //     return defaultValue;
+    // }
 }
 
 ECode CBundle::GetByteArray(
@@ -1177,10 +1391,46 @@ ECode CBundle::GetByteArray(
     /* [out, callee] */ ArrayOf<Byte>** value)
 {
     VALIDATE_NOT_NULL(value);
-    // unparcel();
-    GET_ARRAY(key, ARRAYOF_BYTE_T, Byte, mArrayOfByte);
+    VALIDATE_STRING_NOT_NULL(key);
 
+    Unparcel();
+    HashMap<String, AutoPtr<IInterface> >::Iterator it = mMap->Find(key);
+    if (it == mMap->End()) {
+        *value = NULL;
+        return NOERROR;
+    }
+    // try {
+    IArray* obj = IArray::Probe(it->mSecond);
+    if (obj == NULL) {
+        TypeWarning(key, it->mSecond, "IArray");
+        *value = NULL;
+        return NOERROR;
+    }
+
+    Int32 size;
+    obj->GetLength(&size);
+    ArrayOf<Byte>* array = ArrayOf<Byte>::Alloc(size);
+    if (array == NULL) return E_OUT_OF_MEMORY_ERROR;
+
+    for (Int32 i = 0; i < size; ++i) {
+        AutoPtr<IInterface> elem;
+        obj->Get(i, (IInterface**)&elem);
+        if (IByte::Probe(elem) == NULL) goto type_error;
+        Byte bv;
+        IByte::Probe(elem)->GetValue(&bv);
+        (*array)[i] = bv;
+    }
+    *value = array;
     return NOERROR;
+type_error:
+    ArrayOf<Byte>::Free(array);
+    TypeWarning(key, it->mSecond, "IArray-Byte");
+    *value = NULL;
+    return NOERROR;
+    // } catch (ClassCastException e) {
+    //     typeWarning(key, o, "byte[]", defaultValue, e);
+    //     return defaultValue;
+    // }
 }
 
 ECode CBundle::GetInt16Array(
@@ -1188,10 +1438,46 @@ ECode CBundle::GetInt16Array(
     /* [out, callee] */ ArrayOf<Int16>** value)
 {
     VALIDATE_NOT_NULL(value);
-    // unparcel();
-    GET_ARRAY(key, ARRAYOF_INT16_T, Int16, mArrayOfInt16);
+    VALIDATE_STRING_NOT_NULL(key);
 
+    Unparcel();
+    HashMap<String, AutoPtr<IInterface> >::Iterator it = mMap->Find(key);
+    if (it == mMap->End()) {
+        *value = NULL;
+        return NOERROR;
+    }
+    // try {
+    IArray* obj = IArray::Probe(it->mSecond);
+    if (obj == NULL) {
+        TypeWarning(key, it->mSecond, "IArray");
+        *value = NULL;
+        return NOERROR;
+    }
+
+    Int32 size;
+    obj->GetLength(&size);
+    ArrayOf<Int16>* array = ArrayOf<Int16>::Alloc(size);
+    if (array == NULL) return E_OUT_OF_MEMORY_ERROR;
+
+    for (Int32 i = 0; i < size; ++i) {
+        AutoPtr<IInterface> elem;
+        obj->Get(i, (IInterface**)&elem);
+        if (IInteger16::Probe(elem) == NULL) goto type_error;
+        Int16 iv;
+        IInteger16::Probe(elem)->GetValue(&iv);
+        (*array)[i] = iv;
+    }
+    *value = array;
     return NOERROR;
+type_error:
+    ArrayOf<Int16>::Free(array);
+    TypeWarning(key, it->mSecond, "IArray-Int16");
+    *value = NULL;
+    return NOERROR;
+    // } catch (ClassCastException e) {
+    //     typeWarning(key, o, "short[]", defaultValue, e);
+    //     return defaultValue;
+    // }
 }
 
 ECode CBundle::GetCharArray(
@@ -1199,10 +1485,46 @@ ECode CBundle::GetCharArray(
     /* [out, callee] */ ArrayOf<Char32>** value)
 {
     VALIDATE_NOT_NULL(value);
-    // unparcel();
-    GET_ARRAY(key, ARRAYOF_CHAR_T, Char32, mArrayOfChar);
+    VALIDATE_STRING_NOT_NULL(key);
 
+    Unparcel();
+    HashMap<String, AutoPtr<IInterface> >::Iterator it = mMap->Find(key);
+    if (it == mMap->End()) {
+        *value = NULL;
+        return NOERROR;
+    }
+    // try {
+    IArray* obj = IArray::Probe(it->mSecond);
+    if (obj == NULL) {
+        TypeWarning(key, it->mSecond, "IArray");
+        *value = NULL;
+        return NOERROR;
+    }
+
+    Int32 size;
+    obj->GetLength(&size);
+    ArrayOf<Char32>* array = ArrayOf<Char32>::Alloc(size);
+    if (array == NULL) return E_OUT_OF_MEMORY_ERROR;
+
+    for (Int32 i = 0; i < size; ++i) {
+        AutoPtr<IInterface> elem;
+        obj->Get(i, (IInterface**)&elem);
+        if (IChar32::Probe(elem) == NULL) goto type_error;
+        Char32 cv;
+        IChar32::Probe(elem)->GetValue(&cv);
+        (*array)[i] = cv;
+    }
+    *value = array;
     return NOERROR;
+type_error:
+    ArrayOf<Char32>::Free(array);
+    TypeWarning(key, it->mSecond, "IArray-Char32");
+    *value = NULL;
+    return NOERROR;
+    // } catch (ClassCastException e) {
+    //     typeWarning(key, o, "char[]", defaultValue, e);
+    //     return defaultValue;
+    // }
 }
 
 ECode CBundle::GetInt32Array(
@@ -1210,10 +1532,46 @@ ECode CBundle::GetInt32Array(
     /* [out, callee] */ ArrayOf<Int32>** value)
 {
     VALIDATE_NOT_NULL(value);
-    // unparcel();
-    GET_ARRAY(key, ARRAYOF_INT32_T, Int32, mArrayOfInt32);
+    VALIDATE_STRING_NOT_NULL(key);
 
+    Unparcel();
+    HashMap<String, AutoPtr<IInterface> >::Iterator it = mMap->Find(key);
+    if (it == mMap->End()) {
+        *value = NULL;
+        return NOERROR;
+    }
+    // try {
+    IArray* obj = IArray::Probe(it->mSecond);
+    if (obj == NULL) {
+        TypeWarning(key, it->mSecond, "IArray");
+        *value = NULL;
+        return NOERROR;
+    }
+
+    Int32 size;
+    obj->GetLength(&size);
+    ArrayOf<Int32>* array = ArrayOf<Int32>::Alloc(size);
+    if (array == NULL) return E_OUT_OF_MEMORY_ERROR;
+
+    for (Int32 i = 0; i < size; ++i) {
+        AutoPtr<IInterface> elem;
+        obj->Get(i, (IInterface**)&elem);
+        if (IInteger32::Probe(elem) == NULL) goto type_error;
+        Int32 iv;
+        IInteger32::Probe(elem)->GetValue(&iv);
+        (*array)[i] = iv;
+    }
+    *value = array;
     return NOERROR;
+type_error:
+    ArrayOf<Int32>::Free(array);
+    TypeWarning(key, it->mSecond, "IArray-Int32");
+    *value = NULL;
+    return NOERROR;
+    // } catch (ClassCastException e) {
+    //     typeWarning(key, o, "int[]", defaultValue, e);
+    //     return defaultValue;
+    // }
 }
 
 ECode CBundle::GetInt64Array(
@@ -1221,10 +1579,46 @@ ECode CBundle::GetInt64Array(
     /* [out, callee] */ ArrayOf<Int64>** value)
 {
     VALIDATE_NOT_NULL(value);
-    // unparcel();
-    GET_ARRAY(key, ARRAYOF_INT64_T, Int64, mArrayOfInt64);
+    VALIDATE_STRING_NOT_NULL(key);
 
+    Unparcel();
+    HashMap<String, AutoPtr<IInterface> >::Iterator it = mMap->Find(key);
+    if (it == mMap->End()) {
+        *value = NULL;
+        return NOERROR;
+    }
+    // try {
+    IArray* obj = IArray::Probe(it->mSecond);
+    if (obj == NULL) {
+        TypeWarning(key, it->mSecond, "IArray");
+        *value = NULL;
+        return NOERROR;
+    }
+
+    Int32 size;
+    obj->GetLength(&size);
+    ArrayOf<Int64>* array = ArrayOf<Int64>::Alloc(size);
+    if (array == NULL) return E_OUT_OF_MEMORY_ERROR;
+
+    for (Int32 i = 0; i < size; ++i) {
+        AutoPtr<IInterface> elem;
+        obj->Get(i, (IInterface**)&elem);
+        if (IInteger64::Probe(elem) == NULL) goto type_error;
+        Int64 iv;
+        IInteger64::Probe(elem)->GetValue(&iv);
+        (*array)[i] = iv;
+    }
+    *value = array;
     return NOERROR;
+type_error:
+    ArrayOf<Int64>::Free(array);
+    TypeWarning(key, it->mSecond, "IArray-Int64");
+    *value = NULL;
+    return NOERROR;
+    // } catch (ClassCastException e) {
+    //     typeWarning(key, o, "long[]", defaultValue, e);
+    //     return defaultValue;
+    // }
 }
 
 ECode CBundle::GetFloatArray(
@@ -1232,10 +1626,46 @@ ECode CBundle::GetFloatArray(
     /* [out, callee] */ ArrayOf<Float>** value)
 {
     VALIDATE_NOT_NULL(value);
-    // unparcel();
-    GET_ARRAY(key, ARRAYOF_FLOAT_T, Float, mArrayOfFloat);
+    VALIDATE_STRING_NOT_NULL(key);
 
+    Unparcel();
+    HashMap<String, AutoPtr<IInterface> >::Iterator it = mMap->Find(key);
+    if (it == mMap->End()) {
+        *value = NULL;
+        return NOERROR;
+    }
+    // try {
+    IArray* obj = IArray::Probe(it->mSecond);
+    if (obj == NULL) {
+        TypeWarning(key, it->mSecond, "IArray");
+        *value = NULL;
+        return NOERROR;
+    }
+
+    Int32 size;
+    obj->GetLength(&size);
+    ArrayOf<Float>* array = ArrayOf<Float>::Alloc(size);
+    if (array == NULL) return E_OUT_OF_MEMORY_ERROR;
+
+    for (Int32 i = 0; i < size; ++i) {
+        AutoPtr<IInterface> elem;
+        obj->Get(i, (IInterface**)&elem);
+        if (IFloat::Probe(elem) == NULL) goto type_error;
+        Float fv;
+        IFloat::Probe(elem)->GetValue(&fv);
+        (*array)[i] = fv;
+    }
+    *value = array;
     return NOERROR;
+type_error:
+    ArrayOf<Float>::Free(array);
+    TypeWarning(key, it->mSecond, "IArray-Float");
+    *value = NULL;
+    return NOERROR;
+    // } catch (ClassCastException e) {
+    //     typeWarning(key, o, "float[]", defaultValue, e);
+    //     return defaultValue;
+    // }
 }
 
 ECode CBundle::GetDoubleArray(
@@ -1243,10 +1673,46 @@ ECode CBundle::GetDoubleArray(
     /* [out, callee] */ ArrayOf<Double>** value)
 {
     VALIDATE_NOT_NULL(value);
-    // unparcel();
-    GET_ARRAY(key, ARRAYOF_DOUBLE_T, Double, mArrayOfDouble);
+    VALIDATE_STRING_NOT_NULL(key);
 
+    Unparcel();
+    HashMap<String, AutoPtr<IInterface> >::Iterator it = mMap->Find(key);
+    if (it == mMap->End()) {
+        *value = NULL;
+        return NOERROR;
+    }
+    // try {
+    IArray* obj = IArray::Probe(it->mSecond);
+    if (obj == NULL) {
+        TypeWarning(key, it->mSecond, "IArray");
+        *value = NULL;
+        return NOERROR;
+    }
+
+    Int32 size;
+    obj->GetLength(&size);
+    ArrayOf<Double>* array = ArrayOf<Double>::Alloc(size);
+    if (array == NULL) return E_OUT_OF_MEMORY_ERROR;
+
+    for (Int32 i = 0; i < size; ++i) {
+        AutoPtr<IInterface> elem;
+        obj->Get(i, (IInterface**)&elem);
+        if (IDouble::Probe(elem) == NULL) goto type_error;
+        Double dv;
+        IDouble::Probe(elem)->GetValue(&dv);
+        (*array)[i] = dv;
+    }
+    *value = array;
     return NOERROR;
+type_error:
+    ArrayOf<Double>::Free(array);
+    TypeWarning(key, it->mSecond, "IArray-Double");
+    *value = NULL;
+    return NOERROR;
+    // } catch (ClassCastException e) {
+    //     typeWarning(key, o, "double[]", defaultValue, e);
+    //     return defaultValue;
+    // }
 }
 
 ECode CBundle::GetStringArray(
@@ -1254,10 +1720,49 @@ ECode CBundle::GetStringArray(
     /* [out, callee] */ ArrayOf<String>** value)
 {
     VALIDATE_NOT_NULL(value);
-    // unparcel();
-    GET_ARRAY(key, ARRAYOF_STRING_T, String, mArrayOfString);
+    VALIDATE_STRING_NOT_NULL(key);
 
+    Unparcel();
+    HashMap<String, AutoPtr<IInterface> >::Iterator it = mMap->Find(key);
+    if (it == mMap->End()) {
+        *value = NULL;
+        return NOERROR;
+    }
+    // try {
+    IArray* obj = IArray::Probe(it->mSecond);
+    if (obj == NULL) {
+        TypeWarning(key, it->mSecond, "IArray");
+        *value = NULL;
+        return NOERROR;
+    }
+
+    Int32 size;
+    obj->GetLength(&size);
+    ArrayOf<String>* array = ArrayOf<String>::Alloc(size);
+    if (array == NULL) return E_OUT_OF_MEMORY_ERROR;
+
+    for (Int32 i = 0; i < size; ++i) {
+        AutoPtr<IInterface> elem;
+        obj->Get(i, (IInterface**)&elem);
+        if (ICharSequence::Probe(elem) == NULL) goto type_error;
+        String sv;
+        ICharSequence::Probe(elem)->ToString(&sv);
+        (*array)[i] = sv;
+    }
+    *value = array;
     return NOERROR;
+type_error:
+    for (Int32 i = 0; i < array->GetLength(); ++i) {
+        (*array)[i] = NULL;
+    }
+    ArrayOf<String>::Free(array);
+    TypeWarning(key, it->mSecond, "IArray-String");
+    *value = NULL;
+    return NOERROR;
+    // } catch (ClassCastException e) {
+    //     typeWarning(key, o, "String[]", defaultValue, e);
+    //     return defaultValue;
+    // }
 }
 
 ECode CBundle::GetCharSequenceArray(
@@ -1265,57 +1770,156 @@ ECode CBundle::GetCharSequenceArray(
     /* [out, callee] */ ArrayOf<ICharSequence*>** value)
 {
     VALIDATE_NOT_NULL(value);
-    // unparcel();
-    GET_ARRAY2(key, ARRAYOF_CHARSEQUENCE_T, ICharSequence*, mArrayOfCharSequence);
+    VALIDATE_STRING_NOT_NULL(key);
 
+    Unparcel();
+    HashMap<String, AutoPtr<IInterface> >::Iterator it = mMap->Find(key);
+    if (it == mMap->End()) {
+        *value = NULL;
+        return NOERROR;
+    }
+    // try {
+    IArray* obj = IArray::Probe(it->mSecond);
+    if (obj == NULL) {
+        TypeWarning(key, it->mSecond, "IArray");
+        *value = NULL;
+        return NOERROR;
+    }
+
+    Int32 size;
+    obj->GetLength(&size);
+    ArrayOf<ICharSequence*>* array = ArrayOf<ICharSequence*>::Alloc(size);
+    if (array == NULL) return E_OUT_OF_MEMORY_ERROR;
+
+    for (Int32 i = 0; i < size; ++i) {
+        AutoPtr<IInterface> elem;
+        obj->Get(i, (IInterface**)&elem);
+        if (elem != NULL) {
+            if (ICharSequence::Probe(elem) == NULL) goto type_error;
+            (*array)[i] = ICharSequence::Probe(elem);
+            (*array)[i]->AddRef();
+        }
+    }
+    *value = array;
     return NOERROR;
+type_error:
+    for (Int32 i = 0; i < array->GetLength(); ++i) {
+        if ((*array)[i] != NULL) (*array)[i]->Release();
+    }
+    ArrayOf<ICharSequence*>::Free(array);
+    TypeWarning(key, it->mSecond, "IArray-ICharSequence");
+    *value = NULL;
+    return NOERROR;
+    // } catch (ClassCastException e) {
+    //     typeWarning(key, o, "CharSequence[]", defaultValue, e);
+    //     return defaultValue;
+    // }
 }
 
 ECode CBundle::GetIBinder(
     /* [in] */ const String& key,
     /* [out] */ IBinder** value)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(value);
+    VALIDATE_STRING_NOT_NULL(key);
+
+    Unparcel();
+    HashMap<String, AutoPtr<IInterface> >::Iterator it = mMap->Find(key);
+    if (it == mMap->End()) {
+        *value = NULL;
+        return NOERROR;
+    }
+    // try {
+    *value = IBinder::Probe(it->mSecond);
+    if (*value == NULL) {
+        TypeWarning(key, it->mSecond, "IBinder");
+        return NOERROR;
+    }
+    (*value)->AddRef();
+    return NOERROR;
+    // } catch (ClassCastException e) {
+    //     typeWarning(key, o, "IBinder", defaultValue, e);
+    //     return defaultValue;
+    // }
 }
 
 // @Override
 // public synchronized const String& toString();
+
+ECode CBundle::GetDescription(
+    /* [out] */ String* description)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CBundle::WriteToParcel(
+    /* [in] */ IParcel *dest)
+{
+    if (mParcelledData != 0) {
+        android::Parcel* parcel;
+        dest->GetElementPayload((Handle32*)&parcel);
+        int length = ((android::Parcel*)mParcelledData)->dataSize();
+        parcel->writeInt32(length);
+        parcel->writeInt32(0x4C444E42); // 'B' 'N' 'D' 'L'
+        parcel->appendFrom((android::Parcel*)mParcelledData, 0, length);
+    }
+    else {
+        dest->WriteInt32(-1); // dummy, will hold length
+        dest->WriteInt32(0x4C444E42); // 'B' 'N' 'D' 'L'
+
+        Int32 oldPos, newPos;
+        dest->GetDataPosition(&oldPos);
+        WriteMapInternal(dest);
+        dest->GetDataPosition(&newPos);
+
+        // Backpatch length
+        dest->SetDataPosition(oldPos - 8);
+        Int32 length = newPos - oldPos;
+        dest->WriteInt32(length);
+        dest->SetDataPosition(newPos);
+    }
+    return NOERROR;
+}
 
 ECode CBundle::ReadFromParcel(
     /* [in] */ IParcel *source)
 {
     Int32 size;
     source->ReadInt32(&size);
-    if (size > 0) {
-        ReadFromParcelInner(source, size);
+    if (size < 0) {
+        // throw new RuntimeException("Bad length in parcel: " + length);
+        return E_RUNTIME_EXCEPTION;
     }
-
-    return NOERROR;
+    return ReadFromParcelInner(source, size);
 }
 
 ECode CBundle::ReadFromParcelInner(
-    /* [in] */ IParcel *source,
+    /* [in] */ IParcel* source,
     /* [in] */ Int32 length)
 {
-    String key;
-    DataWrapper *data;
-    for (Int32 i = 0; i < length; i++) {
-        source->ReadString(&key);
-        source->ReadStructPtr((Handle32 *)&data);
+    android::Parcel* parcel;
+    source->GetElementPayload((Handle32*)&parcel);
 
-        if (data->mType == INT32_T) {
-            mData[key] = new DataWrapper(
-                data->mType, data->mValue.mInt32);
-        }
-        else if (data->mType == BOOLEAN_T){
-            mData[key] = new DataWrapper(
-                data->mType, data->mValue.mBoolean);
-        }
-        else if (data->mType == IBUNDLE_T){
-            mData[key] = new DataWrapper(
-                data->mType, data->mValue.mBundle);
-        }
+    Int32 magic = parcel->readInt32();
+    if (magic != 0x4C444E42) {
+        //noinspection ThrowableInstanceNeverThrown
+        // String st = Log.getStackTraceString(new RuntimeException());
+        // Log.e("Bundle", "readBundle: bad magic number");
+        // Log.e("Bundle", "readBundle: trace = " + st);
     }
+
+    // Advance within this Parcel
+    Int32 offset = parcel->dataPosition();
+    parcel->setDataPosition(offset + length);
+
+    android::Parcel* p = new android::Parcel();
+    p->setDataPosition(0);
+    p->appendFrom(parcel, offset, length);
+    p->setDataPosition(0);
+
+    mParcelledData = (Handle32)p;
+    mHasFds = p->hasFileDescriptors();
+    mFdsKnown = TRUE;
 
     return NOERROR;
 }
@@ -1325,8 +1929,7 @@ ECode CBundle::ReadFromParcel(
     /* [in] */ Int32 length,
     /* [out] */ IBundle** bundle)
 {
-    if (bundle == NULL) return E_INVALID_ARGUMENT;
-
+    VALIDATE_NOT_NULL(bundle);
     return CBundle::New(source, length, bundle);
 }
 
@@ -1335,86 +1938,168 @@ ECode CBundle::WriteToParcel(
     /* [in] */ IParcel *dest)
 {
     if (bundle != NULL) {
-        ((CBundle *)bundle)->WriteToParcel(dest);
+        return IParcelable::Probe(bundle)->WriteToParcel(dest);
     }
-
     return NOERROR;
 }
 
-ECode CBundle::WriteToParcel(
-    /* [in] */ IParcel *dest)
+void CBundle::ReadMapInternal(
+    /* [in] */ Handle32 source,
+    /* [in] */ Int32 size,
+    /* [in] */ IClassLoader* classLoader)
 {
-    HashMap<String, DataWrapper*>::SizeType
-    size = mData.GetSize();
-    dest->WriteInt32(size);
+    // while (N > 0) {
+    //         Object key = readValue(loader);
+    //         Object value = readValue(loader);
+    //         outVal.put(key, value);
+    //         N--;
+    //     }
+    assert(0);
+}
 
-    HashMap<String, DataWrapper*>::Iterator it = mData.Begin();
-    for (; it != mData.End(); ++it) {
+void CBundle::WriteMapInternal(
+    /* [in] */ IParcel* dest)
+{
+    if (mMap == NULL) {
+        dest->WriteInt32(-1);
+        return;
+    }
+    dest->WriteInt32(mMap->GetSize());
+    HashMap<String, AutoPtr<IInterface> >::Iterator it;
+    for (it = mMap->Begin(); it != mMap->End(); ++it) {
         dest->WriteString(it->mFirst);
-        dest->WriteStruct((Handle32)(it->mSecond), sizeof(DataWrapper));
+        WriteValue(dest, it->mSecond);
     }
-
-    return NOERROR;
 }
 
-ECode CBundle::GetDescription(
-    /* [out] */ String* description)
+ECode CBundle::WriteValue(
+    /* [in] */ IParcel* dest,
+    /* [in] */ IInterface* obj)
 {
-    return E_NOT_IMPLEMENTED;
-}
-
-ECode CBundle::constructor()
-{
-    // TODO: ALEX
-    // mClassLoader = getClass().getClassLoader();
-
-    return NOERROR;
-}
-
-ECode CBundle::constructor(
-    /* [in] */ IBundle * bundle)
-{
-    AutoPtr<CBundle> o = (CBundle*)bundle;
-
-    if (o->mData.GetSize() > 0) {
-        DataWrapper* pData;
-        HashMap<String, DataWrapper*>::Iterator it = o->mData.Begin();
-        for (; it != mData.End(); ++it) {
-            pData = it->mSecond;
-            if (pData->mType == INT32_T) {
-                mData[it->mFirst] = new DataWrapper(
-                    pData->mType, pData->mValue.mInt32);
-            }
-            else if (pData->mType == BOOLEAN_T){
-                mData[it->mFirst] = new DataWrapper(
-                    pData->mType, pData->mValue.mBoolean);
-            }
-            else if (pData->mType == IBUNDLE_T){
-                mData[it->mFirst] = new DataWrapper(
-                    pData->mType, pData->mValue.mBundle);
-            }
-        }
+    if (obj == NULL) {
+        dest->WriteInt32(VAL_NULL);
     }
-
+    // else if (v instanceof String) {
+    //     writeInt(VAL_STRING);
+    //     writeString((String) v);
+    // }
+    else if (IInteger32::Probe(obj) != NULL) {
+        Int32 v;
+        IInteger32::Probe(obj)->GetValue(&v);
+        dest->WriteInt32(VAL_INTEGER);
+        dest->WriteInt32(v);
+    }
+    // else if (v instanceof Map) {
+    //     writeInt(VAL_MAP);
+    //     writeMap((Map) v);
+    // }
+    else if (IBundle::Probe(obj) != NULL) {
+        // // Must be before Parcelable
+        // writeInt(VAL_BUNDLE);
+        // writeBundle((Bundle) v);
+        assert(0);
+    }
+    // else if (v instanceof Parcelable) {
+    //     writeInt(VAL_PARCELABLE);
+    //     writeParcelable((Parcelable) v, 0);
+    // }
+    else if (IInteger16::Probe(obj) != NULL) {
+        Int16 v;
+        IInteger16::Probe(obj)->GetValue(&v);
+        dest->WriteInt32(VAL_SHORT);
+        dest->WriteInt32((Int32)v);
+    }
+    else if (IInteger64::Probe(obj) != NULL) {
+        Int64 v;
+        IInteger64::Probe(obj)->GetValue(&v);
+        dest->WriteInt32(VAL_LONG);
+        dest->WriteInt64(v);
+    }
+    else if (IFloat::Probe(obj) != NULL) {
+        Float v;
+        IFloat::Probe(obj)->GetValue(&v);
+        dest->WriteInt32(VAL_FLOAT);
+        dest->WriteFloat(v);
+    }
+    else if (IDouble::Probe(obj) != NULL) {
+        Double v;
+        IDouble::Probe(obj)->GetValue(&v);
+        dest->WriteInt32(VAL_DOUBLE);
+        dest->WriteDouble(v);
+    }
+    else if (IBoolean::Probe(obj) != NULL) {
+        Boolean v;
+        IBoolean::Probe(obj)->GetValue(&v);
+        dest->WriteInt32(VAL_BOOLEAN);
+        dest->WriteInt32(v ? 1 : 0);
+    }
+    else if (ICharSequence::Probe(obj) != NULL) {
+        // Must be after String
+        String v;
+        ICharSequence::Probe(obj)->ToString(&v);
+        dest->WriteInt32(VAL_CHARSEQUENCE);
+        // writeCharSequence((CharSequence) v);
+        dest->WriteString(v);
+    }
+    // else if (v instanceof List) {
+    //     writeInt(VAL_LIST);
+    //     writeList((List) v);
+    // }
+    // else if (v instanceof SparseArray) {
+    //     writeInt(VAL_SPARSEARRAY);
+    //     writeSparseArray((SparseArray) v);
+    // }
+    // else if (v instanceof boolean[]) {
+    //     writeInt(VAL_BOOLEANARRAY);
+    //     writeBooleanArray((boolean[]) v);
+    // }
+    // else if (v instanceof byte[]) {
+    //     writeInt(VAL_BYTEARRAY);
+    //     writeByteArray((byte[]) v);
+    // }
+    // else if (v instanceof String[]) {
+    //     writeInt(VAL_STRINGARRAY);
+    //     writeStringArray((String[]) v);
+    // }
+    // else if (v instanceof CharSequence[]) {
+    //     // Must be after String[] and before Object[]
+    //     writeInt(VAL_CHARSEQUENCEARRAY);
+    //     writeCharSequenceArray((CharSequence[]) v);
+    // }
+    // else if (v instanceof IBinder) {
+    //     writeInt(VAL_IBINDER);
+    //     writeStrongBinder((IBinder) v);
+    // }
+    // else if (v instanceof Parcelable[]) {
+    //     writeInt(VAL_PARCELABLEARRAY);
+    //     writeParcelableArray((Parcelable[]) v, 0);
+    // }
+    // else if (v instanceof Object[]) {
+    //     writeInt(VAL_OBJECTARRAY);
+    //     writeArray((Object[]) v);
+    // }
+    // else if (v instanceof int[]) {
+    //     writeInt(VAL_INTARRAY);
+    //     writeIntArray((int[]) v);
+    // }
+    // else if (v instanceof long[]) {
+    //     writeInt(VAL_LONGARRAY);
+    //     writeLongArray((long[]) v);
+    // }
+    else if (IByte::Probe(obj) != NULL) {
+        Byte v;
+        IByte::Probe(obj)->GetValue(&v);
+        dest->WriteInt32(VAL_BYTE);
+        dest->WriteInt32((Int32)v);
+    }
+    // else if (v instanceof Serializable) {
+    //     // Must be last
+    //     writeInt(VAL_SERIALIZABLE);
+    //     writeSerializable((Serializable) v);
+    // }
+    else {
+        // throw new RuntimeException("Parcel: unable to marshal value " + v);
+        return E_RUNTIME_EXCEPTION;
+    }
     return NOERROR;
 }
-
-ECode CBundle::constructor(
-    /* [in] */ IParcel * parcelledData)
-{
-    return ReadFromParcel(parcelledData);
-}
-
-ECode CBundle::constructor(
-    /* [in] */ IParcel * parcelledData,
-    /* [in] */ Int32 length)
-{
-    return ReadFromParcelInner(parcelledData, length);
-}
-
-ECode CBundle::constructor(
-    /* [in] */ Int32 capacity)
-{
-    return E_NOT_IMPLEMENTED;
-}
-

@@ -1,0 +1,8 @@
+
+module
+{
+    interface IFloat {
+        GetValue(
+            [out] Float* value);
+    }
+}

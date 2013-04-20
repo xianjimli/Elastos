@@ -1689,7 +1689,7 @@ ECode CIntent::RemoveExtra(
     if (mExtras != NULL) {
         mExtras->Remove(name);
         Int32 size;
-        FAIL_RETURN(mExtras->Size(&size));
+        FAIL_RETURN(mExtras->GetSize(&size));
         if (size == 0) {
             mExtras = NULL;
         }

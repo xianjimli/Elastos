@@ -1228,6 +1228,22 @@ ECode CRemoteParcel::Clone(
     return E_NOT_IMPLEMENTED;
 }
 
+ECode CRemoteParcel::GetDataPosition(
+    /* [out] */ Int32* position)
+{
+    if (position == NULL) return E_NOT_IMPLEMENTED;
+
+    *position = m_pData->dataPosition();
+    return NOERROR;
+}
+
+ECode CRemoteParcel::SetDataPosition(
+    /* [in] */ Int32 position)
+{
+    m_pData->setDataPosition(position);
+    return NOERROR;
+}
+
 ECode CRemoteParcel::GetElementPayload(
     /* [out] */ Handle32* pBuffer)
 {

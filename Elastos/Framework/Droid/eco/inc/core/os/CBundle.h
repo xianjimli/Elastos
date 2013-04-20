@@ -2,14 +2,12 @@
 #ifndef __CBUNDLE_H__
 #define __CBUNDLE_H__
 
+#include "ext/frameworkext.h"
 #include "_CBundle.h"
-
-#include "ext/frameworkdef.h"
 #include <elastos/HashMap.h>
+#include <elastos/ElRefBase.h>
+#include <elastos/AutoPtr.h>
 
-using namespace Elastos;
-
-class DataWrapper;
 
 CarClass(CBundle)
 {
@@ -47,14 +45,14 @@ public:
      */
     // @Override
     CARAPI Clone(
-        /* [out] */ IInterface** result);
+        /* [out] */ IBundle** result);
 
     /**
      * Returns the number of mappings contained in this Bundle.
      *
      * @return the number of mappings as an int.
      */
-    CARAPI Size(
+    CARAPI GetSize(
         /* [out] */ Int32* result);
 
     /**
@@ -829,14 +827,81 @@ public:
         /* [in] */ IParcel* dest);
 
 private:
-//#ifdef _MSC_VER
-    HashMap<String, DataWrapper*> mData;
-//#else
-//    friend class CIntent;
-//    void *m_pAndroidBundle;
-//#endif
+    /**
+     * If the underlying data are stored as a Parcel, unparcel them
+     * using the currently assigned class loader.
+     */
+    /* package */ CARAPI_(void) Unparcel();
+
+    CARAPI_(void) TypeWarning(
+        /* [in] */ const String& key,
+        /* [in] */ IInterface* value,
+        /* [in] */ CString className);
+
+    CARAPI_(void) ReadMapInternal(
+        /* [in] */ Handle32 source,
+        /* [in] */ Int32 size,
+        /* [in] */ IClassLoader* classLoader);
+
+    CARAPI_(void) WriteMapInternal(
+        /* [in] */ IParcel* dest);
+
+    CARAPI WriteValue(
+        /* [in] */ IParcel* dest,
+        /* [in] */ IInterface* obj);
+
+public:
+    static AutoPtr<CBundle> EMPTY;
+
+private:
+    static const CString TAG;
+
+    // Invariant - exactly one of mMap / mParcelledData will be null
+    // (except inside a call to unparcel)
+
+    /* package */ HashMap<String, AutoPtr<IInterface> >* mMap;
+
+    /*
+     * If mParcelledData is non-null, then mMap will be null and the
+     * data are stored as a Parcel containing a Bundle.  When the data
+     * are unparcelled, mParcelledData willbe set to null.
+     */
+    /* package */ Handle32 mParcelledData;
+
     Boolean mHasFds;
     Boolean mFdsKnown;
+
+    /**
+     * The ClassLoader used when unparcelling data from mParcelledData.
+     */
+    AutoPtr<IClassLoader> mClassLoader;
+
+    static const Int32 VAL_NULL = -1;
+    static const Int32 VAL_STRING = 0;
+    static const Int32 VAL_INTEGER = 1;
+    static const Int32 VAL_MAP = 2;
+    static const Int32 VAL_BUNDLE = 3;
+    static const Int32 VAL_PARCELABLE = 4;
+    static const Int32 VAL_SHORT = 5;
+    static const Int32 VAL_LONG = 6;
+    static const Int32 VAL_FLOAT = 7;
+    static const Int32 VAL_DOUBLE = 8;
+    static const Int32 VAL_BOOLEAN = 9;
+    static const Int32 VAL_CHARSEQUENCE = 10;
+    static const Int32 VAL_LIST  = 11;
+    static const Int32 VAL_SPARSEARRAY = 12;
+    static const Int32 VAL_BYTEARRAY = 13;
+    static const Int32 VAL_STRINGARRAY = 14;
+    static const Int32 VAL_IBINDER = 15;
+    static const Int32 VAL_PARCELABLEARRAY = 16;
+    static const Int32 VAL_OBJECTARRAY = 17;
+    static const Int32 VAL_INTARRAY = 18;
+    static const Int32 VAL_LONGARRAY = 19;
+    static const Int32 VAL_BYTE = 20;
+    static const Int32 VAL_SERIALIZABLE = 21;
+    static const Int32 VAL_SPARSEBOOLEANARRAY = 22;
+    static const Int32 VAL_BOOLEANARRAY = 23;
+    static const Int32 VAL_CHARSEQUENCEARRAY = 24;
 };
 
 #endif // __CBUNDLE_H__

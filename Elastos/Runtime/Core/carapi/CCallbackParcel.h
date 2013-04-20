@@ -257,6 +257,12 @@ public:
     CARAPI Clone(
         /* [in] */ IParcel* pSrcParcel);
 
+    CARAPI GetDataPosition(
+        /* [out] */ Int32* position);
+
+    CARAPI SetDataPosition(
+        /* [in] */ Int32 position);
+
     CARAPI GetElementSize(
         /* [out] */ Int32* pSize);
 

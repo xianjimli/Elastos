@@ -1,0 +1,8 @@
+
+module
+{
+    interface IInteger64 {
+        GetValue(
+            [out] Int64* value);
+    }
+}
