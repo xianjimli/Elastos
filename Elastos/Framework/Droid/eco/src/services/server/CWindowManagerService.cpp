@@ -9,7 +9,6 @@
 #include "os/Binder.h"
 #include <elastos/Math.h>
 #include <Logger.h>
-#include <stdio.h>
 
 
 using namespace Elastos::Core;

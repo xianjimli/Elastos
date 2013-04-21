@@ -828,15 +828,15 @@ Boolean Process::SetOomAdj(
  * {@hide}
  */
 ECode Process::SetArgV0(
-    /* [in] */ const String& name)
+    /* [in] */ CString name)
 {
     if (name.IsNull()) {
         //jniThrowException(env, "java/lang/NullPointerException", NULL);
         return E_NULL_POINTER_EXCEPTION;
     }
 
-    if (name.GetSize() > 0) {
-        android::ProcessState::self()->setArgV0(name.string());
+    if (name.GetLength() > 0) {
+        android::ProcessState::self()->setArgV0((const char*)name);
     }
 
     return NOERROR;

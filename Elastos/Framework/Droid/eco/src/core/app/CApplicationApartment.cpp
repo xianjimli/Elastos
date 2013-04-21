@@ -15,6 +15,7 @@
 #include "capsule/CContentProviderInfo.h"
 #include "os/CApartment.h"
 #include "os/CServiceManager.h"
+#include "os/Process.h"
 #include "view/CWindowManagerLayoutParams.h"
 #include "view/CWindowManagerImpl.h"
 #include <Slogger.h>
@@ -613,8 +614,8 @@ ECode CApplicationApartment::HandleBindApplication(
 //    mBoundApplication = data;
 //    mConfiguration = new Configuration(data.config);
 //
-//    // send up app name; do this *before* waiting for debugger
-//    Process.setArgV0(data.processName);
+    // send up app name; do this *before* waiting for debugger
+    Process::SetArgV0(data->mProcessName);
 //    android.ddm.DdmHandleAppName.setAppName(data.processName);
 //
 //    /*
@@ -2632,6 +2633,8 @@ ECode CApplicationApartment::HandleContextCleanup(
 ECode CApplicationApartment::Startup(
     /* [in] */ ApartmentAttr attr)
 {
+    Process::SetArgV0("<pre-initialized>");
+
     AutoPtr<IInterface> obj;
     AutoPtr<IServiceManager> serviceManager;
 

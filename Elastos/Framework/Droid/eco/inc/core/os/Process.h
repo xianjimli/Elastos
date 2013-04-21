@@ -463,7 +463,7 @@ public:
      * {@hide}
      */
     static CARAPI SetArgV0(
-        /* [in] */ const String& name);
+        /* [in] */ CString name);
 
     /**
      * Kill the process with the given PID.
