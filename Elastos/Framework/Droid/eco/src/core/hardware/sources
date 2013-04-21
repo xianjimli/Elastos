@@ -13,4 +13,11 @@ INCLUDES += $(PREBUILD_INC)/skia/images
 
 C_DEFINES += -D_FRAMEWORK_CORE
 
-LIBRARIES += usb/usb.lib
+SOURCES = CSensor.cpp
+SOURCES += CSensorEvent.cpp
+SOURCES += CSensorManager.cpp
+SOURCES += CSensorManagerHelper.cpp
+SOURCES += CSensorManagerLegacyListener.cpp
+SOURCES += CSensorManagerListenerDelegate.cpp
+
+#LIBRARIES += usb/usb.lib

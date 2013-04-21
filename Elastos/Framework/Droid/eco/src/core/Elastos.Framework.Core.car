@@ -28,7 +28,7 @@ module
     merge("../../car/core/statusbar.car");
     merge("../../car/core/location.car");
     merge("../../car/core/systemui.car");
-    //merge("../../car/core/hardware.car");
+    merge("../../car/core/hardware.car");
     merge("../../car/core/webkit.car");
     merge("../../car/core/gesture.car");
     merge("../../car/core/backup.car");

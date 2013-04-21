@@ -1,121 +1,164 @@
 
 module
 {
-    interface IUsbRequest;
-    interface IUsbDeviceConnection;
+//    interface IUsbRequest;
+//    interface IUsbDeviceConnection;
 
-    merge("hardware/usb/UsbAccessory.car");
-    merge("hardware/usb/UsbConstants.car");
-    merge("hardware/usb/UsbEndpoint.car");
-    merge("hardware/usb/UsbInterface.car");
-    merge("hardware/usb/UsbDevice.car");
-    merge("hardware/usb/UsbRequest.car");
-    merge("hardware/usb/UsbDeviceConnection.car");
-    merge("hardware/usb/UsbManager.car");
-    merge("hardware/usb/IUsbManager.car");
+    merge("hardware/Sensor.car");
+    merge("hardware/SensorEvent.car");
+    merge("hardware/SensorEventListener.car");
+    merge("hardware/SensorManager.car");
+//    merge("hardware/usb/UsbAccessory.car");
+//    merge("hardware/usb/UsbConstants.car");
+//    merge("hardware/usb/UsbEndpoint.car");
+//    merge("hardware/usb/UsbInterface.car");
+//    merge("hardware/usb/UsbDevice.car");
+//    merge("hardware/usb/UsbRequest.car");
+//    merge("hardware/usb/UsbDeviceConnection.car");
+//    merge("hardware/usb/UsbManager.car");
+//    merge("hardware/usb/IUsbManager.car");
 
-    class CUsbAccessory {
-        /**
-         * UsbAccessory should only be instantiated by UsbService implementation
-         * @hide
-         */
+    class CSensor {
+        interface ISensor;
+    }
+
+    class CSensorEvent {
         constructor(
-            [in] String manufacturer,
-            [in] String model,
-            [in] String description,
-            [in] String ver,
-            [in] String uri,
-            [in] String serial);
+            [in] Int32 size);
 
-        /**
-         * UsbAccessory should only be instantiated by UsbService implementation
-         * @hide
-         */
+        interface ISensorEvent;
+    }
+
+    class CSensorManagerListenerDelegate {
         constructor(
-            [in] ArrayOf<String> strings);
+            [in] ISensorEventListener* listener,
+            [in] ISensor* sensor,
+            [in] IHandler* handler);
 
-        interface IUsbAccessory;
-        interface IParcelable;
+        interface ISensorManagerListenerDelegate;
     }
 
-    class CUsbEndpoint {
-        /**
-         * UsbEndpoint should only be instantiated by UsbService implementation
-         * @hide
-         */
-        constructor(
-            [in] Int32 address,
-            [in] Int32 attributes,
-            [in] Int32 size,
-            [in] Int32 interval);
-
-        interface IUsbEndpoint;
-        interface IParcelable;
+    class CSensorManagerLegacyListener {
+        interface ISensorEventListener;
     }
 
-    class CUsbInterface {
-        /**
-         * UsbInterface should only be instantiated by UsbService implementation
-         * @hide
-         */
-        constructor(
-            [in] Int32 id,
-            [in] Int32 cls,
-            [in] Int32 subCls,
-            [in] Int32 protocol,
-            [in] ArrayOf<IParcelable*> endpoints);
-
-        interface IUsbInterface;
-        interface IParcelable;
-    }
-
-    class CUsbDevice {
-        /**
-         * UsbDevice should only be instantiated by UsbService implementation
-         * @hide
-         */
-        constructor(
-            [in] String name,
-            [in] Int32 vendorId,
-            [in] Int32 productId,
-            [in] Int32 cls,
-            [in] Int32 subCls,
-            [in] Int32 protocol,
-            [in] ArrayOf<IParcelable*> interfaces);
-
-        interface IUsbDevice;
-        interface IParcelable;
-    }
-
-    singleton class CUsbDeviceHelper {
-        interface IUsbDeviceHelper;
-    }
-
-    class CUsbRequest {
-        constructor();
-
-        interface IUsbRequest;
-    }
-
-    class CUsbDeviceConnection {
-        /**
-         * UsbDevice should only be instantiated by UsbService implementation
-         * @hide
-         */
-        constructor(
-            [in] IUsbDevice* device);
-
-        interface IUsbDeviceConnection;
-    }
-
-    class CLocalUsbManager {
+    class CSensorManager {
+        // TODO: ALEX need ILooper
         /**
          * {@hide}
          */
-        constructor(
-            [in] IContext* context,
-            [in] IUsbManager* service);
+        // constructor(
+        //     [in] ILooper* mainLooper);
 
-        interface ILocalUsbManager;
+        interface ISensorManager;
     }
+
+    singleton class CSensorManagerHelper {
+        interface ISensorManagerHelper;
+    }
+
+//    class CUsbAccessory {
+//        /**
+//         * UsbAccessory should only be instantiated by UsbService implementation
+//         * @hide
+//         */
+//        constructor(
+//            [in] String manufacturer,
+//            [in] String model,
+//            [in] String description,
+//            [in] String ver,
+//            [in] String uri,
+//            [in] String serial);
+//
+//        /**
+//         * UsbAccessory should only be instantiated by UsbService implementation
+//         * @hide
+//         */
+//        constructor(
+//            [in] ArrayOf<String> strings);
+//
+//        interface IUsbAccessory;
+//        interface IParcelable;
+//    }
+//
+//    class CUsbEndpoint {
+//        /**
+//         * UsbEndpoint should only be instantiated by UsbService implementation
+//         * @hide
+//         */
+//        constructor(
+//            [in] Int32 address,
+//            [in] Int32 attributes,
+//            [in] Int32 size,
+//            [in] Int32 interval);
+//
+//        interface IUsbEndpoint;
+//        interface IParcelable;
+//    }
+//
+//    class CUsbInterface {
+//        /**
+//         * UsbInterface should only be instantiated by UsbService implementation
+//         * @hide
+//         */
+//        constructor(
+//            [in] Int32 id,
+//            [in] Int32 cls,
+//            [in] Int32 subCls,
+//            [in] Int32 protocol,
+//            [in] ArrayOf<IParcelable*> endpoints);
+//
+//        interface IUsbInterface;
+//        interface IParcelable;
+//    }
+//
+//    class CUsbDevice {
+//        /**
+//         * UsbDevice should only be instantiated by UsbService implementation
+//         * @hide
+//         */
+//        constructor(
+//            [in] String name,
+//            [in] Int32 vendorId,
+//            [in] Int32 productId,
+//            [in] Int32 cls,
+//            [in] Int32 subCls,
+//            [in] Int32 protocol,
+//            [in] ArrayOf<IParcelable*> interfaces);
+//
+//        interface IUsbDevice;
+//        interface IParcelable;
+//    }
+//
+//    singleton class CUsbDeviceHelper {
+//        interface IUsbDeviceHelper;
+//    }
+//
+//    class CUsbRequest {
+//        constructor();
+//
+//        interface IUsbRequest;
+//    }
+//
+//    class CUsbDeviceConnection {
+//        /**
+//         * UsbDevice should only be instantiated by UsbService implementation
+//         * @hide
+//         */
+//        constructor(
+//            [in] IUsbDevice* device);
+//
+//        interface IUsbDeviceConnection;
+//    }
+//
+//    class CLocalUsbManager {
+//        /**
+//         * {@hide}
+//         */
+//        constructor(
+//            [in] IContext* context,
+//            [in] IUsbManager* service);
+//
+//        interface ILocalUsbManager;
+//    }
 }

@@ -1,6 +1,6 @@
 
-#ifndef __SPARSEARRAY_H__
-#define __SPARSEARRAY_H__
+#ifndef __SPARSEINT32ARRAY_H__
+#define __SPARSEINT32ARRAY_H__
 
 #include "utils/ArrayUtils.h"
 
@@ -9,7 +9,7 @@
  * there can be gaps in the indices.  It is intended to be more efficient
  * than using a HashMap to map Integers to Integers.
  */
-class SparseInt32Array 
+class SparseInt32Array
 {
 public:
     /**
@@ -39,7 +39,7 @@ public:
      * if no such mapping has been made.
      */
     CARAPI_(Int32) Get(
-        /* [in] */ Int32 key, 
+        /* [in] */ Int32 key,
         /* [in] */ Int32 valueIfKeyNotFound);
 
     /**
@@ -60,7 +60,7 @@ public:
      * was one.
      */
     CARAPI_(void) Put(
-        /* [in] */ Int32 key, 
+        /* [in] */ Int32 key,
         /* [in] */ Int32 value);
 
     /**
@@ -72,15 +72,15 @@ public:
     /**
      * Given an index in the range <code>0...size()-1</code>, returns
      * the key from the <code>index</code>th key-value mapping that this
-     * SparseIntArray stores.  
+     * SparseIntArray stores.
      */
     CARAPI_(Int32) KeyAt(
         /* [in] */ Int32 index);
-    
+
     /**
      * Given an index in the range <code>0...size()-1</code>, returns
      * the value from the <code>index</code>th key-value mapping that this
-     * SparseIntArray stores.  
+     * SparseIntArray stores.
      */
     CARAPI_(Int32) ValueAt(
         /* [in] */ Int32 index);
@@ -114,14 +114,14 @@ public:
      * the key is greater than all existing keys in the array.
      */
     CARAPI_(void) Append(
-        /* [in] */ Int32 key, 
+        /* [in] */ Int32 key,
         /* [in] */ Int32 value);
-    
+
 private:
     static CARAPI_(Int32) BinarySearch(
-        /* [in] */ ArrayOf<Int32>* a, 
-        /* [in] */ Int32 start, 
-        /* [in] */ Int32 len, 
+        /* [in] */ ArrayOf<Int32>* a,
+        /* [in] */ Int32 start,
+        /* [in] */ Int32 len,
         /* [in] */ Int32 key);
 
     CARAPI_(void) CheckIntegrity();

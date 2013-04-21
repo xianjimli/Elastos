@@ -1,0 +1,139 @@
+
+module
+{
+    /**
+     * A constant describing an accelerometer sensor type. See
+     * {@link android.hardware.SensorEvent#values SensorEvent.values} for more
+     * details.
+     */
+    const Sensor_TYPE_ACCELEROMETER = 1;
+
+    /**
+     * A constant describing a magnetic field sensor type. See
+     * {@link android.hardware.SensorEvent#values SensorEvent.values} for more
+     * details.
+     */
+    const Sensor_TYPE_MAGNETIC_FIELD = 2;
+
+    /**
+     * A constant describing an orientation sensor type. See
+     * {@link android.hardware.SensorEvent#values SensorEvent.values} for more
+     * details.
+     *
+     * @deprecated use {@link android.hardware.SensorManager#getOrientation
+     *             SensorManager.getOrientation()} instead.
+     */
+    // @Deprecated
+    const Sensor_TYPE_ORIENTATION = 3;
+
+    /** A constant describing a gyroscope sensor type */
+    const Sensor_TYPE_GYROSCOPE = 4;
+
+    /**
+     * A constant describing an light sensor type. See
+     * {@link android.hardware.SensorEvent#values SensorEvent.values} for more
+     * details.
+     */
+    const Sensor_TYPE_LIGHT = 5;
+
+    /** A constant describing a pressure sensor type */
+    const Sensor_TYPE_PRESSURE = 6;
+
+    /** A constant describing a temperature sensor type */
+    const Sensor_TYPE_TEMPERATURE = 7;
+
+    /**
+     * A constant describing an proximity sensor type. See
+     * {@link android.hardware.SensorEvent#values SensorEvent.values} for more
+     * details.
+     */
+    const Sensor_TYPE_PROXIMITY = 8;
+
+    /**
+     * A constant describing a gravity sensor type.
+     * See {@link android.hardware.SensorEvent SensorEvent}
+     * for more details.
+     */
+    const Sensor_TYPE_GRAVITY = 9;
+
+    /**
+     * A constant describing a linear acceleration sensor type.
+     * See {@link android.hardware.SensorEvent SensorEvent}
+     * for more details.
+     */
+    const Sensor_TYPE_LINEAR_ACCELERATION = 10;
+
+    /**
+     * A constant describing a rotation vector sensor type.
+     * See {@link android.hardware.SensorEvent SensorEvent}
+     * for more details.
+     */
+    const Sensor_TYPE_ROTATION_VECTOR = 11;
+
+    /**
+     * A constant describing all sensor types.
+     */
+    const Sensor_TYPE_ALL = -1;
+
+    /**
+     * Class representing a sensor. Use {@link SensorManager#getSensorList} to get
+     * the list of available Sensors.
+     *
+     * @see SensorManager
+     * @see SensorEventListener
+     * @see SensorEvent
+     *
+     */
+    interface ISensor {
+
+        /**
+         * @return name string of the sensor.
+         */
+        GetName(
+            [out] String* name);
+
+        /**
+         * @return vendor string of this sensor.
+         */
+        GetVendor(
+            [out] String* vendor);
+
+        /**
+         * @return generic type of this sensor.
+         */
+        GetType(
+            [out] Int32* type);
+
+        /**
+         * @return version of the sensor's module.
+         */
+        GetVersion(
+            [out] Int32* value);
+
+        /**
+         * @return maximum range of the sensor in the sensor's unit.
+         */
+        GetMaximumRange(
+            [out] Float* range);
+
+        /**
+         * @return resolution of the sensor in the sensor's unit.
+         */
+        GetResolution(
+            [out] Float* resolution);
+
+        /**
+         * @return the power in mA used by this sensor while in use
+         */
+        GetPower(
+            [out] Float* power);
+
+        /**
+         * @return the minimum delay allowed between two events in microsecond
+         * or zero if this sensor only returns a value when the data it's measuring
+         * changes.
+         */
+        GetMinDelay(
+            [out] Int32* minDelay);
+    }
+}
