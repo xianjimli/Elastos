@@ -1,0 +1,18 @@
+
+module
+{
+    interface IUri;
+
+    interface IContentProviderResult {
+    
+        GetUri(
+            [out] IUri** uri);
+        
+        GetCount(
+            [out] Int32* count);
+        
+        ToString(
+            [out] String* result);
+        
+    }
+}

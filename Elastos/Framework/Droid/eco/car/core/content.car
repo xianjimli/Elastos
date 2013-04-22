@@ -62,6 +62,10 @@ module
     merge("content/ContextThemeWrapper.car");
     merge("content/PathPermission.car");
     merge("content/SharedPreferences.car");
+    merge("content/UriMatcher.car");
+    merge("content/ContentProviderClient.car");
+    merge("content/ContentProviderResult.car");
+  
     
     interface ICursor;
 
@@ -578,5 +582,40 @@ module
             
         interface IContentService;
     }
+
+    class CUriMatcher {
+        /**
+         * Creates the root node of the URI tree.
+         *
+         * @param code the code to match for the root URI
+         */
+        constructor(
+            [in] Int32 code);
+
+        interface IUriMatcher;
+    }
+
+    class CContentProviderClient{
+        constructor(
+            [in] IContentResolver* resolver,
+            [in] IContentProvider* provider);
+
+        interface IContentProviderClient;
+    }
+
+    class CContentProviderResult{
+        constructor(
+            [in] IUri* uri);
+
+        constructor(
+            [in] Int32 count);
+
+        constructor(
+            [in] IParcel* source);
+
+        interface IContentProviderResult;
+        interface IParcelable;
+    }
+
 }
 
