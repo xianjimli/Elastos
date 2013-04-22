@@ -5,6 +5,7 @@
 #include <elastos/AutoFree.h>
 #include <media/AudioEffect.h>
 #include <media/EffectApi.h>
+#include "os/CApartment.h"
 
 using namespace Elastos::Core;
 using namespace Elastos::Utility::Logging;
@@ -32,12 +33,14 @@ ECode AudioEffect::Descriptor::GetType(
 {
     VALIDATE_NOT_NULL(type);
     *type = mType;
+    if (*type != NULL) (*type)->AddRef();
     return NOERROR;
 }
 
 ECode AudioEffect::Descriptor::SetType(
     /* [in] */ IUUID* type)
 {
+    VALIDATE_NOT_NULL(type);
     mType = type;
     return NOERROR;
 }
@@ -47,12 +50,14 @@ ECode AudioEffect::Descriptor::GetUuid(
 {
     VALIDATE_NOT_NULL(uuid);
     *uuid = mUuid;
+    if (*uuid != NULL) (*uuid)->AddRef();
     return NOERROR;
 }
 
 ECode AudioEffect::Descriptor::SetUuid(
     /* [in] */ IUUID* uuid)
 {
+    VALIDATE_NOT_NULL(uuid);
     mUuid = uuid;
     return NOERROR;
 }
@@ -117,6 +122,8 @@ ECode AudioEffect::Init(
     /* [in] */ Int32 priority,
     /* [in] */ Int32 audioSession)
 {
+    VALIDATE_NOT_NULL(type);
+    VALIDATE_NOT_NULL(uuid);
     ArrayOf_<Int32, 1> id;
     ArrayOf_< IAudioEffectDescriptor*, 1> desc;
     // native initialization
@@ -191,7 +198,8 @@ ECode AudioEffect::SetEnabled(
     VALIDATE_NOT_NULL(result);
 
     FAIL_RETURN(CheckState("SetEnabled()"));
-    return NativeSetEnabled(enabled);
+    *result = NativeSetEnabled(enabled);
+    return NOERROR;
 }
 
 ECode AudioEffect::SetParameter(
@@ -324,6 +332,8 @@ ECode AudioEffect::SetParameterEx6(
         /* [in] */ ArrayOf<Byte>* value,
         /* [out] */ Int32* result)
 {
+    VALIDATE_NOT_NULL(param);
+    VALIDATE_NOT_NULL(value);
     VALIDATE_NOT_NULL(result);
 
     if (param->GetLength()> 2) {
@@ -347,6 +357,7 @@ ECode AudioEffect::GetParameter(
     /* [out] */ ArrayOf<Byte>* value,
     /* [out] */ Int32* status)
 {
+    VALIDATE_NOT_NULL(param);
     VALIDATE_NOT_NULL(value);
     VALIDATE_NOT_NULL(status);
 
@@ -369,6 +380,7 @@ ECode AudioEffect::GetParameterEx(
     /* [out] */ ArrayOf<Byte>* value,
     /* [out] */ Int32* status)
 {
+    VALIDATE_NOT_NULL(value);
     VALIDATE_NOT_NULL(status);
 
     AutoFree< ArrayOf<Byte> > p;
@@ -443,6 +455,7 @@ ECode AudioEffect::GetParameterEx4(
     /* [out] */ Int32* status)
 {
     VALIDATE_NOT_NULL(param);
+    VALIDATE_NOT_NULL(value);
     VALIDATE_NOT_NULL(status);
 
     if (param->GetLength() > 2 || (*value).GetLength() > 2) {
@@ -624,14 +637,9 @@ ECode AudioEffect::SetParameterListener(
 
 void AudioEffect::CreateNativeEventHandler()
 {
-    AutoPtr<IApartment> looper;
-    AutoPtr<IApartmentHelper> helper;
-    if (SUCCEEDED(helper->GetMainApartment((IApartment**) &looper)) && (looper != NULL)) {
-        mNativeEventHandler = new NativeEventHandler((IAudioEffect*) this, looper);
-    } else if (SUCCEEDED(helper->GetMyApartment((IApartment**) &looper)) && (looper != NULL)) {
-        mNativeEventHandler = new NativeEventHandler((IAudioEffect*) this, looper);
-    } else {
-        mNativeEventHandler = NULL;
+    CApartment::GetMyApartment((IApartment**)&mNativeEventHandler);
+    if (mNativeEventHandler == NULL) {
+         CApartment::GetMainApartment((IApartment**)&mNativeEventHandler);
     }
 }
 
@@ -681,34 +689,28 @@ AudioEffect::NativeEventHandler::NativeEventHandler(
 }
 
 ECode AudioEffect::NativeEventHandler::HandleMessage(
-    /* [in] */ IMessage* msg)
+    /* [in] */ Int32 what,
+    /* [in] */ Int32 arg1,
+    /* [in] */ Int32 arg2,
+    /* [in] */ IInterface* obj)
 {
     if (mAudioEffect == NULL) {
         return NOERROR;
     }
-//    switch (msg.what) {
     Mutex::Autolock lock(&mHost->mListenerLock);
-    switch (1) {
+    switch (what) {
     case AudioEffect_NATIVE_EVENT_ENABLED_STATUS:
         IAudioEffectOnEnableStatusChangeListener* enableStatusChangeListener;
         enableStatusChangeListener = mHost->mEnableStatusChangeListener;
         if (enableStatusChangeListener != NULL) {
-            enableStatusChangeListener->OnEnableStatusChange(mAudioEffect,0);
-            /*
-            enableStatusChangeListener.onEnableStatusChange(
-                mAudioEffect, (boolean) (msg.arg1 != 0));
-            */
+            enableStatusChangeListener->OnEnableStatusChange(mAudioEffect, (Boolean) (arg1 != 0));
         }
         return NOERROR;
     case AudioEffect_NATIVE_EVENT_CONTROL_STATUS:
         IAudioEffectOnControlStatusChangeListener* controlStatusChangeListener;
         controlStatusChangeListener = mHost->mControlChangeStatusListener;
         if (controlStatusChangeListener != NULL) {
-            controlStatusChangeListener->OnControlStatusChange(mAudioEffect,0);
-/*
-            controlStatusChangeListener.onControlStatusChange(
-                mAudioEffect, (boolean) (msg.arg1 != 0));
-*/
+            controlStatusChangeListener->OnControlStatusChange(mAudioEffect, (Boolean) (arg1 != 0));
         }
         return NOERROR;
     case AudioEffect_NATIVE_EVENT_PARAMETER_CHANGED:
@@ -717,19 +719,17 @@ ECode AudioEffect::NativeEventHandler::HandleMessage(
         if (parameterChangeListener != NULL) {
             // arg1 contains offset of parameter value from start of
             // byte array
-//            int vOffset = msg.arg1;
-            Int32 vOffset;
-//            byte[] p = (byte[]) msg.obj;
-            ArrayOf<Byte>* p;
+            Int32 vOffset = arg1;
+            ArrayOf<Byte>* p = (ArrayOf<Byte>*) obj;
             // See effect_param_t in EffectApi.h for psize and vsize
             // fields offsets
             Int32 status;
-            AutoPtr<IAudioEffect> obj;
-            obj->ByteArrayToInt32Ex(p, 0, &status);
+            AutoPtr<IAudioEffect> tempObj;
+            tempObj->ByteArrayToInt32Ex(p, 0, &status);
             Int32 psize;
-            obj->ByteArrayToInt32Ex(p, 4, &status);
+            psize = tempObj->ByteArrayToInt32Ex(p, 4, &status);
             Int32 vsize;
-            obj->ByteArrayToInt32Ex(p, 8, &status);
+            vsize = tempObj->ByteArrayToInt32Ex(p, 8, &status);
             ArrayOf<Byte>* param = ArrayOf<Byte>::Alloc(psize);
             ArrayOf<Byte>* value = ArrayOf<Byte>::Alloc(vsize);
             p->Replace(
@@ -739,7 +739,7 @@ ECode AudioEffect::NativeEventHandler::HandleMessage(
             obj->Release();
         }
     }
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode AudioEffect::NativeEventHandler::Start(
@@ -842,24 +842,29 @@ ECode AudioEffect::NativeEventHandler::SendMessage(
 }
 
 void AudioEffect::PostEventFromNative(
-    /* [in] */ IObject* effect_ref,
+    /* [in] */ AudioEffect* effect_ref,
     /* [in] */ Int32 what,
     /* [in] */ Int32 arg1,
     /* [in] */ Int32 arg2,
-    /* [in] */ IObject* obj)
+    /* [in] */ IInterface* obj)
 {
-    AudioEffect* effect = (AudioEffect*) effect_ref;
+    AudioEffect* effect = effect_ref;
     if (effect == NULL) {
         return;
     }
     if (effect->mNativeEventHandler != NULL) {
-/*
-            Message m = effect.mNativeEventHandler.obtainMessage(what, arg1,
-                    arg2, obj);
-            effect.mNativeEventHandler.sendMessage(m);
-*/
+        ECode (STDCALL AudioEffect::NativeEventHandler::*pHandlerFunc)(
+                Int32 what, Int32 arg1, Int32 arg2, IInterface* obj);
+        pHandlerFunc = &AudioEffect::NativeEventHandler::HandleMessage;
+
+        AutoPtr<IParcel> params;
+        CCallbackParcel::New((IParcel**)&params);
+        params->WriteInt32(what);
+        params->WriteInt32(arg1);
+        params->WriteInt32(arg2);
+        params->WriteInterfacePtr(obj);
+        effect->mNativeEventHandler->PostCppCallback((Handle32)effect, *(Handle32*)&pHandlerFunc, params, 0);
     }
-    //E_NOT_IMPLEMENTED;
 }
 
 struct effect_callback_cookie {
