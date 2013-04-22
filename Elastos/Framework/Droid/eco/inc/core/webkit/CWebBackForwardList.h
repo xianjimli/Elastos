@@ -15,19 +15,24 @@ CarClass(CWebBackForwardList)
 {
 public:
     //synchronized
+    /*public*/
     CARAPI GetCurrentItem(
         /* [out] */ IWebHistoryItem** item);
 
+    /*public*/
     CARAPI GetCurrentIndex(
         /* [out] */ Int32* index);
 
+    /*public*/
     CARAPI GetItemAtIndex(
         /* [in] */ Int32 index,
         /* [out] */ IWebHistoryItem** item);
 
+    /*public*/
     CARAPI GetSize(
         /* [out] */ Int32* size);
 
+    /*package*/
     CARAPI constructor(
         /* [in] */ ICallbackProxy* proxy);
 
@@ -115,6 +120,8 @@ private:
     Boolean mClearPending;
     // CallbackProxy to issue client callbacks.
     /*const*/ AutoPtr<ICallbackProxy> mCallbackProxy;
+
+    //static Elastos::Core::Threading::Mutex mMutexClass;
 };
 
 #endif // __CWEBBACKFORWARDLIST_H__

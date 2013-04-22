@@ -17,30 +17,36 @@
 CarClass(CUrlInterceptRegistry)
 {
 public:
+    /*public*/
     /*static*/ 
     CARAPI SetUrlInterceptDisabled(
         /* [in] */ Boolean disabled);
 
+    /*public*/
     /*static*/ 
     CARAPI UrlInterceptDisabled(
         /* [out] */ Boolean * flag);
 
+    /*public*/
     /*static*/ 
     CARAPI RegisterHandler(
         /* [in] */ IUrlInterceptHandler * handler,
         /* [out] */ Boolean *flag);
 
+    /*public*/
     /*static*/ 
     CARAPI UnregisterHandler(
         /* [in] */ IUrlInterceptHandler * handler,
         /* [out] */ Boolean * flag);
 
+    /*public*/
     /*static*/ 
     CARAPI GetSurrogate(
         /* [in] */ CString url,
         /* [in] */ IObjectStringMap * headers,
         /* [out] */ ICacheManagerCacheResult ** result);
 
+    /*public*/
     /*static*/ 
     CARAPI GetPluginData(
         /* [in] */ CString url,
@@ -57,8 +63,6 @@ private:
     static Boolean sDisabled;   // = false;
 
     static List< AutoPtr<IUrlInterceptHandler> > * sHandlerList;
-
-    /*static*/ Core::Threading::Mutex mMutex;
 };
 
 #endif // __CURLINTERCEPTREGISTRY_H__

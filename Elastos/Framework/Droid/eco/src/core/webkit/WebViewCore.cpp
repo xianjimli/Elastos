@@ -105,6 +105,18 @@ Boolean WebViewCore::mRepaintScheduled = FALSE;
 
 Core::Threading::Mutex WebViewCore::mMutexClass;
 
+/*****************************WebViewCore::DrawData*****************************/
+WebViewCore::DrawData::DrawData()
+{
+    CRegion::New((IRegion**)&mInvalRegion);
+    CPoint::New((IPoint**)&mWidthHeight);
+}
+
+WebViewCore::DrawData::~DrawData(){
+    delete mInvalRegion;
+    delete mWidthHeight;
+}
+
 /*****************************WebViewCore::WvcWebStorageQuotaUpdater*****************************/
 ECode WebViewCore::WvcWebStorageQuotaUpdater::UpdateQuota(
     /* [in] */  Int64 newQuota)
@@ -890,7 +902,7 @@ WebViewCore::WebViewCore(
             try {
                 WebViewCore.class.wait();
             } catch (InterruptedException e) {
-                //Utility::Logging::Logger::E(LOGTAG, String("Caught exception while waiting for thread creation.\n") );
+                Utility::Logging::Logger::E(LOGTAG, String("Caught exception while waiting for thread creation.\n") );
                 Log.e(LOGTAG, "Caught exception while waiting for thread creation.");
                 Log.e(LOGTAG, Log.getStackTraceString(e));
             }
@@ -2768,7 +2780,8 @@ IInterface* WebViewCore::GetPluginClass(
     }
     AutoPtr<IPluginManager> pluginManager;
     //pluginManager = CPluginManager::GetInstance(NULL);
-    String pkgName;//= ((CPluginManager*)(pluginManager.Get())) -> GetPluginsAPKName(libName);
+    String pkgName;
+    ((CPluginManager*)(pluginManager.Get())) -> GetPluginsAPKName(libName,&pkgName);
     if (pkgName == NULL) {
         String strOut = String("Unable to resolve ") + libName;
         strOut += String(" to a plugin APK");
@@ -2777,7 +2790,9 @@ IInterface* WebViewCore::GetPluginClass(
         return NULL;
     }
     try {
-        return NULL;//((CPluginManager*)(pluginManager.Get())) -> GetPluginClass(pkgName, clsName);
+        Handle32 pluginClass;
+        ((CPluginManager*)(pluginManager.Get())) -> GetPluginClass(pkgName, clsName, &pluginClass);
+        return (IInterface*)pluginClass;
     } 
     catch() {
         //JAVA:catch (NameNotFoundException e)

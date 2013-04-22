@@ -192,6 +192,9 @@ private:
     // can get the proper Context.
 //	static WeakReference<WebView> sCurrentMainWebView;
     static AutoPtr<IWebView> sCurrentMainWebView;
+
+    Core::Threading::Mutex mutexThis;
+    static Core::Threading::Mutex mutexClass;
 };
 
 #endif //__JWEBCOREJAVABRIDGE_H_

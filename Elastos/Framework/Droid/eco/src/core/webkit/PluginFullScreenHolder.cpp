@@ -65,7 +65,7 @@ Boolean PluginFullScreenHolder::OnKeyDown(
     if(bIsSystem) {
         return Dialog::OnKeyDown(keyCode, event);
     }
-//    mWebView -> OnKeyDown(keyCode, event);
+    ((CWebView*)(mWebView.Get())) -> OnKeyDown(keyCode, event);
     // always return true as we are the handler
     return TRUE;
 }
@@ -118,11 +118,10 @@ void PluginFullScreenHolder::OnStop()
     AutoPtr<IViewParent> pViewParent;
     mContentView -> GetParent( (IViewParent**)&pViewParent );
     if( mContentView != NULL && pViewParent.Get() != NULL ) {
-        //(IViewGroup *)(pViewParent.Get()) -> RemoveView(mContentView.Get());        
+        IViewGroup* vg = (IViewGroup *)(pViewParent.Get());
+        //vg -> RemoveView(mContentView.Get());
     }
-    /*
-    AutoPtr<IWebViewCore> pWebViewCore;
-    ((CWebView *)mWebView )-> GetWebViewCore((IWebViewCore**)&pWebViewCore);
+    AutoPtr<WebViewCore> pWebViewCore;
+    pWebViewCore = ((CWebView*)(mWebView.Get()))-> GetWebViewCore();
     pWebViewCore -> SendMessage(WebViewCore::EventHub::HIDE_FULLSCREEN, mNpp, 0);
-    */
 }

@@ -85,7 +85,7 @@ void WebViewWorker::HandleMessage(
                     CCacheManager::CleanupCacheFile(cache);
                     mCacheResultMap.Erase(data->mListener);
                 } else {
-//                    cache->outStream->Write((CByteArrayBuilder::Chunk(data->mChunk)).mArray, 0, (CByteArrayBuilder::Chunk(data->mChunk)).mLength);
+                    cache->outStream->WriteBufferEx( 0, ((CByteArrayBuilder::Chunk*)(data->mChunk.Get()))->mLength, *((((CByteArrayBuilder::Chunk*)(data->mChunk.Get()))->mArray).Get()));
                 }
             }
             data->mChunk->Release();

@@ -37,6 +37,7 @@ public:
      *
      * @param loadlistener The LoadListener to call with the data.
      */
+    //package
     StreamLoader(
         /* [in] */ /*const*/ LoadListener * loadListener);
 
@@ -46,8 +47,10 @@ public:
      * message to send the status and returns immediately.
      */
     /*final*/
+    //package
     CARAPI_(void) Load();
 
+    //public
     virtual CARAPI_(Boolean) HandleMessage(
         /* [in] */ const IMessage* msg);
 

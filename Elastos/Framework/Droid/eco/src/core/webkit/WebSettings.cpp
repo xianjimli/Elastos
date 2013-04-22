@@ -372,7 +372,7 @@ void WebSettings::SetSupportZoom(
     /* [in] */ Boolean support)
 {
     mSupportZoom = support;
-    //((CWebView*)(mWebView.Get()))-> UpdateMultiTouchSupport(mContext.Get());
+    ((CWebView*)(mWebView.Get()))-> UpdateMultiTouchSupport(mContext.Get());
 }
 
 /**
@@ -390,7 +390,7 @@ void WebSettings::SetBuiltInZoomControls(
     /* [in] */ Boolean enabled)
 {
     mBuiltInZoomControls = enabled;
-    //((CWebView*)(mWebView.Get()))-> UpdateMultiTouchSupport(mContext.Get());
+    ((CWebView*)(mWebView.Get()))-> UpdateMultiTouchSupport(mContext.Get());
 }
 
 /**
@@ -522,7 +522,7 @@ void WebSettings::SetTextSize(
     /* [in] */ TextSize* t)
 {
     Core::Threading::Mutex::Autolock lock(mMutex);
-    if (/*CWebView::mLogEvent &&*/ mTextSize != t ) {
+    if (CWebView::mLogEvent && mTextSize != t ) {
         //JAVA:    EventLog.WriteEvent(EventLogTags::BROWSER_TEXT_SIZE_CHANGE,mTextSize.value, t.value);
     }
     mTextSize = t;
@@ -552,7 +552,7 @@ void WebSettings::SetDefaultZoom(
     assert(zoom != NULL);
     if (mDefaultZoom != zoom) {
         mDefaultZoom = zoom;
-        //((CWebView*)(mWebView.Get()))->UpdateDefaultZoomDensity(zoom->value);
+        ((CWebView*)(mWebView.Get()))->UpdateDefaultZoomDensity(zoom->value);
     }
 }
 

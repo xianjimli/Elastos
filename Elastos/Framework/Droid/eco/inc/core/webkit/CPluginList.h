@@ -33,8 +33,6 @@ public:
 
 private:
     List< AutoPtr< IPlugin > > * mPlugins;
-
-    Core::Threading::Mutex mMutex;
 };
 
 #endif // __CPLUGINLIST_H__

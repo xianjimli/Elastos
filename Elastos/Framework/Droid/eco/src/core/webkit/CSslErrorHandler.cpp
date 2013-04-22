@@ -18,7 +18,7 @@ ECode CSslErrorHandler::HandleMessage(
         case HANDLE_RESPONSE:
             AutoPtr< LoadListener > loader = (LoadListener *) (/*msg -> mObj*/NULL);
             if(TRUE) {
-                Core::Threading::Mutex::Autolock lock(mMutex);
+                Core::Threading::Mutex::Autolock lock(_m_syncLock);
 
                 HandleSslErrorResponse(loader.Get(), loader -> SslError(), (/*msg -> mArg1*/1) == 1);
                 mLoaderQueue -> Remove(loader);
@@ -59,7 +59,7 @@ ECode CSslErrorHandler::SaveState(
         /* [out] */ Boolean * ret)
 {
     VALIDATE_NOT_NULL(ret);
-    Core::Threading::Mutex::Autolock lock(mMutex);
+    Core::Threading::Mutex::Autolock lock(_m_syncLock);
     Boolean success = ( outState != NULL );
     if(success)
     {// TODO?
@@ -74,7 +74,7 @@ ECode CSslErrorHandler::RestoreState(
         /* [out] */ Boolean * ret)
 {
     VALIDATE_NOT_NULL(ret);
-    Core::Threading::Mutex::Autolock lock(mMutex);
+    Core::Threading::Mutex::Autolock lock(_m_syncLock);
     Boolean success = (inState != NULL);
     if (success)  {
         ECode ec = inState -> ContainsKey(String("ssl-error-handler"),&success);
@@ -99,7 +99,7 @@ ECode CSslErrorHandler::RestoreState(
 
 ECode CSslErrorHandler::Clear()
 {
-    Core::Threading::Mutex::Autolock lock(mMutex);
+    Core::Threading::Mutex::Autolock lock(_m_syncLock);
     mSslPrefTable -> Clear();
     return NOERROR;
 }
@@ -107,7 +107,7 @@ ECode CSslErrorHandler::Clear()
 ECode CSslErrorHandler::HandleSslErrorRequest(
         /* [in] */ LoadListener * loader)
 {
-    Core::Threading::Mutex::Autolock lock(mMutex);
+    Core::Threading::Mutex::Autolock lock(_m_syncLock);
     if (DebugFlags::sSSL_ERROR_HANDLER)  {
         String strUrl;
         loader -> Url(/*&*/strUrl);
@@ -130,7 +130,7 @@ ECode CSslErrorHandler::CheckSslPrefTable(
         /* [out] */ Boolean * ret)
 {
     VALIDATE_NOT_NULL(ret);
-    Core::Threading::Mutex::Autolock lock(mMutex);
+    Core::Threading::Mutex::Autolock lock(_m_syncLock);
     ECode ec;
     /*const*/ String host;
     loader -> Host(/*&*/host);
@@ -170,7 +170,7 @@ ECode CSslErrorHandler::ProcessNextLoader(
         /* [out] */ Boolean * ret)
 {
     VALIDATE_NOT_NULL(ret);
-    Core::Threading::Mutex::Autolock lock(mMutex);
+    Core::Threading::Mutex::Autolock lock(_m_syncLock);
     AutoPtr<LoadListener> loader = (mLoaderQueue -> GetFront());
     if (loader != NULL) 
     {
@@ -258,7 +258,7 @@ ECode CSslErrorHandler::HandleSslErrorResponse(
         /* [in] */ ISslError * error, 
         /* [in] */ Boolean proceed)
 {
-    Core::Threading::Mutex::Autolock lock(mMutex);
+    Core::Threading::Mutex::Autolock lock(_m_syncLock);
     if (DebugFlags::sSSL_ERROR_HANDLER) 
     {
         //JAVA:Assert.assertNotNull(loader);

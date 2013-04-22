@@ -15,20 +15,20 @@ WebBackForwardList::WebBackForwardList(
 
 IWebHistoryItem* WebBackForwardList::GetCurrentItem()
 {
-    Elastos::Core::Threading::Mutex::Autolock lock(mLock);
+    Elastos::Core::Threading::Mutex::Autolock lock(mMutexThis);
     return GetItemAtIndex(mCurrentIndex);
 }
 
 Int32 WebBackForwardList::GetCurrentIndex()
 {
-    Elastos::Core::Threading::Mutex::Autolock lock(mLock);
+    Elastos::Core::Threading::Mutex::Autolock lock(mMutexThis);
     return mCurrentIndex;
 }
 
 IWebHistoryItem* WebBackForwardList::GetItemAtIndex(
     /* [in] */ Int32 index)
 {
-    Elastos::Core::Threading::Mutex::Autolock lock(mLock);
+    Elastos::Core::Threading::Mutex::Autolock lock(mMutexThis);
     if (index < 0 || index >= GetSize() )  {
         return NULL;
     }
@@ -37,27 +37,27 @@ IWebHistoryItem* WebBackForwardList::GetItemAtIndex(
 
 Int32 WebBackForwardList::GetSize()
 {
-    Elastos::Core::Threading::Mutex::Autolock lock(mLock);
+    Elastos::Core::Threading::Mutex::Autolock lock(mMutexThis);
     return mArray.GetSize();
 }
 
 void WebBackForwardList::SetClearPending()
 {
-    Elastos::Core::Threading::Mutex::Autolock lock(mLock);
+    Elastos::Core::Threading::Mutex::Autolock lock(mMutexThis);
     mClearPending = TRUE;
     return ;
 }
 
 Boolean WebBackForwardList::GetClearPending()
 {
-    Elastos::Core::Threading::Mutex::Autolock lock(mLock);
+    Elastos::Core::Threading::Mutex::Autolock lock(mMutexThis);
     return mClearPending;
 }
 
 void WebBackForwardList::AddHistoryItem(
     /* [in] */ IWebHistoryItem* item)
 {    
-    Elastos::Core::Threading::Mutex::Autolock lock(mLock);
+    Elastos::Core::Threading::Mutex::Autolock lock(mMutexThis);
     // Update the current position because we are going to add the new item
     // in that slot.
     ++mCurrentIndex;
@@ -81,7 +81,7 @@ void WebBackForwardList::AddHistoryItem(
 void WebBackForwardList::Close(
         /* [in] */ Int32 nativeFrame)
 {    
-    Elastos::Core::Threading::Mutex::Autolock lock(mLock);
+    Elastos::Core::Threading::Mutex::Autolock lock(mMutexThis);
     // Clear the array first because nativeClose will call addHistoryItem
     // with the current item.
     mArray.Clear();
@@ -95,7 +95,7 @@ void WebBackForwardList::Close(
 void WebBackForwardList::RemoveHistoryItem(
     /* [in] */ Int32 index)
 {
-    Elastos::Core::Threading::Mutex::Autolock lock(mLock);
+    Elastos::Core::Threading::Mutex::Autolock lock(mMutexThis);
     // XXX: This is a special case. Since the callback is only triggered
     // when removing the first item, we can assert that the index is 0.
     // This lets us change the current index without having to query the
@@ -113,7 +113,7 @@ void WebBackForwardList::RemoveHistoryItem(
 
 IWebBackForwardList* WebBackForwardList::Clone()
 {
-    Elastos::Core::Threading::Mutex::Autolock lock(mLock);
+    Elastos::Core::Threading::Mutex::Autolock lock(mMutexThis);
     AutoPtr<WebBackForwardList> l = new WebBackForwardList(NULL);
     if (mClearPending)  {
         // If a clear is pending, return a copy with only the current item.
@@ -131,7 +131,7 @@ IWebBackForwardList* WebBackForwardList::Clone()
 void WebBackForwardList::SetCurrentIndex(
     /* [in] */ Int32 newIndex)
 {
-    Elastos::Core::Threading::Mutex::Autolock lock(mLock);
+    Elastos::Core::Threading::Mutex::Autolock lock(mMutexThis);
     mCurrentIndex = newIndex;
     if (mCallbackProxy != NULL) {
         mCallbackProxy -> OnIndexChanged(GetItemAtIndex(newIndex), newIndex);
@@ -143,12 +143,14 @@ void WebBackForwardList::RestoreIndex(
         /* [in] */ Int32 nativeFrame,
         /* [in] */ Int32 index)
 {//=0(virtual)
+    //Elastos::Core::Threading::Mutex::Autolock lock(mMutexClass);
     return ;        
 }
 
 void WebBackForwardList::NativeClose(
         /* [in] */ Int32 nativeFrame)
 {//=0(virtual)
+    //Elastos::Core::Threading::Mutex::Autolock lock(mMutexClass);    
     return ;    
 }
 

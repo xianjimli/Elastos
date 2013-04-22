@@ -22,13 +22,14 @@ const CString CPluginManager::sSIGNATURE_1 = "308204c5308203ada003020102020900d7
 
 const AutoFree < ArrayOf < AutoPtr <ISignature> > > CPluginManager::sSIGNATURES = ArrayOf< AutoPtr <ISignature> >::Alloc(1);
 
+Core::Threading::Mutex CPluginManager::mMutexClass;
 
 ECode CPluginManager::GetInstance(
     /* [in] */ IContext * context,
     /* [out] */ IPluginManager ** instance)
 {
     VALIDATE_NOT_NULL(instance);
-    Mutex::Autolock lock(mMutex);
+    Mutex::Autolock lock(mMutexClass);
     
     if(sInstance == NULL) {
         if(context == NULL) {
@@ -275,12 +276,10 @@ ECode CPluginManager::GetPluginsAPKName(
 ECode CPluginManager::GetPluginSharedDataDirectory(
         /* [out] */ String * pluginSharedDataDirectory)
 {
-    VALIDATE_NOT_NULL(pluginSharedDataDirectory);
-    /*
+    VALIDATE_NOT_NULL(pluginSharedDataDirectory);    
     AutoPtr<IFile> tFile;
-    ((Context *)mContext) -> GetDir("plugins", 0, (IFile**)&tFile);
-    tFile -> GetPath(pluginSharedDataDirectory);
-    */
+    ((Context *)(mContext.Get()))->GetDir(String("plugins"), 0, (IFile**)&tFile);
+    tFile -> GetPath(pluginSharedDataDirectory);    
     return NOERROR;
 }
 
@@ -291,15 +290,15 @@ ECode CPluginManager::GetPluginClass(
         /* [out] */ Handle32 * pluginClass)
 {
     VALIDATE_NOT_NULL(pluginClass);
-    /*
     AutoPtr<IContext> pluginContext;    
+    /*
     mContext -> CreatePackageContext(packageName,
-            IContext::sCONTEXT_INCLUDE_CODE | IContext::sCONTEXT_IGNORE_SECURITY,
+            Context_CONTEXT_INCLUDE_CODE | Context_CONTEXT_IGNORE_SECURITY,
             (IContext**)&pluginContext);
+    */
     AutoPtr<IClassLoader> pluginCL;    //IClassLoader appreared in Elastos.Framework.Core.tmp   But it is not declared in the library of the Framework
     pluginContext -> GetClassLoader( (IClassLoader**)&pluginCL );
     pluginCL -> LoadClass(className,pluginClass);
-    */
     return NOERROR;
 }
 

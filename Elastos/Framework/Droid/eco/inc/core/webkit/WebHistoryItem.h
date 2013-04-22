@@ -30,6 +30,7 @@ public:
      * same object.
      * @return The id for this item.
      */
+    /*public*/
     virtual CARAPI_(Int32) GetId();
 
     /**
@@ -40,6 +41,7 @@ public:
      * Note: The VM ensures 32-bit atomic read/write operations so we don't have
      * to synchronize this method.
      */
+    /*public*/
     virtual CARAPI_(String) GetUrl();
 
     /**
@@ -48,6 +50,7 @@ public:
      * redirects while loading the site.
      * @return The original url of this history item.
      */
+    /*public*/
     virtual CARAPI_(String) GetOriginalUrl();
     
     /**
@@ -56,6 +59,7 @@ public:
      * Note: The VM ensures 32-bit atomic read/write operations so we don't have
      * to synchronize this method.
      */
+    /*public*/
     virtual CARAPI_(String) GetTitle();
 
     /**
@@ -64,18 +68,21 @@ public:
      * Note: The VM ensures 32-bit atomic read/write operations so we don't have
      * to synchronize this method.
      */
+    /*public*/
     virtual CARAPI_(IBitmap*) GetFavicon();
 
     /**
      * Return the touch icon url.
      * @hide
      */
+    /*public*/
     virtual CARAPI_(String) GetTouchIconUrl();
 
     /**
      * Return the custom data provided by the client.
      * @hide
      */
+    /*public*/
     virtual CARAPI_(IInterface*) GetCustomData();
 
     /**
@@ -84,6 +91,7 @@ public:
      *             with the item.
      * @hide
      */
+    /*public*/
     virtual CARAPI_(void) SetCustomData(
         /* [in] */ IInterface* data);
 
@@ -178,8 +186,8 @@ private:
     // Custom client data that is not flattened or read by native code.
     IInterface* mCustomData;
 
-    Elastos::Core::Threading::Mutex mLock;
-    static Elastos::Core::Threading::Mutex sLock;
+    Elastos::Core::Threading::Mutex mMutex;
+    static Elastos::Core::Threading::Mutex mMutexClass;
 
 };
 

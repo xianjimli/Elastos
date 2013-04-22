@@ -76,7 +76,6 @@ ECode CPlugin::DefaultClickHandler::OnClick(
     /* [in] */ Int32 which)
 {
     mDialog -> Dismiss();
-    mDialog -> Release();
     mDialog = NULL;
     return NOERROR;
 }

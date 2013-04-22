@@ -2,12 +2,12 @@
 #include "webkit/CWebHistoryItem.h"
 
 Int32 CWebHistoryItem::sNextId = 0;
-Core::Threading::Mutex CWebHistoryItem::sLock;
+Core::Threading::Mutex CWebHistoryItem::mMutexClass;
 
 ECode CWebHistoryItem::constructor()
 {
     if(TRUE) {//JAVA:   synchronized (WebHistoryItem.class)
-        Mutex::Autolock lock(sLock);
+        Mutex::Autolock lock(mMutexClass);
         mId = sNextId++;
     }
     return NOERROR;
@@ -19,13 +19,12 @@ ECode CWebHistoryItem::constructor(
     mUrl = NULL; // This will be updated natively
     mFlattenedData = data;
     if(TRUE){//JAVA:   synchronized (WebHistoryItem.class)
-        Mutex::Autolock lock(sLock);
+        Mutex::Autolock lock(mMutexClass);
         mId = sNextId++;
     }
     return NOERROR;
 }
 
-//ECode CWebHistoryItem::constructor(IWebHistoryItem* item)
 ECode CWebHistoryItem::constructor(
     /* [in] */ IWebHistoryItem* item)
 {
@@ -135,9 +134,8 @@ ECode CWebHistoryItem::Inflate(
 ECode CWebHistoryItem::Clone(
     /* [out] */ IWebHistoryItem** item)
 {
+    VALIDATE_NOT_NULL(item);
     Mutex::Autolock lock(_m_syncLock);
-
-    VALIDATE_NOT_NULL(item);       
 
     CWebHistoryItem::New(item);    
     String url;

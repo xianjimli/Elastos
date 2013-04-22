@@ -25,11 +25,14 @@ CarClass(CSslErrorHandler)
     * order they were received.
     */
 public:
+    /* public */ 
     CARAPI HandleMessage(
         /* [in] */ IMessage * msg);
 
+    /* public */
     CARAPI Proceed();
 
+    /* public */
     CARAPI Cancel();
 
     /**
@@ -143,7 +146,6 @@ private:
     // Message id for handling the response
     static const Int32 HANDLE_RESPONSE;// = 100;
 
-    Core::Threading::Mutex mMutex;
 };
 
 #endif // __CSSLERRORHANDLER_H__

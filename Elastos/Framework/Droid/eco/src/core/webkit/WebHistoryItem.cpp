@@ -5,7 +5,7 @@ Int32 WebHistoryItem::sNextId = 0;
 WebHistoryItem::WebHistoryItem()
 {
 	if(TRUE) {//JAVA:   synchronized (WebHistoryItem.class)
-        Elastos::Core::Threading::Mutex::Autolock lock(sLock);
+        Elastos::Core::Threading::Mutex::Autolock lock(mMutexClass);
         mId = sNextId++;
     }
 }
@@ -16,7 +16,7 @@ WebHistoryItem::WebHistoryItem(
 	mUrl = NULL; // This will be updated natively
     mFlattenedData = data;
     if(TRUE){//JAVA:   synchronized (WebHistoryItem.class)
-        Elastos::Core::Threading::Mutex::Autolock lock(sLock);
+        Elastos::Core::Threading::Mutex::Autolock lock(mMutexClass);
         mId = sNextId++;
     }
 }
@@ -99,7 +99,7 @@ void WebHistoryItem::Inflate(
 
 WebHistoryItem* WebHistoryItem::Clone()
 {
-    Elastos::Core::Threading::Mutex::Autolock lock(mLock);
+    Elastos::Core::Threading::Mutex::Autolock lock(mMutex);
     return new WebHistoryItem(this);
 }
 

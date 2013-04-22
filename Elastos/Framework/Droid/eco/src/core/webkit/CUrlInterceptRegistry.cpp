@@ -14,7 +14,7 @@ ECode CUrlInterceptRegistry::GetHandlers(
         /* [out] */ List< AutoPtr<IUrlInterceptHandler> > ** linkedList )
 {    
     VALIDATE_NOT_NULL(linkedList);
-    Mutex::Autolock lock(mMutex);
+    Mutex::Autolock lock(_m_syncLock);
     if(sHandlerList == NULL) {
         sHandlerList = new List< AutoPtr<IUrlInterceptHandler> >;
     }
@@ -25,7 +25,7 @@ ECode CUrlInterceptRegistry::GetHandlers(
 ECode CUrlInterceptRegistry::SetUrlInterceptDisabled(
     /* [in] */ Boolean disabled)
 {
-    Mutex::Autolock lock(mMutex);
+    Mutex::Autolock lock(_m_syncLock);
     sDisabled = disabled;
     return NOERROR;
 }
@@ -34,7 +34,7 @@ ECode CUrlInterceptRegistry::UrlInterceptDisabled(
     /* [out] */ Boolean* flag)
 {
     VALIDATE_NOT_NULL(flag);
-    Mutex::Autolock lock(mMutex);
+    Mutex::Autolock lock(_m_syncLock);
     *flag = sDisabled;
     return NOERROR;
 }
@@ -44,7 +44,7 @@ ECode CUrlInterceptRegistry::RegisterHandler(
     /* [out] */ Boolean * flag)
 {
     VALIDATE_NOT_NULL(flag);
-    Mutex::Autolock lock(mMutex);
+    Mutex::Autolock lock(_m_syncLock);
     List< AutoPtr<IUrlInterceptHandler> > * tHandlerList = NULL;
     GetHandlers(&tHandlerList);
 
@@ -76,7 +76,7 @@ ECode CUrlInterceptRegistry::UnregisterHandler(
     /* [out] */ Boolean * flag)
 {
     VALIDATE_NOT_NULL(flag);
-    Mutex::Autolock lock(mMutex);
+    Mutex::Autolock lock(_m_syncLock);
     List< AutoPtr<IUrlInterceptHandler> > * tHandlerList = NULL;
     GetHandlers(&tHandlerList);
     tHandlerList -> Remove(handler);
@@ -90,7 +90,7 @@ ECode CUrlInterceptRegistry::GetSurrogate(
     /* [out] */ ICacheManagerCacheResult ** result)
 {
     VALIDATE_NOT_NULL(result);
-    Mutex::Autolock lock(mMutex);
+    Mutex::Autolock lock(_m_syncLock);
     Boolean bUrlInterceptDisabled;
     UrlInterceptDisabled(&bUrlInterceptDisabled);
     if(bUrlInterceptDisabled) {
@@ -106,16 +106,14 @@ ECode CUrlInterceptRegistry::GetSurrogate(
     List< AutoPtr<IUrlInterceptHandler> >::Iterator iterE;
     iterT = tHandlerList -> Begin();
     iterE = tHandlerList -> End();
-    for(int n = 0; n < nT ; n ++ ) {
-        /*
+    for(int n = 0; n < nT ; n ++ ) { 
         IUrlInterceptHandler * handler = (IUrlInterceptHandler * ) (*iterT).Get();        
-        AutoPtr<CCacheManager::CCacheResult> resultT;
-        handler -> Service(url,headers,((CCacheManager::CCacheResult)**)&resultT);
+        AutoPtr<ICacheManagerCacheResult> resultT;
+        handler -> Service(url, headers, (ICacheManagerCacheResult**)&resultT);
         if(resultT.Get() != NULL) {
             *result = resultT.Get();
             break;
-        }
-        */
+        }        
         iterT ++;
     }
     return NOERROR;
@@ -127,7 +125,7 @@ ECode CUrlInterceptRegistry::GetPluginData(
     /* [out] */ IPluginData ** data)
 {
     VALIDATE_NOT_NULL(data);
-    Mutex::Autolock lock(mMutex);
+    Mutex::Autolock lock(_m_syncLock);
     Boolean bUrlInterceptDisabled;
     UrlInterceptDisabled(&bUrlInterceptDisabled);
     if(bUrlInterceptDisabled) {

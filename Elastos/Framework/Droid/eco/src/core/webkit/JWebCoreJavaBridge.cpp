@@ -8,19 +8,26 @@
 
 const CString JWebCoreJavaBridge::LOGTAG = "webkit-timers";
 AutoPtr<IWebView> JWebCoreJavaBridge::sCurrentMainWebView = NULL;
+Core::Threading::Mutex JWebCoreJavaBridge::mutexClass;
 
 JWebCoreJavaBridge::JWebCoreJavaBridge()
 {
 	NativeConstructor();
 }
 
+//@Override
+CARAPI_(void) JWebCoreJavaBridge::Finalize()
+{
+    NativeFinalize();
+}
+
 /* synchronized */
 CARAPI_(void) JWebCoreJavaBridge::SetActiveWebView(
 	/* [in] */ IWebView* webview)
 {
-	assert(webview != NULL);
-
-	if (sCurrentMainWebView.Get() != NULL) {
+	//assert(webview != NULL);
+    Mutex::Autolock lock(mutexClass);    
+	if (sCurrentMainWebView.Get() != NULL) { 
         // it is possible if there is a sub-WebView. Do nothing.
         return;
     }
@@ -32,13 +39,26 @@ CARAPI_(void) JWebCoreJavaBridge::SetActiveWebView(
 CARAPI_(void) JWebCoreJavaBridge::RemoveActiveWebView(
 	/* [in] */ IWebView* webview)
 {
-	assert(webview != NULL);
-
+	//assert(webview != NULL);
+    Mutex::Autolock lock(mutexClass);
 	if (sCurrentMainWebView.Get() != webview) {
         // it is possible if there is a sub-WebView. Do nothing.
         return;
     }
     sCurrentMainWebView.Clear();
+}
+
+/**
+ * Call native timer callbacks.
+ */
+CARAPI_(void) JWebCoreJavaBridge::FireSharedTimer()
+{
+    PerfChecker* checker = new PerfChecker();
+    // clear the flag so that sharedTimerFired() can set a new timer
+    mHasInstantTimer = FALSE;
+    SharedTimerFired();
+    checker -> ResponseAlert("sharedTimer");
+    delete checker;
 }
 
 /**
@@ -77,6 +97,19 @@ CARAPI_(void) JWebCoreJavaBridge::HandleMessage(
     }
 }
 
+// called from JNI side
+CARAPI_(void) JWebCoreJavaBridge::SignalServiceFuncPtrQueue()
+{
+    /*
+    AutoPtr<IMessage> msg;
+    msg = ObtainMessage(FUNCPTR_MESSAGE);
+    SendMessage(msg);
+    */
+}
+
+CARAPI_(void) JWebCoreJavaBridge::NativeServiceFuncPtrQueue()
+{}
+
 /**
  * Pause all timers.
  */
@@ -112,68 +145,18 @@ CARAPI_(void) JWebCoreJavaBridge::SetCacheSize(
 	/* [in] */ Int32 bytes)
 {}
 
-/*native*/
-CARAPI_(void) JWebCoreJavaBridge::SetNetworkOnLine(
-	/* [in] */ Boolean online)
-{}
-
-/* native */	
-CARAPI_(void) JWebCoreJavaBridge::SetNetworkType(
-	/* [in] */ const String& type, 
-	/* [in] */ const String& subtype)
-{}
-
-/* native */
-CARAPI_(void) JWebCoreJavaBridge::AddPackageNames(
-	/* [in] */ Set<String>* packageNames)
-{}
-
-/* native */
-CARAPI_(void) JWebCoreJavaBridge::AddPackageName(
-	/* [in] */ const String& packageName)
-{}
-
-CARAPI_(void) JWebCoreJavaBridge::RemovePackageName(
-	/* [in] */ const String& packageName)
-{}
-
-//@Override
-CARAPI_(void) JWebCoreJavaBridge::Finalize()
-{
-	NativeFinalize();
-}
-
-/**
- * Call native timer callbacks.
- */
-CARAPI_(void) JWebCoreJavaBridge::FireSharedTimer()
-{
-	PerfChecker checker;// = new PerfChecker();
-    // clear the flag so that sharedTimerFired() can set a new timer
-    mHasInstantTimer = FALSE;
-    SharedTimerFired();
-    checker.ResponseAlert("sharedTimer");
-}
-
-// called from JNI side
-CARAPI_(void) JWebCoreJavaBridge::SignalServiceFuncPtrQueue()
-{}
-
-CARAPI_(void) JWebCoreJavaBridge::NativeServiceFuncPtrQueue()
-{}
-
 /**
  * Store a cookie string associated with a url.
  * @param url The url to be used as a key for the cookie.
  * @param value The cookie string to be stored.
  */
 CARAPI_(void) JWebCoreJavaBridge::SetCookies(
-	/* [in] */ const String& url, 
-	/* [in] */ const String& value)
+    /* [in] */ const String& url, 
+    /* [in] */ const String& value)
 {
-	String buffer;
+    String buffer;
 
-	if (value.Contains("\r") || value.Contains("\n")) {
+    if (value.Contains("\r") || value.Contains("\n")) {
         // for security reason, filter out '\r' and '\n' from the cookie
         Int32 size = value.GetLength();
         //StringBuilder buffer = new StringBuilder(size);
@@ -312,4 +295,29 @@ CARAPI_(void) JWebCoreJavaBridge::SharedTimerFired()
 CARAPI_(void) JWebCoreJavaBridge::NativeUpdatePluginDirectories(
 	/* [in] */ Vector<String>& directories, 
 	/* [in] */ Boolean reload)
+{}
+
+/*native*/
+CARAPI_(void) JWebCoreJavaBridge::SetNetworkOnLine(
+    /* [in] */ Boolean online)
+{}
+
+/* native */    
+CARAPI_(void) JWebCoreJavaBridge::SetNetworkType(
+    /* [in] */ const String& type, 
+    /* [in] */ const String& subtype)
+{}
+
+/* native */
+CARAPI_(void) JWebCoreJavaBridge::AddPackageNames(
+    /* [in] */ Set<String>* packageNames)
+{}
+
+/* native */
+CARAPI_(void) JWebCoreJavaBridge::AddPackageName(
+    /* [in] */ const String& packageName)
+{}
+
+CARAPI_(void) JWebCoreJavaBridge::RemovePackageName(
+    /* [in] */ const String& packageName)
 {}

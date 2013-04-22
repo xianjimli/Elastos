@@ -168,10 +168,11 @@ public:
 
 	struct DrawData 
 	{
-        //DrawData(){};
-        AutoPtr<CRegion> mInvalRegion;
-        AutoPtr<CPoint> mViewPoint;
-        AutoPtr<CPoint> mWidthHeight;
+        DrawData();
+        ~DrawData();
+        AutoPtr<IRegion> mInvalRegion;
+        AutoPtr<IPoint> mViewPoint;
+        AutoPtr<IPoint> mWidthHeight;
         Int32 mMinPrefWidth;
         RestoreState* mRestoreState; // only non-null if it is for the first
                                     // picture set after the first layout

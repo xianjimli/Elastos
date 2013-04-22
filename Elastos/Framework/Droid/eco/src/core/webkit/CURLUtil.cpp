@@ -414,7 +414,7 @@ ECode CURLUtil::GuessFileName(
             // Compare the last segment of the extension against the mime type.
             // If there's a mismatch, discard the entire extension.            
             String typeFromExt(NULL);
-            //Int32 lastDotIndex = filename.LastIndexOf('.');
+            Int32 lastDotIndex = filename.LastIndexOf('.');
             //(CMimeTypeMap::GetSingleton()) -> GetMimeTypeFromExtension(filename.substring(lastDotIndex + 1),&typeFromExt);
             if ((!typeFromExt.IsNullOrEmpty()) && (!typeFromExt.EqualsIgnoreCase(mimeType)) )  {
                 //(CMimeTypeMap::GetSingleton()) -> GetExtensionFromMimeType(mimeType,&extension);
@@ -474,7 +474,8 @@ ECode CURLUtil::ParseContentDisposition(
 {
     VALIDATE_NOT_NULL(retVal);
     /*
-    CMatcher m = CONTENT_DISPOSITION_PATTERN -> Matcher(contentDisposition);
+    AutoPtr<IMatcher> m;
+    CONTENT_DISPOSITION_PATTERN -> Matcher(contentDisposition,(IMatcher**)&m);
     Boolean bMatchFound;
     ECode ec = m -> Find(&bMatchFound);
     if(FAILED(ec)) {
@@ -490,7 +491,7 @@ ECode CURLUtil::ParseContentDisposition(
         return NOERROR;
     }
     retVal = NULL;
-    */
+    */    
     return NOERROR;
 }
 

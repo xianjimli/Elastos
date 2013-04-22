@@ -14,13 +14,16 @@
 CarClass(CPluginManager)
 {
 public:
+    /* static */
     CARAPI GetInstance(
         /* [in] */ IContext * context,
         /* [out] */ IPluginManager ** instance);
 
+    /* public */
     CARAPI RefreshPlugins(
         /* [in] */ Boolean reloadOpenPages);
 
+    /* package */
     CARAPI GetPluginDirectories(
         /* [out] */ ArrayOf<String> * pluginDirectories);
 
@@ -29,6 +32,7 @@ public:
         /* [in] */ String pluginLib,
         /* [out] */ String * pluginsAPKName);
 
+    /* package */
     CARAPI GetPluginSharedDataDirectory(
         /* [out] */ String * pluginSharedDataDirectory);
 
@@ -67,7 +71,7 @@ private:
 
     static const AutoFree < ArrayOf < AutoPtr <ISignature> > > sSIGNATURES;
 
-    Core::Threading::Mutex mMutex;
+    static Core::Threading::Mutex mMutexClass;
     Core::Threading::Mutex mMutexPackageInfoCache;
 };
 

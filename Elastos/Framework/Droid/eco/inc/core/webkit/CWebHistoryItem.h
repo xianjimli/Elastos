@@ -14,27 +14,35 @@ CarClass(CWebHistoryItem)
 public:
     friend class CWebHistoryItem;
 
+    /*public*/
     CARAPI GetId(
         /* [out] */ Int32 * id);
 
+    /*public*/
     CARAPI GetUrl(
         /* [out] */ String * url);
 
+    /*public*/
     CARAPI GetOriginalUrl(
         /* [out] */ String * originalUrl);
 
+    /*public*/
     CARAPI GetTitle(
         /* [out] */ String * title);
 
+    /*public*/
     CARAPI GetFavicon(
         /* [out] */ IBitmap ** favicon);
 
+    /*public*/
     CARAPI GetTouchIconUrl(
         /* [out] */ String * touchIconUrl);
 
+    /*public*/
     CARAPI GetCustomData(
         /* [out] */ IInterface ** customData);
 
+    /*public*/
     CARAPI SetCustomData(
         /* [in] */ IInterface * data);
 
@@ -145,7 +153,7 @@ private:
     // Custom client data that is not flattened or read by native code.
     AutoPtr<IInterface> mCustomData;
 
-    static Core::Threading::Mutex sLock;
+    static Core::Threading::Mutex mMutexClass;
 };
 
 #endif // __CWEBHISTORYITEM_H__

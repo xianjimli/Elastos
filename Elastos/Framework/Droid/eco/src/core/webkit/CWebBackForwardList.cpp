@@ -14,10 +14,9 @@ ECode CWebBackForwardList::constructor(
 
 ECode CWebBackForwardList::GetCurrentItem(
     /* [out] */ IWebHistoryItem ** item)
-{    
-    Mutex::Autolock lock(_m_syncLock);
- 
+{
     VALIDATE_NOT_NULL(item);
+    Mutex::Autolock lock(_m_syncLock);
     GetItemAtIndex(mCurrentIndex,item);
     return NOERROR;
 }
@@ -25,9 +24,8 @@ ECode CWebBackForwardList::GetCurrentItem(
 ECode CWebBackForwardList::GetCurrentIndex(
     /* [out] */ Int32 * index)
 {
-    Mutex::Autolock lock(_m_syncLock);
-
     VALIDATE_NOT_NULL(index);
+    Mutex::Autolock lock(_m_syncLock);
     *index = mCurrentIndex;
     return NOERROR;
 }
@@ -36,9 +34,8 @@ ECode CWebBackForwardList::GetItemAtIndex(
     /* [in] */ Int32 index,
     /* [out] */ IWebHistoryItem ** item)
 {
-    Mutex::Autolock lock(_m_syncLock);
-
     VALIDATE_NOT_NULL(item);
+    Mutex::Autolock lock(_m_syncLock);
     Int32 nSize;
     GetSize(&nSize);
     if (index < 0 || index >= nSize) {
@@ -51,9 +48,8 @@ ECode CWebBackForwardList::GetItemAtIndex(
 ECode CWebBackForwardList::GetSize(
     /* [out] */ Int32 * size)
 {
-    Mutex::Autolock lock(_m_syncLock);
-
     VALIDATE_NOT_NULL(size);
+    Mutex::Autolock lock(_m_syncLock);
     *size = mArray.GetSize();
     return NOERROR;
 }
@@ -77,7 +73,6 @@ ECode CWebBackForwardList::AddHistoryItem(
     /* [in] */ IWebHistoryItem* item)
 {    
     Mutex::Autolock lock(_m_syncLock);
-    
     // Update the current position because we are going to add the new item
     // in that slot.
     ++mCurrentIndex;
@@ -102,7 +97,6 @@ ECode CWebBackForwardList::Close(
     /* [in] */ Int32 nativeFrame)
 {
     Mutex::Autolock lock(_m_syncLock);
-
     // Clear the array first because nativeClose will call addHistoryItem
     // with the current item.
     mArray.Clear();
@@ -117,7 +111,6 @@ ECode CWebBackForwardList::RemoveHistoryItem(
     /* [in] */ Int32 index)
 {
     Mutex::Autolock lock(_m_syncLock);
-
     // XXX: This is a special case. Since the callback is only triggered
     // when removing the first item, we can assert that the index is 0.
     // This lets us change the current index without having to query the
@@ -176,12 +169,14 @@ ECode CWebBackForwardList::RestoreIndex(
     /* [in] */ Int32 nativeFrame,
     /* [in] */ Int32 index)
 {//=0(virtual)
+    //Mutex::Autolock lock(mMutexClass);
     return E_NOT_IMPLEMENTED;    
 }
 
 ECode CWebBackForwardList::NativeClose(
     /* [in] */ Int32 nativeFrame)
 {//=0(virtual)
+    //Mutex::Autolock lock(mMutexClass);
     return E_NOT_IMPLEMENTED;
 }
 

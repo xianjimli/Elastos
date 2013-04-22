@@ -106,21 +106,25 @@ public:
 
         friend class Runnable;
 
+        //package
         ChildView(
             /* [in] */  ViewManager * viewManager);
 
+        //package
         virtual CARAPI_(void) SetBounds(
             /* [in] */ Int32 x, 
             /* [in] */ Int32 y, 
             /* [in] */ Int32 width, 
             /* [in] */ Int32 height);
 
+        //package
         virtual CARAPI_(void) AttachView(
             /* [in] */ Int32 x, 
             /* [in] */ Int32 y, 
             /* [in] */ Int32 width, 
             /* [in] */ Int32 height);
 
+        //package
         virtual CARAPI_(void) RemoveView();
 
     private:
@@ -135,26 +139,35 @@ public:
 
     friend class ChildView::Runnable;
 
+    //package
     ViewManager(
         /* [in] */ IWebView* w);
 
+    //package
     virtual CARAPI_(ChildView*) CreateView();
 
-
+    //package
     virtual CARAPI_(void) StartZoom();
 
+    //package
     virtual CARAPI_(void) EndZoom();
 
+    //package
     virtual CARAPI_(void) ScaleAll();
 
+    //package
     virtual CARAPI_(void) HideAll();
 
+    //package
     virtual CARAPI_(void) ShowAll();
 
+    //package
     virtual CARAPI_(void) PostResetStateAll();
 
+    //package
     virtual CARAPI_(void) PostReadyToDrawAll();
 
+    //package
     virtual CARAPI_(ChildView*) HitTest(
         /* [in] */ Int32 contentX, 
         /* [in] */ Int32 contentY);

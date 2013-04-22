@@ -31,6 +31,7 @@ public:
      *
      * synchronized
      */
+     /*public*/
     virtual CARAPI_(IWebHistoryItem*) GetCurrentItem();
 
     /**
@@ -40,6 +41,7 @@ public:
      *
      * synchronized
      */
+     /*public*/
     virtual CARAPI_(Int32) GetCurrentIndex();
 
     /**
@@ -49,6 +51,7 @@ public:
      *
      * synchronized
      */
+     /*public*/
     virtual CARAPI_(IWebHistoryItem*) GetItemAtIndex(
         /* [in] */ Int32 index);
 
@@ -58,6 +61,7 @@ public:
      *
      * synchronized
      */
+     /*public*/
     virtual CARAPI_(Int32) GetSize();
 
     /**
@@ -112,7 +116,7 @@ public:
     virtual CARAPI_(void) SetCurrentIndex(
         /* [in] */ Int32 newIndex);
 
-        /**
+    /**
      * Restore the history index.
      *
      * synchronized
@@ -153,7 +157,8 @@ private:
     static CARAPI_(void) NativeClose(
         /* [in] */ Int32 nativeFrame);
 
-    Elastos::Core::Threading::Mutex mLock;
+    Elastos::Core::Threading::Mutex mMutexThis;
+    //static Elastos::Core::Threading::Mutex mMutexClass;
 };
 
 #endif //__WEBBACKFORWARDLIST_H__

@@ -87,15 +87,15 @@ Boolean StreamLoader::HandleMessage(
 
 void StreamLoader::SendHeaders()
 {
-    /*
     AutoPtr<IHeaders> headers;
+    /*
     CHeaders::New( (IHeaders**)&headers );
     if( mContentLength > 0 ) {
         headers -> SetContentLength(mContentLength);
     }
+    */
     BuildHeaders( headers.Get() );
     mLoadListener -> Headers( headers.Get() );
-    */
 }
 
 Boolean StreamLoader::SendData()
@@ -105,7 +105,7 @@ Boolean StreamLoader::SendData()
         ECode ec = mDataStream -> ReadBuffer(mData.Get(),&amount);
         if( ec != NOERROR ) {
             //JAVA:mLoadListener.error(EventHandler.FILE_ERROR, ex.getMessage());
-            mLoadListener -> Error(/*IEventHandler::FILE_ERROR*/0, String::FromInt32(ec) );
+            mLoadListener -> Error(/*IEventHandler::FILE_ERROR*/-13, String::FromInt32(ec) );
         }
         if (amount > 0)  {
             mLoadListener -> Data(/*mData.Get()*/(*mData), amount);

@@ -13,6 +13,8 @@
 #include "../../../res/gen/R.h"
 #include "graphics/CPaint.h"
 #include "graphics/ElPixelFormat.h"
+#include "view/inputmethod/CLocalInputMethodManager.h"
+#include "widget/CEditableInputConnection.h"
 
 const CString WebTextView::LOGTAG = "webtextview";
 
@@ -81,6 +83,12 @@ CARAPI_(Int32) WebTextView::OutlineDrawable::GetOpacity()
     /* [in] */ IColorFilter* cf)
 {}
 
+CARAPI_(PInterface) WebTextView::OutlineDrawable::Probe(
+    /* [in] */ REIID riid)
+{
+    return NULL;
+}
+
 /*******************************WebTextView*********************************/
 
 /**
@@ -122,7 +130,7 @@ Boolean WebTextView::DispatchKeyEvent(
         case KeyEvent_KEYCODE_DPAD_UP:
         case KeyEvent_KEYCODE_DPAD_DOWN:
             if (!((CWebView*)mWebView.Get())->NativeCursorMatchesFocus()) {
-                return down ? /*((CWebView*)mWebView.Get())->OnKeyDown(keyCode, event)*/FALSE : /*((CWebView*)mWebView.Get())->OnKeyUp(keyCode, event)*/FALSE;
+                return down ? ((CWebView*)mWebView.Get())->OnKeyDown(keyCode, event) : ((CWebView*)mWebView.Get())->OnKeyUp(keyCode, event);
             }
             isArrowKey = TRUE;
             break;
@@ -135,7 +143,8 @@ Boolean WebTextView::DispatchKeyEvent(
         return TRUE;
     }
     AutoPtr<ISpannable> text = (ISpannable*)( (GetText().Get()) -> Probe(EIID_ISpannable) );
-    Int32 oldLength;// = text.length();
+    Int32 oldLength = 0;
+    text -> GetLength(&oldLength);
     // Normally the delete key's dom events are sent via onTextChanged.
     // However, if the length is zero, the text did not change, so we
     // go ahead and pass the key down immediately.
@@ -152,12 +161,12 @@ Boolean WebTextView::DispatchKeyEvent(
             // Hide the keyboard, since the user has just submitted this
             // form.  The submission happens thanks to the two calls
             // to sendDomEvent.
-            /*
-            AutoPtr<IInputMethodManager> iInputMethodManagerT;
-            CInputMethodManager::GetInstance(mContext,(IInputMethodManager**)&iInputMethodManagerT);
+            
+            AutoPtr<ILocalInputMethodManager> iInputMethodManagerT;            
+            iInputMethodManagerT = CLocalInputMethodManager::GetInstance(mContext);
             Boolean bHideSoftInputFromWindow;
             iInputMethodManagerT -> HideSoftInputFromWindow( (GetWindowToken().Get()), 0,&bHideSoftInputFromWindow);
-            */
+            
             AutoPtr<IKeyEvent> keyEvent;
             CKeyEvent::New(KeyEvent_ACTION_DOWN,keyCode,(IKeyEvent**)&keyEvent);
             SendDomEvent(keyEvent.Get());
@@ -171,7 +180,7 @@ Boolean WebTextView::DispatchKeyEvent(
             return AutoCompleteTextView::DispatchKeyEvent(event);
         }
         if ( !( ((CWebView*)(mWebView.Get())) -> NativeCursorMatchesFocus() ) ) {
-            return down ? /*((CWebView*)mWebView.Get())->OnKeyDown(keyCode, event)*/FALSE : /*((CWebView*)mWebView.Get())->OnKeyUp(keyCode, event)*/FALSE;
+            return down ? ((CWebView*)mWebView.Get())->OnKeyDown(keyCode, event) : ((CWebView*)mWebView.Get())->OnKeyUp(keyCode, event);
         }
         // Center key should be passed to a potential onClick
         if (!down) {
@@ -273,7 +282,7 @@ Boolean WebTextView::DispatchKeyEvent(
         // from WebTextView, we always want WebView to check with native.
         // Reset trackballtime to ensure it.
         ((CWebView*)(mWebView.Get())) -> ResetTrackballTime();
-        return down ? /*( ((CWebView*)(mWebView.Get())) -> OnKeyDown(keyCode, event) )*/FALSE : /*( ((CWebView*)(mWebView.Get())) -> OnKeyUp(keyCode, event) )*/FALSE;
+        return down ? ( ((CWebView*)(mWebView.Get())) -> OnKeyDown(keyCode, event) ) : ( ((CWebView*)(mWebView.Get())) -> OnKeyUp(keyCode, event) );
     }
     return FALSE;
 }
@@ -381,12 +390,12 @@ CARAPI WebTextView::OnEditorAction(
         case EditorInfo_IME_ACTION_GO:
         case EditorInfo_IME_ACTION_SEARCH:{
             // Send an enter and hide the soft keyboard
-            /*
-            AutoPtr<IInputMethodManager> iInputMethodManagerT;
-            CInputMethodManagerT::GetInstance(mContext,(IInputMethodManager**)&iInputMethodManagerT);
+            
+            AutoPtr<ILocalInputMethodManager> iInputMethodManagerT;
+            iInputMethodManagerT = CLocalInputMethodManager::GetInstance(mContext);
             Boolean bHideSoftInputFromWindow;
             iInputMethodManagerT -> HideSoftInputFromWindow(GetWindowToken(), 0,&bHideSoftInputFromWindow);
-            */
+            
             AutoPtr<IKeyEvent> keyEventDown;
             CKeyEvent::New(KeyEvent_ACTION_DOWN,KeyEvent_KEYCODE_ENTER,(IKeyEvent**)&keyEventDown);
             AutoPtr<IKeyEvent> keyEventUp;
@@ -432,17 +441,17 @@ void WebTextView::OnSelectionChanged(
     // This code is copied from TextView.onDraw().  That code does not get
     // executed, however, because the WebTextView does not draw, allowing
     // webkit's drawing to show through.
-    /*
-    AutoPtr<IInputMethodManager> imm;
-    CInputMethodManager::PeekInstance((IInputMethodManager**)&imm);
-    */
+    
+    AutoPtr<ILocalInputMethodManager> imm;
+    imm = CLocalInputMethodManager::PeekInstance();
+    
     Boolean bIsActive = FALSE;
-    //imm -> IsActive( this, &bIsActive);
-    if( (/*imm.Get() == NULL*/FALSE) && bIsActive ){
+    imm -> IsActive( (IView*)this, &bIsActive);
+    if( (imm.Get() == NULL) && bIsActive ){
         AutoPtr<ISpannable> sp = (ISpannable*)( GetText().Get() );
-        Int32 candStart = 0;    //CEditableInputConnection::GetComposingSpanStart(sp.Get());    //widget/EditableInputConnection.java
-        Int32 candEnd = 0;    //CEditableInputConnection::GetComposingSpanEnd(sp.Get());
-        //imm -> UpdateSelection(this, selStart, selEnd, candStart, candEnd);
+        Int32 candStart = CEditableInputConnection::GetComposingSpanStart(sp.Get());    //widget/EditableInputConnection.java
+        Int32 candEnd = CEditableInputConnection::GetComposingSpanEnd(sp.Get());
+        imm -> UpdateSelection((IView*)this, selStart, selEnd, candStart, candEnd);
     }
     if (!mFromWebKit && !mFromFocusChange && !mFromSetInputType && (mWebView.Get() != NULL) ) {
         if (DebugFlags::sWEB_TEXT_VIEW) {
@@ -500,7 +509,7 @@ void WebTextView::OnTextChanged(
     AutoFree< ArrayOf< AutoPtr<IKeyEvent> > > events;
     //events = kmap -> GetEvents(mCharacter);
     
-    Boolean cannotUseKeyEvents = /*(NULL == events.Get())*/FALSE;
+    Boolean cannotUseKeyEvents = (NULL == events.Get());
     Int32 charactersFromKeyEvents = cannotUseKeyEvents ? 0 : 1;
     if (count > 1 || cannotUseKeyEvents) {
         AutoPtr<ICharSequence> iCharSequenceT;
@@ -691,14 +700,14 @@ Boolean WebTextView::PerformLongClick()
 void WebTextView::Remove()
 {
     // hide the soft keyboard when the edit text is out of focus
-    /*
-    AutoPtr<IInputMethodManager> imm;
-    CInputMethodManager::GetInstance( mContext, (IInputMethodManager**)&imm);
-    */
+    
+    AutoPtr<ILocalInputMethodManager> imm;
+    imm = CLocalInputMethodManager::GetInstance( mContext);
+    
     Boolean bHideSoftInputFromWindow;
     AutoPtr<IBinder> binder;
     binder = GetWindowToken();
-    //imm -> HideSoftInputFromWindow(binder, 0, &bHideSoftInputFromWindow);
+    imm -> HideSoftInputFromWindow(binder, 0, &bHideSoftInputFromWindow);
     //( mWebView.Get() ) -> RemoveView(this);
     Boolean bRequestFocus;
     ( mWebView.Get() ) -> RequestFocus(&bRequestFocus);
@@ -711,7 +720,7 @@ void WebTextView::BringIntoView()
     layOutT = GetLayout();
     if ( layOutT.Get() != NULL ) {
         AutoPtr<ICharSequence> charSequenceT = GetText().Get();
-        //BringPointIntoView(CSelection::GetSelectionEnd(charSequenceT.Get()));    //JAVA:    text/Selection.java(public class)
+        BringPointIntoView(/*CSelection::GetSelectionEnd(charSequenceT.Get())*/0);    //JAVA:    text/Selection.java(public class)
     }
 }
 

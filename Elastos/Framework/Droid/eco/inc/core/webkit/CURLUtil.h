@@ -8,72 +8,106 @@
 CarClass(CURLUtil)
 {
 public:
+    /* public *?
+    /* static */
     CARAPI GuessUrl(
         /* [in] */ const String& inUrl,
         /* [out] */ String * outUrl);
 
+    /* public */
+    /* static */
     CARAPI ComposeSearchUrl(
         /* [in] */ const String& inQuery,
         /* [in] */ const String& strTemplate,
         /* [in] */ const String& queryPlaceHolder,
         /* [out] */ String * url);
 
+    /* public */
+    /* static */
     CARAPI Decode(
         /* [in] */ const ArrayOf<Byte> & url,
         /* [out] */ ArrayOf<Byte> * outUrl);
 
+    /* public */
+    /* static */
     CARAPI IsAssetUrl(
         /* [in] */ const String& url,
         /* [out] */ Boolean * flag);
 
+    /* public */
+    /* static */
     CARAPI IsResourceUrl(
         /* [in] */ const String& url,
         /* [out] */ Boolean * flag);
 
+    /* public */
+    /* static */
     CARAPI IsCookielessProxyUrl(
         /* [in] */ const String& url,
         /* [out] */ Boolean * flag);
 
+    /* public */
+    /* static */
     CARAPI IsFileUrl(
         /* [in] */ const String& url,
         /* [out] */ Boolean * flag);
 
+    /* public */
+    /* static */
     CARAPI IsAboutUrl(
         /* [in] */ const String& url,
         /* [out] */ Boolean * flag);
 
+    /* public */
+    /* static */
     CARAPI IsDataUrl(
         /* [in] */ const String& url,
         /* [out] */ Boolean * flag);
 
+    /* public */
+    /* static */
     CARAPI IsJavaScriptUrl(
         /* [in] */ const String& url,
         /* [out] */ Boolean * flag);
 
+    /* public */
+    /* static */
     CARAPI IsHttpUrl(
         /* [in] */ const String& url,
         /* [out] */ Boolean * flag);
 
+    /* public */
+    /* static */
     CARAPI IsHttpsUrl(
         /* [in] */ const String& url,
         /* [out] */ Boolean * flag);
 
+    /* public */
+    /* static */
     CARAPI IsNetworkUrl(
         /* [in] */ const String& url,
         /* [out] */ Boolean * flag);
 
+    /* public */
+    /* static */
     CARAPI IsContentUrl(
         /* [in] */ const String& url,
         /* [out] */ Boolean * flag);
 
+    /* public */
+    /* static */
     CARAPI IsValidUrl(
         /* [in] */ const String& url,
         /* [out] */ Boolean * flag);
 
+    /* public */
+    /* static */
     CARAPI StripAnchor(
         /* [in] */ const String& url,
         /* [out] */ String * outUrl);
 
+    /* public */
+    /* static */
     CARAPI GuessFileName(
         /* [in] */ const String& url,
         /* [in] */ const String& contentDisposition,
@@ -83,6 +117,7 @@ public:
     /**
     * @return True iff the url is correctly URL encoded
     */
+    /* package(hide) */
     static CARAPI VerifyURLEncoding(
         /* [in] */ String url,
         /* [out] */ Boolean * retVal);
@@ -96,6 +131,7 @@ public:
     * Unfortunately some servers do not quote the value so to maintain
     * consistent behaviour with other browsers, we allow unquoted values too.
     */
+    /* package(hide) */
     static CARAPI ParseContentDisposition(
         /* [in] */ String contentDisposition,
         /* [out] */ String * retVal);

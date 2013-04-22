@@ -45,29 +45,35 @@ public:
         /* [out] */ InterfaceID* iID);
 
 public:
+    //public
     virtual CARAPI Run();
 
     /**
      * sync() forces sync manager to sync now
      */
+    //public
     virtual CARAPI_(void) Sync();
 
     /**
      * resetSync() resets sync manager's timer
      */
+    //public
     virtual CARAPI_(void) ResetSync();
 
     /**
      * startSync() requests sync manager to start sync
      */
+    //public
     virtual CARAPI_(void) StartSync();
 
     /**
      * stopSync() requests sync manager to stop sync. remove any SYNC_MESSAGE in
      * the queue to break the sync loop
      */
+    //public
     virtual CARAPI_(void) StopSync();
 
+    //package
     virtual CARAPI_(void) SyncFromRamToFlash() = 0;
 
 protected:
