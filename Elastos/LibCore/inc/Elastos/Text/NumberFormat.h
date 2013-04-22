@@ -36,8 +36,8 @@ public:
         CARAPI Init(
             /* [in] */ const String& fn);
 
-        virtual CARAPI_(PInterface) Probe(
-            /* [in] */ REIID riid) = 0;
+        CARAPI_(PInterface) Probe(
+            /* [in] */ REIID riid);
 
         /**
          * Resolves instances that are deserialized to the constant
@@ -55,70 +55,58 @@ public:
         /**
          * This constant stands for the number sign.
          */
-        //public static final Field SIGN = new Field("sign");
         const static AutoPtr<INumberFormatField> SIGN;
 
         /**
          * This constant stands for the integer part of the number.
          */
-        //public static final Field INTEGER = new Field("integer");
         const static AutoPtr<INumberFormatField> INTEGER;
 
         /**
          * This constant stands for the fraction part of the number.
          */
-        //public static final Field FRACTION = new Field("fraction");
         const static AutoPtr<INumberFormatField> FRACTION;
 
         /**
          * This constant stands for the exponent part of the number.
          */
-        //public static final Field EXPONENT = new Field("exponent");
         const static AutoPtr<INumberFormatField> EXPONENT;
 
         /**
          * This constant stands for the exponent sign symbol.
          */
-        //public static final Field EXPONENT_SIGN = new Field("exponent sign");
         const static AutoPtr<INumberFormatField> EXPONENT_SIGN;
 
         /**
          * This constant stands for the exponent symbol.
          */
-        //public static final Field EXPONENT_SYMBOL = new Field("exponent symbol");
         const static AutoPtr<INumberFormatField> EXPONENT_SYMBOL;
 
         /**
          * This constant stands for the decimal separator.
          */
-        //public static final Field DECIMAL_SEPARATOR = new Field("decimal separator");
         const static AutoPtr<INumberFormatField> DECIMAL_SEPARATOR;
 
         /**
          * This constant stands for the grouping separator.
          */
-        //public static final Field GROUPING_SEPARATOR = new Field("grouping separator");
         const static AutoPtr<INumberFormatField> GROUPING_SEPARATOR;
 
         /**
          * This constant stands for the percent symbol.
          */
-        //public static final Field PERCENT = new Field("percent");
         const static AutoPtr<INumberFormatField> PERCENT;
 
         /**
          * This constant stands for the permille symbol.
          */
-        //public static final Field PERMILLE = new Field("per mille");
         const static AutoPtr<INumberFormatField> PERMILLE;
 
         /**
          * This constant stands for the currency symbol.
          */
-        //public static final Field CURRENCY = new Field("currency");
         const static AutoPtr<INumberFormatField> CURRENCY;
 
-    private:
     };
 
 public:

@@ -7,9 +7,9 @@
 
 static AutoPtr<IAttributedCharacterIteratorAttribute> sInit(const String& name)
 {
-    AutoPtr<IAttributedCharacterIteratorAttribute> attribute;
-    CAttributedCharacterIteratorAttribute::New(name, (IAttributedCharacterIteratorAttribute**)&attribute);
-    return attribute;
+    AutoPtr<CAttributedCharacterIteratorAttribute> attribute;
+    CAttributedCharacterIteratorAttribute::NewByFriend(name, (CAttributedCharacterIteratorAttribute**)&attribute);
+    return attribute.Get();
 }
 
 const AutoPtr<IAttributedCharacterIteratorAttribute> AttributedCharacterIteratorAttribute::INPUT_METHOD_SEGMENT =
@@ -25,6 +25,12 @@ ECode AttributedCharacterIteratorAttribute::Init(
 {
     mName = name;
     return NOERROR;
+}
+
+ECode AttributedCharacterIteratorAttribute::GetClassID(
+    /* [out] */ ClassID* clsid)
+{
+    return E_NOT_IMPLEMENTED;
 }
 
 ECode AttributedCharacterIteratorAttribute::GetName(

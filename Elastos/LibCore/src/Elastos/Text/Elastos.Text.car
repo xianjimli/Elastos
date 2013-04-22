@@ -317,4 +317,22 @@ module
 
         interface IAttributedString;
     }
+
+    singleton class CCollatorHelper {
+        interface ICollatorHelper;
+    }
+
+    class CMessageFormatField {
+        constructor(
+            [in] String name);
+
+        interface IMessageFormatField;
+    }
+
+    class CNumberFormatField {
+        constructor(
+            [in] String fieldName);
+
+        interface INumberFormatField;
+    }
 }

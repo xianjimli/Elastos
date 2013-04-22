@@ -3,6 +3,7 @@
 #include "Format.h"
 #include "CFieldPosition.h"
 #include "CParsePosition.h"
+#include "CAttributedString.h"
 
 
 Format::Format()
@@ -21,8 +22,11 @@ ECode Format::FormatToCharacterIterator(
     /* [in] */ IInterface* object,
     /* [out] */ IAttributedCharacterIterator** characterIterator)
 {
-    assert(0);
-    //return new AttributedString(format(object)).getIterator();
+    String value;
+    FormatObject(object, &value);
+    AutoPtr<IAttributedString> as;
+    CAttributedString::New(value, (IAttributedString**)&as);
+    as->GetIterator(characterIterator);
     return NOERROR;
 }
 

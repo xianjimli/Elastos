@@ -18,8 +18,10 @@ static ArrayOf<ArrayOf<String> * > * sInitNames()
 
 static ArrayOf<String> * sInitTimeZones()
 {
-    AutoFree<ArrayOf<String> > array;
-    //TimeZone::GetAvailableIDs(&array);
+    ArrayOf<String>* array;
+    AutoPtr<ITimeZoneHelper> itzh;
+    CTimeZoneHelper::AcquireSingleton((ITimeZoneHelper**)&itzh);
+    itzh->GetAvailableIDs(&array);
     return array;
 }
 

@@ -22,9 +22,8 @@ ECode DecimalFormat::Init()
     AutoPtr<ILocale> locale;
     FAIL_RETURN(localeHelper->GetDefault((ILocale**)&locale));
     CDecimalFormatSymbols::New(locale, (IDecimalFormatSymbols**)&mSymbols);
-    assert(0);
 //    InitNative((LocaleData::Get(pLocale))->mNumberPattern);
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode DecimalFormat::Init(

@@ -2,7 +2,7 @@
 #include "CDateFormatSymbols.h"
 #include "NumberFormat.h"
 #include "CAttributedString.h"
-
+#include "stdio.h"
 
 const String SimpleDateFormat::PATTERN_CHARS = String("GyMdkHmsSEDFwWahKzZLc");
 

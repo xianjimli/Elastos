@@ -40,7 +40,7 @@ public:
          * @param fieldName
          *            the field name.
          */
-        MessageFormatField(
+        CARAPI Init(
             /* [in] */ String fieldName);
         //{
         //    super(fieldName);

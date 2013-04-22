@@ -111,8 +111,8 @@ public:
      * are available.
      * <p>Note that Android does not support user-supplied locale service providers.
      */
-    static CARAPI GetAvailableLocales(
-        /* [out, callee] */ ArrayOf<ILocale*>** locales);
+    //static CARAPI GetAvailableLocales(
+    //    /* [out, callee] */ ArrayOf<ILocale*>** locales);
 
     /**
      * Returns a {@link CollationKey} for the specified string for this collator
@@ -141,15 +141,15 @@ public:
      * {@code Locale}.
      * See "<a href="../util/Locale.html#default_locale">Be wary of the default locale</a>".
      */
-    static CARAPI GetInstance(
-        /* [out] */ ICollator** instance);
+    //static CARAPI GetInstance(
+    //    /* [out] */ ICollator** instance);
 
     /**
      * Returns a {@code Collator} instance which is appropriate for {@code locale}.
      */
-    static CARAPI GetInstance(
-        /* [in] */ ILocale* locale,
-        /* [out] */ ICollator** instance);
+    //static CARAPI GetInstance(
+    //    /* [in] */ ILocale* locale,
+    //    /* [out] */ ICollator** instance);
 
     /**
      * Returns the strength value for this collator.

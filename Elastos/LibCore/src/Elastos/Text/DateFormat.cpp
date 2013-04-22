@@ -2,26 +2,52 @@
 #include "cmdef.h"
 #include "DateFormat.h"
 #include <Elastos.IO.h>
+#include "CDateFormatField.h"
 
 
-const AutoPtr<IDateFormatField> DateFormat::Field::ERA;
-const AutoPtr<IDateFormatField> DateFormat::Field::YEAR;
-const AutoPtr<IDateFormatField> DateFormat::Field::MONTH;
-const AutoPtr<IDateFormatField> DateFormat::Field::HOUR_OF_DAY0;
-const AutoPtr<IDateFormatField> DateFormat::Field::HOUR_OF_DAY1;
-const AutoPtr<IDateFormatField> DateFormat::Field::MINUTE;
-const AutoPtr<IDateFormatField> DateFormat::Field::SECOND;
-const AutoPtr<IDateFormatField> DateFormat::Field::MILLISECOND;
-const AutoPtr<IDateFormatField> DateFormat::Field::DAY_OF_WEEK;
-const AutoPtr<IDateFormatField> DateFormat::Field::DAY_OF_MONTH;
-const AutoPtr<IDateFormatField> DateFormat::Field::DAY_OF_YEAR;
-const AutoPtr<IDateFormatField> DateFormat::Field::DAY_OF_WEEK_IN_MONTH;
-const AutoPtr<IDateFormatField> DateFormat::Field::WEEK_OF_YEAR;
-const AutoPtr<IDateFormatField> DateFormat::Field::WEEK_OF_MONTH;
-const AutoPtr<IDateFormatField> DateFormat::Field::AM_PM;
-const AutoPtr<IDateFormatField> DateFormat::Field::HOUR0;
-const AutoPtr<IDateFormatField> DateFormat::Field::HOUR1;
-const AutoPtr<IDateFormatField> DateFormat::Field::TIME_ZONE;
+static AutoPtr<IDateFormatField> sInit(const String& name, Int32 value)
+{
+    AutoPtr<CDateFormatField> field;
+    CDateFormatField::NewByFriend(name, value, (CDateFormatField**)&field);
+    return field.Get();
+}
+
+const AutoPtr<IDateFormatField> DateFormat::Field::ERA
+    = sInit(String("era"), Calendar_ERA);
+const AutoPtr<IDateFormatField> DateFormat::Field::YEAR
+    = sInit(String("year"), Calendar_YEAR);
+const AutoPtr<IDateFormatField> DateFormat::Field::MONTH
+    = sInit(String("month"), Calendar_MONTH);
+const AutoPtr<IDateFormatField> DateFormat::Field::HOUR_OF_DAY0
+    = sInit(String("hour of day"), Calendar_HOUR_OF_DAY);
+const AutoPtr<IDateFormatField> DateFormat::Field::HOUR_OF_DAY1
+    = sInit(String("hour of day 1"), -1);
+const AutoPtr<IDateFormatField> DateFormat::Field::MINUTE
+    = sInit(String("minute"), Calendar_MINUTE);
+const AutoPtr<IDateFormatField> DateFormat::Field::SECOND
+    = sInit(String("second"), Calendar_SECOND);
+const AutoPtr<IDateFormatField> DateFormat::Field::MILLISECOND
+    = sInit(String("millisecond"), Calendar_MILLISECOND);
+const AutoPtr<IDateFormatField> DateFormat::Field::DAY_OF_WEEK
+    = sInit(String("day of week"), Calendar_DAY_OF_WEEK);
+const AutoPtr<IDateFormatField> DateFormat::Field::DAY_OF_MONTH
+    = sInit(String("day of month"), Calendar_DAY_OF_MONTH);
+const AutoPtr<IDateFormatField> DateFormat::Field::DAY_OF_YEAR
+    = sInit(String("day of year"), Calendar_DAY_OF_YEAR);
+const AutoPtr<IDateFormatField> DateFormat::Field::DAY_OF_WEEK_IN_MONTH
+    = sInit(String("day of week in month"), Calendar_DAY_OF_WEEK_IN_MONTH);
+const AutoPtr<IDateFormatField> DateFormat::Field::WEEK_OF_YEAR
+    = sInit(String("week of year"), Calendar_WEEK_OF_YEAR);
+const AutoPtr<IDateFormatField> DateFormat::Field::WEEK_OF_MONTH
+    = sInit(String("week of month"), Calendar_WEEK_OF_MONTH);
+const AutoPtr<IDateFormatField> DateFormat::Field::AM_PM
+    = sInit(String("am pm"), Calendar_AM_PM);
+const AutoPtr<IDateFormatField> DateFormat::Field::HOUR0
+    = sInit(String("hour"), Calendar_HOUR);
+const AutoPtr<IDateFormatField> DateFormat::Field::HOUR1
+    = sInit(String("hour 1"), -1);
+const AutoPtr<IDateFormatField> DateFormat::Field::TIME_ZONE
+    = sInit(String("time zone"), -1);
 
 HashMap<Int32, AutoPtr<IDateFormatField> > DateFormat::Field::sTable(11);
 

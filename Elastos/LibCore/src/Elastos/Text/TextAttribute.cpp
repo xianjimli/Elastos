@@ -3,9 +3,9 @@
 
 static AutoPtr<ITextAttribute> sInit(
     /* [in] */ const String& name) {
-    AutoPtr<ITextAttribute> attribute;
-    CTextAttribute::New(name, (ITextAttribute**)&attribute);
-    return attribute;
+    AutoPtr<CTextAttribute> attribute;
+    CTextAttribute::NewByFriend(name, (CTextAttribute**)&attribute);
+    return attribute.Get();
 }
 
 const AutoPtr<ITextAttribute> TextAttribute::BACKGROUND = sInit(String("background") );

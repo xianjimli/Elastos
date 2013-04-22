@@ -41,6 +41,7 @@ SOURCES += CSimpleDateFormat.cpp
 
 SOURCES += CollationKey.cpp
 SOURCES += Collator.cpp
+SOURCES += CCollatorHelper.cpp
 SOURCES += Annotation.cpp
 SOURCES += CAnnotation.cpp
 SOURCES += StringCharacterIterator.cpp
@@ -74,6 +75,8 @@ SOURCES += CBidi.cpp
 SOURCES += AttributedString.cpp
 SOURCES += CAttributedString.cpp
 SOURCES += CDateFormatField.cpp
+SOURCES += CMessageFormatField.cpp
+SOURCES += CNumberFormatField.cpp
 
 LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.lib
 LIBRARIES += $(XDK_USER_LIB)/Elastos.Utility.lib

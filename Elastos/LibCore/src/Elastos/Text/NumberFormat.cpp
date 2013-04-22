@@ -2,24 +2,38 @@
 #include "cmdef.h"
 #include "NumberFormat.h"
 #include <Elastos.IO.h>
+#include "CNumberFormatField.h"
 
 
-const AutoPtr<INumberFormatField> NumberFormat::Field::SIGN;
-const AutoPtr<INumberFormatField> NumberFormat::Field::INTEGER;
-const AutoPtr<INumberFormatField> NumberFormat::Field::FRACTION;
-const AutoPtr<INumberFormatField> NumberFormat::Field::EXPONENT;
-const AutoPtr<INumberFormatField> NumberFormat::Field::EXPONENT_SIGN;
-const AutoPtr<INumberFormatField> NumberFormat::Field::EXPONENT_SYMBOL;
-const AutoPtr<INumberFormatField> NumberFormat::Field::DECIMAL_SEPARATOR;
-const AutoPtr<INumberFormatField> NumberFormat::Field::GROUPING_SEPARATOR;
-const AutoPtr<INumberFormatField> NumberFormat::Field::PERCENT;
-const AutoPtr<INumberFormatField> NumberFormat::Field::PERMILLE;
-const AutoPtr<INumberFormatField> NumberFormat::Field::CURRENCY;
+static AutoPtr<INumberFormatField> sInit(const String& name)
+{
+    AutoPtr<CNumberFormatField> field;
+    CNumberFormatField::NewByFriend(name, (CNumberFormatField**)&field);
+    return field.Get();
+}
+
+const AutoPtr<INumberFormatField> NumberFormat::Field::SIGN = sInit(String("sign"));
+const AutoPtr<INumberFormatField> NumberFormat::Field::INTEGER = sInit(String("integer"));
+const AutoPtr<INumberFormatField> NumberFormat::Field::FRACTION = sInit(String("fraction"));
+const AutoPtr<INumberFormatField> NumberFormat::Field::EXPONENT = sInit(String("exponent"));
+const AutoPtr<INumberFormatField> NumberFormat::Field::EXPONENT_SIGN = sInit(String("exponent sign"));
+const AutoPtr<INumberFormatField> NumberFormat::Field::EXPONENT_SYMBOL = sInit(String("exponent symbol"));
+const AutoPtr<INumberFormatField> NumberFormat::Field::DECIMAL_SEPARATOR = sInit(String("decimal separator"));
+const AutoPtr<INumberFormatField> NumberFormat::Field::GROUPING_SEPARATOR = sInit(String("grouping separator"));
+const AutoPtr<INumberFormatField> NumberFormat::Field::PERCENT = sInit(String("percent"));
+const AutoPtr<INumberFormatField> NumberFormat::Field::PERMILLE = sInit(String("per mille"));
+const AutoPtr<INumberFormatField> NumberFormat::Field::CURRENCY = sInit(String("currency"));
 
 ECode NumberFormat::Field::Init(
    /* [in] */ const String& fn)
 {
    return Format::Field::Init(fn);
+}
+
+PInterface NumberFormat::Field::Probe(
+    /* [in] */ REIID riid)
+{
+    return NULL;
 }
 
 ECode NumberFormat::Field::ReadResolve(

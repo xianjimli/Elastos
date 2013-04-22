@@ -22,33 +22,6 @@ public:
     DecimalFormat();
 
     /**
-     * Constructs a new {@code DecimalFormat} using the specified non-localized
-     * pattern and the {@code DecimalFormatSymbols} for the user's default Locale.
-     * See "<a href="../util/Locale.html#default_locale">Be wary of the default locale</a>".
-     * @param pattern
-     *            the non-localized pattern.
-     * @throws IllegalArgumentException
-     *            if the pattern cannot be parsed.
-     */
-    DecimalFormat(
-        /* [in] */ const String& pattern);
-
-    /**
-     * Constructs a new {@code DecimalFormat} using the specified non-localized
-     * pattern and {@code DecimalFormatSymbols}.
-     *
-     * @param pattern
-     *            the non-localized pattern.
-     * @param value
-     *            the DecimalFormatSymbols.
-     * @throws IllegalArgumentException
-     *            if the pattern cannot be parsed.
-     */
-    DecimalFormat(
-        /* [in] */ const String& pattern,
-        /* [in] */ IDecimalFormatSymbols* value);
-
-    /**
      * Changes the pattern of this decimal format to the specified pattern which
      * uses localized pattern characters.
      *
