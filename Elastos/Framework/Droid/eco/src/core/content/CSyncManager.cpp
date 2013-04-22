@@ -5,11 +5,10 @@ Int64 CSyncManager::MAX_TIME_PER_SYNC;
 ArrayOf<IAccount*>* CSyncManager::INITIAL_ACCOUNTS_ARRAY;
 Boolean CSyncManager::mIsStaticMemberInitialized = FALSE;
 
-const String CSyncManager::TAG("SyncManager");
+const CString CSyncManager::TAG("SyncManager");
 const String CSyncManager::SYNC_WAKE_LOCK("*sync*");
 const String CSyncManager::HANDLE_SYNC_ALARM_WAKE_LOCK("SyncManagerHandleSyncAlarm");
 const String CSyncManager::ACTION_SYNC_ALARM("android.content.syncmanager.SYNC_ALARM");
-
 
 CSyncManager::CSyncManager()
 {
@@ -148,18 +147,12 @@ void CSyncManager::InitStaticMembers()
 
     if (maxTimePerSyncString != NULL && !maxTimePerSyncString.IsEmpty())
     {
-//        try
-//        {
-            Int64 tempTimePerSync = maxTimePerSyncString.ToInt64();
-            if (tempTimePerSync > 0)
-            {
-                maxTimePerSync = tempTimePerSync;
-            }
-//        }
-//        catch (NumberFormatException nfe)
-//        {
-//            // ignore, use default
-//        }
+        Int64 tempTimePerSync = maxTimePerSyncString.ToInt64();
+
+        if (tempTimePerSync > 0)
+        {
+            maxTimePerSync = tempTimePerSync;
+        }
     }
 
     MAX_TIME_PER_SYNC = maxTimePerSync;
@@ -167,5 +160,174 @@ void CSyncManager::InitStaticMembers()
     INITIAL_ACCOUNTS_ARRAY = ArrayOf<IAccount*>::Alloc(0);
 
     mIsStaticMemberInitialized = TRUE;
+}
+
+/**************************************************************************************
+ * implement class CSyncManager::InitializerServiceConnection below
+ **************************************************************************************/
+CSyncManager::InitializerServiceConnection::InitializerServiceConnection(
+/* [in] */ IAccount* account,
+/* [in] */ String authority,
+/* [in] */ IContext* context,
+/* [in] */ IHandler* handler):
+    mAccount(account),
+    mAuthority(authority),
+    mHandler(handler),
+    mContext(context),
+    mInitialized(FALSE)
+{
+}
+
+CSyncManager::InitializerServiceConnection::~InitializerServiceConnection()
+{
+}
+
+PInterface CSyncManager::InitializerServiceConnection::Probe(
+/* [in] */ REIID riid)
+{
+    if (riid == EIID_IInterface) {
+        return (IInterface*) (IServiceConnection*) this;
+    }
+    else if (riid == EIID_IServiceConnection) {
+        return (IServiceConnection*) this;
+    }
+
+    return NULL;
+}
+
+UInt32 CSyncManager::InitializerServiceConnection::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 CSyncManager::InitializerServiceConnection::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode CSyncManager::InitializerServiceConnection::GetInterfaceID(
+/* [in] */ IInterface *pObject,
+/* [out] */ InterfaceID *pIID)
+{
+    if (pIID == NULL) {
+        return E_INVALID_ARGUMENT;
+    }
+
+    if (pObject == (IInterface*)(IServiceConnection*)this) {
+        *pIID = EIID_IServiceConnection;
+    }
+    else {
+        return E_INVALID_ARGUMENT;
+    }
+
+    return NOERROR;
+}
+
+ECode CSyncManager::InitializerServiceConnection::OnServiceConnected(
+/* [in] */ IComponentName* name,
+/* [in] */ IBinder* service)
+{
+//    try {
+        if (!mInitialized) {
+            mInitialized = TRUE;
+            if (Logger::IsLoggable(CSyncManager::TAG, Logger::VERBOSE)) {
+                Logger::V(CSyncManager::TAG, String("calling initialize: ")/*+ mAccount->ToString()*/ + String(", authority ") + mAuthority);
+            }
+//            ISyncAdapter.Stub.asInterface(service).initialize(mAccount, mAuthority);
+        }
+//    }
+//    catch (RemoteException e) {
+//        // doesn't matter, we will retry again later
+//        Log.d(TAG, "error while initializing: " + mAccount + ", authority " + mAuthority, e);
+//    }
+//    finally {
+//        // give the sync adapter time to initialize before unbinding from it
+//        // TODO: change this API to not rely on this timing, http://b/2500805
+//        mHandler.postDelayed(new Runnable() {
+//                public void run() {
+//                        if (mContext != null) {
+//                            mContext.unbindService(InitializerServiceConnection.this);
+//                            mContext = null;
+//                        }
+//                    }
+//                }, INITIALIZATION_UNBIND_DELAY_MS);
+//    }
+
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CSyncManager::InitializerServiceConnection::OnServiceDisconnected(
+/* [in] */ IComponentName* name)
+{
+    if (mContext != NULL) {
+        mContext->UnbindService((IServiceConnection*) this);
+        mContext = NULL;
+    }
+
+    return NOERROR;
+}
+
+/**************************************************************************************
+ * implement class CSyncManager::SyncAlarmIntentReceiver below
+ **************************************************************************************/
+CSyncManager::SyncAlarmIntentReceiver::SyncAlarmIntentReceiver(
+/* [in] */ CSyncManager* manager):
+    mSyncmanager(manager)
+{
+}
+
+CSyncManager::SyncAlarmIntentReceiver::~SyncAlarmIntentReceiver()
+{
+}
+
+PInterface CSyncManager::SyncAlarmIntentReceiver::Probe(
+/* [in] */ REIID riid)
+{
+    if (riid == EIID_IInterface) {
+        return (IInterface*) (IBroadcastReceiver*) this;
+    }
+    else if (riid == EIID_IBroadcastReceiver) {
+        return (IBroadcastReceiver*) this;
+    }
+
+    return NULL;
+}
+
+UInt32 CSyncManager::SyncAlarmIntentReceiver::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 CSyncManager::SyncAlarmIntentReceiver::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode CSyncManager::SyncAlarmIntentReceiver::GetInterfaceID(
+/* [in] */ IInterface *pObject,
+/* [out] */ InterfaceID *pIID)
+{
+    if (pIID == NULL) {
+        return E_INVALID_ARGUMENT;
+    }
+
+    if (pObject == (IInterface*)(IBroadcastReceiver*)this) {
+        *pIID = EIID_IBroadcastReceiver;
+    }
+    else {
+        return E_INVALID_ARGUMENT;
+    }
+
+    return NOERROR;
+}
+
+ECode CSyncManager::SyncAlarmIntentReceiver::OnReceive(
+/* [in] */ IContext* context,
+/* [in] */ IIntent* intent)
+{
+//    mHandleAlarmWakeLock->Acquire();
+//    mSyncmanager->SendSyncAlarmMessage();
+
+    return E_NOT_IMPLEMENTED;
 }
 
