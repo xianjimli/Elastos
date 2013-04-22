@@ -6,6 +6,7 @@
 #include <ext/frameworkdef.h>
 #include <Logger.h>
 #include <elastos/AutoPtr.h>
+#include <elastos/ElRefBase.h>
 
 #include "os/SystemProperties.h"
 
@@ -73,7 +74,7 @@ private:
      */
     static Int64 MAX_TIME_PER_SYNC;
 
-    static const String TAG;
+    static const CString TAG;
 
     static const Int64 SYNC_NOTIFICATION_DELAY = 30 * 1000; // 30 seconds
 
@@ -148,6 +149,76 @@ private:
 
 private:
     static Boolean mIsStaticMemberInitialized;
+
+private:
+    class InitializerServiceConnection : public ElRefBase, public IServiceConnection
+    {
+    public:
+        InitializerServiceConnection(
+            /* [in] */ IAccount* account,
+            /* [in] */ String authority,
+            /* [in] */ IContext* context,
+            /* [in] */ IHandler* handler);
+
+        ~InitializerServiceConnection();
+
+    public:
+        CARAPI_(PInterface) Probe(
+            /* [in] */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
+
+        CARAPI OnServiceConnected(
+            /* [in] */ IComponentName* name,
+            /* [in] */ IBinder* service);
+
+        CARAPI OnServiceDisconnected(
+            /* [in] */ IComponentName* name);
+
+    private:
+        const AutoPtr<IAccount> mAccount;
+        const String mAuthority;
+        const AutoPtr<IHandler> mHandler;
+        /*volatile*/ AutoPtr<IContext> mContext;
+        volatile Boolean mInitialized;
+    };
+
+
+public:
+    class SyncAlarmIntentReceiver : public ElRefBase, public IBroadcastReceiver
+    {
+    public:
+        // Need a parent class reference, so we add a constructor
+        SyncAlarmIntentReceiver(CSyncManager* manager);
+        ~SyncAlarmIntentReceiver();
+
+    public:
+        CARAPI_(PInterface) Probe(
+            /* [in] */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
+        CARAPI OnReceive(
+            /* [in] */ IContext* context,
+            /* [in] */ IIntent* intent);
+
+    private:
+        AutoPtr<CSyncManager> mSyncmanager;
+    };
+
 };
 
 #endif // __CSYNCMANAGER_H__
