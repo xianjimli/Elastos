@@ -28,6 +28,7 @@ module
     merge("app/LocalActivityManager.car");
     merge("app/ListActivity.car");
     merge("app/LauncherActivity.car");
+    merge("app/NativeActivity.car");
 
     class CContentProviderHolder {
         interface IContentProviderHolder;

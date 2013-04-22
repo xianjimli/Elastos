@@ -1,0 +1,53 @@
+module
+{
+    const NativeActivity_META_DATA_LIB_NAME = "android.app.lib_name";
+
+    const NativeActivity_META_DATA_FUNC_NAME = "android.app.func_name";
+
+    const NativeActivity_KEY_NATIVE_SAVED_STATE = "android:native_state";
+
+    interface ISurfaceHolderCallback2;
+    interface IInputQueueCallback;
+    interface IOnGlobalLayoutListener;
+    interface IConfiguration;
+    interface IKeyEvent;
+    interface ISurfaceHolder;
+    interface IInputQueue;
+
+    interface INativeActivity {
+        OnConfigurationChanged(
+            [in] IConfiguration* newConfig);
+
+        OnLowMemory();
+
+        OnWindowFocusChanged(
+            [in] Boolean hasFocus);
+
+        DispatchKeyEvent(
+            [in] IKeyEvent* event,
+            [out] Boolean* result);
+
+        SurfaceCreated(
+            [in] ISurfaceHolder* holder);
+
+        SurfaceChanged(
+            [in] ISurfaceHolder* holder,
+            [in] Int32 format,
+            [in] Int32 width,
+            [in] Int32 height);
+
+        SurfaceRedrawNeeded(
+            [in] ISurfaceHolder* holder);
+
+        SurfaceDestroyed(
+            [in] ISurfaceHolder* holder);
+
+        OnInputQueueCreated(
+            [in] IInputQueue* queue);
+
+        OnInputQueueDestroyed(
+            [in] IInputQueue* queue);
+
+        OnGlobalLayout();
+    }
+}

@@ -59,6 +59,7 @@ SOURCES += ListActivity.cpp
 SOURCES += CLauncherActivity.cpp
 SOURCES += CLauncherActivityListItem.cpp
 SOURCES += CLauncherActivityIconResizer.cpp
+SOURCES += NativeActivity.cpp
 
 LIBRARIES += backup/backup.lib
 
