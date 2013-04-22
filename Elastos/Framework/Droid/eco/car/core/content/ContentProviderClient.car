@@ -1,0 +1,92 @@
+
+module
+{
+    interface ICursor;
+    interface IContentValues;
+    interface IParcelFileDescriptor;
+    interface IAssetFileDescriptor;
+    interface IUri;
+
+    interface IContentProviderClient {
+    
+        /** see {@link ContentProvider#query} */
+        Query(
+            [in] IUri* uri,
+            [in] ArrayOf<String> projection,
+            [in] String selection,
+            [in] ArrayOf<String> selectionArgs,
+            [in] String sortOrder,
+            [out] ICursor** cursor);
+            
+        /** see {@link ContentProvider#getType} */
+        GetType(
+            [in] IUri* uri,
+            [out] String* type);
+            
+        /** see {@link ContentProvider#insert} */
+        Insert(
+            [in] IUri* uri,
+            [in] IContentValues* initialValues,
+            [out] IUri** insertedItemUri);
+            
+        /** see {@link ContentProvider#bulkInsert} */
+        BulkInsert(
+            [in] IUri* uri,
+            [in] ArrayOf<IContentValues*> initialValues,
+            [out] Int32* number);
+            
+        /** see {@link ContentProvider#delete} */
+        Delete(
+            [in] IUri* uri,
+            [in] String selection,
+            [in] ArrayOf<String> selectionArgs,
+            [out] Int32* rowsAffected);
+
+        /** see {@link ContentProvider#update} */
+        Update(
+            [in] IUri* uri,
+            [in] IContentValues* values,
+            [in] String selection,
+            [in] ArrayOf<String> selectionArgs,
+            [out] Int32* rowsAffected);
+
+        /** see {@link ContentProvider#openFile} */
+        OpenFile(
+            [in] IUri* uri,
+            [in] String mode,
+            [out] IParcelFileDescriptor** fileDescriptor);
+
+        /** see {@link ContentProvider#openAssetFile} */
+        OpenAssetFile(
+            [in] IUri* uri,
+            [in] String mode,
+            [out] IAssetFileDescriptor** fileDescriptor);
+
+        /** see {@link ContentProvider#applyBatch} */
+        //public ContentProviderResult[] applyBatch(ArrayList<ContentProviderOperation> operations)
+        //ApplyBatch(
+        //    [in] IObjectContainer* operations,
+        //    [out] ArrayOf<IContentProviderResult*>* result);
+        
+        /**
+         * Call this to indicate to the system that the associated {@link ContentProvider} is no
+         * longer needed by this {@link ContentProviderClient}.
+         * @return true if this was release, false if it was already released
+         */
+        ReleaseProvider(
+           [out] Boolean* isRelease);
+
+        /**
+         * Get a reference to the {@link ContentProvider} that is associated with this
+         * client. If the {@link ContentProvider} is running in a different process then
+         * null will be returned. This can be used if you know you are running in the same
+         * process as a provider, and want to get direct access to its implementation details.
+         *
+         * @return If the associated {@link ContentProvider} is local, returns it.
+         * Otherwise returns null.
+         */
+        GetLocalContentProvider(
+            [out] IContentProvider** contentProvider);
+    
+    }
+}
