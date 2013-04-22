@@ -148,9 +148,9 @@ ECode CWebBackForwardList::Clone(
         return NOERROR;
     }
     l -> mCurrentIndex = mCurrentIndex;
-    int size = 0;
+    Int32 size = 0;
     GetSize(&size);
-    for (int i = 0; i < size; i++)  {
+    for (Int32 i = 0; i < size; i++)  {
         // Add a copy of each WebHistoryItem
         (l -> mArray).PushBack(mArray[i]);
     }
