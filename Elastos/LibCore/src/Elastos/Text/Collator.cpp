@@ -44,13 +44,13 @@ ECode Collator::Equals(
     return  NOERROR;
 }
 
-ECode Collator::GetAvailableLocales(
-        /* [out, callee] */ ArrayOf<ILocale*>** locales)
-{
-    AutoPtr<IICUHelper> picu;
-    CICUHelper::AcquireSingleton((IICUHelper**)&picu);
-    return picu->GetAvailableCollatorLocales(locales);
-}
+//ECode Collator::GetAvailableLocales(
+//        /* [out, callee] */ ArrayOf<ILocale*>** locales)
+//{
+//    AutoPtr<IICUHelper> picu;
+//    CICUHelper::AcquireSingleton((IICUHelper**)&picu);
+//    return picu->GetAvailableCollatorLocales(locales);
+//}
 
 ECode Collator::GetDecomposition(
         /* [out] */ Int32* decomposition)
@@ -60,29 +60,29 @@ ECode Collator::GetDecomposition(
     return DecompositionMode_ICU_Java(i, decomposition);
 }
 
-ECode Collator::GetInstance(
-        /* [out] */ ICollator** instance)
-{
-    AutoPtr<ILocaleHelper> pLocaleHelper;
-    CLocaleHelper::AcquireSingleton((ILocaleHelper**)&pLocaleHelper);
-    AutoPtr<ILocale> pLocale;
-    pLocaleHelper->GetDefault((ILocale**)&pLocale);
-    return GetInstance((ILocale*)pLocale, instance);
-}
+//ECode Collator::GetInstance(
+//        /* [out] */ ICollator** instance)
+//{
+//    AutoPtr<ILocaleHelper> pLocaleHelper;
+//    CLocaleHelper::AcquireSingleton((ILocaleHelper**)&pLocaleHelper);
+//    AutoPtr<ILocale> pLocale;
+//    pLocaleHelper->GetDefault((ILocale**)&pLocale);
+//    return GetInstance((ILocale*)pLocale, instance);
+//}
 
-ECode Collator::GetInstance(
-        /* [in] */ ILocale* locale,
-        /* [out] */ ICollator** instance)
-{
-    if (locale == NULL) {
+//ECode Collator::GetInstance(
+//        /* [in] */ ILocale* locale,
+//        /* [out] */ ICollator** instance)
+//{
+//    if (locale == NULL) {
         //throw new NullPointerException();
-        return E_NULL_POINTER_EXCEPTION;
-    }
-    AutoPtr<IRuleBasedCollator> rbc;
-    CRuleBasedCollator::New(ICUCollator::GetInstance(locale), (IRuleBasedCollator**)&rbc);
-    *instance = reinterpret_cast<ICollator*>(rbc->Probe(EIID_ICollator));
-    return NOERROR;
-}
+//        return E_NULL_POINTER_EXCEPTION;
+//    }
+//    AutoPtr<IRuleBasedCollator> rbc;
+//    CRuleBasedCollator::New(ICUCollator::GetInstance(locale), (IRuleBasedCollator**)&rbc);
+//    *instance = reinterpret_cast<ICollator*>(rbc->Probe(EIID_ICollator));
+//    return NOERROR;
+//}
 
 ECode Collator::GetStrength(
         /* [out] */ Int32* strength)

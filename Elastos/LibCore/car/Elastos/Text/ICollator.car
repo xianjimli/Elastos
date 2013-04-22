@@ -96,4 +96,30 @@ module {
         SetStrength(
             [in] Int32 value);
     }
+
+    interface ICollatorHelper {
+        /**
+         * Returns an array of locales for which custom {@code Collator} instances
+         * are available.
+         * <p>Note that Android does not support user-supplied locale service providers.
+         */
+        GetAvailableLocales(
+            [out, callee] ArrayOf<ILocale*>* locales);
+
+        /**
+         * Returns a {@code Collator} instance which is appropriate for the user's default
+         * {@code Locale}.
+         * See "<a href="../util/Locale.html#default_locale">Be wary of the default locale</a>".
+         */
+        GetInstance(
+            [out] ICollator** instance);
+
+        /**
+         * Returns a {@code Collator} instance which is appropriate for {@code locale}.
+         */
+        GetInstanceEx(
+            [in] ILocale* locale,
+            [out] ICollator** instance);
+
+    }
 }

@@ -1,6 +1,22 @@
 #include "MessageFormat.h"
+#include "CMessageFormatField.h"
 
-const AutoPtr<IMessageFormatField> MessageFormat::MessageFormatField::ARGUMENT;
+
+static AutoPtr<IMessageFormatField> sInit(const String& name) {
+    AutoPtr<IMessageFormatField> field;
+    CMessageFormatField::NewByFriend(name, (CMessageFormatField**)&field);
+    return field.Get();
+}
+
+const AutoPtr<IMessageFormatField> MessageFormat::MessageFormatField::ARGUMENT
+    = sInit(String("message argument field"));
+
+
+ECode MessageFormat::MessageFormatField::Init(
+    /* [in] */ String fieldName)
+{
+    return NOERROR;
+}
 
 MessageFormat::~MessageFormat()
 {
