@@ -98,7 +98,7 @@ module
          * that it encountered an IOException while communicating with the authentication server
          */
         GetResultEx(
-            [in] Int32 timeout,
+            [in] Int64 timeout,
             //[in] TimeUnit unit,
             [out] IInterface** result);
     }

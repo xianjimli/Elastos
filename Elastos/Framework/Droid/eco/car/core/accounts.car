@@ -30,18 +30,162 @@ module
 
         interface ILocalAccountManager;
     }
-    
+
     /**
-     * This class is in content module, since it need IOnAccountsUpdateListener 
-     * but IOnAccountsUpdateListener interface is defined after content module, 
+     * This class is in content module, since it need IOnAccountsUpdateListener
+     * but IOnAccountsUpdateListener interface is defined after content module,
      * move it here
      */
     class CSyncManager {
         constructor(
             [in] IContext* context,
             [in] Boolean factoryTest);
-    
+
         interface ISyncManager;
         interface IOnAccountsUpdateListener;
+    }
+
+    class CAccountManagerHelper {
+        interface ILocalAccountManagerHelper;
+    }
+
+    class CAccountManagerAmsResponse {
+        constructor(
+            [in] Handle32 host);
+
+        interface IAccountManagerResponse;
+    }
+
+    class CAccountManagerFutureResponse {
+        constructor(
+            [in] Handle32 host);
+
+        interface IAccountManagerResponse;
+    }
+
+    class CChooseResponse {
+        constructor(
+            [in] Handle32 host);
+
+        interface IAccountManagerResponse;
+    }
+
+    class CAccount {
+        constructor(
+            [in] String name,
+            [in] String type);
+
+        constructor(
+            [in] IParcel* source);
+
+        interface IAccount;
+        interface IParcelable;
+    }
+
+    class CAccountManagerResponse {
+        constructor(
+            [in] IAccountManagerResponse* response);
+
+        constructor(
+            [in] IParcel* source);
+
+        interface IAccountManagerResponse;
+        interface IParcelable;
+    }
+
+    /**
+     * A system service that provides  account, password, and authtoken management for all
+     * accounts on the device. Some of these calls are implemented with the help of the corresponding
+     * {@link IAccountAuthenticator} services. This service is not accessed by users directly,
+     * instead one uses an instance of {@link AccountManager}, which can be accessed as follows:
+     *    AccountManager accountManager =
+     *      (AccountManager)context.getSystemService(Context.ACCOUNT_SERVICE)
+     * @hide
+     */
+    class CAccountManagerService {
+        constructor(
+            [in] IContext* context);
+
+        interface IAccountManager;
+    }
+
+    singleton class CAccountManagerServiceHelper {
+        interface IAccountManagerHelper;
+    }
+
+    class CTestFeaturesSession {
+        constructor(
+            [in] IAccountManagerResponse* response,
+            [in] IAccount* account,
+            [in] ArrayOf<String> features);
+
+        interface IAccountAuthenticatorResponse;
+        interface IBinderDeathRecipient;
+        interface IServiceConnection;
+    }
+
+    class CRemoveAccountSession {
+        constructor(
+            [in] IAccountManagerResponse* response,
+            [in] IAccount* account);
+
+        interface IAccountAuthenticatorResponse;
+        interface IBinderDeathRecipient;
+        interface IServiceConnection;
+    }
+
+    class CGetAccountsByTypeAndFeatureSession {
+        constructor(
+            [in] IAccountManagerResponse* response,
+            [in] String type,
+            [in] ArrayOf<String> features);
+
+        interface IAccountAuthenticatorResponse;
+        interface IBinderDeathRecipient;
+        interface IServiceConnection;
+    }
+
+    class CAccountAuthenticatorTransport {
+        interface IAccountAuthenticator;
+    }
+
+    class CAuthenticatorDescription {
+        constructor(
+            [in] String type,
+            [in] String capsuleName,
+            [in] Int32 labelId,
+            [in] Int32 iconId,
+            [in] Int32 smallIconId,
+            [in] Int32 prefId,
+            [in] Boolean customTokens);
+
+        constructor(
+            [in] String type,
+            [in] String capsuleName,
+            [in] Int32 labelId,
+            [in] Int32 iconId,
+            [in] Int32 smallIconId,
+            [in] Int32 prefId);
+
+        interface IAuthenticatorDescription;
+        interface IParcelable;
+    }
+
+    class CAuthenticatorDescriptionHelper {
+        interface IAuthenticatorDescriptionHelper;
+    }
+
+    /**
+     * Object used to communicate responses back to the AccountManager
+     */
+    class CAccountAuthenticatorResponse {
+        constructor(
+            [in] IAccountAuthenticatorResponse* response);
+
+        constructor(
+            [in] IParcel* parcel);
+
+        interface IAccountAuthenticatorResponse;
+        interface IParcelable;
     }
 }

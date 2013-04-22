@@ -3,12 +3,517 @@
 #define __CACCOUNTMANAGER_H__
 
 #include "_CAccountManager.h"
+#include "os/Runnable.h"
 #include <elastos/AutoPtr.h>
+#include <elastos/ElRefBase.h>
+#include <elastos/HashMap.h>
+#include <elastos/Mutex.h>
+
+_ELASTOS_NAMESPACE_BEGIN
+
+template<> struct Hash<AutoPtr<IOnAccountsUpdateListener> >
+{
+    size_t operator()(AutoPtr<IOnAccountsUpdateListener> s) const
+    {
+        assert(s != NULL);
+        return (size_t)s.Get();
+    }
+};
+
+_ELASTOS_NAMESPACE_END
+
+using namespace Elastos::Core::Threading;
+
+class CAccountManagerAmsResponse;
+class CAccountManagerFutureResponse;
+class CChooseResponse;
 
 CarClass(CAccountManager)
 {
 public:
+    friend class CAccountManagerAmsResponse;
+    friend class CAccountManagerFutureResponse;
+    friend class CChooseResponse;
+
+private:
+    class AmsTask
+            : public IAccountManagerFuture
+            , public ElRefBase
+    {
+    public:
+        AmsTask(
+            /* [in] */ IActivity* activity,
+            /* [in] */ IApartment* handler,
+            /* [in] */ IAccountManagerCallback* accountManagerCb,
+            /* [in] */ CAccountManager* host);
+
+        virtual ~AmsTask() {}
+
+        CARAPI_(PInterface) Probe(
+            /* [in]  */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
+        CARAPI Cancel(
+            /* [in] */ Boolean mayInterruptIfRunning,
+            /* [out] */ Boolean* result);
+
+        CARAPI IsCancelled(
+            /* [out] */ Boolean* result);
+
+        CARAPI IsDone(
+            /* [out] */ Boolean* result);
+
+        CARAPI GetResult(
+            /* [out] */ IInterface** result);
+
+        CARAPI GetResultEx(
+            /* [in] */ Int64 timeout,
+            //[in] TimeUnit unit,
+            /* [out] */ IInterface** result);
+
+        CARAPI Start(
+            /* [out] */ IAccountManagerFuture** accountManagerFuture);
+
+        virtual CARAPI DoWork() = 0;
+
+        CARAPI Set(
+            /* [in] */ IBundle* bundle);
+
+    protected:
+        CARAPI_(void) Done();
+
+    private:
+        CARAPI InternalGetResult(
+            /* [in] */ Int64 timeout,
+            /*TimeUnit unit*/
+            /* [out] */ IBundle** result);
+
+    public:
+        AutoPtr<IAccountManagerResponse> mResponse;
+        AutoPtr<IApartment> mHandler;
+        AutoPtr<IAccountManagerCallback> mCallback;
+        AutoPtr<IActivity> mActivity;
+        AutoPtr<CAccountManager> mHost;
+    };
+
+    class AmsTask_GetAuthToken : public AmsTask
+    {
+    public:
+        AmsTask_GetAuthToken(
+            /* [in] */ IActivity* activity,
+            /* [in] */ IApartment* handler,
+            /* [in] */ IAccountManagerCallback* accountManagerCb,
+            /* [in] */ CAccountManager* host,
+            /* [in] */ IAccount* account,
+            /* [in] */ String authTokenType,
+            /* [in] */ Boolean notifyAuthFailure,
+            /* [in] */ Boolean expectActivityLaunch,
+            /* [in] */ IBundle* options);
+
+        ~AmsTask_GetAuthToken();
+
+        CARAPI DoWork();
+
+    private:
+        AutoPtr<IAccount> mAccount;
+        String mAuthTokenType;
+        Boolean mNotifyAuthFailure;
+        Boolean mExpectActivityLaunch;
+        AutoPtr<IBundle> mOptions;
+    };
+
+    class AmsTask_AddAccount : public AmsTask
+    {
+    public:
+        AmsTask_AddAccount(
+            /* [in] */ IActivity* activity,
+            /* [in] */ IApartment* handler,
+            /* [in] */ IAccountManagerCallback* accountManagerCb,
+            /* [in] */ CAccountManager* host,
+            /* [in] */ String accountType,
+            /* [in] */ String authTokenType,
+            /* [in] */ const ArrayOf<String>& requiredFeatures,
+            /* [in] */ IBundle* options);
+
+        ~AmsTask_AddAccount();
+
+        CARAPI DoWork();
+
+    private:
+        String mAccountType;
+        String mAuthTokenType;
+        ArrayOf<String>* mRequiredFeatures;
+        AutoPtr<IBundle> mOptions;
+    };
+
+    class AmsTask_ConfirmCredentials : public AmsTask
+    {
+    public:
+        AmsTask_ConfirmCredentials(
+            /* [in] */ IActivity* activity,
+            /* [in] */ IApartment* handler,
+            /* [in] */ IAccountManagerCallback* accountManagerCb,
+            /* [in] */ CAccountManager* host,
+            /* [in] */ IAccount* account,
+            /* [in] */ IBundle* options);
+
+        ~AmsTask_ConfirmCredentials();
+
+        CARAPI DoWork();
+
+    private:
+        AutoPtr<IAccount> mAccount;
+        AutoPtr<IBundle> mOptions;
+    };
+
+    class AmsTask_UpdateCredentials : public AmsTask
+    {
+    public:
+        AmsTask_UpdateCredentials(
+            /* [in] */ IActivity* activity,
+            /* [in] */ IApartment* handler,
+            /* [in] */ IAccountManagerCallback* accountManagerCb,
+            /* [in] */ CAccountManager* host,
+            /* [in] */ IAccount* account,
+            /* [in] */ String authTokenType,
+            /* [in] */ IBundle* options);
+
+        ~AmsTask_UpdateCredentials();
+
+        CARAPI DoWork();
+
+    private:
+        AutoPtr<IAccount> mAccount;
+        String mAuthTokenType;
+        AutoPtr<IBundle> mOptions;
+    };
+
+    class AmsTask_EditProperties : public AmsTask
+    {
+    public:
+        AmsTask_EditProperties(
+            /* [in] */ IActivity* activity,
+            /* [in] */ IApartment* handler,
+            /* [in] */ IAccountManagerCallback* accountManagerCb,
+            /* [in] */ CAccountManager* host,
+            /* [in] */ String authTokenType);
+
+        ~AmsTask_EditProperties();
+
+        CARAPI DoWork();
+
+    private:
+        String mAuthTokenType;
+    };
+
+    class BaseFutureTask/* extends FutureTask<T>*/
+    {
+    public:
+        BaseFutureTask(
+            /* [in] */ IApartment* handler,
+            /* [in] */ CAccountManager* host);
+
+        virtual CARAPI DoWork() = 0;
+
+        virtual CARAPI BundleToResult(
+            /* [in] */ IBundle* bundle,
+            /* [out] */ IInterface** result) = 0;
+
+    protected:
+        CARAPI_(void) PostRunnableToHandler(
+            /* [in] */ IRunnable* runnable);
+
+        CARAPI StartTask();
+
+    public:
+        AutoPtr<IAccountManagerResponse> mResponse;
+        AutoPtr<IApartment> mHandler;
+
+    protected:
+        AutoPtr<CAccountManager> mHost;
+    };
+
+    class Future2Task
+            : public BaseFutureTask
+            , public IAccountManagerFuture
+            , public ElRefBase
+    {
+    public:
+        Future2Task(
+            /* [in] */ IApartment* handler,
+            /* [in] */ IAccountManagerCallback* accountManagerCb,
+            /* [in] */ CAccountManager* host);
+
+        virtual ~Future2Task() {}
+
+        CARAPI_(PInterface) Probe(
+            /* [in]  */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
+        CARAPI Cancel(
+            /* [in] */ Boolean mayInterruptIfRunning,
+            /* [out] */ Boolean* result);
+
+        CARAPI IsCancelled(
+            /* [out] */ Boolean* result);
+
+        CARAPI IsDone(
+            /* [out] */ Boolean* result);
+
+        CARAPI GetResult(
+            /* [out] */ IInterface** result);
+
+        CARAPI GetResultEx(
+            /* [in] */ Int64 timeout,
+            //[in] TimeUnit unit,
+            /* [out] */ IInterface** result);
+
+        CARAPI Start(
+            /* [out] */ IAccountManagerFuture** accountManagerFuture);
+
+    protected:
+        CARAPI_(void) Done();
+
+    private:
+        CARAPI InternalGetResult(
+            /* [in] */ Int64 timeout,
+            /*TimeUnit unit*/
+            /* [out] */ IInterface** result);
+
+    private:
+        AutoPtr<IAccountManagerCallback> mCallback;
+    };
+
+    class Future2Task_HasFeatures : public Future2Task
+    {
+    public:
+        Future2Task_HasFeatures(
+            /* [in] */ IApartment* handler,
+            /* [in] */ IAccountManagerCallback* accountManagerCb,
+            /* [in] */ CAccountManager* host,
+            /* [in] */ IAccount* account,
+            /* [in] */ const ArrayOf<String>& features);
+
+        ~Future2Task_HasFeatures();
+
+        CARAPI DoWork();
+
+        CARAPI BundleToResult(
+            /* [in] */ IBundle* bundle,
+            /* [out] */ IInterface** result);
+
+    private:
+        AutoPtr<IAccount> mAccount;
+        ArrayOf<String>* mFeatures;
+    };
+
+    class Future2Task_GetAccounts : public Future2Task
+    {
+    public:
+        Future2Task_GetAccounts(
+            /* [in] */ IApartment* handler,
+            /* [in] */ IAccountManagerCallback* accountManagerCb,
+            /* [in] */ CAccountManager* host,
+            /* [in] */ String type,
+            /* [in] */ const ArrayOf<String>& features);
+
+        ~Future2Task_GetAccounts();
+
+        CARAPI DoWork();
+
+        CARAPI BundleToResult(
+            /* [in] */ IBundle* bundle,
+            /* [out] */ IInterface** result);
+
+    private:
+        String mType;
+        ArrayOf<String>* mFeatures;
+    };
+
+    class Future2Task_RemoveAccount : public Future2Task
+    {
+    public:
+        Future2Task_RemoveAccount(
+            /* [in] */ IApartment* handler,
+            /* [in] */ IAccountManagerCallback* accountManagerCb,
+            /* [in] */ CAccountManager* host,
+            /* [in] */ IAccount* account);
+
+        ~Future2Task_RemoveAccount();
+
+        CARAPI DoWork();
+
+        CARAPI BundleToResult(
+            /* [in] */ IBundle* bundle,
+            /* [out] */ IInterface** result);
+
+    private:
+        AutoPtr<IAccount> mAccount;
+    };
+
+    class GetAuthTokenByTypeAndFeaturesTask
+            : public AmsTask
+            , public IAccountManagerCallback
+    {
+    private:
+        class GetAccountsCallback
+                : public IAccountManagerCallback
+                , public ElRefBase
+        {
+        public:
+            GetAccountsCallback(
+                /* [in] */ GetAuthTokenByTypeAndFeaturesTask* host);
+
+            CARAPI_(PInterface) Probe(
+                /* [in]  */ REIID riid);
+
+            CARAPI_(UInt32) AddRef();
+
+            CARAPI_(UInt32) Release();
+
+            CARAPI GetInterfaceID(
+                /* [in] */ IInterface *pObject,
+                /* [out] */ InterfaceID *pIID);
+
+            CARAPI Run(
+                /* [in] */ IAccountManagerFuture* future);
+
+        private:
+            GetAuthTokenByTypeAndFeaturesTask* mHost;
+        };
+
+    public:
+        GetAuthTokenByTypeAndFeaturesTask(
+            /* [in] */ const String& accountType,
+            /* [in] */ const String& authTokenType,
+            /* [in] */ const ArrayOf<String>& features,
+            /* [in] */ IActivity* activityForPrompting,
+            /* [in] */ IBundle* addAccountOptions,
+            /* [in] */ IBundle* loginOptions,
+            /* [in] */ IAccountManagerCallback* cb,
+            /* [in] */ IApartment* handler,
+            /* [in] */ CAccountManager* host);
+
+        CARAPI_(PInterface) Probe(
+            /* [in]  */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
+        CARAPI Run(
+            /* [in] */ IAccountManagerFuture* future);
+
+        CARAPI DoWork();
+
+    public:
+        AutoPtr<IAccountManagerFuture> mFuture;
+        String mAccountType;
+        String mAuthTokenType;
+        ArrayOf<String>* mFeatures;
+        AutoPtr<IBundle> mAddAccountOptions;
+        AutoPtr<IBundle> mLoginOptions;
+        AutoPtr<IAccountManagerCallback> mMyCallback;
+
+    private:
+        Int32 mNumAccounts;//todo: if the value is equal to 2, this mean the numberf of Accounts is above 2;
+    };
+
+    class CallbackAction : public Runnable
+    {
+    public:
+        CallbackAction(
+            /* [in] */ IAccountManagerCallback* accountManagerCb,
+            /* [in] */ IAccountManagerFuture* future);
+
+        CARAPI Run();
+
+    private:
+        AutoPtr<IAccountManagerCallback> mCallback;
+        AutoPtr<IAccountManagerFuture> mFuture;
+    };
+
+    class AccountUpdateAction : public Runnable
+    {
+    public:
+        AccountUpdateAction(
+            /* [in] */ IOnAccountsUpdateListener* listener,
+            /* [in] */ IObjectContainer* accounts);
+
+        CARAPI Run();
+
+    private:
+        AutoPtr<IOnAccountsUpdateListener> mListener;
+        AutoPtr<IObjectContainer> mAccounts;
+    };
+
+    /**
+     * BroadcastReceiver that listens for the LOGIN_ACCOUNTS_CHANGED_ACTION intent
+     * so that it can read the updated list of accounts and send them to the listener
+     * in mAccountsUpdatedListeners.
+     */
+    // class AccountsChangedBroadcastReceiver
+    //     : public ElRefBase
+    //     , public IBroadcastReceiver
+    // {
+    // public:
+    //     CARAPI_(PInterface) Probe(
+    //         /* [in]  */ REIID riid);
+
+    //     CARAPI_(UInt32) AddRef();
+
+    //     CARAPI_(UInt32) Release();
+
+    //     CARAPI GetInterfaceID(
+    //         /* [in] */ IInterface *pObject,
+    //         /* [out] */ InterfaceID *pIID);
+    // };
+
+public:
     CAccountManager();
+
+    /**
+     * @hide for internal use only
+     */
+    static CARAPI SanitizeResult(
+        /* [in] */ IBundle* result,
+        /* [out] */ IBundle** newResult);
+
+    /**
+     * Gets an AccountManager instance associated with a Context.
+     * The {@link Context} will be used as long as the AccountManager is
+     * active, so make sure to use a {@link Context} whose lifetime is
+     * commensurate with any listeners registered to
+     * {@link #addOnAccountsUpdatedListener} or similar methods.
+     *
+     * <p>It is safe to call this method from the main thread.
+     *
+     * <p>No permission is required to call this method.
+     *
+     * @param context The {@link Context} to use when necessary
+     * @return An {@link AccountManager} instance
+     */
+    static CARAPI Get(
+        /* [in] */ IContext* context,
+        /* [out] */ ILocalAccountManager** accountManager);
 
     /**
      * Gets the saved password associated with the account.
@@ -420,7 +925,7 @@ public:
         /* [in] */ IActivity* activity,
         /* [in] */ IAccountManagerCallback* accountManagerCb,
         /* [in] */ IApartment* handler,
-        /* [out] */ IAccountManagerFuture** accoutManagerFuture);
+        /* [out] */ IAccountManagerFuture** accountManagerFuture);
 
     /**
      * Gets an auth token of the specified type for a particular account,
@@ -496,7 +1001,7 @@ public:
         /* [in] */ Boolean notifyAuthFailure,
         /* [in] */ IAccountManagerCallback* accountManagerCb,
         /* [in] */ IApartment* handler,
-        /* [out] */ IAccountManagerFuture** accoutManagerFuture);
+        /* [out] */ IAccountManagerFuture** accountManagerFuture);
 
     /**
      * Asks the user to add an account of a specified type.  The authenticator
@@ -554,7 +1059,7 @@ public:
         /* [in] */ IActivity* activity,
         /* [in] */ IAccountManagerCallback* accountManagerCb,
         /* [in] */ IApartment* handler,
-        /* [out] */ IAccountManagerFuture** accoutManagerFuture);
+        /* [out] */ IAccountManagerFuture** accountManagerFuture);
 
     /**
      * Confirms that the user knows the password for an account to make extra
@@ -616,7 +1121,7 @@ public:
         /* [in] */ IActivity* activity,
         /* [in] */ IAccountManagerCallback* accountManagerCb,
         /* [in] */ IApartment* handler,
-        /* [out] */ IAccountManagerFuture** accoutManagerFuture);
+        /* [out] */ IAccountManagerFuture** accountManagerFuture);
 
     /**
      * Asks the user to enter a new password for an account, updating the
@@ -672,7 +1177,7 @@ public:
         /* [in] */ IActivity* activity,
         /* [in] */ IAccountManagerCallback* accountManagerCb,
         /* [in] */ IApartment* handler,
-        /* [out] */ IAccountManagerFuture** accoutManagerFuture);
+        /* [out] */ IAccountManagerFuture** accountManagerFuture);
 
     /**
      * Offers the user an opportunity to change an authenticator's settings.
@@ -716,7 +1221,7 @@ public:
         /* [in] */ IActivity* activity,
         /* [in] */ IAccountManagerCallback* accountManagerCb,
         /* [in] */ IApartment* handler,
-        /* [out] */ IAccountManagerFuture** accoutManagerFuture);
+        /* [out] */ IAccountManagerFuture** accountManagerFuture);
 
     /**
      * This convenience helper combines the functionality of
@@ -780,7 +1285,7 @@ public:
         /* [in] */ IBundle* getAuthTokenOptions,
         /* [in] */ IAccountManagerCallback* accountManagerCb,
         /* [in] */ IApartment* handler,
-        /* [out] */ IAccountManagerFuture** accoutManagerFuture);
+        /* [out] */ IAccountManagerFuture** accountManagerFuture);
 
     /**
      * Adds an {@link OnAccountsUpdateListener} to this instance of the
@@ -837,21 +1342,36 @@ public:
         /* [in] */ IApartment* handler);
 
 private:
-    static const CString TAG;
+    CARAPI EnsureNotOnMainThread();
 
-public:
-    static const Int32 ERROR_CODE_REMOTE_EXCEPTION = 1;
-    static const Int32 ERROR_CODE_NETWORK_ERROR = 3;
-    static const Int32 ERROR_CODE_CANCELED = 4;
-    static const Int32 ERROR_CODE_INVALID_RESPONSE = 5;
-    static const Int32 ERROR_CODE_UNSUPPORTED_OPERATION = 6;
-    static const Int32 ERROR_CODE_BAD_ARGUMENTS = 7;
-    static const Int32 ERROR_CODE_BAD_REQUEST = 8;
+    CARAPI_(void) PostToHandler(
+        /* [in] */ IApartment* handler,
+        /* [in] */ IAccountManagerCallback* accountManagerCb,
+        /* [in] */ IAccountManagerFuture* future);
+
+    CARAPI_(void) PostToHandler(
+        /* [in] */ IApartment* handler,
+        /* [in] */ IOnAccountsUpdateListener* listener,
+        /* [in] */ IObjectContainer* accounts);
+
+    CARAPI ConvertErrorToException(
+        /* [in] */ Int32 code
+        /*String message*/);
+
+private:
+    static const CString TAG;
 
 private:
     AutoPtr<IContext> mContext;
     AutoPtr<IAccountManager> mService;
     AutoPtr<IApartment> mMainHandler;
+    AutoPtr<IRunnable> mCallbackAction;
+
+    HashMap<AutoPtr<IOnAccountsUpdateListener>, AutoPtr<IApartment> >
+            mAccountsUpdatedListeners;
+    Mutex mAccountsUpdatedListenersLock;
+
+    //AccountsChangedBroadcastReceiver* mAccountsChangedBroadcastReceiver;
 };
 
 #endif // __CACCOUNTMANAGER_H__

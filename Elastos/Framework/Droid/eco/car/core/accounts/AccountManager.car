@@ -6,6 +6,14 @@ module
     interface IAccountManagerFuture;
     interface IOnAccountsUpdateListener;
 
+    const AccountManager_ERROR_CODE_REMOTE_EXCEPTION = 1;
+    const AccountManager_ERROR_CODE_NETWORK_ERROR = 3;
+    const AccountManager_ERROR_CODE_CANCELED = 4;
+    const AccountManager_ERROR_CODE_INVALID_RESPONSE = 5;
+    const AccountManager_ERROR_CODE_UNSUPPORTED_OPERATION = 6;
+    const AccountManager_ERROR_CODE_BAD_ARGUMENTS = 7;
+    const AccountManager_ERROR_CODE_BAD_REQUEST = 8;
+
     /**
      * Bundle key used for the {@link String} account name in results
      * from methods which return information about a particular account.
@@ -68,8 +76,17 @@ module
     const AccountManager_KEY_NOTIFY_ON_FAILURE = "notifyOnAuthFailure";
 
     const AccountManager_ACTION_AUTHENTICATOR_INTENT = "elastos.accounts.AccountAuthenticator";
-    const AccountManager_AUTHENTICATOR_META_DATA_NAME ="elastos.accounts.AccountAuthenticator";
+    const AccountManager_AUTHENTICATOR_META_DATA_NAME = "elastos.accounts.AccountAuthenticator";
     const AccountManager_AUTHENTICATOR_ATTRIBUTES_NAME = "account-authenticator";
+
+    /**
+     * Action sent as a broadcast Intent by the AccountsService
+     * when accounts are added, accounts are removed, or an
+     * account's credentials (saved password, etc) are changed.
+     *
+     * @see #addOnAccountsUpdatedListener
+     */
+    const AccountManager_LOGIN_ACCOUNTS_CHANGED_ACTION = "elastos.accounts.LOGIN_ACCOUNTS_CHANGED";
 
     interface ILocalAccountManager {
         /**
@@ -890,7 +907,7 @@ module
             [in] IOnAccountsUpdateListener* listener);
     }
 
-    interface IAccountManagerHelper {
+    interface ILocalAccountManagerHelper {
         /**
          * Gets an AccountManager instance associated with a Context.
          * The {@link Context} will be used as long as the AccountManager is
@@ -907,6 +924,6 @@ module
          */
         Get(
             [in] IContext* context,
-            [out] IAccountManager** accountManager);
+            [out] ILocalAccountManager** accountManager);
     }
 }

@@ -3,4 +3,14 @@ module
 {
     interface IAuthenticatorDescription {
     }
+
+    interface IAuthenticatorDescriptionHelper {
+        /**
+         * A factory method for creating an AuthenticatorDescription that can be used as a key
+         * to identify the authenticator by its type.
+         */
+        NewKey(
+            [in] String type,
+            [out] IAuthenticatorDescription** description);
+    }
 }
