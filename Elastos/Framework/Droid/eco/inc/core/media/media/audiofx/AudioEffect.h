@@ -154,7 +154,10 @@ private:
             /* [out] */ InterfaceID *pIID);
 
         CARAPI HandleMessage(
-            /* [in] */ IMessage* msg);
+            /* [in] */ Int32 what,
+            /* [in] */ Int32 arg1,
+            /* [in] */ Int32 arg2,
+            /* [in] */ IInterface* obj);
 
         CARAPI Start(
             /* [in] */ ApartmentAttr attr);
@@ -646,11 +649,11 @@ private:
     // Java methods called from the native side
     // --------------------
     static CARAPI_(void) PostEventFromNative(
-        /* [in] */ IObject* effect_ref,
+        /* [in] */ AudioEffect* effect_ref,
         /* [in] */ Int32 what,
         /* [in] */ Int32 arg1,
         /* [in] */ Int32 arg2,
-        /* [in] */ IObject* obj);
+        /* [in] */ IInterface* obj);
 
     // ---------------------------------------------------------
     // Native methods called from the Java side
@@ -711,7 +714,7 @@ public:
      * Handler for events coming from the native code
      * @hide
      */
-     AutoPtr<NativeEventHandler> mNativeEventHandler;
+     AutoPtr<IApartment> mNativeEventHandler;
 
 private:
     static const CString TAG;
