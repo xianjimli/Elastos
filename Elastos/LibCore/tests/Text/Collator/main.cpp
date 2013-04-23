@@ -10,6 +10,9 @@ PTestEntry TestEntry[] =
     &CTest::test_setStrength,
     &CTest::test_stackCorruption,
     &CTest::test_collationKeySize,
+    &CTest::test_decompositionCompatibility,
+    &CTest::test_EqualsObject,
+    &CTest::test_Harmony,
 };
 
 
