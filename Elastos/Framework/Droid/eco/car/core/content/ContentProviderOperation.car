@@ -1,0 +1,309 @@
+
+module
+{
+    /** @hide exposed for unit tests */
+    const ContentProviderOperation_TYPE_INSERT = 1;
+    
+    /** @hide exposed for unit tests */
+    const ContentProviderOperation_TYPE_UPDATE = 2;
+    
+    /** @hide exposed for unit tests */
+    const ContentProviderOperation_TYPE_DELETE = 3;
+    
+    /** @hide exposed for unit tests */
+    const ContentProviderOperation_TYPE_ASSERT = 4;
+    
+    interface IContentProvider;
+    interface IContentProviderResult;
+    interface IContentValues;
+    interface IUri;
+
+    interface IContentProviderOperation {
+            
+        GetUri(
+            [out] IUri** uri);
+
+        IsYieldAllowed(
+            [out] Boolean* isAllowed);
+    
+        /** @hide exposed for unit tests */ 
+        GetType(
+            [out] Int32* type);
+
+        IsWriteOperation(
+            [out] Boolean* isWrite);
+
+        IsReadOperation(
+            [out] Boolean* isRead);
+    
+        /**
+         * Applies this operation using the given provider. The backRefs array is used to resolve any
+         * back references that were requested using
+         * {@link Builder#withValueBackReferences(ContentValues)} and
+         * {@link Builder#withSelectionBackReference}.
+         * @param provider the {@link ContentProvider} on which this batch is applied
+         * @param backRefs a {@link ContentProviderResult} array that will be consulted
+         * to resolve any requested back references.
+         * @param numBackRefs the number of valid results on the backRefs array.
+         * @return a {@link ContentProviderResult} that contains either the {@link Uri} of the inserted
+         * row if this was an insert otherwise the number of rows affected.
+         * @throws OperationApplicationException thrown if either the insert fails or
+         * if the number of rows affected didn't match the expected count
+         */
+        Apply(
+            [in] IContentProvider* provider,
+            [in] ArrayOf<IContentProviderResult*> backRefs,
+            [in] Int32 numBackRefs,
+            [out] IContentProviderResult** providerResult);
+        
+        /**
+         * The ContentValues back references are represented as a ContentValues object where the
+         * key refers to a column and the value is an index of the back reference whose
+         * valued should be associated with the column.
+         * <p>
+         * This is intended to be a private method but it is exposed for
+         * unit testing purposes
+         * @param backRefs an array of previous results
+         * @param numBackRefs the number of valid previous results in backRefs
+         * @return the ContentValues that should be used in this operation application after
+         * expansion of back references. This can be called if either mValues or mValuesBackReferences
+         * is null
+         */
+        ResolveValueBackReferences(
+            [in] ArrayOf<IContentProviderResult*> backRefs,
+            [in] Int32 numBackRefs,
+            [out] IContentValues** contentValues);
+            
+        /**
+         * The Selection Arguments back references are represented as a Map of Integer->Integer where
+         * the key is an index into the selection argument array (see {@link Builder#withSelection})
+         * and the value is the index of the previous result that should be used for that selection
+         * argument array slot.
+         * <p>
+         * This is intended to be a private method but it is exposed for
+         * unit testing purposes
+         * @param backRefs an array of previous results
+         * @param numBackRefs the number of valid previous results in backRefs
+         * @return the ContentValues that should be used in this operation application after
+         * expansion of back references. This can be called if either mValues or mValuesBackReferences
+         * is null
+         */
+        ResolveSelectionArgsBackReferences(
+            [in] ArrayOf<IContentProviderResult*> backRefs,
+            [in] Int32 numBackRefs,
+            [out, callee] ArrayOf<String>* stringArray);
+        
+        ToString(
+            [out] String* result);
+    }
+    
+    interface IContentProviderOperationBuilder {
+    
+        /** Create a ContentProviderOperation from this {@link Builder}. */
+        Build(
+            [out] IContentProviderOperation** providerOperation);
+            
+        /**
+         * Add a {@link ContentValues} of back references. The key is the name of the column
+         * and the value is an integer that is the index of the previous result whose
+         * value should be used for the column. The value is added as a {@link String}.
+         * A column value from the back references takes precedence over a value specified in
+         * {@link #withValues}.
+         * This can only be used with builders of type insert, update, or assert.
+         * @return this builder, to allow for chaining.
+         */
+        WithValueBackReferences(
+            [in] IContentValues* backReferences,
+            [out] IContentProviderOperationBuilder** operationBuilder);
+    
+        /**
+         * Add a ContentValues back reference.
+         * A column value from the back references takes precedence over a value specified in
+         * {@link #withValues}.
+         * This can only be used with builders of type insert, update, or assert.
+         * @return this builder, to allow for chaining.
+         */
+        WithValueBackReference(
+            [in] String key,
+            [in] Int32 previousResult,
+            [out] IContentProviderOperationBuilder** operationBuilder);
+            
+        /**
+         * Add a back references as a selection arg. Any value at that index of the selection arg
+         * that was specified by {@link #withSelection} will be overwritten.
+         * This can only be used with builders of type update, delete, or assert.
+         * @return this builder, to allow for chaining.
+         */
+        WithSelectionBackReference(
+            [in] Int32 selectionArgIndex,
+            [in] Int32 previousResult,
+            [out] IContentProviderOperationBuilder** operationBuilder);
+            
+        /**
+         * The ContentValues to use. This may be null. These values may be overwritten by
+         * the corresponding value specified by {@link #withValueBackReference} or by
+         * future calls to {@link #withValues} or {@link #withValue}.
+         * This can only be used with builders of type insert, update, or assert.
+         * @return this builder, to allow for chaining.
+         */
+        WithValues(
+            [in] IContentValues* values,
+            [out] IContentProviderOperationBuilder** operationBuilder);
+        
+        /**
+         * A value to insert or update. This value may be overwritten by
+         * the corresponding value specified by {@link #withValueBackReference}.
+         * This can only be used with builders of type insert, update, or assert.
+         * @param key the name of this value
+         * @param value the value itself. the type must be acceptable for insertion by
+         * {@link ContentValues#put}
+         * @return this builder, to allow for chaining.
+         */
+        WithValue(
+            [in] String key,
+            [in] String stringValue,
+            [out] IContentProviderOperationBuilder** operationBuilder);
+            
+        WithValueEx(
+            [in] String key,
+            [in] Byte byteValue,
+            [out] IContentProviderOperationBuilder** operationBuilder);
+            
+        WithValueEx2(
+            [in] String key,
+            [in] Int16 shortValue,
+            [out] IContentProviderOperationBuilder** operationBuilder);
+            
+        WithValueEx3(
+            [in] String key,
+            [in] Int32 intValue,
+            [out] IContentProviderOperationBuilder** operationBuilder);
+            
+        WithValueEx4(
+            [in] String key,
+            [in] Int64 longValue,
+            [out] IContentProviderOperationBuilder** operationBuilder);
+            
+        WithValueEx5(
+            [in] String key,
+            [in] Float floatValue,
+            [out] IContentProviderOperationBuilder** operationBuilder);
+            
+        WithValueEx6(
+            [in] String key,
+            [in] Double doubleValue,
+            [out] IContentProviderOperationBuilder** operationBuilder);
+            
+        WithValueEx7(
+            [in] String key,
+            [in] Boolean booleanValue,
+            [out] IContentProviderOperationBuilder** operationBuilder);
+            
+        WithValueEx8(
+            [in] String key,
+            [in] ArrayOf<Byte> arrayValue,
+            [out] IContentProviderOperationBuilder** operationBuilder);
+        
+        /**
+         * The selection and arguments to use. An occurrence of '?' in the selection will be
+         * replaced with the corresponding occurence of the selection argument. Any of the
+         * selection arguments may be overwritten by a selection argument back reference as
+         * specified by {@link #withSelectionBackReference}.
+         * This can only be used with builders of type update, delete, or assert.
+         * @return this builder, to allow for chaining.
+         */
+        WithSelection(
+            [in] String selection,
+            [in] ArrayOf<String> selectionArgs,
+            [out] IContentProviderOperationBuilder** operationBuilder);
+        
+        /**
+         * If set then if the number of rows affected by this operation do not match
+         * this count {@link OperationApplicationException} will be throw.
+         * This can only be used with builders of type update, delete, or assert.
+         * @return this builder, to allow for chaining.
+         */
+        WithExpectedCount(
+            [in] Int32 count,
+            [out] IContentProviderOperationBuilder** operationBuilder);
+            
+        WithYieldAllowed(
+            [in] Boolean yieldAllowed,
+            [out] IContentProviderOperationBuilder** operationBuilder);
+            
+        GetType(
+            [out] Int32* type);
+        
+        GetUri(
+            [out] IUri** uri);
+        
+        GetSelection(
+            [out] String* selection);
+        
+        GetSelectionArgs(
+            [out, callee] ArrayOf<String>* selectionArgs);
+        
+        GetValues(
+            [out] IContentValues** values);
+        
+        GetExpectedCount(
+            [out] Int32* expectedCount);
+        
+        GetValuesBackReferences(
+            [out] IContentValues**  valuesBackReferences);
+        
+        GetSelectionArgsBackReferences(
+            [out] IObjectContainer** selectionArgsBackRef);
+            
+        GetYieldAllowed(
+            [out] Boolean* yieldAllowed);
+            
+    }
+    
+    interface IContentProviderOperationHelper {
+        /**
+         * Create a {@link Builder} suitable for building an insert {@link ContentProviderOperation}.
+         * @param uri The {@link Uri} that is the target of the insert.
+         * @return a {@link Builder}
+         */
+        NewInsert(
+            [in] IUri* uri,
+            [out] IContentProviderOperationBuilder** operationBuilder);
+        
+    
+        /**
+         * Create a {@link Builder} suitable for building an update {@link ContentProviderOperation}.
+         * @param uri The {@link Uri} that is the target of the update.
+         * @return a {@link Builder}
+         */
+        NewUpdate(
+            [in] IUri* uri,
+            [out] IContentProviderOperationBuilder** operationBuilder);
+    
+        /**
+         * Create a {@link Builder} suitable for building a delete {@link ContentProviderOperation}.
+         * @param uri The {@link Uri} that is the target of the delete.
+         * @return a {@link Builder}
+         */
+        NewDelete(
+            [in] IUri* uri,
+            [out] IContentProviderOperationBuilder** operationBuilder);
+    
+        /**
+         * Create a {@link Builder} suitable for building a
+         * {@link ContentProviderOperation} to assert a set of values as provided
+         * through {@link Builder#withValues(ContentValues)}.
+         */
+        NewAssertQuery(
+            [in] IUri* uri,
+            [out] IContentProviderOperationBuilder** operationBuilder);
+    }
+    
+    interface IIntegerMapWrapper {
+        GetKey(
+            [out] Int32* key);
+            
+        GetValue(
+            [out] Int32* value);
+    }
+}
