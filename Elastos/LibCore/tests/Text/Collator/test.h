@@ -16,6 +16,9 @@ public:
     int test_setStrength(int argc, char* argv[]);
     int test_stackCorruption(int argc, char* argv[]);
     int test_collationKeySize(int argc, char* argv[]);
+    int test_decompositionCompatibility(int argc, char* argv[]);
+    int test_EqualsObject(int argc, char* argv[]);
+    int test_Harmony(int argc, char* argv[]);
 
 private:
 };

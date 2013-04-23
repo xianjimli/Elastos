@@ -12,16 +12,11 @@ int CTest::test_setStrength(int argc, char* argv[])
 {
     printf("%s %d\n", __FILE__, __LINE__);
     AutoPtr<ICollatorHelper> collatorHelper;
-    printf("%s %d\n", __FILE__, __LINE__);
     CCollatorHelper::AcquireSingleton((ICollatorHelper**)&collatorHelper);
-    printf("%s %d\n", __FILE__, __LINE__);
     AutoPtr<ICollator> collator;
-    printf("%s %d\n", __FILE__, __LINE__);
     collatorHelper->GetInstance((ICollator**)&collator);
-    printf("%s %d\n", __FILE__, __LINE__);
     collator->SetStrength(Collator_PRIMARY);
-    printf("%s %d\n", __FILE__, __LINE__);
-    /*Int32 strength;
+    Int32 strength;
     collator->GetStrength(&strength);
     assert(Collator_PRIMARY == strength);
     collator->SetStrength(Collator_SECONDARY);
@@ -35,21 +30,22 @@ int CTest::test_setStrength(int argc, char* argv[])
     assert(Collator_IDENTICAL == strength);
     collator->SetStrength(-1);
     collator->GetStrength(&strength);
-    printf("strength=%d,IllegalArgumentException was not thrown.\n", strength);*/
+    printf("strength=%d,IllegalArgumentException was not thrown.\n", strength);
     return 0;
 }
 
 int CTest::test_stackCorruption(int argc, char* argv[])
 {
-    /*AutoPtr<ICollatorHelper> collatorHelper;
+    AutoPtr<ICollatorHelper> collatorHelper;
     CCollatorHelper::AcquireSingleton((ICollatorHelper**)&collatorHelper);
     AutoPtr<ICollator> mColl;
     collatorHelper->GetInstance((ICollator**)&mColl);
     mColl->SetStrength(Collator_PRIMARY);
     AutoPtr<IICUCollationKey> icu;
-    mColl->GetCollationKey(String("2d294f2d3739433565147655394f3762f3147312d3731641452f310"),
-        (IICUCollationKey**)&icu);*/
-    printf("asd");
+    mColl->GetCollationKey(
+        String("2d294f2d3739433565147655394f3762f3147312d3731641452f310"),
+        (IICUCollationKey**)&icu);
+
     return 0;
 }
 
@@ -63,7 +59,7 @@ int CTest::test_collationKeySize(int argc, char* argv[])
     b += "_THE_END";
     String sixteenplus = b.Substring(0, b.GetLength());
 
-/*    AutoPtr<ICollatorHelper> collatorHelper;
+    AutoPtr<ICollatorHelper> collatorHelper;
     CCollatorHelper::AcquireSingleton((ICollatorHelper**)&collatorHelper);
     AutoPtr<ICollator> mColl;
     collatorHelper->GetInstance((ICollator**)&mColl);
@@ -79,11 +75,11 @@ int CTest::test_collationKeySize(int argc, char* argv[])
     printf("Collation key not 0 terminated\n");
     len--;
     StringBuffer sb("");
-    for (Int i = 0; i < len; i++) {
+    for (Int32 i = 0; i < len; i++) {
         sb += (*arr)[i];
     }
     String foo = sb.Substring(0, len);
-    AutoPtr<IICUCollationKey> icu;
+
     mColl->GetCollationKey(sixteen, (IICUCollationKey**)&icu);
     icu->ToByteArray(&arr);
     len = arr->GetLength();
@@ -91,12 +87,70 @@ int CTest::test_collationKeySize(int argc, char* argv[])
     printf("Collation key not 0 terminated\n");    
     len--;
     StringBuffer sb2("");
-    for (Int i = 0; i < len; i++) {
+    for (Int32 i = 0; i < len; i++) {
         sb2 += (*arr)[i];
     }
     String bar = sb2.Substring(0, len);    
     assert(!foo.Equals(bar));
-    printf("Collation keys should differ\n");*/
-    printf("fff\n");
+    printf("Collation keys should differ\n");
     return 0;
+}
+
+int CTest::test_decompositionCompatibility(int argc, char* argv[])
+{
+    AutoPtr<ICollatorHelper> collatorHelper;
+    CCollatorHelper::AcquireSingleton((ICollatorHelper**)&collatorHelper);
+    AutoPtr<ICollator> myCollator;
+    collatorHelper->GetInstance((ICollator**)&myCollator);
+    myCollator->SetDecomposition(Collator_NO_DECOMPOSITION);
+    Int32 value;
+    myCollator->CompareEx(String("\u00e0\u0325"), String("a\u0325\u0300"), &value);
+    if (value == 0) {
+        printf("Error: \u00e0\u0325 should not equal to a\u0325\u0300 without decomposition");
+        assert(0);
+    }
+    myCollator->SetDecomposition(Collator_CANONICAL_DECOMPOSITION);
+    myCollator->CompareEx(String("\u00e0\u0325"), String("a\u0325\u0300"), &value);
+    if (value != 0) {
+        printf("Error: \u00e0\u0325 should equal to a\u0325\u0300 with decomposition");
+        assert(0);
+    }
+
+    return 0;
+}
+
+int CTest::test_EqualsObject(int argc, char* argv[])
+{
+    String rule("< a < b < c < d < e");
+    AutoPtr<IRuleBasedCollator> coll;
+    CRuleBasedCollator::New(rule, (IRuleBasedCollator**)&coll);
+
+    Int32 value;
+    coll->GetStrength(&value);
+    assert(Collator_TERTIARY == value);
+
+    AutoPtr<IRuleBasedCollator> other;
+    CRuleBasedCollator::New(rule, (IRuleBasedCollator**)&other);
+
+    coll->SetStrength(Collator_PRIMARY);
+    assert(coll != other);
+
+    coll->SetStrength(Collator_TERTIARY);
+    coll->SetDecomposition(Collator_CANONICAL_DECOMPOSITION);
+    other->SetDecomposition(Collator_NO_DECOMPOSITION);
+    assert(coll != other);
+    return 0;
+}
+
+int CTest::test_Harmony(int argc, char* argv[])
+{
+    String rule("< a< b< c< d");
+    AutoPtr<IRuleBasedCollator> coll;
+    CRuleBasedCollator::New(rule, (IRuleBasedCollator**)&coll);
+    AutoPtr<ICollationElementIterator> cei;
+    coll->GetCollationElementIteratorEx((ICharacterIterator*)NULL,
+        (ICollationElementIterator**)&cei);
+    printf("NullPointerException expected\n");
+
+    return 0; 
 }

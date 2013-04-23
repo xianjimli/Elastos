@@ -14,6 +14,7 @@ public:
 
 public:
     int test_2DigitYearStartIsCloned(int argc, char* argv[]);
+    int test_StandAloneNames(int argc, char* argv[]);
 
 private:
 };

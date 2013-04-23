@@ -8,7 +8,7 @@ typedef int (CTest::*PTestEntry)(int argc, char *argv[]);
 PTestEntry TestEntry[] =
 {
     &CTest::test_2DigitYearStartIsCloned,
-
+    &CTest::test_StandAloneNames,
 };
 
 
