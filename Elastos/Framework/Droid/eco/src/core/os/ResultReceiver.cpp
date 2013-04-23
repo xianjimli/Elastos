@@ -1,5 +1,6 @@
 
 #include "os/ResultReceiver.h"
+#include "os/CMyResultReceiver.h"
 #include "ext/frameworkdef.h"
 
 
@@ -16,67 +17,6 @@ ECode ResultReceiver::MyRunnable::Run()
 {
     assert(mHost != NULL);
     mHost->OnReceiveResult(mResultCode, mResultData);
-    return NOERROR;
-}
-
-ResultReceiver::MyResultReceiver::MyResultReceiver(
-    /* [in] */ ResultReceiver* host)
-    : mHost(host)
-{}
-
-ECode ResultReceiver::MyResultReceiver::Send(
-    /* [in] */ Int32 resultCode,
-    /* [in] */ IBundle* resultData)
-{
-    if (mHost->mHandler != NULL) {
-        //mHandler.post(new MyRunnable(resultCode, resultData, mHost));
-        AutoPtr<IRunnable> runnable = new MyRunnable(resultCode, resultData, mHost);
-        AutoPtr<IParcel> params;
-        CCallbackParcel::New((IParcel**)&params);
-        params->WriteInterfacePtr(runnable);
-
-        assert(0);
-        //TODO
-        // mHandler->PostCppCallbackDelayed(
-        //     (Handle32)mMyRunnable.Get(), 0, params, 0);
-    }
-    else {
-        mHost->OnReceiveResult(resultCode, resultData);
-    }
-
-    return NOERROR;
-}
-
-PInterface ResultReceiver::MyResultReceiver::Probe(
-    /* [in] */ REIID riid)
-{
-    if (EIID_IResultReceiver == riid) {
-        return (IResultReceiver *)this;
-    }
-
-    return NULL;
-}
-
-UInt32 ResultReceiver::MyResultReceiver::AddRef()
-{
-    return ElRefBase::AddRef();
-}
-
-UInt32 ResultReceiver::MyResultReceiver::Release()
-{
-    return ElRefBase::Release();
-}
-
-ECode ResultReceiver::MyResultReceiver::GetInterfaceID(
-    /* [in] */ IInterface *pObject,
-    /* [out] */ InterfaceID *pIID)
-{
-    VALIDATE_NOT_NULL(pIID);
-
-    if (pObject == (IInterface*)(IResultReceiver*)this) {
-        *pIID = EIID_IResultReceiver;
-    }
-
     return NOERROR;
 }
 
@@ -130,30 +70,22 @@ ECode ResultReceiver::DescribeContents(
 }
 
 ECode ResultReceiver::ReadFromParcel(
-    /* [in] */ IParcel *dest)
+    /* [in] */ IParcel* src)
 {
     mLocal = FALSE;
     mHandler = NULL;
-
-    //TODO
-    //mReceiver = IResultReceiver.Stub.asInterface(in.readStrongBinder());
-
-    return E_NOT_IMPLEMENTED;
+    return src->ReadInterfacePtr((Handle32*)&mReceiver);
 }
 
 ECode ResultReceiver::WriteToParcel(
-    /* [in] */ IParcel* out)
+    /* [in] */ IParcel* dest)
 {
-    assert(0);
-	//TODO
-    // synchronized (this) {
-    //     if (mReceiver == null) {
-    //         mReceiver = new MyResultReceiver();
-    //     }
-    //     out.writeStrongBinder(mReceiver.asBinder());
-    // }
+    Mutex::Autolock lock(GetSelfLock());
 
-    return E_NOT_IMPLEMENTED;
+    if (mReceiver == NULL) {
+        CMyResultReceiver::New((Handle32)this, (IResultReceiver**)&mReceiver);
+    }
+    return dest->WriteInterfacePtr(mReceiver.Get());
 }
 
 ECode ResultReceiver::OnReceiveResult(

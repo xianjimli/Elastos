@@ -137,14 +137,14 @@ public:
          */
         CARAPI HideSoftInput(
             /* [in] */ Int32 flags,
-            /* [in] */ IResultReceiver* resultReceiver);
+            /* [in] */ ILocalResultReceiver* resultReceiver);
 
         /**
          * Handle a request by the system to show the soft input area.
          */
         CARAPI ShowSoftInput(
             /* [in] */ Int32 flags,
-            /* [in] */ IResultReceiver* resultReceiver);
+            /* [in] */ ILocalResultReceiver* resultReceiver);
 
     private:
         InputMethodService* mHost;

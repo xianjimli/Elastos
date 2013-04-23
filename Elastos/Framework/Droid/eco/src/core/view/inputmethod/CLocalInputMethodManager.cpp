@@ -326,7 +326,7 @@ ECode CLocalInputMethodManager::ShowSoftInput(
 ECode CLocalInputMethodManager::ShowSoftInputEx(
     /* [in] */ IView* view,
     /* [in] */ Int32 flags,
-    /* [in] */ IResultReceiver* resultReceiver,
+    /* [in] */ ILocalResultReceiver* resultReceiver,
     /* [out] */ Boolean* show)
 {
     VALIDATE_NOT_NULL(show);
@@ -348,7 +348,7 @@ ECode CLocalInputMethodManager::ShowSoftInputEx(
 
 ECode CLocalInputMethodManager::ShowSoftInputUnchecked(
     /* [in] */ Int32 flags,
-    /* [in] */ IResultReceiver* resultReceiver)
+    /* [in] */ ILocalResultReceiver* resultReceiver)
 {
     // try {
     Boolean ret = FALSE;
@@ -368,7 +368,7 @@ ECode CLocalInputMethodManager::HideSoftInputFromWindow(
 ECode CLocalInputMethodManager::HideSoftInputFromWindowEx(
     /* [in] */ IBinder* windowToken,
     /* [in] */ Int32 flags,
-    /* [in] */ IResultReceiver* resultReceiver,
+    /* [in] */ ILocalResultReceiver* resultReceiver,
     /* [out] */ Boolean* hide)
 {
     VALIDATE_NOT_NULL(hide);

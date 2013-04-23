@@ -122,6 +122,7 @@
 #include "widget/CTextViewSavedState.h"
 #include "widget/CPopupWindow.h"
 #include "widget/CEditableInputConnection.h"
+#include "widget/CTextViewCommitSelectionReceiver.h"
 #include <elastos/Math.h>
 #include <elastos/Character.h>
 #include <Logger.h>
@@ -1114,103 +1115,6 @@ ECode TextView::ChangeWatcher::OnSpanRemoved(
     //        + " what=" + what + ": " + buf);
     return  mHost->SpanChange(buf, what, s, -1, e, -1);
 }
-
-
-TextView::CommitSelectionReceiver::CommitSelectionReceiver(
-    /* [in] */ Int32 prevStart,
-    /* [in] */ Int32 prevEnd,
-    /* [in] */ TextView* host)
-    : ResultReceiver(host->GetHandler())
-    , mPrevStart(prevStart)
-    , mPrevEnd(prevEnd)
-    , mHost(host)
-{}
-
-PInterface TextView::CommitSelectionReceiver::Probe(
-    /* [in] */ REIID riid)
-{
-    if (EIID_IResultReceiver == riid) {
-        return (IResultReceiver *)this;
-    }
-    else if (EIID_IParcelable == riid) {
-        return (IParcelable *)this;
-    }
-
-    return NULL;
-}
-
-UInt32 TextView::CommitSelectionReceiver::AddRef()
-{
-    return ElRefBase::AddRef();
-}
-
-UInt32 TextView::CommitSelectionReceiver::Release()
-{
-    return ElRefBase::Release();
-}
-
-ECode TextView::CommitSelectionReceiver::GetInterfaceID(
-    /* [in] */ IInterface *pObject,
-    /* [out] */ InterfaceID *pIID)
-{
-    VALIDATE_NOT_NULL(pIID);
-
-    if (pObject == (IInterface*)(IResultReceiver*)this) {
-        *pIID = EIID_IResultReceiver;
-    }
-    else if (pObject == (IInterface*)(IParcelable*)this) {
-        *pIID = EIID_IParcelable;
-    }
-
-    return NOERROR;
-}
-
-ECode TextView::CommitSelectionReceiver::Send(
-    /* [in] */ Int32 resultCode,
-    /* [in] */ IBundle* resultData)
-{
-    return ResultReceiver::Send(resultCode, resultData);
-}
-
-ECode TextView::CommitSelectionReceiver::DescribeContents(
-    /* [out] */ Int32* contents)
-{
-    return ResultReceiver::DescribeContents(contents);
-}
-
-ECode TextView::CommitSelectionReceiver::ReadFromParcel(
-    /* [in] */ IParcel *dest)
-{
-    return ResultReceiver::ReadFromParcel(dest);
-}
-
-ECode TextView::CommitSelectionReceiver::WriteToParcel(
-    /* [in] */ IParcel* out)
-{
-    return ResultReceiver::WriteToParcel(out);
-}
-
-ECode TextView::CommitSelectionReceiver::OnReceiveResult(
-    /* [in] */ Int32 resultCode,
-    /* [in] */ IBundle* resultData)
-{
-    // If this tap was actually used to show the IMM, leave cursor or selection unchanged
-    // by restoring its previous position.
-    if (resultCode == InputMethodManager_RESULT_SHOWN) {
-        Int32 len = 0;
-        mHost->mText->GetLength(&len);
-        Int32 start = Math::Min(len, mPrevStart);
-        Int32 end = Math::Min(len, mPrevEnd);
-        Selection::SetSelection(ISpannable::Probe(mHost->mText), start, end);
-
-        Boolean selectAllGotFocus = mHost->mSelectAllOnFocus && mHost->mTouchFocusSelected;
-        if (mHost->HasSelection() && !selectAllGotFocus) {
-            mHost->StartTextSelectionMode();
-        }
-    }
-    return NOERROR;
-}
-
 
 TextView::Blink::Blink(
     /* [in] */ TextView* v)
@@ -7968,15 +7872,16 @@ Boolean TextView::OnTouchEvent(
                 AutoPtr<ILocalInputMethodManager> imm;
                 GetContext()->GetSystemService(Context_INPUT_METHOD_SERVICE, (IInterface**)&imm);
 
-                AutoPtr<CommitSelectionReceiver> csr;
+                AutoPtr<CTextViewCommitSelectionReceiver> csr;
                 if (GetSelectionStart() != oldSelStart || GetSelectionEnd() != oldSelEnd ||
                         DidTouchFocusSelect()) {
-                    csr = new CommitSelectionReceiver(oldSelStart, oldSelEnd, this);
+                    CTextViewCommitSelectionReceiver::NewByFriend(oldSelStart, oldSelEnd, (Handle32)this,
+                            (CTextViewCommitSelectionReceiver**)&csr);
                 }
 
                 Boolean ret = FALSE;
                 imm->ShowSoftInputEx((IView*)this->Probe(EIID_IView), 0,
-                        (IResultReceiver*)csr.Get(), &ret);
+                        (ILocalResultReceiver*)csr.Get(), &ret);
                 handled |= ret && (csr != NULL);
 
                 // Cannot be done by CommitSelectionReceiver, which might not always be called,

@@ -237,12 +237,12 @@ ECode CIInputMethodWrapper::RevokeSession(
 
 ECode CIInputMethodWrapper::ShowSoftInput(
     /* [in] */ Int32 flags,
-    /* [in] */ IResultReceiver* resultReceiver)
+    /* [in] */ ILocalResultReceiver* resultReceiver)
 {
 	//TODO
     // mCaller.executeOrSendMessage(mCaller.obtainMessageIO(DO_SHOW_SOFT_INPUT,
     //         flags, resultReceiver));
-    ECode (STDCALL CIInputMethodWrapper::*pHandlerFunc)(Int32 flags, IResultReceiver* resultReceiver);
+    ECode (STDCALL CIInputMethodWrapper::*pHandlerFunc)(Int32 flags, ILocalResultReceiver* resultReceiver);
     pHandlerFunc = &CIInputMethodWrapper::HandleShowSoftInput;
 
     AutoPtr<IParcel> params;
@@ -254,12 +254,12 @@ ECode CIInputMethodWrapper::ShowSoftInput(
 
 ECode CIInputMethodWrapper::HideSoftInput(
     /* [in] */ Int32 flags,
-    /* [in] */ IResultReceiver* resultReceiver)
+    /* [in] */ ILocalResultReceiver* resultReceiver)
 {
 	//TODO
     // mCaller.executeOrSendMessage(mCaller.obtainMessageIO(DO_HIDE_SOFT_INPUT,
     //         flags, resultReceiver));
-    ECode (STDCALL CIInputMethodWrapper::*pHandlerFunc)(Int32 flags, IResultReceiver* resultReceiver);
+    ECode (STDCALL CIInputMethodWrapper::*pHandlerFunc)(Int32 flags, ILocalResultReceiver* resultReceiver);
     pHandlerFunc = &CIInputMethodWrapper::HandleHideSoftInput;
 
     AutoPtr<IParcel> params;
@@ -341,7 +341,7 @@ ECode CIInputMethodWrapper::HandleRevokeSession(
 
 ECode CIInputMethodWrapper::HandleShowSoftInput(
     /* [in] */ Int32 flags,
-    /* [in] */ IResultReceiver* resultReceiver)
+    /* [in] */ ILocalResultReceiver* resultReceiver)
 {
     assert(mInputMethod != NULL);
     return mInputMethod->ShowSoftInput(flags, resultReceiver);
@@ -349,7 +349,7 @@ ECode CIInputMethodWrapper::HandleShowSoftInput(
 
 ECode CIInputMethodWrapper::HandleHideSoftInput(
     /* [in] */ Int32 flags,
-    /* [in] */ IResultReceiver* resultReceiver)
+    /* [in] */ ILocalResultReceiver* resultReceiver)
 {
     assert(mInputMethod != NULL);
     return mInputMethod->HideSoftInput(flags, resultReceiver);

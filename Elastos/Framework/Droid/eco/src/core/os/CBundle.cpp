@@ -24,6 +24,10 @@ CBundle::CBundle()
 
 CBundle::~CBundle()
 {
+    if (mParcelledData != 0) {
+        delete (android::Parcel*)mParcelledData;
+    }
+
     if (mMap != NULL) {
         mMap->Clear();
         delete mMap;
@@ -59,26 +63,31 @@ ECode CBundle::constructor(
 }
 
 ECode CBundle::constructor(
-    /* [in] */ IBundle * bundle)
+    /* [in] */ IBundle* bundle)
 {
-    // if (b.mParcelledData != null) {
-    //     mParcelledData = Parcel.obtain();
-    //     mParcelledData.appendFrom(b.mParcelledData, 0, b.mParcelledData.dataSize());
-    //     mParcelledData.setDataPosition(0);
-    // } else {
-    //     mParcelledData = null;
-    // }
+    CBundle* b = (CBundle*)bundle;
+    if (b->mParcelledData != 0) {
+        android::Parcel* p = new android::Parcel();
+        p->appendFrom((android::Parcel*)b->mParcelledData, 0,
+            ((android::Parcel*)b->mParcelledData)->dataSize());
+        p->setDataPosition(0);
+        mParcelledData = (Handle32)p;
+    }
+    else {
+        mParcelledData = 0;
+    }
 
-    // if (b.mMap != null) {
-    //     mMap = new HashMap<String, Object>(b.mMap);
-    // } else {
-    //     mMap = null;
-    // }
+    if (b->mMap != NULL) {
+        mMap = new HashMap<String, AutoPtr<IInterface> >(b->mMap->Begin(), b->mMap->End());
+    }
+    else {
+        mMap = NULL;
+    }
 
-    // mHasFds = b.mHasFds;
-    // mFdsKnown = b.mFdsKnown;
-    // mClassLoader = b.mClassLoader;
-    return E_NOT_IMPLEMENTED;
+    mHasFds = b->mHasFds;
+    mFdsKnown = b->mFdsKnown;
+    mClassLoader = b->mClassLoader;
+    return NOERROR;
 }
 
 ECode CBundle::GetPairValue(

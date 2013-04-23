@@ -6,6 +6,21 @@
 #include "rot.h"
 #include <binder/ProcessState.h>
 
+#define DUMP_ITFID(intf) \
+    do { \
+        InterfaceID iid; \
+        intf->GetInterfaceID(intf, &iid); \
+        printf("======== DUMP_ITFID ========\n"); \
+        printf("{%p, %p, %p, {%p, %p, %p, %p, %p, %p, %p, %p} }\n", \
+                iid.Data1, iid.Data2, iid.Data3, \
+                iid.Data4[0], iid.Data4[1], \
+                iid.Data4[2], iid.Data4[3], \
+                iid.Data4[4], iid.Data4[5], \
+                iid.Data4[6], iid.Data4[7]); \
+        printf("============================\n"); \
+    } while(0);
+
+
 ECode LookupModuleInfo(
     /* [in] */ REMuid rclsid,
     /* [out] */ CIModuleInfo **ppModuleInfo);
@@ -543,6 +558,7 @@ ECode CObjectStub::S_CreateObject(
 
     pObj1 = (IObject*)pObject->Probe(EIID_IObject);
     if (!pObj1) {
+        // DUMP_ITFID(pObject);
 	    MARSHAL_DBGOUT(MSHDBG_ERROR, printf(
                 "Create stub: interface do not support EIID_IObject QI.\n"));
         goto ErrorExit;

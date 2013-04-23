@@ -673,10 +673,11 @@ void BaseInputConnection::EnsureDefaultComposingSpans()
 }
 
 void BaseInputConnection::ReplaceText(
-    /* [in] */ ICharSequence* text,
+    /* [in] */ ICharSequence* _text,
     /* [in] */ Int32 newCursorPosition,
     /* [in] */ Boolean composing)
 {
+    AutoPtr<ICharSequence> text = _text;
     AutoPtr<IEditable> content = GetEditable();
     if (content == NULL) {
         return;

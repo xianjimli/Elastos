@@ -38,6 +38,7 @@ SOURCES += CBinder.cpp
 SOURCES += ElObject.cpp
 SOURCES += ResultReceiver.cpp
 SOURCES += CResultReceiver.cpp
+SOURCES += CMyResultReceiver.cpp
 SOURCES += CRemoteCallbackList.cpp
 SOURCES += HandlerThread.cpp
 SOURCES += UEventObserver.cpp

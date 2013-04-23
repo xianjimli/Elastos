@@ -282,13 +282,13 @@ public:
     CARAPI ShowSoftInput(
         /* [in] */ IInputMethodClient* client,
         /* [in] */ Int32 flags,
-        /* [in] */ IResultReceiver* resultReceiver,
+        /* [in] */ ILocalResultReceiver* resultReceiver,
         /* [out] */ Boolean* state);
 
     CARAPI HideSoftInput(
         /* [in] */ IInputMethodClient* client,
         /* [in] */ Int32 flags,
-        /* [in] */ IResultReceiver* resultReceiver,
+        /* [in] */ ILocalResultReceiver* resultReceiver,
         /* [out] */ Boolean* state);
 
     CARAPI WindowGainedFocus(
@@ -355,11 +355,11 @@ protected:
 
     /* packaged */ CARAPI_(Boolean) ShowCurrentInputLocked(
         /* [in] */ Int32 flags,
-        /* [in] */ IResultReceiver* resultReceiver);
+        /* [in] */ ILocalResultReceiver* resultReceiver);
 
     /* packaged */ CARAPI_(Boolean) HideCurrentInputLocked(
         /* [in] */ Int32 flags,
-        /* [in] */ IResultReceiver* resultReceiver);
+        /* [in] */ ILocalResultReceiver* resultReceiver);
 
     /* packaged */ CARAPI_(void) SetEnabledSessionInMainThread(
         /* [in] */ SessionState* session);
@@ -411,12 +411,12 @@ private:
     CARAPI_(void) HandleShowSoftInput(
         /* [in] */ IInputMethod* inputMethod,
         /* [in] */ Int32 flags,
-        /* [in] */ IResultReceiver* resultReceiver);
+        /* [in] */ ILocalResultReceiver* resultReceiver);
 
     //Handle MSG_HIDE_SOFT_INPUT
     CARAPI_(void) HandleHideSoftInput(
         /* [in] */ IInputMethod* inputMethod,
-        /* [in] */ IResultReceiver* resultReceiver);
+        /* [in] */ ILocalResultReceiver* resultReceiver);
 
     //Handle MSG_ATTACH_TOKEN
     CARAPI_(void) HandleAttachToken(

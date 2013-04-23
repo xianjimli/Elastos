@@ -23,6 +23,16 @@ module
         interface IParcelable;
     }
 
+    class CParcelableStringWrapper {
+        constructor();
+
+        constructor(
+            [in] String str);
+
+        interface ICharSequence;
+        interface IParcelable;
+    }
+
     class CDisplayMetrics {
         interface IDisplayMetrics;
     }

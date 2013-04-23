@@ -494,25 +494,28 @@ AutoPtr<IEditable> SpannableStringBuilder::Replace(
 
         Int32 origlen = end - start;
 
-        if (mGapLength < 2)
+        if (mGapLength < 2) {
             ResizeFor(GetLength() + 1);
+        }
 
         for (Int32 i = mSpanCount - 1; i >= 0; i--) {
-            if ((*mSpanStarts)[i] == mGapStart)
+            if ((*mSpanStarts)[i] == mGapStart) {
                 (*mSpanStarts)[i]++;
+            }
 
-            if ((*mSpanEnds)[i] == mGapStart)
+            if ((*mSpanEnds)[i] == mGapStart) {
                 (*mSpanEnds)[i]++;
+            }
         }
 
         (*mText)[mGapStart] = ' ';
         mGapStart++;
         mGapLength--;
 
-        if (mGapLength < 1)
+        if (mGapLength < 1) {
             assert(0);
             //new Exception("mGapLength < 1").printStackTrace();
-
+        }
         Int32 oldlen = (end + 1) - start;
 
         Int32 inserted = Change(

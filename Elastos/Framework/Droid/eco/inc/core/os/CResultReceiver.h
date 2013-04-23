@@ -45,6 +45,9 @@ public:
 
     CARAPI WriteToParcel(
         /* [in] */ IParcel *dest);
+
+private:
+    CARAPI_(Mutex*) GetSelfLock();
 };
 
 #endif  //__CRESULTRECEIVER_H__

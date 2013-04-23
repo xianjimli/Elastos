@@ -794,11 +794,12 @@ ECode CSoftKeyboard::OnStartInput(
             // be doing predictive text (showing candidates as the
             // user types).
             mCurKeyboard = mQwertyKeyboard;
-            mPredictionOn = TRUE;
+            //todo:
+            // mPredictionOn = TRUE;
 
             // We now look for a few special variations of text that will
             // modify our behavior.
-            variation = inputType &  InputType_TYPE_MASK_VARIATION;
+            variation = inputType & InputType_TYPE_MASK_VARIATION;
             if (variation == InputType_TYPE_TEXT_VARIATION_PASSWORD ||
                     variation == InputType_TYPE_TEXT_VARIATION_VISIBLE_PASSWORD) {
                 // Do not display predictions / what the user is typing
@@ -1442,7 +1443,7 @@ void CSoftKeyboard::CommitTyped(
 {
     if (mComposing.GetLength() > 0) {
         AutoPtr<ICharSequence> text;
-        CStringWrapper::New(String((const char*)mComposing), (ICharSequence**)&text);
+        CParcelableStringWrapper::New(String((const char*)mComposing), (ICharSequence**)&text);
         Boolean temp = FALSE;
         inputConnection->CommitText(text, mComposing.GetLength(), &temp);
         // mComposing.SetLength(0);
@@ -1517,7 +1518,7 @@ void CSoftKeyboard::SendKey(
                 Elastos::Core::Character::ToChars(keyCode, chs, 0, &num);
                 chs[num] = 0;
                 AutoPtr<ICharSequence> cs;
-                CStringWrapper::New(String(chs.GetPayload()), (ICharSequence**)&cs);
+                CParcelableStringWrapper::New(String(chs.GetPayload()), (ICharSequence**)&cs);
 
                 Boolean tmpState = FALSE;
                 ic->CommitText(cs, 1, &tmpState);
@@ -1532,7 +1533,7 @@ void CSoftKeyboard::UpdateCandidates()
         if (mComposing.GetLength() > 0) {
             ArrayOf<ICharSequence*>* list = ArrayOf<ICharSequence*>::Alloc(1);
             AutoPtr<ICharSequence> text;
-            CStringWrapper::New(String((const char*)mComposing), (ICharSequence**)&text);
+            CParcelableStringWrapper::New(String((const char*)mComposing), (ICharSequence**)&text);
             (*list)[0] = text.Get();
             SetSuggestions(list, TRUE, TRUE);
             ArrayOf<ICharSequence*>::Free(list);
@@ -1552,7 +1553,7 @@ void CSoftKeyboard::HandleBackspace()
         //mComposing.Replace(length - 1, 1, (const char*)mComposing);
         mComposing.DeleteChar(length - 1);
         AutoPtr<ICharSequence> text;
-        CStringWrapper::New(String((const char*)mComposing), (ICharSequence**)&text);
+        CParcelableStringWrapper::New(String((const char*)mComposing), (ICharSequence**)&text);
         Boolean temp = FALSE;
         ic->SetComposingText(text, 1, &temp);
         UpdateCandidates();
@@ -1562,7 +1563,7 @@ void CSoftKeyboard::HandleBackspace()
         AutoPtr<IInputConnection> ic;
         GetCurrentInputConnection((IInputConnection**)&ic);
         AutoPtr<ICharSequence> text;
-        CStringWrapper::New(String(""), (ICharSequence**)&text);
+        CParcelableStringWrapper::New(String(""), (ICharSequence**)&text);
         Boolean temp = FALSE;
         ic->CommitText(text, 0, &temp);
         UpdateCandidates();
@@ -1621,7 +1622,7 @@ void CSoftKeyboard::HandleCharacter(
     if (IsAlphabet(primaryCode) && mPredictionOn) {
         mComposing += primaryCode;
         AutoPtr<ICharSequence> text;
-        CStringWrapper::New(String((const char*)mComposing), (ICharSequence**)&text);
+        CParcelableStringWrapper::New(String((const char*)mComposing), (ICharSequence**)&text);
         Boolean temp = FALSE;
         ic->SetComposingText(text, 1, &temp);
         AutoPtr<IEditorInfo> ei;
@@ -1635,7 +1636,7 @@ void CSoftKeyboard::HandleCharacter(
         Character::ToChars(primaryCode, chs, 0, &num);
         chs[num] = 0;
         AutoPtr<ICharSequence> cs;
-        CStringWrapper::New(String(chs.GetPayload()), (ICharSequence**)&cs);
+        CParcelableStringWrapper::New(String(chs.GetPayload()), (ICharSequence**)&cs);
         Boolean tmpState = FALSE;
         ic->CommitText(cs, 1, &tmpState);
     }

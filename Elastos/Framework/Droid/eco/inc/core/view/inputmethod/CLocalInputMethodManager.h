@@ -147,13 +147,13 @@ public:
     CARAPI ShowSoftInputEx(
         /* [in] */ IView* view,
         /* [in] */ Int32 flags,
-        /* [in] */ IResultReceiver* resultReceiver,
+        /* [in] */ ILocalResultReceiver* resultReceiver,
         /* [out] */ Boolean* show);
 
     /** @hide */
     CARAPI ShowSoftInputUnchecked(
         /* [in] */ Int32 flags,
-        /* [in] */ IResultReceiver* resultReceiver);
+        /* [in] */ ILocalResultReceiver* resultReceiver);
 
     /**
      * Synonym for {@link #hideSoftInputFromWindow(IBinder, Int32, ResultReceiver)
@@ -189,7 +189,7 @@ public:
     CARAPI HideSoftInputFromWindowEx(
         /* [in] */ IBinder* windowToken,
         /* [in] */ Int32 flags,
-        /* [in] */ IResultReceiver* resultReceiver,
+        /* [in] */ ILocalResultReceiver* resultReceiver,
         /* [out] */ Boolean* hide);
 
     /**

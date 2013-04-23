@@ -14,6 +14,19 @@ module
     const Intent_ACTION_MAIN = "elastos.intent.action.MAIN";
 
     /**
+     * Activity Action: Display the data to the user.  This is the most common
+     * action performed on data -- it is the generic action you can use on
+     * a piece of data to get the most reasonable thing to occur.  For example,
+     * when used on a contacts entry it will view the entry; when used on a
+     * mailto: URI it will bring up a compose window filled with the information
+     * supplied by the URI; when used with a tel: URI it will invoke the
+     * dialer.
+     * <p>Input: {@link #getData} is URI from which to retrieve data.
+     * <p>Output: nothing.
+     */
+    const Intent_ACTION_VIEW = "elastos.intent.action.VIEW";
+
+    /**
      * Broadcast Action: Sent after the screen turns off.
      *
      * <p class="note">This is a protected intent that can only be sent

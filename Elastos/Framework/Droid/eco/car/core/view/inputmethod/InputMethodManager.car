@@ -13,7 +13,7 @@ module
     interface IBundle;
     interface IKeyEvent;
     interface IInputMethodCallback;
-    interface IResultReceiver;
+    interface ILocalResultReceiver;
     interface IInputContext;
 
 
@@ -185,13 +185,13 @@ module
         ShowSoftInputEx(
             [in] IView* view,
             [in] Int32 flags,
-            [in] IResultReceiver* resultReceiver,
+            [in] ILocalResultReceiver* resultReceiver,
             [out] Boolean* ret);
 
         /** @hide */
         ShowSoftInputUnchecked(
             [in] Int32 flags,
-            [in] IResultReceiver* resultReceiver);
+            [in] ILocalResultReceiver* resultReceiver);
 
         /**
          * Synonym for {@link #hideSoftInputFromWindow(IBinder, int, ResultReceiver)
@@ -227,7 +227,7 @@ module
         HideSoftInputFromWindowEx(
             [in] IBinder* windowToken,
             [in] Int32 flags,
-            [in] IResultReceiver* resultReceiver,
+            [in] ILocalResultReceiver* resultReceiver,
             [out] Boolean* ret);
 
         /**

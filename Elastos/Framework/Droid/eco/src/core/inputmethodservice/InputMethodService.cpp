@@ -300,7 +300,7 @@ ECode InputMethodService::InputMethodImpl::RestartInput(
 
 ECode InputMethodService::InputMethodImpl::HideSoftInput(
     /* [in] */ Int32 flags,
-    /* [in] */ IResultReceiver* resultReceiver)
+    /* [in] */ ILocalResultReceiver* resultReceiver)
 {
     assert(mHost != NULL);
     // if (DEBUG) Log.v(TAG, "hideSoftInput()");
@@ -323,7 +323,7 @@ ECode InputMethodService::InputMethodImpl::HideSoftInput(
 
 ECode InputMethodService::InputMethodImpl::ShowSoftInput(
     /* [in] */ Int32 flags,
-    /* [in] */ IResultReceiver* resultReceiver)
+    /* [in] */ ILocalResultReceiver* resultReceiver)
 {
     assert(mHost != NULL);
     // if (DEBUG) Log.v(TAG, "showSoftInput()");

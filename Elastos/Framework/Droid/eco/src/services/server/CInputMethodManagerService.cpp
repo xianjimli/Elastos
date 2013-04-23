@@ -1029,7 +1029,7 @@ ECode CInputMethodManagerService::SetInputMethodLocked(
 ECode CInputMethodManagerService::ShowSoftInput(
     /* [in] */ IInputMethodClient* client,
     /* [in] */ Int32 flags,
-    /* [in] */ IResultReceiver* resultReceiver,
+    /* [in] */ ILocalResultReceiver* resultReceiver,
     /* [out] */ Boolean* state)
 {
     VALIDATE_NOT_NULL(state);
@@ -1067,7 +1067,7 @@ ECode CInputMethodManagerService::ShowSoftInput(
 
 Boolean CInputMethodManagerService::ShowCurrentInputLocked(
     /* [in] */ Int32 flags,
-    /* [in] */ IResultReceiver* resultReceiver)
+    /* [in] */ ILocalResultReceiver* resultReceiver)
 {
     mShowRequested = TRUE;
     if ((flags & InputMethodManager_SHOW_IMPLICIT) == 0) {
@@ -1089,7 +1089,7 @@ Boolean CInputMethodManagerService::ShowCurrentInputLocked(
         //         MSG_SHOW_SOFT_INPUT, GetImeShowFlags(), mCurMethod,
         //         resultReceiver));
 //         if (IBinder::Probe(mCurMethod) != NULL) {
-//             void (STDCALL CInputMethodManagerService::*pHandlerFunc)(IInputMethod*,Int32,IResultReceiver*);
+//             void (STDCALL CInputMethodManagerService::*pHandlerFunc)(IInputMethod*,Int32,ILocalResultReceiver*);
 //             pHandlerFunc = &CInputMethodManagerService::HandleShowSoftInput;
 //             AutoPtr<IParcel> params;
 //             CCallbackParcel::New((IParcel**)&params);
@@ -1125,7 +1125,7 @@ Boolean CInputMethodManagerService::ShowCurrentInputLocked(
 ECode CInputMethodManagerService::HideSoftInput(
     /* [in] */ IInputMethodClient* client,
     /* [in] */ Int32 flags,
-    /* [in] */ IResultReceiver* resultReceiver,
+    /* [in] */ ILocalResultReceiver* resultReceiver,
     /* [out] */ Boolean* state)
 {
     VALIDATE_NOT_NULL(state);
@@ -1165,7 +1165,7 @@ ECode CInputMethodManagerService::HideSoftInput(
 
 Boolean CInputMethodManagerService::HideCurrentInputLocked(
     /* [in] */ Int32 flags,
-    /* [in] */ IResultReceiver* resultReceiver)
+    /* [in] */ ILocalResultReceiver* resultReceiver)
 {
     if ((flags & InputMethodManager_HIDE_IMPLICIT_ONLY) != 0
             && (mShowExplicitlyRequested || mShowForced)) {
@@ -1183,7 +1183,7 @@ Boolean CInputMethodManagerService::HideCurrentInputLocked(
         // executeOrSendMessage(mCurMethod, mCaller.obtainMessageOO(
         //         MSG_HIDE_SOFT_INPUT, mCurMethod, resultReceiver));
         if (IBinder::Probe(mCurMethod) != NULL) {
-            void (STDCALL CInputMethodManagerService::*pHandlerFunc)(IInputMethod*, IResultReceiver*);
+            void (STDCALL CInputMethodManagerService::*pHandlerFunc)(IInputMethod*, ILocalResultReceiver*);
             pHandlerFunc = &CInputMethodManagerService::HandleHideSoftInput;
             AutoPtr<IParcel> params;
             CCallbackParcel::New((IParcel**)&params);
@@ -1802,7 +1802,7 @@ void CInputMethodManagerService::HandleBindInput(
 void CInputMethodManagerService::HandleShowSoftInput(
     /* [in] */ IInputMethod* inputMethod,
     /* [in] */ Int32 flags,
-    /* [in] */ IResultReceiver* resultReceiver)
+    /* [in] */ ILocalResultReceiver* resultReceiver)
 {
     // try {
     inputMethod->ShowSoftInput(flags, resultReceiver);
@@ -1812,7 +1812,7 @@ void CInputMethodManagerService::HandleShowSoftInput(
 
 void CInputMethodManagerService::HandleHideSoftInput(
     /* [in] */ IInputMethod* inputMethod,
-    /* [in] */ IResultReceiver* resultReceiver)
+    /* [in] */ ILocalResultReceiver* resultReceiver)
 {
     // try {
     inputMethod->HideSoftInput(0, resultReceiver);

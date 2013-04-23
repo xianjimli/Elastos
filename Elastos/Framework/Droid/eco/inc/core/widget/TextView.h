@@ -485,54 +485,6 @@ private:
         TextView* mHost;
     };
 
-    class CommitSelectionReceiver
-        : public ElRefBase
-        , public IResultReceiver
-        , public IParcelable
-        , public ResultReceiver
-    {
-    public:
-        CommitSelectionReceiver(
-            /* [in] */ Int32 prevStart,
-            /* [in] */ Int32 prevEnd,
-            /* [in] */ TextView* host);
-
-        CARAPI_(PInterface) Probe(
-            /* [in] */ REIID riid);
-
-        CARAPI_(UInt32) AddRef();
-
-        CARAPI_(UInt32) Release();
-
-        CARAPI GetInterfaceID(
-            /* [in] */ IInterface *pObject,
-            /* [out] */ InterfaceID *pIID);
-
-        CARAPI Send(
-            /* [in] */ Int32 resultCode,
-            /* [in] */ IBundle* resultData);
-
-        CARAPI DescribeContents(
-                /* [out] */ Int32* contents);
-
-        CARAPI ReadFromParcel(
-            /* [in] */ IParcel *source);
-
-        CARAPI WriteToParcel(
-            /* [in] */ IParcel *dest);
-
-    protected:
-        //@Override
-        CARAPI OnReceiveResult(
-            /* [in] */ Int32 resultCode,
-            /* [in] */ IBundle* resultData);
-
-    private:
-        const Int32 mPrevStart;
-        const Int32 mPrevEnd;
-        TextView*   mHost;
-    };
-
     class Blink : public Runnable
     {
     public:
@@ -2823,7 +2775,7 @@ private:
     //    }
     //}
 
-    friend class CommitSelectionReceiver;
+    friend class CTextViewCommitSelectionReceiver;
 };
 
 #endif //__TEXTVIEW_H__

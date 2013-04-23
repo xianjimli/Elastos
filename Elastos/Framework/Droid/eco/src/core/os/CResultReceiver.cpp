@@ -33,3 +33,8 @@ ECode CResultReceiver::WriteToParcel(
 {
     return ResultReceiver::WriteToParcel(out);
 }
+
+Mutex* CResultReceiver::GetSelfLock()
+{
+    return &_m_syncLock;
+}

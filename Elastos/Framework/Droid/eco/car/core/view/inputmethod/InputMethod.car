@@ -42,7 +42,7 @@ module
     interface IInputBinding;
     interface IEditorInfo;
     interface IInputConnection;
-    interface IResultReceiver;
+    interface ILocalResultReceiver;
 
     interface ILocalInputMethodSessionCallback {
         SessionCreated(
@@ -204,7 +204,7 @@ module
          */
         ShowSoftInput(
             [in] Int32 flags,
-            [in] IResultReceiver* resultReceiver);
+            [in] ILocalResultReceiver* resultReceiver);
 
         /**
          * Request that any soft input part of the input method be hidden from the user.
@@ -220,6 +220,6 @@ module
          */
         HideSoftInput(
             [in] Int32 flags,
-            [in] IResultReceiver* resultReceiver);
+            [in] ILocalResultReceiver* resultReceiver);
     }
 }

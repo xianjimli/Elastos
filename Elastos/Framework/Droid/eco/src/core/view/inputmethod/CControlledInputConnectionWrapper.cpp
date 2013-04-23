@@ -102,6 +102,9 @@ ECode CControlledInputConnectionWrapper::SetComposingText(
     /* [in] */ ICharSequence* text,
     /* [in] */ Int32 newCursorPosition)
 {
+    String str;
+    text->ToString(&str);
+    printf("==== File: %s, Line: %d, pid: %d, text: %s ====\n", __FILE__, __LINE__, getpid(), str.string());
     return IInputConnectionWrapper::SetComposingText(text, newCursorPosition);
 }
 

@@ -3,7 +3,8 @@ module
 {
     interface IBundle;
 
-    interface ILocalResultReceiver {
+    /** @hide */
+    /* oneway */ interface IResultReceiver {
         Send(
             [in] Int32 resultCode,
             [in] IBundle* resultData);

@@ -83,11 +83,11 @@ public:
 
     CARAPI ShowSoftInput(
         /* [in] */ Int32 flags,
-        /* [in] */ IResultReceiver* resultReceiver);
+        /* [in] */ ILocalResultReceiver* resultReceiver);
 
     CARAPI HideSoftInput(
         /* [in] */ Int32 flags,
-        /* [in] */ IResultReceiver* resultReceiver);
+        /* [in] */ ILocalResultReceiver* resultReceiver);
 
     CARAPI GetDescription(
         /* [out] */ String* description);
@@ -121,11 +121,11 @@ private:
 
     CARAPI HandleShowSoftInput(
         /* [in] */ Int32 flags,
-        /* [in] */ IResultReceiver* resultReceiver);
+        /* [in] */ ILocalResultReceiver* resultReceiver);
 
     CARAPI HandleHideSoftInput(
         /* [in] */ Int32 flags,
-        /* [in] */ IResultReceiver* resultReceiver);
+        /* [in] */ ILocalResultReceiver* resultReceiver);
 
 private:
     static const CString TAG;

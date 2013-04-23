@@ -13,6 +13,7 @@ module
     merge("os/Vibrator.car");
     merge("os/WorkSource.car");
     merge("os/ResultReceiver.car");
+    merge("os/IResultReceiver.car");
     merge("os/RemoteCallbackList.car");
     merge("os/storage/IMountServiceListener.car");
     merge("os/storage/IMountShutdownObserver.car");
@@ -130,7 +131,7 @@ module
         constructor(
             [in] IApartment* handler);
 
-        interface IResultReceiver;
+        interface ILocalResultReceiver;
         interface IParcelable;
     }
 
@@ -138,5 +139,12 @@ module
         constructor();
 
         interface IBinder;
+    }
+
+    class CMyResultReceiver {
+        constructor(
+            [in] Handle32 host);
+
+        interface IResultReceiver;
     }
 }

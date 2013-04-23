@@ -40,6 +40,7 @@ SOURCES += ScrollBarDrawable.cpp
 SOURCES += CScrollBarDrawable.cpp
 SOURCES += TextViewSavedState.cpp
 SOURCES += CTextViewSavedState.cpp
+SOURCES += CTextViewCommitSelectionReceiver.cpp
 SOURCES += TextView.cpp
 SOURCES += CTextView.cpp
 SOURCES += CDialogTitle.cpp

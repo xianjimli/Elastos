@@ -6,7 +6,7 @@ module
     interface IInputMethodClient;
     interface IInputBindResult;
     interface IEditorInfo;
-    interface IResultReceiver;
+    interface ILocalResultReceiver;
     interface IBinder;
 
     /**
@@ -43,13 +43,13 @@ module
         ShowSoftInput(
             [in] IInputMethodClient* client,
             [in] Int32 flags,
-            [in] IResultReceiver* resultReceiver,
+            [in] ILocalResultReceiver* resultReceiver,
             [out] Boolean* res);
 
         HideSoftInput(
             [in] IInputMethodClient* client,
             [in] Int32 flags,
-            [in] IResultReceiver* resultReceiver,
+            [in] ILocalResultReceiver* resultReceiver,
             [out] Boolean* res);
 
         WindowGainedFocus(

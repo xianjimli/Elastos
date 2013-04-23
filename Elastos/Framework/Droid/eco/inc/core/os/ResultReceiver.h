@@ -5,7 +5,10 @@
 #include "os/Runnable.h"
 #include <elastos/AutoPtr.h>
 #include <elastos/ElRefBase.h>
+#include <elastos/Mutex.h>
 
+
+using namespace Elastos::Core::Threading;
 
 /**
  * Generic interface for receiving a callback result from someone.  Use this
@@ -15,6 +18,8 @@
  */
 class ResultReceiver
 {
+    friend class CMyResultReceiver;
+
 private:
     class MyRunnable : public Runnable
     {
@@ -29,33 +34,6 @@ private:
     private:
         const Int32 mResultCode;
         const AutoPtr<IBundle> mResultData;
-        ResultReceiver* mHost;
-    };
-
-    class MyResultReceiver
-        : public ElRefBase
-        , public IResultReceiver
-    {
-    public:
-        MyResultReceiver(
-            /* [in] */ ResultReceiver* host);
-
-        CARAPI Send(
-            /* [in] */ Int32 resultCode,
-            /* [in] */ IBundle* resultData);
-
-        CARAPI_(PInterface) Probe(
-            /* [in] */ REIID riid);
-
-        CARAPI_(UInt32) AddRef();
-
-        CARAPI_(UInt32) Release();
-
-        CARAPI GetInterfaceID(
-            /* [in] */ IInterface *pObject,
-            /* [out] */ InterfaceID *pIID);
-
-    private:
         ResultReceiver* mHost;
     };
 
@@ -109,6 +87,9 @@ protected:
     CARAPI OnReceiveResult(
         /* [in] */ Int32 resultCode,
         /* [in] */ IBundle* resultData);
+
+protected:
+    virtual CARAPI_(Mutex*) GetSelfLock() = 0;
 
 protected:
     Boolean mLocal;

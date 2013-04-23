@@ -118,18 +118,11 @@ ECode CUsbInterface::ReadFromParcel(
 {
     Int32 id, cls, subCls, protocol;
 
-    source->ReadInt32(&id);
-    source->ReadInt32(&cls);
-    source->ReadInt32(&subCls);
-    source->ReadInt32(&protocol);
-
-    // RYAN
-    // Parcelable[] endpoints = in.readParcelableArray(UsbEndpoint.class.getClassLoader());
-    ArrayOf<IParcelable*>* endpoints;
-
-    AutoPtr<CUsbInterface> usbInterface;
-    CUsbInterface::NewByFriend(id, cls, subCls, protocol, *endpoints, (CUsbInterface**)&usbInterface);
-
+    source->ReadInt32(&mId);
+    source->ReadInt32(&mClass);
+    source->ReadInt32(&mSubclass);
+    source->ReadInt32(&mProtocol);
+    source->ReadArrayOf((Handle32*)&mEndpoints);
     return NOERROR;
 }
 
@@ -142,9 +135,6 @@ ECode CUsbInterface::WriteToParcel(
     dest->WriteInt32(mClass);
     dest->WriteInt32(mSubclass);
     dest->WriteInt32(mProtocol);
-
-    // RYAN
-    // parcel.writeParcelableArray(mEndpoints, 0);
-
+    dest->WriteArrayOf((Handle32)mEndpoints);
     return NOERROR;
 }
