@@ -61,4 +61,9 @@ SOURCES += ContentUris.cpp
 SOURCES += CUriMatcher.cpp
 SOURCES += CContentProviderClient.cpp
 SOURCES += CContentProviderResult.cpp
+SOURCES += CContentProviderOperation.cpp
+SOURCES += CContentProviderOperationBuilder.cpp
+SOURCES += CContentProviderOperationHelper.cpp
+SOURCES += CIntegerMapWrapper.cpp
+
 LIBRARIES += cm/cm.lib

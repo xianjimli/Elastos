@@ -49,6 +49,9 @@ module
     merge("content/contentresolver.car");
     merge("content/contentvalues.car");
     merge("content/contentprovider.car");
+    merge("content/ContentProviderClient.car");
+    merge("content/ContentProviderResult.car");
+    merge("content/ContentProviderOperation.car");
 
     merge("content/serviceconnection.car");
     merge("content/iintentsender.car");
@@ -63,8 +66,6 @@ module
     merge("content/PathPermission.car");
     merge("content/SharedPreferences.car");
     merge("content/UriMatcher.car");
-    merge("content/ContentProviderClient.car");
-    merge("content/ContentProviderResult.car");
   
     
     interface ICursor;
@@ -595,7 +596,7 @@ module
         interface IUriMatcher;
     }
 
-    class CContentProviderClient{
+    class CContentProviderClient {
         constructor(
             [in] IContentResolver* resolver,
             [in] IContentProvider* provider);
@@ -603,7 +604,7 @@ module
         interface IContentProviderClient;
     }
 
-    class CContentProviderResult{
+    class CContentProviderResult {
         constructor(
             [in] IUri* uri);
 
@@ -616,6 +617,43 @@ module
         interface IContentProviderResult;
         interface IParcelable;
     }
+    
+    interface IContentProviderOperationBuilder;
+    
+    class CContentProviderOperation {
+        /**
+        * Creates a {@link ContentProviderOperation} by copying the contents of a
+        * {@link Builder}.
+        */
+        constructor(
+            [in] IContentProviderOperationBuilder* operationBuilder);
+        
+        constructor(
+            [in] IParcel* source);
+            
+        interface IContentProviderOperation;
+        interface IParcelable;
+    }
+    
+    class CContentProviderOperationBuilder {
+        constructor(
+            [in] Int32 type,
+            [in] IUri* uri);
 
+        interface IContentProviderOperationBuilder;
+    }
+    
+    singleton class CContentProviderOperationHelper {
+            
+        interface IContentProviderOperationHelper;
+    }
+    
+    class CIntegerMapWrapper {
+        constructor(
+            [in] Int32 key,
+            [in] Int32 value);
+            
+        interface IIntegerMapWrapper;
+    }
 }
 
