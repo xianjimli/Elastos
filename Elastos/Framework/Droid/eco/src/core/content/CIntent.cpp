@@ -2184,13 +2184,7 @@ ECode CIntent::ReadFromParcel(
     CComponentName::ReadFromParcel(source, (CComponentName**)&mComponent);
     source->ReadString(&mAction);
 
-    Int32 size;
-    source->ReadInt32(&size);
-    if (size > 0) {
-        CBundle::ReadFromParcel(source, size, (IBundle**)&mExtras);
-    }
-
-    return NOERROR;
+    return CBundle::ReadFromParcel(source, (IBundle**)&mExtras);
 }
 
 ECode CIntent::WriteToParcel(
@@ -2200,12 +2194,5 @@ ECode CIntent::WriteToParcel(
     CComponentName::WriteToParcel(mComponent, dest);
     dest->WriteString(mAction);
 
-    if (mExtras != NULL) {
-        CBundle::WriteToParcel(mExtras, dest);
-    }
-    else {
-        dest->WriteInt32(-1);
-    }
-
-    return NOERROR;
+    return CBundle::WriteToParcel(mExtras, dest);
 }

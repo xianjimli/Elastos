@@ -1936,11 +1936,15 @@ ECode CBundle::ReadFromParcelInner(
 
 ECode CBundle::ReadFromParcel(
     /* [in] */ IParcel *source,
-    /* [in] */ Int32 length,
     /* [out] */ IBundle** bundle)
 {
     VALIDATE_NOT_NULL(bundle);
-    return CBundle::New(source, length, bundle);
+    Int32 size;
+    source->ReadInt32(&size);
+    if (size > 0) {
+        return CBundle::New(source, size, bundle);
+    }
+    return NOERROR;
 }
 
 ECode CBundle::WriteToParcel(
@@ -1950,8 +1954,13 @@ ECode CBundle::WriteToParcel(
     if (bundle != NULL) {
         return IParcelable::Probe(bundle)->WriteToParcel(dest);
     }
+    else {
+        dest->WriteInt32(-1);
+    }
     return NOERROR;
 }
+
+#define MSH_NOT_NULL ((UInt32)-2)
 
 void CBundle::ReadMapInternal(
     /* [in] */ Handle32 source,
@@ -1960,6 +1969,7 @@ void CBundle::ReadMapInternal(
 {
     android::Parcel* p = (android::Parcel*)source;
     while (size > 0) {
+        assert(p->readInt32() == MSH_NOT_NULL);
         String key = String(p->readCString());
         AutoPtr<IInterface> value = ReadValue((Handle32)p);
         (*mMap)[key] = value;
@@ -1988,6 +1998,7 @@ ECode CBundle::WriteValue(
 {
     if (obj == NULL) {
         dest->WriteInt32(VAL_NULL);
+        return NOERROR;
     }
     // else if (v instanceof String) {
     //     writeInt(VAL_STRING);
@@ -1998,6 +2009,7 @@ ECode CBundle::WriteValue(
         IInteger32::Probe(obj)->GetValue(&v);
         dest->WriteInt32(VAL_INTEGER);
         dest->WriteInt32(v);
+        return NOERROR;
     }
     // else if (v instanceof Map) {
     //     writeInt(VAL_MAP);
@@ -2008,6 +2020,7 @@ ECode CBundle::WriteValue(
         // writeInt(VAL_BUNDLE);
         // writeBundle((Bundle) v);
         assert(0);
+        return NOERROR;
     }
     // else if (v instanceof Parcelable) {
     //     writeInt(VAL_PARCELABLE);
@@ -2018,30 +2031,35 @@ ECode CBundle::WriteValue(
         IInteger16::Probe(obj)->GetValue(&v);
         dest->WriteInt32(VAL_SHORT);
         dest->WriteInt32((Int32)v);
+        return NOERROR;
     }
     else if (IInteger64::Probe(obj) != NULL) {
         Int64 v;
         IInteger64::Probe(obj)->GetValue(&v);
         dest->WriteInt32(VAL_LONG);
         dest->WriteInt64(v);
+        return NOERROR;
     }
     else if (IFloat::Probe(obj) != NULL) {
         Float v;
         IFloat::Probe(obj)->GetValue(&v);
         dest->WriteInt32(VAL_FLOAT);
         dest->WriteFloat(v);
+        return NOERROR;
     }
     else if (IDouble::Probe(obj) != NULL) {
         Double v;
         IDouble::Probe(obj)->GetValue(&v);
         dest->WriteInt32(VAL_DOUBLE);
         dest->WriteDouble(v);
+        return NOERROR;
     }
     else if (IBoolean::Probe(obj) != NULL) {
         Boolean v;
         IBoolean::Probe(obj)->GetValue(&v);
         dest->WriteInt32(VAL_BOOLEAN);
         dest->WriteInt32(v ? 1 : 0);
+        return NOERROR;
     }
     else if (ICharSequence::Probe(obj) != NULL) {
         // Must be after String
@@ -2050,6 +2068,7 @@ ECode CBundle::WriteValue(
         dest->WriteInt32(VAL_CHARSEQUENCE);
         // writeCharSequence((CharSequence) v);
         dest->WriteString(v);
+        return NOERROR;
     }
     // else if (v instanceof List) {
     //     writeInt(VAL_LIST);
@@ -2101,6 +2120,7 @@ ECode CBundle::WriteValue(
         IByte::Probe(obj)->GetValue(&v);
         dest->WriteInt32(VAL_BYTE);
         dest->WriteInt32((Int32)v);
+        return NOERROR;
     }
     // else if (v instanceof Serializable) {
     //     // Must be last
@@ -2213,4 +2233,5 @@ AutoPtr<IInterface> CBundle::ReadValue(
         //     "Parcel " + this + ": Unmarshalling unknown type code " + type + " at offset " + off);
         assert(0);
     }
+    return NULL;
 }
