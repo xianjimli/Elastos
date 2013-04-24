@@ -850,6 +850,9 @@ private:
         /* [in] */ IParcel* dest,
         /* [in] */ IInterface* obj);
 
+    CARAPI_(AutoPtr<IInterface>) ReadValue(
+        /* [in] */ Handle32 source);
+
 public:
     static AutoPtr<CBundle> EMPTY;
 

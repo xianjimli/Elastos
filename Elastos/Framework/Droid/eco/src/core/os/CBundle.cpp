@@ -1,6 +1,7 @@
 
 #include <binder/Parcel.h>
 #include "os/CBundle.h"
+#include "utils/CParcelableStringWrapper.h"
 #include <StringBuffer.h>
 
 using namespace Elastos::Core;
@@ -1957,13 +1958,13 @@ void CBundle::ReadMapInternal(
     /* [in] */ Int32 size,
     /* [in] */ IClassLoader* classLoader)
 {
-    // while (N > 0) {
-    //         Object key = readValue(loader);
-    //         Object value = readValue(loader);
-    //         outVal.put(key, value);
-    //         N--;
-    //     }
-    assert(0);
+    android::Parcel* p = (android::Parcel*)source;
+    while (size > 0) {
+        String key = String(p->readCString());
+        AutoPtr<IInterface> value = ReadValue((Handle32)p);
+        (*mMap)[key] = value;
+        size--;
+    }
 }
 
 void CBundle::WriteMapInternal(
@@ -2111,4 +2112,105 @@ ECode CBundle::WriteValue(
         return E_RUNTIME_EXCEPTION;
     }
     return NOERROR;
+}
+
+AutoPtr<IInterface> CBundle::ReadValue(
+    /* [in] */ Handle32 source)
+{
+    android::Parcel* p = (android::Parcel*)source;
+
+    Int32 type = p->readInt32();
+
+    switch (type) {
+    case VAL_NULL:
+        return NULL;
+    // case VAL_STRING:
+    //     return readString();
+    case VAL_INTEGER: {
+        Int32 v = p->readInt32();
+        AutoPtr<IInteger32> obj;
+        CInteger32::New(v, (IInteger32**)&obj);
+        return obj;
+    }
+    // case VAL_MAP:
+    //     return readHashMap(loader);
+
+    // case VAL_PARCELABLE:
+    //     return readParcelable(loader);
+    case VAL_SHORT: {
+        Int16 v = (Int16)p->readInt32();
+        AutoPtr<IInteger16> obj;
+        CInteger16::New(v, (IInteger16**)&obj);
+        return obj;
+    }
+    case VAL_LONG: {
+        Int64 v = p->readInt64();
+        AutoPtr<IInteger64> obj;
+        CInteger64::New(v, (IInteger64**)&obj);
+        return obj;
+    }
+    case VAL_FLOAT: {
+        Float v = p->readFloat();
+        AutoPtr<IFloat> obj;
+        CFloat::New(v, (IFloat**)&obj);
+        return obj;
+    }
+    case VAL_DOUBLE: {
+        Double v = p->readDouble();
+        AutoPtr<IDouble> obj;
+        CDouble::New(v, (IDouble**)&obj);
+        return obj;
+    }
+    case VAL_BOOLEAN: {
+        Int32 v = p->readInt32();
+        AutoPtr<IBoolean> obj;
+        CBoolean::New(v == 1, (IBoolean**)&obj);
+        return obj;
+    }
+    case VAL_CHARSEQUENCE: {
+        String v = String(p->readCString());
+        AutoPtr<ICharSequence> obj;
+        CParcelableStringWrapper::New(v, (ICharSequence**)&obj);
+        return obj;
+    }
+    // case VAL_LIST:
+    //     return readArrayList(loader);
+    // case VAL_BOOLEANARRAY:
+    //     return createBooleanArray();
+    // case VAL_BYTEARRAY:
+    //     return createByteArray();
+    // case VAL_STRINGARRAY:
+    //     return readStringArray();
+    // case VAL_CHARSEQUENCEARRAY:
+    //     return readCharSequenceArray();
+    // case VAL_IBINDER:
+    //     return readStrongBinder();
+    // case VAL_OBJECTARRAY:
+    //     return readArray(loader);
+    // case VAL_INTARRAY:
+    //     return createIntArray();
+    // case VAL_LONGARRAY:
+    //     return createLongArray();
+    case VAL_BYTE: {
+        Byte v = (Byte)p->readInt32();
+        AutoPtr<IByte> obj;
+        CByte::New(v, (IByte**)&obj);
+        return obj;
+    }
+    // case VAL_SERIALIZABLE:
+    //     return readSerializable();
+    // case VAL_PARCELABLEARRAY:
+    //     return readParcelableArray(loader);
+    // case VAL_SPARSEARRAY:
+    //     return readSparseArray(loader);
+    // case VAL_SPARSEBOOLEANARRAY:
+    //     return readSparseBooleanArray();
+    // case VAL_BUNDLE:
+    //     return readBundle(loader); // loading will be deferred
+    default:
+        // int off = dataPosition() - 4;
+        // throw new RuntimeException(
+        //     "Parcel " + this + ": Unmarshalling unknown type code " + type + " at offset " + off);
+        assert(0);
+    }
 }
