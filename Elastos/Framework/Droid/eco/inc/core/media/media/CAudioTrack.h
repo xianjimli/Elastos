@@ -6,8 +6,10 @@
 #include <elastos/AutoPtr.h>
 #include <utils/RefBase.h>
 
-#include <media/AudioSystem.h>
 #include <media/AudioTrack.h>
+
+#include <binder/MemoryHeapBase.h>
+#include <binder/MemoryBase.h>
 
 CarClass(CAudioTrack)//, public AudioTrack
 {
@@ -69,7 +71,61 @@ private:
         }
     };
 */
+    struct audiotrack_callback_cookie {
+    //jclass      audioTrack_class;
+    //jobject     audioTrack_ref;
+    };
+
+    class AudioTrackJniStorage {
+        public:
+            android::sp<android::MemoryHeapBase>         mMemHeap;
+            android::sp<android::MemoryBase>             mMemBase;
+            //audiotrack_callback_cookie mCallbackData;
+            Int32                        mStreamType;
+
+        AudioTrackJniStorage() {
+            //mCallbackData.audioTrack_class = 0;
+            //mCallbackData.audioTrack_ref = 0;
+            mStreamType = android::AudioSystem::DEFAULT;
+        }
+
+        ~AudioTrackJniStorage() {
+            mMemBase.clear();
+            mMemHeap.clear();
+        }
+
+        bool allocSharedMem(Int32 sizeInBytes) {
+            mMemHeap = new android::MemoryHeapBase(sizeInBytes, 0, "AudioTrack Heap Base");
+            if (mMemHeap->getHeapID() < 0) {
+                return false;
+            }
+            mMemBase = new android::MemoryBase(mMemHeap, 0, sizeInBytes);
+            return true;
+        }
+    };
+
 public:
+    CAudioTrack();
+
+    ~CAudioTrack();
+
+    CARAPI constructor(
+        /* [in] */ Int32 streamType,
+        /* [in] */ Int32 sampleRateInHz,
+        /* [in] */ Int32 channelConfig,
+        /* [in] */ Int32 audioFormat,
+        /* [in] */ Int32 bufferSizeInBytes,
+        /* [in] */ Int32 mode);
+
+    CARAPI constructor(
+        /* [in] */ Int32 streamType,
+        /* [in] */ Int32 sampleRateInHz,
+        /* [in] */ Int32 channelConfig,
+        /* [in] */ Int32 audioFormat,
+        /* [in] */ Int32 bufferSizeInBytes,
+        /* [in] */ Int32 mode,
+        /* [in] */ Int32 sessionId);
+
     CARAPI ReleaseResources();
 
     CARAPI GetMinVolume(
@@ -134,7 +190,7 @@ public:
     CARAPI SetStereoVolume(
         /* [in] */ Float leftVolume,
         /* [in] */ Float rightVolume,
-        /* [out] */ Int32* code);
+        /* [out] */ Int32* result);
 
     CARAPI SetPlaybackRate(
         /* [in] */ Int32 sampleRateInHz,
@@ -142,21 +198,21 @@ public:
 
     CARAPI SetNotificationMarkerPosition(
         /* [in] */ Int32 markerInFrames,
-        /* [out] */ Int32* code);
+        /* [out] */ Int32* result);
 
     CARAPI SetPositionNotificationPeriod(
         /* [in] */ Int32 periodInFrames,
-        /* [out] */ Int32* code);
+        /* [out] */ Int32* result);
 
     CARAPI SetPlaybackHeadPosition(
         /* [in] */ Int32 positionInFrames,
-        /* [out] */ Int32* code);
+        /* [out] */ Int32* result);
 
     CARAPI SetLoopPoints(
         /* [in] */ Int32 startInFrames,
         /* [in] */ Int32 endInFrames,
         /* [in] */ Int32 loopCount,
-        /* [out] */ Int32* code);
+        /* [out] */ Int32* result);
 
     CARAPI Play();
 
@@ -179,25 +235,32 @@ public:
         /* [out] */ Int32* num);
 
     CARAPI ReloadStaticData(
-        /* [out] */ Int32* code);
+        /* [out] */ Int32* result);
 
     CARAPI AttachAuxEffect(
         /* [in] */ Int32 effectId,
-        /* [out] */ Int32* code);
+        /* [out] */ Int32* result);
 
     CARAPI SetAuxEffectSendLevel(
         /* [in] */ Float level,
-        /* [out] */ Int32* code);
+        /* [out] */ Int32* result);
 
-    CARAPI constructor(
+
+private:
+    CARAPI_(Int32) AndroidMediaTranslateErrorCode(
+        /* [in] */ Int32 code);
+
+    CARAPI AudioParamCheck(
         /* [in] */ Int32 streamType,
         /* [in] */ Int32 sampleRateInHz,
         /* [in] */ Int32 channelConfig,
         /* [in] */ Int32 audioFormat,
-        /* [in] */ Int32 bufferSizeInBytes,
         /* [in] */ Int32 mode);
 
-    CARAPI constructor(
+    CARAPI AudioBuffSizeCheck(
+        /* [in] */ Int32 audioBufferSize);
+
+    CARAPI Init(
         /* [in] */ Int32 streamType,
         /* [in] */ Int32 sampleRateInHz,
         /* [in] */ Int32 channelConfig,
@@ -206,10 +269,31 @@ public:
         /* [in] */ Int32 mode,
         /* [in] */ Int32 sessionId);
 
-private:
+    CARAPI_(Int32)GetNativeFrameCount(); 
+
+    CARAPI_(void) SetState(
+        /* [in] */ Int32 state);
+
+    CARAPI_(Int32) GetMinFrameCount(
+        /* [in] */ Int32* frameCount,
+        /* [in] */ Int32 streamType,
+        /* [in] */ uint32_t sampleRate);
+
+    CARAPI_(Int32) WriteToTrack(
+        /* [in] */ android::AudioTrack* pTrack, 
+        /* [in] */ Int32 audioFormat, 
+        /* [in] */ Byte* data,
+        /* [in] */ Int32 offsetInBytes, 
+        /* [in] */ Int32 sizeInBytes) ;
+
+    CARAPI_(void) PostEventFromNative(
+    /* [in] */ IInterface* audiotrack_ref,
+    /* [in] */ Int32 what,
+    /* [in] */ Int32 arg1,
+    /* [in] */ Int32 arg2,
+    /* [in] */ IInterface* obj);
 
     CARAPI_(Int32) NativeSetup(
-        /* [in] */ IInterface* audiotrack_this,
         /* [in] */ Int32 streamType,
         /* [in] */ Int32 sampleRate,
         /* [in] */ Int32 nbChannels,
@@ -218,18 +302,53 @@ private:
         /* [in] */ Int32 mode,
         /* [in] */ Int32* sessionId);
 
-    CARAPI_(Int32) GetMinFrameCount(
-        /* [in] */ Int32* frameCount,
-        /* [in] */ Int32 streamType,
-        /* [in] */ uint32_t sampleRate);
+    CARAPI_(void) NativeFinalize();
+    CARAPI_(void) NativeRelease();
+    CARAPI_(void) NativeStart();
+    CARAPI_(void) NativeStop();
+    CARAPI_(void) NativePause();
+    CARAPI_(void) NativeFlush();
 
+    CARAPI_(Int32) NativeWriteByte(    
+        /* [in] */ ArrayOf<Byte> *javaAudioData,
+        /* [in] */ Int32 offsetInBytes,
+        /* [in] */ Int32 sizeInBytes,
+        /* [in] */ Int32 javaAudioFormat); 
+
+    CARAPI_(Int32) NativeWriteInt16(
+        /* [in] */ ArrayOf<Int16> *javaAudioData,
+        /* [in] */ Int32 offsetInShorts,
+        /* [in] */ Int32 sizeInShorts,
+        /* [in] */ Int32 javaAudioFormat);
+
+    CARAPI_(Int32) NativeReloadStatic();
+
+    CARAPI_(Int32) NativeGetNativeFrameCount();
+
+    CARAPI_(void) NativeSetVolume(
+        /* [in] */ Float left, 
+        /* [in] */ Float right);
+
+    CARAPI_(Int32) NativeSetPlaybackRate(
+        /* [in] */ Int32 sampleRateInHz);
     CARAPI_(Int32) NativeGetPlaybackRate();
 
+    CARAPI_(Int32) NativeSetMarkerPos(
+        /* [in] */ Int32 markerPos);
     CARAPI_(Int32) NativeGetMarkerPos();
 
+    CARAPI_(Int32) NativeSetPosUpdatePeriod(
+        /* [in] */ Int32 periodInFrames);
     CARAPI_(Int32) NativeGetPosUpdatePeriod();
 
+    CARAPI_(Int32) NativeSetPosition(
+        /* [in] */ Int32 positionInFrames);
     CARAPI_(Int32) NativeGetPosition();
+
+    CARAPI_(Int32) NativeSetLoop(
+        /* [in] */ Int32 loopStart, 
+        /* [in] */ Int32 loopEnd, 
+        /* [in] */ Int32 loopCount);
 
     CARAPI_(Int32) NativeGetOutputSampleRate(
         /* [in] */ Int32 javaStreamType);
@@ -239,112 +358,14 @@ private:
         /* [in] */ Int32 nbChannels,
         /* [in] */ Int32 audioFormat);
 
-    CARAPI_(void) NativeSetVolume(
-        /* [in] */ Float left, 
-        /* [in] */ Float right);
+    CARAPI_(Int32) NativeGetSessionId();
 
-    CARAPI_(Int32) AndroidMediaTranslateErrorCode(
-        /* [in] */ Int32 code);
-
-    CARAPI_(Int32) NativeSetPlaybackRate(
-        /* [in] */ Int32 sampleRateInHz);
-
-    CARAPI_(Int32) NativeSetMarkerPos(
-        /* [in] */ Int32 markerPos);
-
-    CARAPI_(Int32) NativeSetPosUpdatePeriod(
-        /* [in] */ Int32 periodInFrames);
-
-    CARAPI_(Int32) NativeSetPosition(
-        /* [in] */ Int32 positionInFrames);
-
-    CARAPI_(Int32) NativeSetLoop(
-        /* [in] */ Int32 loopStart, 
-        /* [in] */ Int32 loopEnd, 
-        /* [in] */ Int32 loopCount);
-
-    CARAPI_(void) NativeStart();
-    CARAPI_(void) NativeStop();
-    CARAPI_(void) NativePause();
-    CARAPI_(void) NativeFlush();
-
-    CARAPI_(Int32) WriteToTrack(
-        /* [in] */ android::AudioTrack* pTrack, 
-        /* [in] */ Int32 audioFormat, 
-        /* [in] */ Byte* data,
-        /* [in] */ Int32 offsetInBytes, 
-        /* [in] */ Int32 sizeInBytes) ;
-
-    CARAPI_(Int32) NativeWriteByte(    
-        /* [in] */ ArrayOf<Byte> *javaAudioData,
-        /* [in] */ Int32 offsetInBytes,
-        /* [in] */ Int32 sizeInBytes,
-        /* [in] */ Int32 javaAudioFormat); 
-
-    CARAPI_(Int32) NativeWriteShort(
-        /* [in] */ ArrayOf<Int16> *javaAudioData,
-        /* [in] */ Int32 offsetInShorts,
-        /* [in] */ Int32 sizeInShorts,
-        /* [in] */ Int32 javaAudioFormat);
-
-    CARAPI_(Int32) NativeReloadStatic();
 
     CARAPI_(Int32) NativeAttachAuxEffect(
         /* [in] */ Int32 effectId);
 
     CARAPI_(void) NativeSetAuxEffectSendLevel(
         /* [in] */ Float level);
-
-    CARAPI_(void) NativeFinalize();
-    
-    CARAPI_(void) NativeRelease();
-
-    CARAPI_(void) Init(
-        /* [in] */ Int32 streamType,
-        /* [in] */ Int32 sampleRateInHz,
-        /* [in] */ Int32 channelConfig,
-        /* [in] */ Int32 audioFormat,
-        /* [in] */ Int32 bufferSizeInBytes,
-        /* [in] */ Int32 mode,
-        /* [in] */ Int32 sessionId);
-
-    CARAPI_(void) AudioParamCheck(
-        /* [in] */ Int32 streamType,
-        /* [in] */ Int32 sampleRateInHz,
-        /* [in] */ Int32 channelConfig,
-        /* [in] */ Int32 audioFormat,
-        /* [in] */ Int32 mode);
-
-    CARAPI_(void)AudioBuffSizeCheck(
-        /* [in] */ Int32 audioBufferSize);
-
-    CARAPI_(void) SetState(
-        /* [in] */ Int32 state);
-
-    CARAPI_(void) Finalize();
-
-    CARAPI_(void) PostEventFromNative(
-    /* [in] */ IInterface* audiotrack_ref,
-    /* [in] */ Int32 what,
-    /* [in] */ Int32 arg1,
-    /* [in] */ Int32 arg2,
-    /* [in] */ IInterface* obj);
-
-    struct fields_t {
-    // these fields provide access from C++ to the...
-    Int32       PCM16;                 //...  format constants
-    Int32       PCM8;                  //...  format constants
-    Int32       STREAM_VOICE_CALL;     //...  stream type constants
-    Int32       STREAM_SYSTEM;         //...  stream type constants
-    Int32       STREAM_RING;           //...  stream type constants
-    Int32       STREAM_MUSIC;          //...  stream type constants
-    Int32       STREAM_ALARM;          //...  stream type constants
-    Int32       STREAM_NOTIFICATION;   //...  stream type constants
-    Int32       STREAM_BLUETOOTH_SCO;  //...  stream type constants
-    Int32       STREAM_DTMF;           //...  stream type constants
-    Int32       MODE_STREAM;           //...  memory mode
-    Int32       MODE_STATIC;           //...  memory mode
-    };
 
 private:  
     /** Minimum value for a channel volume */
@@ -368,56 +389,22 @@ private:
      * Event id denotes when previously set update period has elapsed during playback.
      */
     static const Int32 NATIVE_EVENT_NEW_POS = 4;
+    static const CString TAG;// = "AudioTrack-Java";
+
     /**
      * Indicates the state of the AudioTrack instance.
      */
-    Int32 mState ;//= STATE_UNINITIALIZED;
+    Int32 mState;
 
     /**
      * Indicates the play state of the AudioTrack instance.
      */
-    Int32 mPlayState ;
-
-    /**
-     * The audio data sampling rate in Hz.
-     */
-     Int32 mSampleRate ;// = 22050;
-
-    /**
-     * The way audio is consumed by the hardware, streaming or static.
-     */
-    Int32 mDataLoadMode ;// = AudioTrack_MODE_STREAM;
-
-    /**
-     * The number of audio output channels (1 is mono, 2 is stereo).
-     */
-     Int32 mChannelCount ;//= 1;
-
-     Int32 mChannels; //= AudioFormat.CHANNEL_OUT_MONO;
-
-     Int32 mNativeBufferSizeInBytes ;//= 0;
-
-     /**
-     * The encoding of the audio samples.
-     * @see AudioFormat#ENCODING_PCM_8BIT
-     * @see AudioFormat#ENCODING_PCM_16BIT
-     */
-    Int32 mAudioFormat ;//= AudioTrack_ENCODING_PCM_16BIT;
-
-     /**
-     * The current audio channel configuration.
-     */
-    Int32 mChannelConfiguration;// = AudioTrack_CHANNEL_OUT_MONO;
-
-    Int32 mSessionId ;//= 0;
-
-    static const Int32 mStreamType = 3;//:AudioManager.STREAM_MUSIC;
-
+    Int32 mPlayState;
 
     /**
      * Lock to make sure mPlayState updates are reflecting the actual state of the object.
      */
-    AutoPtr<IInterface> mPlayStateLock;// = new Object();
+    Mutex mPlayStateLock;// = new Object();
 
     /**
      * The listener the AudioTrack notifies when the playback position reaches a marker
@@ -428,12 +415,60 @@ private:
     /**
      * Lock to protect event listener updates against event notifications.
      */
-    AutoPtr<IInterface> mPositionListenerLock;// = new Object();
+    Mutex mPositionListenerLock;// = new Object();
 
-     /**
+    /**
+     * Size of the native audio buffer.
+     */
+    Int32 mNativeBufferSizeInBytes;
+    /**
      * Handler for marker events coming from the native code.
      */
+    //NativeEventHandlerDelegate mEventHandlerDelegate = null;
+    /**
+     * Looper associated with the thread that creates the AudioTrack instance.
+     */
+    //Looper mInitializationLooper = null;
 
+    /**
+     * The audio data sampling rate in Hz.
+     */
+    Int32 mSampleRate;
+
+    /**
+     * The number of audio output channels (1 is mono, 2 is stereo).
+     */
+    Int32 mChannelCount;
+
+    Int32 mChannels;
+
+    /**
+     * The type of the audio stream to play. See
+     *   {@link AudioManager#STREAM_VOICE_CALL}, {@link AudioManager#STREAM_SYSTEM},
+     *   {@link AudioManager#STREAM_RING}, {@link AudioManager#STREAM_MUSIC} and
+     *   {@link AudioManager#STREAM_ALARM}
+     */
+    Int32 mStreamType;
+
+    /**
+     * The way audio is consumed by the hardware, streaming or static.
+     */
+    Int32 mDataLoadMode;
+
+    /**
+     * The current audio channel configuration.
+     */
+    Int32 mChannelConfiguration;
+
+     /**
+     * The encoding of the audio samples.
+     * @see AudioFormat#ENCODING_PCM_8BIT
+     * @see AudioFormat#ENCODING_PCM_16BIT
+     */
+    Int32 mAudioFormat;
+
+
+    Int32 mSessionId;
 
     Int32 mNativeTrack;
 };
