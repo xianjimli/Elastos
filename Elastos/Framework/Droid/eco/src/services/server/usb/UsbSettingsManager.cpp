@@ -141,15 +141,30 @@ Boolean UsbSettingsManager::HasPermission(
 {
     Mutex::Autolock lock(mLock);
 
-    // NOT IMPLEMENTED
-    return FALSE;
+    String name;
+    device->GetDeviceName(&name);
+
+    HashMap< String, HashMap<Int32, Boolean>* >::Iterator it = mDevicePermissionMap->Find(name);
+
+    if (it == mDevicePermissionMap->End()) {
+        return FALSE;
+    }
+
+    return IsUidWithPermissionExistsRef(it->mSecond, Binder::GetCallingUid());
 }
 
 Boolean UsbSettingsManager::HasPermission(
     /* [in] */ IUsbAccessory* accessory)
 {
-    // NOT IMPLEMENTED
-    return FALSE;
+    Mutex::Autolock lock(mLock);
+
+    HashMap< AutoPtr<IUsbAccessory>, HashMap<Int32, Boolean>* >::Iterator it = mAccessoryPermissionMap->Find(accessory);
+
+    if (it == mAccessoryPermissionMap->End()) {
+        return FALSE;
+    }
+
+    return IsUidWithPermissionExistsRef(it->mSecond, Binder::GetCallingUid());
 }
 
 ECode UsbSettingsManager::CheckPermission(
@@ -181,7 +196,33 @@ void UsbSettingsManager::RequestPermission(
     /* [in] */ const String& packageName,
     /* [in] */ IPendingIntent* pi)
 {
-    // NOT IMPLEMENTED
+    AutoPtr<IIntent> intent;
+    CIntent::New((IIntent**)&intent);
+
+    // start UsbPermissionActivity so user can choose an activity
+    if (HasPermission(device) != FALSE)
+    {
+        intent->PutParcelableExtra(String(UsbManager_EXTRA_DEVICE), (IParcelable*)device);
+        RequestPermissionDialog(intent, packageName, pi);
+        return;
+    }
+
+    // respond immediately if permission has already been granted
+    intent->PutParcelableExtra(String(UsbManager_EXTRA_DEVICE), (IParcelable*)device);
+    intent->PutBooleanExtra(String(UsbManager_EXTRA_PERMISSION_GRANTED), TRUE);
+
+    ECode ec;
+    ec = pi->Send3(mContext, 0, intent);
+
+    if (ec != E_CANCELED_EXCEPTION) {
+        return;
+    }
+
+    if (DEBUG == FALSE) {
+        return;
+    }
+
+    Logger::D(UsbSettingsManager::TAG, "requestPermission PendingIntent was cancelled");
 }
 
 void UsbSettingsManager::RequestPermission(
@@ -189,7 +230,31 @@ void UsbSettingsManager::RequestPermission(
     /* [in] */ const String& packageName,
     /* [in] */ IPendingIntent* pi)
 {
-    // NOT IMPLEMENTED
+    AutoPtr<IIntent> intent;
+    CIntent::New((IIntent**)&intent);
+
+    // respond immediately if permission has already been granted
+    if (HasPermission(accessory) == FALSE) {
+        intent->PutParcelableExtra(String(UsbManager_EXTRA_ACCESSORY), (IParcelable*)accessory);
+        RequestPermissionDialog(intent, packageName, pi);
+        return;
+    }
+
+    intent->PutParcelableExtra(String(UsbManager_EXTRA_ACCESSORY), (IParcelable*)accessory);
+    intent->PutBooleanExtra(String(UsbManager_EXTRA_PERMISSION_GRANTED), TRUE);
+
+    ECode ec;
+    ec = pi->Send3(mContext, 0, intent);
+
+    if (ec != E_CANCELED_EXCEPTION) {
+        return;
+    }
+
+    if (DEBUG == FALSE) {
+        return;
+    }
+
+    Logger::D(UsbSettingsManager::TAG, "requestPermission PendingIntent was cancelled");
 }
 
 void UsbSettingsManager::SetDevicePackage(
@@ -266,6 +331,7 @@ void UsbSettingsManager::GrantDevicePermission(
         (*mDevicePermissionMap)[deviceName] = uidList;
     }
 
+    uidList = it->mSecond;
     (*uidList)[uid] = TRUE;
 }
 
@@ -284,6 +350,7 @@ void UsbSettingsManager::GrantAccessoryPermission(
         (*mAccessoryPermissionMap)[accessory] = uidList;
     }
 
+    uidList = it->mSecond;
     (*uidList)[uid] = TRUE;
 }
 
@@ -404,16 +471,18 @@ Boolean UsbSettingsManager::ClearCompatibleMatchesLocked(
     /* [in] */ const String& packageName,
     /* [in] */ DeviceFilter* filter)
 {
-    // NOT IMPLEMENTED
-    return FALSE;
+    Boolean changed = FALSE;
+    RemoveDevicePreferenceByMatchesRef(filter, &changed);
+    return changed;
 }
 
 Boolean UsbSettingsManager::ClearCompatibleMatchesLocked(
     /* [in] */ const String& packageName,
     /* [in] */ AccessoryFilter* filter)
 {
-    // NOT IMPLEMENTED
-    return FALSE;
+    Boolean changed = FALSE;
+    RemoveAccessoryPreferenceByMatchesRef(filter, &changed);
+    return changed;
 }
 
 Boolean UsbSettingsManager::HandlePackageUpdateLocked(
@@ -431,12 +500,61 @@ void UsbSettingsManager::HandlePackageUpdate(
     // NOT IMPLEMENTED
 }
 
-void UsbSettingsManager::RequestPermissionDialog(
+ECode UsbSettingsManager::RequestPermissionDialog(
     /* [in] */ IIntent* intent,
     /* [in] */ const String& packageName,
     /* [in] */ IPendingIntent* pi)
 {
-    // NOT IMPLEMENTED
+    Int32 uid = Binder::GetCallingUid();
+
+    // compare uid with packageName to foil apps pretending to be someone else
+    ECode ec;
+    AutoPtr<IApplicationInfo> appInfo;
+    ec = mPackageManager->GetApplicationInfo(packageName, 0, (IApplicationInfo**)&appInfo);
+
+    if (ec == E_NAME_NOT_FOUND_EXCEPTION) {
+        StringBuffer buf;
+
+        buf += "package ";
+        buf += packageName;
+        buf += " not found";
+
+        Logger::D(UsbSettingsManager::TAG, (String)buf);
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
+    }
+
+    Int32 appInfoUid;
+    appInfo->GetUid(&appInfoUid);
+
+    if (appInfoUid != uid) {
+        StringBuffer buf;
+
+        buf += "package ";
+        buf += packageName;
+        buf += " does not match caller's uid ";
+        buf += uid;
+
+        Logger::D(UsbSettingsManager::TAG, (String)buf);
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
+    }
+
+    Int64 identity = Binder::ClearCallingIdentity();
+    intent->SetClassName(String("com.android.systemui"), String("com.android.systemui.usb.UsbPermissionActivity"));
+    intent->AddFlags(Intent_FLAG_ACTIVITY_NEW_TASK);
+    intent->PutParcelableExtra(String(Intent_EXTRA_INTENT), (IParcelable*)pi);
+    intent->PutStringExtra(String("package"), packageName);
+    intent->PutInt32Extra(String("uid"), uid);
+
+    ec = mContext->StartActivity(intent);
+
+    // RYAN
+    //if (ec == E_ACTIVITY_NOT_FOUND_EXCEPTION) {
+    if (ec == E_RUNTIME_EXCEPTION) {
+        Logger::E(UsbSettingsManager::TAG, "unable to start UsbPermissionActivity");
+    }
+
+    Binder::RestoreCallingIdentity(identity);
+    return NOERROR;
 }
 
 Boolean UsbSettingsManager::ClearPackageDefaultsLocked(
@@ -520,6 +638,26 @@ void UsbSettingsManager::RemoveDevicePreferenceRef(
     }
 }
 
+void UsbSettingsManager::RemoveDevicePreferenceByMatchesRef(
+    /* [in] */ DeviceFilter* filter,
+    /* [out] */ Boolean* result)
+{
+    *result = FALSE;
+    HashMap< AutoPtr<DeviceFilter>, String >::Iterator it;
+
+    for (it = mDevicePreferenceMap->Begin(); it != mDevicePreferenceMap->End(); ++it)
+    {
+        Boolean isMatches = it->mFirst->Matches(filter);
+
+        if (isMatches == FALSE) {
+            continue;
+        }
+
+        *result = TRUE;
+        mDevicePreferenceMap->Erase(it);
+    }
+}
+
 void UsbSettingsManager::RemoveAccessoryPreferenceRef(
     /* [in] */ const String& packageName,
     /* [out] */ Boolean* result)
@@ -555,6 +693,26 @@ void UsbSettingsManager::RemoveAccessoryPreferenceRef(
         it->mFirst->Equals(filter, &isEquals);
 
         if (isEquals == FALSE) {
+            continue;
+        }
+
+        *result = TRUE;
+        mAccessoryPreferenceMap->Erase(it);
+    }
+}
+
+void UsbSettingsManager::RemoveAccessoryPreferenceByMatchesRef(
+    /* [in] */ AccessoryFilter* filter,
+    /* [out] */ Boolean* result)
+{
+    *result = FALSE;
+    HashMap< AutoPtr<AccessoryFilter>, String >::Iterator it;
+
+    for (it = mAccessoryPreferenceMap->Begin(); it != mAccessoryPreferenceMap->End(); ++it)
+    {
+        Boolean isMatches = it->mFirst->Matches(filter);
+
+        if (isMatches == FALSE) {
             continue;
         }
 
@@ -599,4 +757,17 @@ Boolean UsbSettingsManager::IsAccessoryPreferenceExistsRef(
     }
 
     return FALSE;
+}
+
+Boolean UsbSettingsManager::IsUidWithPermissionExistsRef(
+    /* [in] */ HashMap<Int32, Boolean>* uidList,
+    /* [in] */ Int32 callingUid)
+{
+    HashMap<Int32, Boolean>::Iterator it = uidList->Find(callingUid);
+
+    if (it == uidList->End()) {
+        return FALSE;
+    }
+
+    return it->mSecond;
 }

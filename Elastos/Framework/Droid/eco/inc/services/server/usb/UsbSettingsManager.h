@@ -4,6 +4,7 @@
 
 #include "ext/frameworkext.h"
 #include "utils/XmlUtils.h"
+#include "os/Binder.h"
 #include "server/usb/DeviceFilter.h"
 #include "server/usb/AccessoryFilter.h"
 #include <elastos/ElRefBase.h>
@@ -190,7 +191,7 @@ private:
     CARAPI_(void) HandlePackageUpdate(
         /* [in] */ const String& packageName);
 
-    CARAPI_(void) RequestPermissionDialog(
+    CARAPI RequestPermissionDialog(
         /* [in] */ IIntent* intent,
         /* [in] */ const String& packageName,
         /* [in] */ IPendingIntent* pi);
@@ -213,6 +214,10 @@ private:
         /* [in] */ DeviceFilter* filter,
         /* [out] */ Boolean* result);
 
+    CARAPI_(void) RemoveDevicePreferenceByMatchesRef(
+        /* [in] */ DeviceFilter* filter,
+        /* [out] */ Boolean* result);
+
     CARAPI_(void) RemoveAccessoryPreferenceRef(
         /* [in] */ const String& packageName,
         /* [out] */ Boolean* result);
@@ -221,11 +226,19 @@ private:
         /* [in] */ AccessoryFilter* filter,
         /* [out] */ Boolean* result);
 
+    CARAPI_(void) RemoveAccessoryPreferenceByMatchesRef(
+        /* [in] */ AccessoryFilter* filter,
+        /* [out] */ Boolean* result);
+
     CARAPI_(Boolean) IsDevicePreferenceExistsRef(
         /* [in] */ const String& packageName);
 
     CARAPI_(Boolean) IsAccessoryPreferenceExistsRef(
         /* [in] */ const String& packageName);
+
+    CARAPI_(Boolean) IsUidWithPermissionExistsRef(
+        /* [in] */ HashMap<Int32, Boolean>* uidList,
+        /* [in] */ Int32 callingUid);
 
 private:
     static const Boolean DEBUG;
