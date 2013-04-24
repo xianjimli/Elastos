@@ -67,6 +67,7 @@ module
     merge("../../../car/Elastos/IO/charset/ICoderResult.car");
     merge("../../../car/Elastos/IO/charset/ICodingErrorAction.car");
     merge("../../../car/Elastos/IO/charset/IModifiedUtf8.car");
+    merge("../../../car/Elastos/IO/charset/INativeConverter.car");
     merge("../../../car/Elastos/IO/charset/spi/ICharsetProvider.car");
     merge("../../../car/Elastos/IO/Channels/IChannels.car");
     merge("../../../car/Elastos/IO/Channels/IReadableByteChannel.car");
@@ -813,6 +814,10 @@ module
 
     singleton class CModifiedUtf8 {
         interface IModifiedUtf8;
+    }
+
+    singleton class CNativeConverter {
+        interface INativeConverter;
     }
 
     class CInputStreamReader {

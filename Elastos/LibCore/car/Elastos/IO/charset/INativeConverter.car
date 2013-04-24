@@ -1,0 +1,170 @@
+module
+{
+    interface ICharsetDecoder;
+    interface ICharsetEncoder;
+    interface ICharset;
+
+    [deprecated]
+    interface INativeConverter {
+        /**
+         * Converts an array of bytes containing characters in an external
+         * encoding into an array of Unicode characters.  This  method allows
+         * buffer-by-buffer conversion of a data stream.  The state of the
+         * conversion is saved between calls.  Among other things,
+         * this means multibyte input sequences can be split between calls.
+         * If a call to results in an error, the conversion may be
+         * continued by calling this method again with suitably modified parameters.
+         * All conversions should be finished with a call to the flush method.
+         *
+         * @param converterHandle Address of converter object created by C code
+         * @param input byte array containing text to be converted.
+         * @param inEnd stop conversion at this offset in input array (exclusive).
+         * @param output character array to receive conversion result.
+         * @param outEnd stop writing to output array at this offset (exclusive).
+         * @param data integer array containing the following data
+         *        data[0] = inputOffset
+         *        data[1] = outputOffset
+         * @return int error code returned by ICU
+         * @internal ICU 2.4
+         */
+        Decode(
+            [in] Int64 converterHandle,
+            [in] ArrayOf<Byte> input,
+            [in] Int32 inEnd,
+            [in] ArrayOf<Char8> output,
+            [in] Int32 outEnd,
+            [in /*in, out*/] ArrayOf<Int32>* data,
+            [in] Boolean flush,
+            [out] Int32* errorCode);
+
+        /**
+         * Converts an array of Unicode chars to an array of bytes in an external encoding.
+         * This  method allows a buffer by buffer conversion of a data stream.  The state of the
+         * conversion is saved between calls to convert.  Among other things,
+         * this means multibyte input sequences can be split between calls.
+         * If a call results in an error, the conversion may be
+         * continued by calling this method again with suitably modified parameters.
+         * All conversions should be finished with a call to the flush method.
+         *
+         * @param converterHandle Address of converter object created by C code
+         * @param input char array containing text to be converted.
+         * @param inEnd stop conversion at this offset in input array (exclusive).
+         * @param output byte array to receive conversion result.
+         * @param outEnd stop writing to output array at this offset (exclusive).
+         * @param data integer array containing the following data
+         *        data[0] = inputOffset
+         *        data[1] = outputOffset
+         * @return int error code returned by ICU
+         * @internal ICU 2.4
+         */
+        Encode(
+            [in] Int64 converterHandle,
+            [in] ArrayOf<Char8> input,
+            [in] Int32 inEnd,
+            [in] ArrayOf<Byte> output,
+            [in] Int32 outEnd,
+            [in /*in, out*/] ArrayOf<Int32>* data,
+            [in] Boolean flush,
+            [out] Int32* errorCode);
+
+        /**
+         * Writes any remaining output to the output buffer and resets the
+         * converter to its initial state.
+         *
+         * @param converterHandle Address of converter object created by C code
+         * @param output byte array to receive flushed output.
+         * @param outEnd stop writing to output array at this offset (exclusive).
+         * @return int error code returned by ICU
+         * @param data integer array containing the following data
+         *        data[0] = inputOffset
+         *        data[1] = outputOffset
+         * @internal ICU 2.4
+         */
+        FlushCharToByte(
+            [in] Int64 converterHandle,
+            [in]  ArrayOf<Byte> output,
+            [in]  Int32 outEnd,
+            [in /*in, out*/] ArrayOf<Int32>* data,
+            [out] Int32* errorCode);
+
+        /**
+         * Writes any remaining output to the output buffer and resets the
+         * converter to its initial state.
+         *
+         * @param converterHandle Address of converter object created by the native code
+         * @param output char array to receive flushed output.
+         * @param outEnd stop writing to output array at this offset (exclusive).
+         * @return int error code returned by ICU
+         * @param data integer array containing the following data
+         *        data[0] = inputOffset
+         *        data[1] = outputOffset
+         * @internal ICU 2.4
+         */
+        FlushByteToChar(
+            [in] Int64 converterHandle,
+            [in] ArrayOf<Char8> output,
+            [in] Int32 outEnd,
+            [in /*in, out*/] ArrayOf<Int32>* data,
+            [out] Int32* errorCode);
+
+        OpenConverter(
+            [in] String encoding,
+            [out] Int64* converterHandle);
+
+        CloseConverter(
+            [in] Int64 converterHandle);
+
+        ResetByteToChar(
+            [in] Int64 converterHandle);
+
+        ResetCharToByte(
+            [in] Int64 converterHandle);
+
+        GetSubstitutionBytes(
+            [in] Int64 converterHandle,
+            [out, callee] ArrayOf<Byte>* bytes);
+
+        GetMaxBytesPerChar(
+            [in] Int64 converterHandle,
+            [out] Int32* max);
+
+        GetMinBytesPerChar(
+            [in] Int64 converterHandle,
+            [out] Int32* min);
+
+        GetAveBytesPerChar(
+            [in] Int64 converterHandle,
+            [out] Float* ave);
+
+        GetAveCharsPerByte(
+            [in] Int64 converterHandle,
+            [out] Float* ave);
+
+        Contains(
+            [in] String converterName1,
+            [in] String converterName2,
+            [out] Boolean* isContains);
+
+        CanEncode(
+            [in] Int64 converterHandle,
+            [in] Int32 codeUnit,
+            [out] Boolean* canEncode);
+
+        GetAvailableCharsetNames(
+            [out, callee] ArrayOf<String>* names);
+
+        CharsetForName(
+            [in] String charsetName,
+            [out] ICharset** charset);
+
+        SetCallbackDecode(
+            [in] Int64 converterHandle,
+            [in] ICharsetDecoder* decoder,
+            [out] Int32* errorCode);
+
+        SetCallbackEncode(
+            [in] Int64 converterHandle,
+            [in] ICharsetEncoder* encoder,
+            [out] Int32* errorCode);
+    }
+}
