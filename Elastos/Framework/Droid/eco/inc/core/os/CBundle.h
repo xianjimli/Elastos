@@ -819,7 +819,6 @@ public:
 public:
     static CARAPI ReadFromParcel(
         /* [in] */ IParcel* source,
-        /* [in] */ Int32 length,
         /* [out] */ IBundle** bundle);
 
     static CARAPI WriteToParcel(
