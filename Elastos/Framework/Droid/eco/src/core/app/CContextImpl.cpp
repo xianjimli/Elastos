@@ -279,10 +279,10 @@ ECode CContextImpl::ApplicationCapsuleManager::GetPermissionInfo(
     /* [out] */ IPermissionInfo** info)
 {
     // try {
-    IPermissionInfo* pi;
-    mPM->GetPermissionInfo(name, flags, &pi);
+    AutoPtr<IPermissionInfo> pi;
+    mPM->GetPermissionInfo(name, flags, (IPermissionInfo**)&pi);
     if (pi != NULL) {
-        *info = pi;
+        *info = pi.Get();
         return NOERROR;
     }
     // } catch (RemoteException e) {
@@ -299,10 +299,10 @@ ECode CContextImpl::ApplicationCapsuleManager::QueryPermissionsByGroup(
     /* [out] */ IObjectContainer** infos)
 {
     // try {
-    IObjectContainer* pi;
-    mPM->QueryPermissionsByGroup(group, flags, &pi);
+    AutoPtr<IObjectContainer> pi;
+    mPM->QueryPermissionsByGroup(group, flags, (IObjectContainer**)&pi);
     if (pi != NULL) {
-        *infos = pi;
+        *infos = pi.Get();
         return NOERROR;
     }
     // } catch (RemoteException e) {
@@ -319,10 +319,10 @@ ECode CContextImpl::ApplicationCapsuleManager::GetPermissionGroupInfo(
     /* [out] */ IPermissionGroupInfo** info)
 {
     // try {
-    IPermissionGroupInfo* pgi;
-    mPM->GetPermissionGroupInfo(name, flags, &pgi);
+    AutoPtr<IPermissionGroupInfo> pgi;
+    mPM->GetPermissionGroupInfo(name, flags, (IPermissionGroupInfo**)&pgi);
     if (pgi != NULL) {
-        *info = pgi;
+        *info = pgi.Get();
         return NOERROR;
     }
     // } catch (RemoteException e) {
@@ -2399,9 +2399,10 @@ ECode CContextImpl::CheckCallingPermission(
     /* [in] */ const String& permission,
     /* [out] */ Int32* value)
 {
-    // if (permission == null) {
-    //     throw new IllegalArgumentException("permission is null");
-    // }
+    if (permission.IsNull()) {
+        // throw new IllegalArgumentException("permission is null");
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
+    }
 
     if (!Process::SupportsProcesses()) {
         *value = CapsuleManager_PERMISSION_GRANTED;
@@ -2457,9 +2458,10 @@ ECode CContextImpl::CheckPermission(
     /* [in] */ Int32 uid,
     /* [out] */ Int32* result)
 {
-    // if (permission == null) {
-    //     throw new IllegalArgumentException("permission is null");
-    // }
+    if (permission.IsNull()) {
+        // throw new IllegalArgumentException("permission is null");
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
+    }
 
     if (!Process::SupportsProcesses()) {
         *result = CapsuleManager_PERMISSION_GRANTED;
@@ -2553,9 +2555,10 @@ ECode CContextImpl::CheckCallingOrSelfPermission(
     /* [in] */ const String& permission,
     /* [out] */ Int32* perm)
 {
-    // if (permission == NULL) {
-    //     throw new IllegalArgumentException("permission is null");
-    // }
+    if (permission.IsNull()) {
+        // throw new IllegalArgumentException("permission is null");
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
+    }
 
     return CheckPermission(permission, Binder::GetCallingPid(),
             Binder::GetCallingUid(), perm);

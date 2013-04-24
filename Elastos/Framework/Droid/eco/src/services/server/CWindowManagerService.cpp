@@ -9,7 +9,7 @@
 #include "os/Binder.h"
 #include <elastos/Math.h>
 #include <Logger.h>
-
+#include "app/ActivityManagerNative.h"
 
 using namespace Elastos::Core;
 using namespace Elastos::Utility::Logging;
@@ -337,6 +337,7 @@ CWindowManagerService::CWindowManagerService() :
 
     assert(SUCCEEDED(CRect::New((IRect**)&mCompatibleScreenFrame)));
 
+    ActivityManagerNative::GetDefault((IActivityManager**)&mActivityManager);
     mInputMonitor = new InputMonitor(this);
 
     mInputManager = new InputManager(NULL/*context*/, this);
