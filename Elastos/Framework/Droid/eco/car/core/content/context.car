@@ -823,8 +823,8 @@ module
          * @see #checkCallingOrSelfPermission(String)
          */
         EnforceCallingOrSelfPermission(
-            [in] String permission,
-            [in] String message);
+            [in] CString permission,
+            [in] CString message);
 
         /**
          * Determine whether the given permission is allowed for a particular
@@ -843,7 +843,7 @@ module
          * @see #checkCallingPermission
          */
         CheckPermission(
-            [in] String permission,
+            [in] CString permission,
             [in] Int32 pid,
             [in] Int32 uid,
             [out] Int32* result);
@@ -945,7 +945,7 @@ module
          * @see #checkCallingPermission
          */
         CheckCallingOrSelfPermission(
-            [in] String permission,
+            [in] CString permission,
             [out] Int32* perm);
 
         /**
@@ -991,6 +991,5 @@ module
         GetApplicationApartment(
             [out] IApplicationApartment** apartment);
     }
-
 }
 

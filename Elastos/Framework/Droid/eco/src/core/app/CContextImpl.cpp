@@ -2418,11 +2418,11 @@ ECode CContextImpl::CheckCallingPermission(
 }
 
 ECode CContextImpl::Enforce(
-    /* [in] */ String permission,
+    /* [in] */ CString permission,
     /* [in] */ Int32 resultOfCheck,
     /* [in] */ Boolean selfToo,
     /* [in] */ Int32 uid,
-    /* [in] */ String message)
+    /* [in] */ CString message)
 {
     if (resultOfCheck != CapsuleManager_PERMISSION_GRANTED) {
         // throw new SecurityException(
@@ -2439,8 +2439,8 @@ ECode CContextImpl::Enforce(
 }
 
 ECode CContextImpl::EnforceCallingOrSelfPermission(
-    /* [in] */ const String& permission,
-    /* [in] */ const String& message)
+    /* [in] */ CString permission,
+    /* [in] */ CString message)
 {
     Int32 result;
     CheckCallingOrSelfPermission(permission, &result);
@@ -2452,7 +2452,7 @@ ECode CContextImpl::EnforceCallingOrSelfPermission(
 }
 
 ECode CContextImpl::CheckPermission(
-    /* [in] */ const String& permission,
+    /* [in] */ CString permission,
     /* [in] */ Int32 pid,
     /* [in] */ Int32 uid,
     /* [out] */ Int32* result)
@@ -2468,7 +2468,7 @@ ECode CContextImpl::CheckPermission(
     // try {
     AutoPtr<IActivityManager> activityManager;
     FAIL_RETURN(ActivityManagerNative::GetDefault((IActivityManager**)&activityManager));
-    return activityManager->CheckPermission(permission, pid, uid, result);
+    return activityManager->CheckPermission(String(permission), pid, uid, result);
     // } catch (RemoteException e) {
     //     return CapsuleManager_PERMISSION_DENIED;
     // }
@@ -2550,7 +2550,7 @@ ECode CContextImpl::RevokeUriPermission(
 }
 
 ECode CContextImpl::CheckCallingOrSelfPermission(
-    /* [in] */ const String& permission,
+    /* [in] */ CString permission,
     /* [out] */ Int32* perm)
 {
     // if (permission == NULL) {

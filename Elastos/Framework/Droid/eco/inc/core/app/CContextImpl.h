@@ -666,11 +666,11 @@ public:
         /* [out] */ Int32* value);
 
     CARAPI EnforceCallingOrSelfPermission(
-        /* [in] */ const String& permission,
-        /* [in] */ const String& message);
+        /* [in] */ CString permission,
+        /* [in] */ CString message);
 
     CARAPI CheckPermission(
-        /* [in] */ const String& permission,
+        /* [in] */ CString permission,
         /* [in] */ Int32 pid,
         /* [in] */ Int32 uid,
         /* [out] */ Int32* result);
@@ -696,7 +696,7 @@ public:
         /* [in] */ Int32 modeFlags);
 
     CARAPI CheckCallingOrSelfPermission(
-        /* [in] */ const String& permission,
+        /* [in] */ CString permission,
         /* [out] */ Int32* perm);
 
     CARAPI GrantUriPermission(
@@ -754,11 +754,11 @@ private:
         /* [out] */ IFile** file);
 
     CARAPI Enforce(
-        /* [in] */ String permission,
+        /* [in] */ CString permission,
         /* [in] */ Int32 resultOfCheck,
         /* [in] */ Boolean selfToo,
         /* [in] */ Int32 uid,
-        /* [in] */ String message);
+        /* [in] */ CString message);
 
 private:
     static const char* TAG;

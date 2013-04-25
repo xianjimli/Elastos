@@ -129,6 +129,3 @@ module
 			[in] ICharSequence* actionLabel);		
     }
 }
-
-
-

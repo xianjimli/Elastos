@@ -168,7 +168,7 @@ ECode Activity::CreateCapsuleContext(
 }
 
 ECode Activity::CheckPermission(
-    /* [in] */ const String& permission,
+    /* [in] */ CString permission,
     /* [in] */ Int32 pid,
     /* [in] */ Int32 uid,
     /* [out] */ Int32 * result)
@@ -207,8 +207,8 @@ ECode Activity::CheckCallingPermission(
 }
 
 ECode Activity::EnforceCallingOrSelfPermission(
-    /* [in] */ const String& permission,
-    /* [in] */ const String& message)
+    /* [in] */ CString permission,
+    /* [in] */ CString message)
 {
     return mBase->EnforceCallingOrSelfPermission(permission, message);
 }
@@ -221,7 +221,7 @@ ECode Activity::RevokeUriPermission(
 }
 
 ECode Activity::CheckCallingOrSelfPermission(
-    /* [in] */ const String& permission,
+    /* [in] */ CString permission,
     /* [out] */ Int32* perm)
 {
     return mBase->CheckCallingOrSelfPermission(permission, perm);

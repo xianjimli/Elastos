@@ -17,6 +17,22 @@ ECode CPoint::Set(
     return NOERROR;
 }
 
+ECode CPoint::GetX(
+    /* [out] */ Int32* x)
+{
+    VALIDATE_NOT_NULL(x);
+    *x = mX;
+    return NOERROR;
+}
+
+ECode CPoint::GetY(
+    /* [out] */ Int32* y)
+{
+    VALIDATE_NOT_NULL(y);
+    *y = mY;
+    return NOERROR;
+}
+
 ECode CPoint::Negate()
 {
     mX = -mX;

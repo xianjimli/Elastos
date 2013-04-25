@@ -73,6 +73,7 @@ module
         OnPeriodicNotification(
             [in] IAudioTrack* track);
     }
+
     [deprecated]
     interface IAudioTrack {
         /**

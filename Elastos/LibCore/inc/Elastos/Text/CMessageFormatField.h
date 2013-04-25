@@ -8,11 +8,14 @@
 CarClass(CMessageFormatField), public MessageFormat::MessageFormatField
 {
 public:
-    CARAPI GetName(
-        /* [out] */ String * pName);
-
     CARAPI constructor(
         /* [in] */ const String& name);
+
+    CARAPI GetClassID(
+         /* [out] */ ClassID* clsid);
+
+    CARAPI GetName(
+        /* [out] */ String* name);
 
 private:
     // TODO: Add your private member variables here.

@@ -4,9 +4,11 @@
 UriPermissionOwner::UriPermissionOwner(
     /* [in] */ CActivityManagerService* service,
     /* [in] */ Handle32 owner)
+    : mService(service)
+    , mOwner((IObject*)owner)
+    , mReadUriPermissions(NULL)
+    , mWriteUriPermissions(NULL)
 {
-    mService = service;
-    mOwner = (IObject*)owner;
 }
 
 UriPermissionOwner::ExternalToken::ExternalToken(UriPermissionOwner* uriOwner)

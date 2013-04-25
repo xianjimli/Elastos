@@ -9,11 +9,17 @@
 CarClass(CNumberFormatField), public NumberFormat::Field
 {
 public:
-    CARAPI GetName(
-        /* [out] */ String * name);
-
     CARAPI constructor(
-        /* [in] */ const String& fieldName);
+        /* [in] */ const String& name);
+
+    CARAPI_(PInterface) Probe(
+            /* [in]  */ REIID riid);
+
+    CARAPI GetClassID(
+         /* [out] */ ClassID* clsid);
+
+    CARAPI GetName(
+        /* [out] */ String* name);
 
 private:
     // TODO: Add your private member variables here.

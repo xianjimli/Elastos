@@ -283,8 +283,8 @@ ECode CSoftKeyboard::CheckCallingPermission(
 }
 
 ECode CSoftKeyboard::EnforceCallingOrSelfPermission(
-    /* [in] */ const String& permission,
-    /* [in] */ const String& message)
+    /* [in] */ CString permission,
+    /* [in] */ CString message)
 {
     return InputMethodService::EnforceCallingOrSelfPermission(permission, message);
 }
@@ -297,7 +297,7 @@ ECode CSoftKeyboard::RevokeUriPermission(
 }
 
 ECode CSoftKeyboard::CheckCallingOrSelfPermission(
-    /* [in] */ const String& permission,
+    /* [in] */ CString permission,
     /* [out] */ Int32* perm)
 {
     VALIDATE_NOT_NULL(perm);
@@ -305,7 +305,7 @@ ECode CSoftKeyboard::CheckCallingOrSelfPermission(
 }
 
 ECode CSoftKeyboard::CheckPermission(
-	/* [in] */ const String& permission,
+	/* [in] */ CString permission,
 	/* [in] */ Int32 pid,
 	/* [in] */ Int32 uid,
 	/* [out] */ Int32 * result)

@@ -1657,9 +1657,7 @@ ECode InputMethodService::OnKeyDown(
     /* [out] */ Boolean* state)
 {
     assert(event != NULL && state != NULL);
-    Int32 code = 0;
-    event->GetKeyCode(&keyCode);
-    if (code == KeyEvent_KEYCODE_BACK) {
+    if (keyCode == KeyEvent_KEYCODE_BACK) {
         if (HandleBack(FALSE)) {
             event->StartTracking();
             *state = TRUE;

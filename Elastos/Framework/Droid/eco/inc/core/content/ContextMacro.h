@@ -124,15 +124,15 @@
         /* [out] */ Int32* value);                                          \
                                                                             \
     CARAPI EnforceCallingOrSelfPermission(                                  \
-        /* [in] */ const String& permission,                                      \
-        /* [in] */ const String& message);                                        \
+        /* [in] */ CString permission,                                      \
+        /* [in] */ CString message);                                        \
                                                                             \
     CARAPI RevokeUriPermission(                                             \
         /* [in] */ IUri* uri,                                               \
         /* [in] */ Int32 modeFlags);                                        \
                                                                             \
     CARAPI CheckCallingOrSelfPermission(                                    \
-        /* [in] */ const String& permission,                                \
+        /* [in] */ CString permission,                                      \
         /* [out] */ Int32* perm);                                           \
                                                                             \
     CARAPI GrantUriPermission(                                              \
@@ -141,7 +141,7 @@
         /* [in] */ Int32 modeFlags);                                        \
                                                                             \
     CARAPI CheckPermission(                                                 \
-        /* [in] */ const String& permission,                                \
+        /* [in] */ CString permission,                                      \
         /* [in] */ Int32 pid,                                               \
         /* [in] */ Int32 uid,                                               \
         /* [out] */ Int32 * result);                                        \
@@ -380,8 +380,8 @@ ECode className::CheckCallingPermission(                                    \
 }                                                                           \
                                                                             \
 ECode className::EnforceCallingOrSelfPermission(                            \
-    /* [in] */ const String& permission,                                          \
-    /* [in] */ const String& message)                                             \
+    /* [in] */ CString permission,                                          \
+    /* [in] */ CString message)                                             \
 {                                                                           \
     return superClass::EnforceCallingOrSelfPermission(permission, message); \
 }                                                                           \
@@ -394,7 +394,7 @@ ECode className::RevokeUriPermission(                                       \
 }                                                                           \
                                                                             \
 ECode className::CheckCallingOrSelfPermission(                              \
-    /* [in] */ const String& permission,                                    \
+    /* [in] */ CString permission,                                          \
     /* [out] */ Int32* perm)                                                \
 {                                                                           \
     return superClass::CheckCallingOrSelfPermission(permission, perm);      \
@@ -409,7 +409,7 @@ ECode className::GrantUriPermission(                                        \
 }                                                                           \
                                                                             \
 ECode className::CheckPermission(                                           \
-    /* [in] */ const String& permission,                                    \
+    /* [in] */ CString permission,                                          \
     /* [in] */ Int32 pid,                                                   \
     /* [in] */ Int32 uid,                                                   \
     /* [out] */ Int32 * result)                                             \

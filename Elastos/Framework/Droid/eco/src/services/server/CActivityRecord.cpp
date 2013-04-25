@@ -339,7 +339,7 @@ ECode CActivityRecord::GetDescription(
 }
 
 ECode CActivityRecord::WindowsVisible()
-{   
+{
     Mutex::Autolock lock(mService->_m_syncLock);
     if (mLaunchTime != 0) {
         const Int32 curTime = SystemClock::GetUptimeMillis();
@@ -352,7 +352,7 @@ ECode CActivityRecord::WindowsVisible()
 //                 thisTime, totalTime);
             StringBuffer sb;
             mService->GetStringBuffer(&sb);
-            sb.SetLength(0);
+            // sb.SetLength(0);
             sb += String("Displayed ");
             sb += String(mShortComponentName);
             sb += String(": ");
@@ -382,7 +382,7 @@ ECode CActivityRecord::WindowsVisible()
             // hide any activities we now can, and let them stop when
             // the normal idle happens.
             mStack->ProcessStoppingActivitiesLocked(FALSE);
-        } 
+        }
         else {
             // If this activity was already idle, then we now need to
             // make sure we perform the full stop of any activities
@@ -433,7 +433,7 @@ ECode CActivityRecord::KeyDispatchingTimedOut(
                 return NOERROR;
             }
             Boolean dDexOpt;
-            mService->GetDidDexOpt(&dDexOpt);    
+            mService->GetDidDexOpt(&dDexOpt);
             if (dDexOpt) {
                 // Give more time since we were dexopting.
                 mService->SetDidDexOpt(FALSE);
@@ -441,7 +441,7 @@ ECode CActivityRecord::KeyDispatchingTimedOut(
                 return NOERROR;
             }
 
-            if (r->mApp->mInstrumentationClass == NULL) { 
+            if (r->mApp->mInstrumentationClass == NULL) {
                     anrApp = r->mApp;
             }
             else {
@@ -453,12 +453,12 @@ ECode CActivityRecord::KeyDispatchingTimedOut(
             }
         }
     }
-        
+
     if (anrApp != NULL) {
         mService->AppNotResponding(anrApp, r, this,
             "keyDispatchingTimedOut");
     }
-        
+
     *result = TRUE;
 }
 
@@ -479,7 +479,7 @@ AutoPtr<CActivityRecord> CActivityRecord::GetWaitingHistoryRecordLocked()
             r = this;
         }
     }
-        
+
     return r;
 }
 
@@ -493,7 +493,7 @@ ECode CActivityRecord::GetKeyDispatchingTimeout(
         *timeout = CActivityManagerService::KEY_DISPATCHING_TIMEOUT;
         return NOERROR;
     }
-            
+
     *timeout = CActivityManagerService::INSTRUMENTATION_KEY_DISPATCHING_TIMEOUT;
     return NOERROR;
 }

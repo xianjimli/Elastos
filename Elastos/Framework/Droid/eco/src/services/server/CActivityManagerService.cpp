@@ -1088,7 +1088,7 @@ void CActivityManagerService::ReportResumedActivityLocked(
     const Int32 identHash = 0; //System.identityHashCode(r);
     UpdateUsageStats(r, TRUE);
 
-    Int32 i;
+    Int32 i = 0;
     mWatchers->BeginBroadcast(&i);
     while (i > 0) {
         i--;
