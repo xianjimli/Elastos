@@ -10,7 +10,9 @@
 #include "webkit/WebHistoryItem.h"
 #include "webkit/WebBackForwardList.h"
 #include "view/ViewRoot.h"
+#include "view/CDisplay.h"
 #include "webkit/CCallbackProxy.h"
+#include "os/CApartment.h"
 
 const CString CBrowserFrame::LOGTAG = "webkit";
 
@@ -25,7 +27,7 @@ ECode CBrowserFrame::LoadUrl(
     VALIDATE_NOT_NULL(extraHeaders);
 
     mLoadInitFromJava = TRUE;
-    
+      
     AutoPtr<IURLUtil> urlUtil;
     CURLUtil::AcquireSingleton((IURLUtil**)&urlUtil);
     Boolean flag = FALSE;
@@ -112,74 +114,38 @@ ECode CBrowserFrame::Destroy()
     return NOERROR;
 }
 
-ECode CBrowserFrame::HandleMessage(
-    /* [in] */ IMessage* msg)
-{
-    VALIDATE_NOT_NULL(msg);
-
-    if (mBlockMessages) {
-        return NOERROR;
-    }
-
-    switch (/*pMsg.what*/1) {
-        case FRAME_COMPLETED:
-        {
-            if (mSettings->GetSavePassword() && HasPasswordField()) {
-                WebHistoryItem* item = NULL;
-                AutoPtr<IWebBackForwardList> wfl = NULL;                
-                
-                mCallbackProxy->GetBackForwardList((IWebBackForwardList**)&wfl);
-               // item = pWFL->GetCurrentItem();
-                if (item != NULL) {
-                 //   WebAddress uri = new WebAddress(item.getUrl());
-                 //   String schemePlusHost = uri.mScheme + uri.mHost;
-                 //   ArrayOf<String> up = mDatabase->GetUsernamePassword(schemePlusHost);
-                 //   if (/*up != NULL &&*/ up[0] != NULL)
-                    {
-                 //       SetUsernamePassword((const char*)up[0], (const char*)up[1]);
-                    }
-                }
-            }
-         //   WebViewWorker::GetHandler()->SendEmptyMessage(WebViewWorker.MSG_TRIM_CACHE);
-            break;
-        }
-
-        case POLICY_FUNCTION:
-        {
-        //    NativeCallPolicyFunction(pMsg->arg1, pMsg->arg2);
-            break;
-        }
-
-        case ORIENTATION_CHANGED:
-        {
-           /* if (mOrientation != pMsg->arg1)
-            {
-                mOrientation = pMsg->arg1;
-                NativeOrientationChanged(pMsg->arg1);
-            }*/
-            break;
-        }
-
-        default:
-            break;
-    }
-
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
-}
-
 ECode CBrowserFrame::ExternalRepresentation(
-    /* [in] */ IMessage* callBack)
+    /* [in] */ IApartment* target,
+    /* [in] */ Int32 message,
+    /* [in] */ IParcel* param)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(target);
+//    VALIDATE_NOT_NULL(param);
+
+    String str;
+    ExternalRepresentation(str);
+    param->WriteString(str);
+
+    target->SendMessage(message, param);
+
+    return NOERROR;
 }
 
 ECode CBrowserFrame::DocumentAsText(
-    /* [in] */ IMessage* callBack)
+    /* [in] */ IApartment* target,
+    /* [in] */ Int32 message,
+    /* [in] */ IParcel* param)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(target);
+ //   VALIDATE_NOT_NULL(param);
+
+    String str;
+    DocumentAsText(str);
+    param->WriteString(str);
+
+    target->SendMessage(message, param);
+
+    return NOERROR;
 }
 
 ECode CBrowserFrame::HandleUrl(
@@ -363,25 +329,30 @@ ECode CBrowserFrame::constructor(
 /* package */
 CARAPI_(Boolean) CBrowserFrame::Committed()
 {
-    return FALSE;
+    return mCommitted;
 }
 
 /* package */
 CARAPI_(Boolean) CBrowserFrame::FirstLayoutDone()
 {
-    return FALSE;
+    return mFirstLayoutDone;
 }
 
 /* package */
 CARAPI_(Int32) CBrowserFrame::LoadType()
 {
-    return 0;
+    return mLoadType;
 }
 
 /* package */
 CARAPI_(void) CBrowserFrame::DidFirstLayout()
 {
-
+    if (!mFirstLayoutDone) {
+        mFirstLayoutDone = TRUE;
+        // ensure {@link WebViewCore#webkitDraw} is called as we were
+        // blocking the update in {@link #loadStarted}
+        mWebViewCore->ContentDraw();
+    }
 }
 
 /**
@@ -401,7 +372,7 @@ CARAPI_(void) CBrowserFrame::Certificate(
 /* package */
 CARAPI_(AutoPtr<ICallbackProxy>) CBrowserFrame::GetCallbackProxy() const
 {
-    return NULL;
+    return mCallbackProxy;
 }
 
 
@@ -411,15 +382,13 @@ CARAPI_(AutoPtr<ICallbackProxy>) CBrowserFrame::GetCallbackProxy() const
 CARAPI_(void) CBrowserFrame::GetUserAgentString(
     /* [out] */ String& str) const
 {
-
+    str = *(mSettings->GetUserAgentString());
 }
 
 CARAPI_(void) CBrowserFrame::GetRawResFilename(
     /* [in] */ Int32 id,
     /* [out] */ String& filename) const
-{
-
-}
+{}
 
 
 
@@ -433,14 +402,70 @@ CBrowserFrame::ConfigCallback::ConfigCallback(
 }
 
 CARAPI_(void) CBrowserFrame::ConfigCallback::AddHandler(
-    /* [in] */ IHandler* h)
+    /* [in] */ IApartment* h)
 {
 }
 
 ECode CBrowserFrame::ConfigCallback::OnConfigurationChanged(
     /* [in] */ IConfiguration* newConfig)
 {
-    return E_NOT_IMPLEMENTED;
+    if (mHandlers.GetSize() == 0) {
+        return NOERROR;
+    }
+
+    AutoPtr<IDisplay> display;
+    Int32 orientation = 0;
+    mWindowManager->GetDefaultDisplay((IDisplay**)&display);
+//    display->GetOrientation(&orientation);
+    switch (orientation) {
+        case Surface_ROTATION_90:
+            orientation = 90;
+            break;
+        case Surface_ROTATION_180:
+            orientation = 180;
+            break;
+        case Surface_ROTATION_270:
+            orientation = -90;
+            break;
+        case Surface_ROTATION_0:
+            orientation = 0;
+            break;
+        default:
+            break;
+    }
+
+    {
+        Mutex::Autolock lock(mMutex);
+
+        // Create a list of handlers to remove. Go ahead and make it
+        // the same size to avoid resizing.
+        Vector<AutoPtr<IApartment> > handlersToRemove;// = new ArrayList<WeakReference>(mHandlers.size());
+        Int32 size = mHandlers.GetSize();
+        for (Int32 i = 0; i < size; i++) {
+        //for (AutoPtr<IApartment> wh : mHandlers) {
+            //Handler h = wh.get();
+            AutoPtr<IApartment> h = mHandlers[i];
+            if (h != NULL) {
+                
+                ECode (STDCALL CBrowserFrame::*pHandlerFunc)(Int32);
+
+                pHandlerFunc = &CBrowserFrame::HandleOrientationChanged;
+
+                AutoPtr<IParcel> params;
+                CCallbackParcel::New((IParcel**)&params);
+                params->WriteInt32(orientation);
+                h->SendMessage(*(Handle32*)&pHandlerFunc, params);
+            } else {
+         //       handlersToRemove.add(wh);
+            }
+        }
+        // Now remove all the null references.
+      //  for (WeakReference weak : handlersToRemove) {
+      //      mHandlers.remove(weak);
+      //  }
+    }
+
+    return NOERROR;
 }
 
 ECode CBrowserFrame::ConfigCallback::OnLowMemory()
@@ -678,7 +703,21 @@ CARAPI_(AutoPtr<LoadListener>) CBrowserFrame::StartLoadingResource(
  */
 CARAPI_(void) CBrowserFrame::SetProgress(
     /* [in] */ Int32 newProgress)
-{}
+{
+    mCallbackProxy->OnProgressChanged(newProgress);
+    if (newProgress == 100) {
+        ECode (STDCALL CBrowserFrame::*pHandlerFunc)();
+        pHandlerFunc = &CBrowserFrame::HandleFrameCompleted;
+
+        PostCppCallbackDelayed((Handle32)this, *(Handle32*)&pHandlerFunc, NULL, 0, 100);
+    }
+    // FIXME: Need to figure out a better way to switch out of the history
+    // drawing mode. Maybe we can somehow compare the history picture with 
+    // the current picture, and switch when it contains more content.
+    if (mFirstLayoutDone && newProgress > TRANSITION_SWITCH_THRESHOLD) {
+        ((CCallbackProxy*)mCallbackProxy.Get())->SwitchOutDrawHistory();
+    }
+}
 
 /**
  * Send the icon to the activity for display.
@@ -857,3 +896,191 @@ CARAPI_(AutoPtr<IHashMap>) CBrowserFrame::GetFormTextData() const
 CARAPI_(void) CBrowserFrame::NativeOrientationChanged(
     /* [in] */ Int32 orientation)
 {}
+
+
+CARAPI_(PInterface) CBrowserFrame::Probe(
+    /* [in] */ REIID riid)
+{}
+
+CARAPI_(UInt32) CBrowserFrame::AddRef()
+{}
+
+CARAPI_(UInt32) CBrowserFrame::Release()
+{}
+
+ECode CBrowserFrame::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{}
+
+/*******************************Message************************************/
+
+ECode CBrowserFrame::Start(
+    /* [in] */ ApartmentAttr attr)
+{
+    assert(0);
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CBrowserFrame::Finish()
+{
+    assert(0);
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CBrowserFrame::PostCppCallback(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ IParcel* params,
+    /* [in] */ Int32 id)
+{
+    assert(mApartment != NULL);
+    return mApartment->PostCppCallback(target, func, params, id);
+}
+
+ECode CBrowserFrame::PostCppCallbackAtTime(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ IParcel* params,
+    /* [in] */ Int32 id,
+    /* [in] */ Millisecond64 uptimeMillis)
+{
+    assert(mApartment != NULL);
+    return mApartment->PostCppCallbackAtTime(target, func, params, id, uptimeMillis);
+}
+
+ECode CBrowserFrame::PostCppCallbackDelayed(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ IParcel* params,
+    /* [in] */ Int32 id,
+    /* [in] */ Millisecond64 delayMillis)
+{
+    assert(mApartment != NULL);
+    return mApartment->PostCppCallbackDelayed(target, func, params, id, delayMillis);
+}
+
+ECode CBrowserFrame::PostCppCallbackAtFrontOfQueue(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ IParcel* params,
+    /* [in] */ Int32 id)
+{
+    assert(mApartment != NULL);
+    return mApartment->PostCppCallbackAtFrontOfQueue(target, func, params, id);
+}
+
+ECode CBrowserFrame::RemoveCppCallbacks(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func)
+{
+    assert(mApartment != NULL);
+    return mApartment->RemoveCppCallbacks(target, func);
+}
+
+ECode CBrowserFrame::RemoveCppCallbacksEx(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ Int32 id)
+{
+    assert(mApartment != NULL);
+    return mApartment->RemoveCppCallbacksEx(target, func, id);
+}
+
+ECode CBrowserFrame::HasCppCallbacks(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [out] */ Boolean* result)
+{
+    assert(mApartment != NULL);
+    return mApartment->HasCppCallbacks(target, func, result);
+}
+
+ECode CBrowserFrame::HasCppCallbacksEx(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ Int32 id,
+    /* [out] */ Boolean* result)
+{
+    assert(mApartment != NULL);
+    return mApartment->HasCppCallbacksEx(target, func, id, result);
+}
+
+ECode CBrowserFrame::SendMessage(
+    /* [in] */ Int32 message,
+    /* [in] */ IParcel* params)
+{
+    if (mBlockMessages) {
+        return NOERROR;
+    }
+
+    if (message == POLICY_FUNCTION) {
+        void (STDCALL CBrowserFrame::*pHandlerFunc)(Int32, Int32);
+        pHandlerFunc = &CBrowserFrame::NativeCallPolicyFunction;
+        return SendMessage(*(Handle32*)&pHandlerFunc, params);
+    }
+
+    return E_ILLEGAL_ARGUMENT_EXCEPTION;
+}
+
+ECode CBrowserFrame::SendMessage(
+    /* [in] */ Handle32 pvFunc,
+    /* [in] */ IParcel* params)
+{
+    return mApartment->PostCppCallback((Handle32)this, pvFunc, params, 0);
+}
+
+ECode CBrowserFrame::SendMessageAtTime(
+    /* [in] */ Handle32 pvFunc,
+    /* [in] */ IParcel* params,
+    /* [in] */ Millisecond64 uptimeMillis)
+{
+    return mApartment->PostCppCallbackAtTime(
+        (Handle32)this, pvFunc, params, 0, uptimeMillis);
+}
+
+ECode CBrowserFrame::RemoveMessage(
+    /* [in] */ Handle32 func)
+{
+    return mApartment->RemoveCppCallbacks((Handle32)this, func);
+}
+
+ECode CBrowserFrame::HandleOrientationChanged(
+    /* [in] */ Int32 orientation)
+{
+    if (mBlockMessages) {
+        return NOERROR;
+    }
+
+    if (mOrientation != orientation) {
+        mOrientation = orientation;
+        NativeOrientationChanged(orientation);
+    }
+}
+
+ECode CBrowserFrame::HandleFrameCompleted()
+{
+    if (mBlockMessages) {
+        return NOERROR;
+    }
+
+    if (mSettings->GetSavePassword() && HasPasswordField()) {
+        
+        AutoPtr<IWebBackForwardList> wfl;
+        AutoPtr<IWebHistoryItem> item;
+
+        mCallbackProxy->GetBackForwardList((IWebBackForwardList**)&wfl);
+        wfl->GetCurrentItem((IWebHistoryItem**)&item);
+        if (item != NULL) {
+//            WebAddress uri = new WebAddress(item.getUrl());
+            String schemePlusHost;// = uri.mScheme + uri.mHost;
+            Vector<String> up;
+            ((CWebViewDatabase*)mDatabase.Get())->GetUsernamePassword(schemePlusHost, up);
+            if (up.GetSize() != 0 && up[0].GetLength() != 0) {
+                SetUsernamePassword(up[0], up[1]);
+            }
+        }
+    }
+
+//    WebViewWorker::GetHandler().sendEmptyMessage(WebViewWorker.MSG_TRIM_CACHE);
+}

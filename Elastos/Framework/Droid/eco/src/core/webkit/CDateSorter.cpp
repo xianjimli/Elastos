@@ -51,7 +51,7 @@ ECode CDateSorter::GetBoundary(
     // in the given bin, provide the smallest value
     if (index == lastDay) {
 //        *pBoundary = Long.MIN_VALUE;
-        return E_NOT_IMPLEMENTED;
+        return NOERROR;
     }
 
     *boundary = mBins[index];

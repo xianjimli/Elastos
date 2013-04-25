@@ -38,14 +38,18 @@ public:
 
     CARAPI Destroy();
 
-    CARAPI HandleMessage(
-        /* [in] */ IMessage* msg);
+ //   CARAPI HandleMessage(
+ //       /* [in] */ IMessage* msg);
 
     CARAPI ExternalRepresentation(
-        /* [in] */ IMessage* callBack);
+        /* [in] */ IApartment* target,
+        /* [in] */ Int32 message,
+        /* [in] */ IParcel* param);
 
     CARAPI DocumentAsText(
-        /* [in] */ IMessage* callBack);
+        /* [in] */ IApartment* target,
+        /* [in] */ Int32 message,
+        /* [in] */ IParcel* param);
 
     CARAPI HandleUrl(
         /* [in] */ const String& url,
@@ -80,6 +84,74 @@ public:
         /* [in] */ ICallbackProxy* proxy,
         /* [in] */ Handle32 settings,
         /* [in] */ IObjectStringMap* javascriptInterfaces);
+
+public:
+
+    CARAPI_(PInterface) Probe(
+        /* [in] */ REIID riid);
+
+    CARAPI_(UInt32) AddRef();
+
+    CARAPI_(UInt32) Release();
+
+    CARAPI GetInterfaceID(
+        /* [in] */ IInterface *pObject,
+        /* [out] */ InterfaceID *pIID);
+
+    CARAPI Start(
+        /* [in] */ ApartmentAttr attr);
+
+    CARAPI Finish();
+
+    CARAPI PostCppCallback(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [in] */ IParcel* params,
+        /* [in] */ Int32 id);
+
+    CARAPI PostCppCallbackAtTime(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [in] */ IParcel* params,
+        /* [in] */ Int32 id,
+        /* [in] */ Millisecond64 uptimeMillis);
+
+    CARAPI PostCppCallbackDelayed(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [in] */ IParcel* params,
+        /* [in] */ Int32 id,
+        /* [in] */ Millisecond64 delayMillis);
+
+    CARAPI PostCppCallbackAtFrontOfQueue(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [in] */ IParcel* params,
+        /* [in] */ Int32 id);
+
+    CARAPI RemoveCppCallbacks(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func);
+
+    CARAPI RemoveCppCallbacksEx(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [in] */ Int32 id);
+
+    CARAPI HasCppCallbacks(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [out] */ Boolean* result);
+
+    CARAPI HasCppCallbacksEx(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [in] */ Int32 id,
+        /* [out] */ Boolean* result);
+
+    CARAPI SendMessage(
+        /* [in] */ Int32 message,
+        /* [in] */ IParcel* params);
 
 public:
     // message ids
@@ -150,7 +222,7 @@ private:
             /* [in] */ ILocalWindowManager* wm);
 
         CARAPI_(void) AddHandler(
-            /* [in] */ IHandler* h);
+            /* [in] */ IApartment* h);
 
         CARAPI OnConfigurationChanged(
             /* [in] */ IConfiguration* newConfig);
@@ -158,8 +230,10 @@ private:
         CARAPI OnLowMemory();
 
     private:
-        Vector<AutoPtr<IHandler> > mHandlers;
+        Vector<AutoPtr<IApartment> > mHandlers;
         AutoPtr<ILocalWindowManager> mWindowManager;
+
+        Mutex mMutex;
     };
 
 public:
@@ -475,6 +549,24 @@ private:
         /* [in] */ Int32 orientation);
 
 private:
+    CARAPI SendMessage(
+        /* [in] */ Handle32 pvFunc,
+        /* [in] */ IParcel* params);
+
+    CARAPI SendMessageAtTime(
+        /* [in] */ Handle32 pvFunc,
+        /* [in] */ IParcel* params,
+        /* [in] */ Millisecond64 uptimeMillis);
+
+    CARAPI RemoveMessage(
+        /* [in] */ Handle32 func);
+
+    CARAPI HandleOrientationChanged(
+        /* [in] */ Int32 orientation);
+
+    CARAPI HandleFrameCompleted();
+
+private:
     AutoPtr<ICallbackProxy> mCallbackProxy;
     AutoPtr<WebSettings> mSettings;
     AutoPtr<IContext> mContext;
@@ -495,6 +587,8 @@ private:
 
     // Attached Javascript interfaces
     AutoPtr<IObjectStringMap> mJSInterfaceMap;
+
+    AutoPtr<IApartment> mApartment;
 };
 
 #endif // __CBROWSERFRAME_H__
