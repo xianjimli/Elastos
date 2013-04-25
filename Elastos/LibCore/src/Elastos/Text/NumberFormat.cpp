@@ -151,72 +151,11 @@ ECode NumberFormat::FormatObjectEx(
     return E_ILLEGAL_ARGUMENT_EXCEPTION;
 }
 
-ECode NumberFormat::GetAvailableLocales(
-    /* [out] */ ArrayOf<ILocale*>** locales)
-{
-    AutoPtr<IICUHelper> ICUHelper;
-    FAIL_RETURN(CICUHelper::AcquireSingleton((IICUHelper **)&ICUHelper));
-    return ICUHelper->GetAvailableNumberFormatLocales(locales);
-}
-
 ECode NumberFormat::GetCurrency(
     /* [out] */ ICurrency** currency)
 {
     // throw new UnsupportedOperationException();
     return E_UNSUPPORTED_OPERATION_EXCEPTION;
-}
-
-ECode NumberFormat::GetCurrencyInstance(
-    /* [out] */ INumberFormat** instance)
-{
-    AutoPtr<ILocaleHelper> localeHelper;
-    CLocaleHelper::AcquireSingleton((ILocaleHelper**)&localeHelper);
-    AutoPtr<ILocale> locale;
-    FAIL_RETURN(localeHelper->GetDefault((ILocale**)&locale));
-    return GetCurrencyInstance(locale, instance);
-}
-
-ECode NumberFormat::GetCurrencyInstance(
-    /* [in] */ ILocale* locale,
-    /* [out] */ INumberFormat** instance)
-{
-    assert(0);
-    //return getInstance(LocaleData.get(locale).currencyPattern, locale);
-    return NOERROR;
-}
-
-ECode NumberFormat::GetIntegerInstance(
-        /* [out] */ INumberFormat** instance)
-{
-    AutoPtr<ILocaleHelper> pLocaleHelper;
-    CLocaleHelper::AcquireSingleton((ILocaleHelper**)&pLocaleHelper);
-    AutoPtr<ILocale> pLocale;
-    pLocaleHelper->GetDefault((ILocale**)&pLocale);
-    return GetIntegerInstance(pLocale, instance);
-}
-
-ECode NumberFormat::GetIntegerInstance(
-    /* [in] */ ILocale* locale,
-    /* [out] */ INumberFormat** instance)
-{
-    assert(0);
-    //NumberFormat result = getInstance(LocaleData.get(locale).integerPattern, locale);
-    //result.setParseIntegerOnly(true);
-    //return result;
-    return NOERROR;
-}
-
-ECode NumberFormat::GetInstance(
-    /* [out] */ INumberFormat** instance)
-{
-    return GetNumberInstance(instance);
-}
-
-ECode NumberFormat::GetInstance(
-    /* [in] */ ILocale* locale,
-    /* [out] */ INumberFormat** instance)
-{
-    return GetNumberInstance(locale, instance);
 }
 
 ECode NumberFormat::GetInstance(
@@ -254,44 +193,6 @@ ECode NumberFormat::GetMinimumIntegerDigits(
     /* [out] */ Int32* number)
 {
     *number = mMinimumIntegerDigits;
-    return NOERROR;
-}
-
-ECode NumberFormat::GetNumberInstance(
-    /* [out] */ INumberFormat** instance)
-{
-    AutoPtr<ILocaleHelper> localeHelper;
-    CLocaleHelper::AcquireSingleton((ILocaleHelper**)&localeHelper);
-    AutoPtr<ILocale> locale;
-    FAIL_RETURN(localeHelper->GetDefault((ILocale**)&locale));
-    return GetNumberInstance(locale, instance);
-}
-
-ECode NumberFormat::GetNumberInstance(
-    /* [in] */ ILocale* locale,
-    /* [out] */ INumberFormat** instance)
-{
-    assert(0);
-//    return getInstance(LocaleData.get(locale).numberPattern, locale);
-    return NOERROR;
-}
-
-ECode NumberFormat::GetPercentInstance(
-    /* [out] */ INumberFormat** instance)
-{
-    AutoPtr<ILocaleHelper> localeHelper;
-    CLocaleHelper::AcquireSingleton((ILocaleHelper**)&localeHelper);
-    AutoPtr<ILocale> locale;
-    FAIL_RETURN(localeHelper->GetDefault((ILocale**)&locale));
-    return GetPercentInstance(locale, instance);
-}
-
-ECode NumberFormat::GetPercentInstance(
-    /* [in] */ ILocale* locale,
-    /* [out] */ INumberFormat** instance)
-{
-    assert(0);
-//    return getInstance(LocaleData.get(locale).percentPattern, locale);
     return NOERROR;
 }
 

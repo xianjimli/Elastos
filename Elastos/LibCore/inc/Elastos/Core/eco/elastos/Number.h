@@ -13,6 +13,9 @@ using namespace Elastos;
 class Number
 {
 public:
+    virtual CARAPI_(PInterface) Probe(
+        /* [in]  */ REIID riid) = 0;
+
     /**
      * Empty default constructor.
      */
@@ -64,7 +67,7 @@ public:
      * @return the primitive short value of this object.
      */
     virtual CARAPI_(Int16) Int16Value()
-    { return (Int16)Int32Value() }
+    { return (Int16)Int32Value(); }
 };
 
 #endif //__NUMBER_H__

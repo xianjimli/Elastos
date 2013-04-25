@@ -217,4 +217,45 @@ module
         SetRoundingMode(
             [in] RoundingMode roundingMode);
     }
+
+    interface INumberFormatHelper
+    {
+        GetAvailableLocales(
+            [out, callee] ArrayOf<ILocale*>* locales);
+
+        GetCurrencyInstance(
+            [out] INumberFormat** instance);
+
+        GetCurrencyInstanceEx(
+            [in] ILocale* locale,
+            [out] INumberFormat** instance);
+
+        GetIntegerInstance(
+            [out] INumberFormat** instance);
+
+        GetIntegerInstanceEx(
+            [in] ILocale* locale,
+            [out] INumberFormat** instance);
+
+        GetInstance(
+            [out] INumberFormat** instance);
+
+        GetInstanceEx(
+            [in] ILocale* locale,
+            [out] INumberFormat** instance);
+
+        GetNumberInstance(
+            [out] INumberFormat** instance);
+
+        GetNumberInstanceEx(
+            [in] ILocale* locale,
+            [out] INumberFormat** instance);
+
+        GetPercentInstance(
+            [out] INumberFormat** instance);
+
+        GetPercentInstanceEx(
+            [in] ILocale* locale,
+            [out] INumberFormat** instance);
+    }
 }
