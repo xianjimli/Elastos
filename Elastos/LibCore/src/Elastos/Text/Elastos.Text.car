@@ -335,4 +335,8 @@ module
 
         interface INumberFormatField;
     }
+
+    singleton class CNumberFormatHelper {
+        interface INumberFormatHelper;
+    }
 }

@@ -1,4 +1,6 @@
 #include "ChoiceFormat.h"
+#include "CNumberFormatHelper.h"
+
 
 ChoiceFormat::~ChoiceFormat()
 {
@@ -35,8 +37,12 @@ ECode ChoiceFormat::ApplyPattern(
 
     AutoPtr<ILocale> locale_US;
     CLocale::New(String("en"), String("US"), (ILocale**)&locale_US);
+
+    AutoPtr<INumberFormatHelper> nfh;
+    CNumberFormatHelper::AcquireSingleton((INumberFormatHelper**)&nfh);
+
     AutoPtr<INumberFormat> format;
-    NumberFormat::GetInstance((ILocale*)locale_US, (INumberFormat**)&format);
+    nfh->GetInstanceEx((ILocale*)locale_US, (INumberFormat**)&format);
 
     AutoPtr<IParsePosition> position;
     CParsePosition::New(0, (IParsePosition**)&position);

@@ -2,7 +2,8 @@
 #include "CDateFormatSymbols.h"
 #include "NumberFormat.h"
 #include "CAttributedString.h"
-#include "stdio.h"
+#include "CNumberFormatHelper.h"
+
 
 const String SimpleDateFormat::PATTERN_CHARS = String("GyMdkHmsSEDFwWahKzZLc");
 
@@ -132,7 +133,10 @@ ECode SimpleDateFormat::Init(
 ECode SimpleDateFormat::Init(
     /* [in] */ ILocale* locale)
 {
-    NumberFormat::GetInstance(locale, (INumberFormat**)&mNumberFormat);
+    AutoPtr<INumberFormatHelper> nfh;
+    CNumberFormatHelper::AcquireSingleton((INumberFormatHelper**)&nfh);
+
+    nfh->GetInstanceEx(locale, (INumberFormat**)&mNumberFormat);
     mNumberFormat->SetParseIntegerOnly(TRUE);
     mNumberFormat->SetGroupingUsed(FALSE);
     CGregorianCalendar::New(locale, (IGregorianCalendar**)&mCalendar);
