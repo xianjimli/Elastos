@@ -120,8 +120,9 @@ ECode CApartment::Finish()
 
     assert(mCallbackContext != NULL);
     ec = mCallbackContext->RequestToFinish(CallbackContextFinish_ASAP);
-
-    pthread_join(mThread, &ret);
+    if (!pthread_equal(mThread, pthread_self())) {
+        pthread_join(mThread, &ret);
+    }
 
     return ec;
 }

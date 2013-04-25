@@ -40,6 +40,11 @@ ECode SystemServer::Init()
     ec = serviceManager->AddService(String("capsule"), capsuleManager.Get());
     if (FAILED(ec)) return ec;
 
+    AutoPtr<IClipboard> clipboardService;
+    CClipboardService::New(ctx, (IClipboard**)&clipboardService);
+    ec = serviceManager->AddService(String("clipboard"), clipboardService.Get());
+    if (FAILED(ec)) return ec;
+
     CInputMethodManagerService::New(ctx, NULL, (IInputMethodManager**)&inputmethodService);
     IInputMethodManagerService::Probe(inputmethodService)->SystemReady();
 

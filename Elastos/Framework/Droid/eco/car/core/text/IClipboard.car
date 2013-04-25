@@ -1,0 +1,31 @@
+
+module
+{
+    /**
+     * Programming interface to the clipboard, which allows copying and pasting
+     * between applications.
+     * {@hide}
+     */
+    interface IClipboard {
+        /**
+         * Returns the text on the clipboard.  It will eventually be possible
+         * to store types other than text too, in which case this will return
+         * null if the type cannot be coerced to text.
+         */
+        GetClipboardText(
+            [out] ICharSequence** text);
+
+        /**
+         * Sets the contents of the clipboard to the specified text.
+         */
+        SetClipboardText(
+            [in] ICharSequence* text);
+
+        /**
+         * Returns true if the clipboard contains text; false otherwise.
+         */
+        HasClipboardText(
+            [out] Boolean* result);
+    }
+}
+

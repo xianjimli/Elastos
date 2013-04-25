@@ -740,6 +740,8 @@ public:
         /* [in] */ const String& what);
 
 private:
+    CARAPI_(AutoPtr<IClipboardManager>) GetClipboardManager();
+
     CARAPI GetDataDirFile(
         /* [out] */ IFile** dirFile);
 
@@ -774,6 +776,8 @@ private:
     AutoPtr<ILocalCapsuleManager> mCapsuleManager;
     AutoPtr<IContext> mReceiverRestrictedContext;
     AutoPtr<ILayoutInflater> mLayoutInflater;
+
+    AutoPtr<IClipboardManager> mClipboardManager;
 
     Mutex mSync;
 

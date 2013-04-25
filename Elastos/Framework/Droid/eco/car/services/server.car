@@ -144,4 +144,17 @@ module
         interface ITethering;
     }
 
+    /**
+     * Implementation of the clipboard for copy and paste.
+     */
+    class CClipboardService {
+        /**
+         * Instantiates the clipboard.
+         */
+        constructor(
+            [in] IContext* context);
+
+        interface IClipboard;
+    }
+
 }

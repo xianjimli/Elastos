@@ -11,6 +11,7 @@
 #include "os/FileUtils.h"
 #include "os/Environment.h"
 #include "os/Binder.h"
+#include "text/CClipboardManager.h"
 #include <unistd.h>
 #include <assert.h>
 #include <Slogger.h>
@@ -2295,8 +2296,9 @@ ECode CContextImpl::GetSystemService(
         return E_NOT_IMPLEMENTED;
     }
     else if (!CString(Context_CLIPBOARD_SERVICE).Compare(name)) {
-//        return getClipboardManager();
-        return E_NOT_IMPLEMENTED;
+        AutoPtr<IClipboardManager> clipboardManager = GetClipboardManager();
+        *object = clipboardManager;
+        (*object)->AddRef();
     }
     else if (!CString(Context_WALLPAPER_SERVICE).Compare(name)) {
 //        return getWallpaperManager();
@@ -2324,6 +2326,16 @@ ECode CContextImpl::GetSystemService(
     }
 
     return E_DOES_NOT_EXIST;
+}
+
+AutoPtr<IClipboardManager> CContextImpl::GetClipboardManager()
+{
+    Mutex::Autolock lock(mSync);
+    if (mClipboardManager == NULL) {
+        ASSERT_SUCCEEDED(CClipboardManager::New(GetOuterContext(),
+                (IClipboardManager**)&mClipboardManager));
+    }
+    return mClipboardManager;
 }
 
 ECode CContextImpl::Init(

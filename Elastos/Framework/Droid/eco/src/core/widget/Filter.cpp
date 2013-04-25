@@ -50,7 +50,6 @@ ECode Filter::FilterResults::GetInterfaceID(
  * <p>Creates a new asynchronous filter.</p>
  */
 Filter::Filter()
-    : mRequestApartmentFinished(FALSE)
 {
     ASSERT_SUCCEEDED(CApartment::GetMainApartment(
         (IApartment**)&mDefaultApartment));
@@ -144,23 +143,16 @@ ECode Filter::DoFilterEx(
     /* [in] */ ICharSequence* constraint,
     /* [in] */ IFilterListener* listener)
 {
-    if (mRequestApartmentFinished) {
-        mRequestApartmentFinished = FALSE;
-        mLock.Unlock();
-    }
-
     Mutex::Autolock lock(mLock);
 
     if (mRequestApartment == NULL) {
         ASSERT_SUCCEEDED(CApartment::New(FALSE, (IApartment**)&mRequestApartment));
         mRequestApartment->Start(ApartmentAttr_New);
     }
-
     Int64 delay = 0;
     if (mDelayer != NULL) {
         mDelayer->GetPostingDelay(constraint, &delay);
     }
-
     RequestArguments* args = new RequestArguments();
     // make sure we use an immutable copy of the constraint, so that
     // it doesn't change while the filter operation is in progress
@@ -215,7 +207,6 @@ ECode Filter::HandleFilterMessage(
         (IFilterResults**)&args->mResults))) {
         args->mResults = new FilterResults();
     }
-
     ECode (STDCALL Filter::*pHandlerFunc)(RequestArguments* args);
 
     pHandlerFunc = &Filter::HandleResultsMessage;
@@ -230,25 +221,22 @@ ECode Filter::HandleFilterMessage(
     Mutex::Autolock lock(mLock);
     if (mRequestApartment != NULL) {
         ECode (STDCALL Filter::*pHandlerFunc)();
-
         pHandlerFunc = &Filter::HandleFinishMessage;
 
         mRequestApartment->PostCppCallbackDelayed(
             (Handle32)this, *(Handle32*)&pHandlerFunc, params, 0, 3000);
     }
-
     return NOERROR;
 }
 
 ECode Filter::HandleFinishMessage()
 {
     Mutex::Autolock lock(mLock);
+
     if (mRequestApartment != NULL) {
-        mRequestApartmentFinished = TRUE;
-//        mThreadHandler.getLooper().quit();
+        mRequestApartment->Finish();
         mRequestApartment = NULL;
     }
-
     return NOERROR;
 }
 
@@ -263,6 +251,5 @@ ECode Filter::HandleResultsMessage(
         }
         args->mListener->OnFilterComplete(count);
     }
-
     return NOERROR;
 }
