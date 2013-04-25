@@ -24,11 +24,12 @@ ECode CClipboardService::SetClipboardText(
     if (text == NULL) {
         AutoPtr<ICharSequence> cs;
         CStringWrapper::New(String(""), (ICharSequence**)&cs);
-        text = cs;
-        text->AddRef();
+        mClipboard = cs;
+    }
+    else {
+        mClipboard = text;
     }
 
-    mClipboard = text;
     return NOERROR;
 }
 

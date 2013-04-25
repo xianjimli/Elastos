@@ -2299,6 +2299,7 @@ ECode CContextImpl::GetSystemService(
         AutoPtr<IClipboardManager> clipboardManager = GetClipboardManager();
         *object = clipboardManager;
         (*object)->AddRef();
+        return NOERROR;
     }
     else if (!CString(Context_WALLPAPER_SERVICE).Compare(name)) {
 //        return getWallpaperManager();

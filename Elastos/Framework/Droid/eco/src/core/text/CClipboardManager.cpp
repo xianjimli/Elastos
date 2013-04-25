@@ -27,7 +27,7 @@ ECode CClipboardManager::GetText(
     if (FAILED(ec)) {
         *text = NULL;
     }
-    return NOERROR;
+    return ec;
     // } catch (RemoteException e) {
     //     return null;
     // }
@@ -51,7 +51,7 @@ ECode CClipboardManager::HasText(
     if (FAILED(ec)) {
         *result = FALSE;
     }
-    return NOERROR;
+    return ec;
     // } catch (RemoteException e) {
     //     return false;
     // }
