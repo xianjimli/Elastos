@@ -191,8 +191,8 @@ static Boolean Init()
 
 Boolean CActivityManagerService::INIT_SUCCEEDED = Init();
 
-ECode
-CActivityManagerService::ServiceRestarter::Run()
+
+ECode CActivityManagerService::ServiceRestarter::Run()
 {
     Mutex::Autolock lock(mActivityManager->_m_syncLock);
     mActivityManager->PerformServiceRestartLocked(mService);
@@ -278,7 +278,12 @@ CActivityManagerService::~CActivityManagerService()
     }
 }
 
-ECode CActivityManagerService::constructor(
+ECode CActivityManagerService::constructor()
+{
+    return NOERROR;
+}
+
+ECode CActivityManagerService::SetWindowManager(
     /* [in] */ IWindowManager* wm)
 {
     assert(wm != NULL);
@@ -3653,11 +3658,11 @@ ECode CActivityManagerService::CheckUriPermission(
         *permission = CapsuleManager_PERMISSION_GRANTED;
         return CapsuleManager_PERMISSION_GRANTED;
     }
-    //synchronized(this) {
-        return CheckUriPermissionLocked(uri, uid, modeFlags)
-               ? CapsuleManager_PERMISSION_GRANTED
-               : CapsuleManager_PERMISSION_DENIED;
-    //}
+
+    Mutex::Autolock lock(_m_syncLock);
+    return CheckUriPermissionLocked(uri, uid, modeFlags)
+           ? CapsuleManager_PERMISSION_GRANTED
+           : CapsuleManager_PERMISSION_DENIED;
 }
 
 /**
@@ -10103,16 +10108,15 @@ ECode CActivityManagerService::UnbroadcastIntent(
 //        throw new IllegalArgumentException("File descriptors passed in Intent");
 //    }
 //
-    // synchronized(this) {
 
-        if (CheckCallingPermission(String("android.permission.BROADCAST_STICKY") /*android.Manifest.permission.BROADCAST_STICKY)*/)
-                != CapsuleManager_PERMISSION_GRANTED) {
-            Slogger::V(TAG, StringBuffer("Permission Denial: unbroadcastIntent() from pid=") + Binder::GetCallingPid()
-                + ", uid=" + Binder::GetCallingUid() + " requires " + "android.permission.BROADCAST_STICKY");
-            // throw new SecurityException(msg);
-            return E_SECURITY_EXCEPTION;
-        }
-    // }
+    Mutex::Autolock lock(_m_syncLock);
+    if (CheckCallingPermission(String("android.permission.BROADCAST_STICKY") /*android.Manifest.permission.BROADCAST_STICKY)*/)
+            != CapsuleManager_PERMISSION_GRANTED) {
+        Slogger::V(TAG, StringBuffer("Permission Denial: unbroadcastIntent() from pid=") + Binder::GetCallingPid()
+            + ", uid=" + Binder::GetCallingUid() + " requires " + "android.permission.BROADCAST_STICKY");
+        // throw new SecurityException(msg);
+        return E_SECURITY_EXCEPTION;
+    }
 //        ArrayList<Intent> list = mStickyBroadcasts.get(intent.getAction());
 //        if (list != null) {
 //            int N = list.size();
@@ -11128,8 +11132,8 @@ ECode CActivityManagerService::GetConfiguration(
 ECode CActivityManagerService::UpdateConfiguration(
     /* [in] */ IConfiguration* values)
 {
-    //EnforceCallingPermission(String("android.permission.CHANGE_CONFIGURATION"), /*android.Manifest.permission.CHANGE_CONFIGURATION,*/
-    //        String("UpdateConfiguration()"));
+    EnforceCallingPermission(String("android.permission.CHANGE_CONFIGURATION"), /*android.Manifest.permission.CHANGE_CONFIGURATION,*/
+            "UpdateConfiguration()");
 //
 //    synchronized(this) {
 //        if (values == null && mWindowManager != null) {

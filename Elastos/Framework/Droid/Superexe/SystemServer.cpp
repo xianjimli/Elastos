@@ -21,17 +21,20 @@ ECode SystemServer::Init()
 
     CServiceManager::AcquireSingleton((IServiceManager**)&serviceManager);
 
-    CWindowManagerService::New((IWindowManager**)&windowManager);
-    ec = serviceManager->AddService(String("window"), windowManager.Get());
-    if (FAILED(ec)) return ec;
-
-    CActivityManagerService::New(windowManager.Get(), (IActivityManager**)&activityManagerService);
+    CActivityManagerService::New((IActivityManager**)&activityManagerService);
     ec = serviceManager->AddService(String("ActivityManagerService"), activityManagerService.Get());
     if (FAILED(ec)) return ec;
 
     AutoPtr<IContext> ctx;
     IActivityManagerService::Probe(activityManagerService)->GetSystemContext((IContext**)&ctx);
     IActivityManagerService::Probe(activityManagerService)->SetSystemProcess();
+
+    CWindowManagerService::New((IWindowManager**)&windowManager);
+    ec = serviceManager->AddService(String("window"), windowManager.Get());
+    if (FAILED(ec)) return ec;
+
+    ec = IActivityManagerService::Probe(activityManagerService)->SetWindowManager(windowManager.Get());
+    if (FAILED(ec)) return ec;
 
     CCapsuleManagerService::New(ctx, FALSE, (ICapsuleManager**)&capsuleManager);
     ec = serviceManager->AddService(String("capsule"), capsuleManager.Get());

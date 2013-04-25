@@ -6,5 +6,8 @@ module
             [out] IContext** ctx);
 
         SetSystemProcess();
+
+        SetWindowManager(
+            [in] IWindowManager* wm);
     }
 }

@@ -889,7 +889,9 @@ public:
     CARAPI UpdateConfiguration(
         /* [in] */ IConfiguration* values);
 
-    CARAPI constructor(
+    CARAPI constructor();
+
+    CARAPI SetWindowManager(
         /* [in] */ IWindowManager* wm);
 
     CARAPI GetSystemContext(
