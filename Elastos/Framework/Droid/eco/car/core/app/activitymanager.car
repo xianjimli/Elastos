@@ -34,6 +34,8 @@ module
     const ActivityManager_START_CLASS_NOT_FOUND = -2;
     const ActivityManager_START_FORWARD_AND_REQUEST_CONFLICT = -3;
     const ActivityManager_START_PERMISSION_DENIED = -4;
+    const ActivityManager_START_NOT_ACTIVITY = -5;
+    const ActivityManager_START_CANCELED = -6;
 
     const ActivityManager_INTENT_SENDER_BROADCAST = 1;
     const ActivityManager_INTENT_SENDER_ACTIVITY = 2;

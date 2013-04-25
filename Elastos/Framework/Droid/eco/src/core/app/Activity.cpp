@@ -2301,3 +2301,10 @@ ECode Activity::OnBackPressed()
 {
     return Finish();
 }
+
+ECode Activity::SetResumed(
+    /* [in] */ Boolean resumed)
+{
+    mResumed = resumed;
+    return NOERROR;
+}

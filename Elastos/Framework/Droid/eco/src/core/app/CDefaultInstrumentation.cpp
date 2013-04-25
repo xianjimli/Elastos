@@ -1,7 +1,17 @@
 
 #include "app/CDefaultInstrumentation.h"
 #include "app/ActivityManagerNative.h"
-#include <elastos/AutoPtr.h>
+#include "app/CActivityMonitor.h"
+#include "app/Activity.h"
+#include "app/CApplication.h"
+
+
+ECode CDefaultInstrumentation::constructor()
+{
+    mMessageQueue = NULL;
+    mActivityMonitors = NULL;
+    return NOERROR;
+}
 
 /**
  * Perform instantiation of the process's {@link Application} object.  The
@@ -36,7 +46,7 @@ ECode CDefaultInstrumentation::NewApplication(
     classInfo->CreateObject((IInterface**)&object);
     *app = (IApplication*)object->Probe(EIID_IApplication);
     (*app)->AddRef();
-//    (*app)->Attach(context);
+    ((CApplication*)(*app))->Attach(context);
 
     return NOERROR;
 }
@@ -65,31 +75,35 @@ ECode CDefaultInstrumentation::CallActivityOnCreate(
     /* [in] */ IActivity* activity,
     /* [in] */ IBundle* icicle)
 {
-//    if (mWaitingActivities != null) {
-//        synchronized (mSync) {
-//            final int N = mWaitingActivities.size();
-//            for (int i=0; i<N; i++) {
-//                final ActivityWaiter aw = mWaitingActivities.get(i);
-//                final Intent intent = aw.intent;
-//                if (intent.filterEquals(activity.getIntent())) {
-//                    aw.activity = activity;
+    if (mWaitingActivities != NULL) {
+        Mutex::Autolock lock(mSync);
+        List<ActivityWaiter*>::Iterator it;
+        for (it = mWaitingActivities->Begin(); it != mWaitingActivities->End(); ++it) {
+            ActivityWaiter* aw = *it;
+            const AutoPtr<IIntent> intent = aw->mIntent;
+            AutoPtr<IIntent> aIntent;
+            activity->GetIntent((IIntent**)&aIntent);
+            Boolean eq;
+            intent->FilterEquals(aIntent, &eq);
+            if (eq) {
+                aw->mActivity = activity;
 //                    mMessageQueue.addIdleHandler(new ActivityGoing(aw));
-//                }
-//            }
-//        }
-//    }
+            }
+        }
+    }
 
     activity->Create(icicle);
 
-//    if (mActivityMonitors != null) {
-//        synchronized (mSync) {
-//            final int N = mActivityMonitors.size();
-//            for (int i=0; i<N; i++) {
-//                final ActivityMonitor am = mActivityMonitors.get(i);
-//                am.match(activity, activity, activity.getIntent());
-//            }
-//        }
-//    }
+    if (mActivityMonitors != NULL) {
+        Mutex::Autolock lock(mSync);
+        List<AutoPtr<IActivityMonitor> >::Iterator it;
+        for (it = mActivityMonitors->Begin(); it != mActivityMonitors->End(); ++it) {
+            CActivityMonitor* am = (CActivityMonitor*)(IActivityMonitor*)*it;
+            AutoPtr<IIntent> intent;
+            activity->GetIntent((IIntent**)&intent);
+            am->Match(activity, activity, intent);
+        }
+    }
     return NOERROR;
 }
 
@@ -137,18 +151,19 @@ ECode CDefaultInstrumentation::CallActivityOnRestart(
 ECode CDefaultInstrumentation::CallActivityOnResume(
     /* [in] */ IActivity* activity)
 {
-//    activity.mResumed = true;
+    ((Activity*)activity)->SetResumed(TRUE);
     activity->Resume();
 
-//    if (mActivityMonitors != null) {
-//        synchronized (mSync) {
-//            final int N = mActivityMonitors.size();
-//            for (int i=0; i<N; i++) {
-//                final ActivityMonitor am = mActivityMonitors.get(i);
-//                am.match(activity, activity, activity.getIntent());
-//            }
-//        }
-//    }
+    if (mActivityMonitors != NULL) {
+        Mutex::Autolock lock(mSync);
+        List<AutoPtr<IActivityMonitor> >::Iterator it;
+        for(it = mActivityMonitors->Begin(); it != mActivityMonitors->End(); ++it) {
+            CActivityMonitor* am = (CActivityMonitor*)(IActivityMonitor*)*it;
+            AutoPtr<IIntent> intent;
+            activity->GetIntent((IIntent**)&intent);
+            am->Match(activity, activity, intent);
+        }
+    }
     return NOERROR;
 }
 
@@ -191,21 +206,31 @@ ECode CDefaultInstrumentation::ExecStartActivity(
     /* [out] */ IActivityResult** result)
 {
     if (result == NULL) return E_INVALID_ARGUMENT;
-//    if (mActivityMonitors != null) {
-//        synchronized (mSync) {
-//            final int N = mActivityMonitors.size();
-//            for (int i=0; i<N; i++) {
-//                final ActivityMonitor am = mActivityMonitors.get(i);
-//                if (am.match(who, null, intent)) {
-//                    am.mHits++;
-//                    if (am.isBlocking()) {
-//                        return requestCode >= 0 ? am.getResult() : null;
-//                    }
-//                    break;
-//                }
-//            }
-//        }
-//    }
+    if (mActivityMonitors != NULL) {
+        Mutex::Autolock lock(mSync);
+        List<AutoPtr<IActivityMonitor> >::Iterator it;
+        for(it = mActivityMonitors->Begin(); it != mActivityMonitors->End(); ++it) {
+            CActivityMonitor* am = (CActivityMonitor*)(IActivityMonitor*)*it;
+            if (am->Match(who, NULL, intent)) {
+                am->mHits++;
+                Boolean isBlock;
+                am->IsBlocking(&isBlock);
+                if (isBlock) {
+                    AutoPtr<IActivityResult> aResult;
+                    am->GetResult((IActivityResult**)&aResult);
+                    if(requestCode >= 0 ) {
+                        *result = aResult;
+                        return NOERROR;
+                    }
+                    else {
+                        *result = NULL;
+                        return NOERROR;
+                    }
+                }
+                break;
+            }
+        }
+    }
     AutoPtr<IActivityManager> amService;
     ECode ec = ActivityManagerNative::GetDefault(
             (IActivityManager**)&amService);
@@ -227,5 +252,43 @@ ECode CDefaultInstrumentation::CheckStartActivityResult(
     /* [in] */ Int32 res,
     /* [in] */ IIntent* intent)
 {
-    return E_NOT_IMPLEMENTED;
+    if (res >= ActivityManager_START_SUCCESS) {
+             return NOERROR;
+    }
+
+    AutoPtr<IComponentName> component;
+    intent->GetComponent((IComponentName**)&component);
+    switch (res) {
+        case ActivityManager_START_INTENT_NOT_RESOLVED:
+        case ActivityManager_START_CLASS_NOT_FOUND:
+            if (IIntent::Probe(intent) && component != NULL) return E_NOT_FOUND_EXCEPTION;
+                //throw new ActivityNotFoundException(
+                //        "Unable to find explicit activity class "
+                //        + ((Intent)intent).getComponent().toShortString()
+                //        + "; have you declared this activity in your AndroidManifest.xml?");
+            //throw new ActivityNotFoundException(
+            //        "No Activity found to handle " + intent);
+            return E_NOT_FOUND_EXCEPTION;
+        case ActivityManager_START_PERMISSION_DENIED:
+            //throw new SecurityException("Not allowed to start activity "
+            //         + intent);
+            return E_SECURITY_EXCEPTION;
+        case ActivityManager_START_FORWARD_AND_REQUEST_CONFLICT:
+            // throw new AndroidRuntimeException(
+            //         "FORWARD_RESULT_FLAG used while also requesting a result");
+            return E_RUNTIME_EXCEPTION;
+        case ActivityManager_START_NOT_ACTIVITY:
+            //throw new IllegalArgumentException(
+            //        "PendingIntent is not an activity");
+            return E_ILLEGAL_ARGUMENT_EXCEPTION;
+        default:
+            //throw new AndroidRuntimeException("Unknown error code "
+            //        + res + " when starting " + intent);
+            return E_RUNTIME_EXCEPTION;
+    }
 }
+
+CDefaultInstrumentation::ActivityWaiter::ActivityWaiter(
+    /* [in] */ IIntent* intent)
+    : mIntent(intent)
+{}

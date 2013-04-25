@@ -647,6 +647,9 @@ public:
         /* [in] */ Int32 resultCode,
         /* [in] */ IIntent *data);
 
+    CARAPI SetResumed(
+        /* [in] */ Boolean resumed);
+
 
 protected:
     CARAPI Finish();
