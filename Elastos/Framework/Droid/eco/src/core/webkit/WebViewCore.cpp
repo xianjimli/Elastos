@@ -505,12 +505,12 @@ ECode WebViewCore::EventHub::WvcEhHandler::HandleMessage(
         }
 
         case EventHub::REQUEST_EXT_REPRESENTATION: {
-            (mWebViewCore->mBrowserFrame)->ExternalRepresentation((IMessage*)/*msg->obj*/NULL);
+//            (mWebViewCore->mBrowserFrame)->ExternalRepresentation((IMessage*)/*msg->obj*/NULL);
             break;
         }
 
         case EventHub::REQUEST_DOC_AS_TEXT: {
-            (mWebViewCore->mBrowserFrame) -> DocumentAsText((IMessage*)/*msg->obj*/NULL);
+//            (mWebViewCore->mBrowserFrame) -> DocumentAsText((IMessage*)/*msg->obj*/NULL);
             break;
         }
 

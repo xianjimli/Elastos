@@ -255,7 +255,7 @@ CARAPI_(AutoPtr<ICacheManagerCacheResult>) CCacheManager::GetCacheFile(
     // which implies that it needs cache even it is expired.
     // negative expires means time in the far future.
     if (headers != NULL && result->expires >= 0
-            /*&& result->expires <= System.currentTimeMillis()*/) {
+            && result->expires <= System::GetCurrentTimeMillis()) {
         if (result->lastModified == NULL && result->etag == NULL) {
             return NULL;
         }

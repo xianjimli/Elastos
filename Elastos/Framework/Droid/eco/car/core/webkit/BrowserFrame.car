@@ -3,9 +3,10 @@ module
 {
     interface IHandler;
     interface ISslCertificate;
-    interface IMessage;
+    interface IApartment;
+    interface IParcel;
 
-    interface IBrowserFrame extends IHandler {
+    interface IBrowserFrame extends IApartment {
 
         /**
          * Load a url from the network or the filesystem into the main frame.
@@ -64,24 +65,32 @@ module
          * @param msg The message to handle.
          */
         //@Override
-        HandleMessage(
-            [in] IMessage* msg);
+        //HandleMessage(
+        //    [in] IMessage* msg);
 
         /**
          * Retrieves the render tree of this frame and puts it as the object for
          * the message and sends the message.
          * @param callback the message to use to send the render tree
          */
+        //ExternalRepresentation(
+        //    [in] IMessage* callBack);
         ExternalRepresentation(
-            [in] IMessage* callBack);
+            [in] IApartment* target,
+            [in] Int32 message,
+            [in] IParcel* param);
 
         /**
          * Retrieves the visual text of the current frame, puts it as the object for
          * the message and sends the message.
          * @param callback the message to use to send the visual text
          */
+        //DocumentAsText(
+        //    [in] IMessage* callBack);
         DocumentAsText(
-            [in] IMessage* callBack);
+            [in] IApartment* target,
+            [in] Int32 message,
+            [in] IParcel* param);
 
         /**
          * This method is called by WebCore to check whether application
