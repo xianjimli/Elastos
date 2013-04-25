@@ -69,7 +69,6 @@ module
 
         interface IContext;
         interface IContextImpl;
-
     }
 
     class CApplication {

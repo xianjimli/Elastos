@@ -94,7 +94,8 @@ ECode CWindowSession::AddWithoutInputChannel(
 ECode CWindowSession::Remove(
     /* [in] */ IInnerWindow* window)
 {
-    return E_NOT_IMPLEMENTED;
+    mWMService->RemoveWindow(this, window);
+    return NOERROR;
 }
 
 ECode CWindowSession::Relayout(
@@ -155,19 +156,23 @@ ECode CWindowSession::GetDisplayFrame(
 ECode CWindowSession::FinishDrawing(
     /* [in] */ IInnerWindow* window)
 {
-    return E_NOT_IMPLEMENTED;
+    // mWMService->FinishDrawingWindow(this, window);
+    return NOERROR;
 }
 
 ECode CWindowSession::SetInTouchMode(
     /* [in] */ Boolean showFocus)
 {
-    return E_NOT_IMPLEMENTED;
+    return mWMService->SetInTouchMode(showFocus);
 }
 
 ECode CWindowSession::GetInTouchMode(
     /* [out] */ Boolean* result)
 {
-    return E_NOT_IMPLEMENTED;
+    assert(result);
+    *result = mWMService->mInTouchMode;
+
+    return NOERROR;
 }
 
 ECode CWindowSession::PerformHapticFeedback(

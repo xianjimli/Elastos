@@ -467,6 +467,7 @@ ECode MediaController::Show(
             mPauseButton->RequestFocus(&result);
         }
         DisableUnsupportedButtons();
+
         Int32 x, y;
         FAIL_RETURN(mAnchor->GetLocationOnScreen(&x, &y));
 
@@ -575,6 +576,7 @@ String MediaController::StringForTime(
         result += ":";
         result.AppendFormat("%2d", seconds);
     }
+
     return result;
 }
 

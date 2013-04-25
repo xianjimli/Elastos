@@ -181,8 +181,8 @@ ECode ContextWrapper::CheckCallingPermission(
 }
 
 ECode ContextWrapper::EnforceCallingOrSelfPermission(
-    /* [in] */ const String& permission,
-    /* [in] */ const String& message)
+    /* [in] */ CString permission,
+    /* [in] */ CString message)
 {
     return mBase->EnforceCallingOrSelfPermission(permission, message);
 }
@@ -195,7 +195,7 @@ ECode ContextWrapper::RevokeUriPermission(
 }
 
 ECode ContextWrapper::CheckCallingOrSelfPermission(
-    /* [in] */ const String& permission,
+    /* [in] */ CString permission,
     /* [out] */ Int32* perm)
 {
     return mBase->CheckCallingOrSelfPermission(permission, perm);
@@ -210,7 +210,7 @@ ECode ContextWrapper::GrantUriPermission(
 }
 
 ECode ContextWrapper::CheckPermission(
-    /* [in] */ const String& permission,
+    /* [in] */ CString permission,
     /* [in] */ Int32 pid,
     /* [in] */ Int32 uid,
     /* [out] */ Int32 * result)

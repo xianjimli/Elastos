@@ -2983,7 +2983,7 @@ List<AutoPtr<CActivityRecord> >*
             && mResumedActivity->mNowVisible
             && !mResumedActivity->mWaitingVisible;
     List<AutoPtr<CActivityRecord> >::Iterator it;
-    for(it = mStoppingActivities.Begin(); it != mStoppingActivities.End(); ++it) {
+    for(it = mStoppingActivities.Begin(); it != mStoppingActivities.End();) {
         AutoPtr<CActivityRecord> s = *it;
         if (localLOGV) Slogger::V(TAG, StringBuffer("Stopping ") + s + StringBuffer(": nowVisible=")
                 + nowVisible + StringBuffer(" waitingVisible=") + s->mWaitingVisible
@@ -3007,7 +3007,10 @@ List<AutoPtr<CActivityRecord> >*
                 stops = new List<AutoPtr<CActivityRecord> >();
             }
             stops->PushBack(s);
-            mStoppingActivities.Remove(s);
+            it = mStoppingActivities.Erase(it);
+        }
+        else {
+            ++it;
         }
     }
 
@@ -3024,9 +3027,6 @@ void ActivityStack::ActivityIdleInternal(
      List<AutoPtr<CActivityRecord> >* stops = NULL;
      List<AutoPtr<CActivityRecord> >* finishes = NULL;
      List<AutoPtr<CActivityRecord> >* thumbnails = NULL;
-     Int32 NS = 0;
-     Int32 NF = 0;
-     Int32 NT = 0;
      AutoPtr<IApplicationApartment> sendThumbnail = NULL;
      Boolean booting = FALSE;
      Boolean enableScreen = FALSE;
@@ -3089,13 +3089,12 @@ void ActivityStack::ActivityIdleInternal(
 
          // Atomically retrieve all of the other things to do.
          stops = ProcessStoppingActivitiesLocked(TRUE);
-         NS = stops != NULL ? stops->GetSize() : 0;
-         if ((NF=mFinishingActivities.GetSize()) > 0) {
-             finishes = &mFinishingActivities;
-             mFinishingActivities.Clear();
+         if (mFinishingActivities.GetSize() > 0) {
+            finishes = new List<AutoPtr<CActivityRecord> >(mFinishingActivities);
+            mFinishingActivities.Clear();
          }
-         if ((NT=mService->mCancelledThumbnails.GetSize()) > 0) {
-             thumbnails = &(mService->mCancelledThumbnails);
+         if (mService->mCancelledThumbnails.GetSize() > 0) {
+             thumbnails = new List<AutoPtr<CActivityRecord> >(mService->mCancelledThumbnails);
              mService->mCancelledThumbnails.Clear();
          }
 
@@ -3121,33 +3120,42 @@ void ActivityStack::ActivityIdleInternal(
      // Stop any activities that are scheduled to do so but have been
      // waiting for the next one to start.
      List<AutoPtr<CActivityRecord> >::Iterator it;
-     for(it = stops->Begin(); it != stops->End(); ++it) {
-        AutoPtr<CActivityRecord> r = *it;
-         {
-            Mutex::Autolock lock(mService->_m_syncLock);
-             if (r->mFinishing) {
-                AutoPtr<CActivityRecord> outR;
-                 FinishCurrentActivityLocked(r, FINISH_IMMEDIATELY, (CActivityRecord**)&outR);
-             } else {
-                 StopActivityLocked(r);
+     if (stops != NULL) {
+         for(it = stops->Begin(); it != stops->End(); ++it) {
+            AutoPtr<CActivityRecord> r = *it;
+             {
+                Mutex::Autolock lock(mService->_m_syncLock);
+                 if (r->mFinishing) {
+                    AutoPtr<CActivityRecord> outR;
+                     FinishCurrentActivityLocked(r, FINISH_IMMEDIATELY, (CActivityRecord**)&outR);
+                 } else {
+                     StopActivityLocked(r);
+                 }
              }
          }
+         delete stops;
      }
 
      // Finish any activities that are scheduled to do so but have been
      // waiting for the next one to start.
-     for(it = finishes->Begin(); it != finishes->End(); ++it) {
-        AutoPtr<CActivityRecord> r = *it;
-         {
-            Mutex::Autolock lock(mService->_m_syncLock);
-             DestroyActivityLocked(r, TRUE);
+     if (finishes != NULL) {
+         for(it = finishes->Begin(); it != finishes->End(); ++it) {
+            AutoPtr<CActivityRecord> r = *it;
+             {
+                Mutex::Autolock lock(mService->_m_syncLock);
+                 DestroyActivityLocked(r, TRUE);
+             }
          }
+         delete finishes;
      }
 
      // Report back to any thumbnail receivers.
-     for(it = thumbnails->Begin(); it != thumbnails->End(); ++it) {
-        AutoPtr<CActivityRecord> r = *it;
-         mService->SendPendingThumbnail(r, NULL, NULL, NULL, TRUE);
+     if (thumbnails != NULL) {
+         for(it = thumbnails->Begin(); it != thumbnails->End(); ++it) {
+            AutoPtr<CActivityRecord> r = *it;
+             mService->SendPendingThumbnail(r, NULL, NULL, NULL, TRUE);
+         }
+         delete thumbnails;
      }
 
      if (booting) {

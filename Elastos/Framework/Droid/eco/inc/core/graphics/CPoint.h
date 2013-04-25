@@ -16,6 +16,12 @@ public:
         /* [in] */ Int32 x,
         /* [in] */ Int32 y);
 
+    CARAPI GetX(
+        /* [out] */ Int32* pX);
+
+    CARAPI GetY(
+        /* [out] */ Int32* pY);
+
     /**
      * Negate the point's coordinates
      */

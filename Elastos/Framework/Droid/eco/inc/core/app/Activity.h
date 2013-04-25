@@ -228,11 +228,11 @@ public:
         /* [out] */ Int32* value);
 
     CARAPI EnforceCallingOrSelfPermission(
-        /* [in] */ const String& permission,
-        /* [in] */ const String& message);
+        /* [in] */ CString permission,
+        /* [in] */ CString message);
 
     CARAPI CheckPermission(
-        /* [in] */ const String& permission,
+        /* [in] */ CString permission,
         /* [in] */ Int32 pid,
         /* [in] */ Int32 uid,
         /* [out] */ Int32 * result);
@@ -258,7 +258,7 @@ public:
         /* [in] */ Int32 modeFlags);
 
     CARAPI CheckCallingOrSelfPermission(
-        /* [in] */ const String& permission,
+        /* [in] */ CString permission,
         /* [out] */ Int32* perm);
 
     CARAPI GrantUriPermission(

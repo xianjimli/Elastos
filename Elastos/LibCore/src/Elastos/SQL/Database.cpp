@@ -1067,7 +1067,7 @@ ECode Database::Doclose(
                 sqlite3_blob_close(bl->blob);
             }
             bl->blob = 0;
-        } 
+        }
 
     free(h);
 
@@ -1235,7 +1235,7 @@ ECode Database::_execEx(
             }
 
             freep((char **) &cargv);
-            
+
             if (err && freeproc) {
                 freeproc(err);
             }
@@ -1373,9 +1373,9 @@ static void call3_final(sqlite3_context *sf)
 }
 
 ECode Database::mkfunc_common(
-    /** [in] **/ Int32 isagg, 
+    /** [in] **/ Int32 isagg,
     /** [in] **/ String name,
-    /** [in] **/ Int32 nargs, 
+    /** [in] **/ Int32 nargs,
     /** [in] **/ IFunction* fi)
 {
     handle* h = (handle*)mHandle;
@@ -1883,7 +1883,7 @@ ECode Database::_progress_handler(
     return E_SQL_FEATURE_NOT_SUPPORTED_EXCEPTION;
 #endif
     }
-    
+
     return NOERROR;
 }
 

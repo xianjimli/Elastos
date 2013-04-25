@@ -9705,7 +9705,6 @@ ECode CWindowManagerService::WindowState::CreateSurfaceLocked(
 
         Int32 attrsFlags;
         mAttrs->GetFlags(&attrsFlags);
-
         if ((attrsFlags & WindowManagerLayoutParams_FLAG_SECURE) != 0) {
             flags |= Surface_SECURE;
         }

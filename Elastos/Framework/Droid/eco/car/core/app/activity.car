@@ -566,7 +566,7 @@ module
         * @param visible Whether to show the progress bars in the title.
         */
         SetProgressBarIndeterminateVisibility(
-	    [in] Boolean visible);
+	        [in] Boolean visible);
     }
 }
 

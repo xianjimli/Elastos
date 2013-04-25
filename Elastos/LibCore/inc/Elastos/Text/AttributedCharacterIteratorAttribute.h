@@ -59,8 +59,8 @@ protected:
     CARAPI Init(
         /* [in] */ const String& name);
 
-    CARAPI GetClassID(
-         /* [out] */ ClassID* clsid);
+    virtual CARAPI GetClassID(
+         /* [out] */ ClassID* clsid) = 0;
 
     /**
      * Returns the name of this attribute.

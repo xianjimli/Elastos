@@ -525,15 +525,15 @@ public:
         /* [out] */ Int32* value) = 0;
 
     virtual CARAPI EnforceCallingOrSelfPermission(
-        /* [in] */ const String& permission,
-        /* [in] */ const String& message) = 0;
+        /* [in] */ CString permission,
+        /* [in] */ CString message) = 0;
 
     virtual CARAPI RevokeUriPermission(
         /* [in] */ IUri* uri,
         /* [in] */ Int32 modeFlags) = 0;
 
     virtual CARAPI CheckCallingOrSelfPermission(
-        /* [in] */ const String& permission,
+        /* [in] */ CString permission,
         /* [out] */ Int32* perm) = 0;
 
     virtual CARAPI GrantUriPermission(

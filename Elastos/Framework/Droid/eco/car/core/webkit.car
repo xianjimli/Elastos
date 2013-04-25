@@ -38,18 +38,18 @@ module
   merge("webkit/MockGeolocation.car");
   merge("webkit/MimeTypeMap.car");
   merge("webkit/WebBackForwardList.car");
-  
+
 
   class CBrowserFrame {
 
       constructor(
-         [in] IContext* context, 
+         [in] IContext* context,
          [in] Handle32  webViewCore,  /* WebViewCore */
          [in] ICallbackProxy* proxy,
-         [in] Handle32 settings, /* WebSettings */ 
+         [in] Handle32 settings, /* WebSettings */
          [in] IObjectStringMap* javascriptInterfaces);
 
-      interface IBrowserFrame;    
+      interface IBrowserFrame;
   }
 
   class CByteArrayBuilder {

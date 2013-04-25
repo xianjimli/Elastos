@@ -27,12 +27,6 @@ ECode AttributedCharacterIteratorAttribute::Init(
     return NOERROR;
 }
 
-ECode AttributedCharacterIteratorAttribute::GetClassID(
-    /* [out] */ ClassID* clsid)
-{
-    return E_NOT_IMPLEMENTED;
-}
-
 ECode AttributedCharacterIteratorAttribute::GetName(
     /* [out] */ String* name)
 {

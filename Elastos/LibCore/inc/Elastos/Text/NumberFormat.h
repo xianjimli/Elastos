@@ -36,8 +36,8 @@ public:
         CARAPI Init(
             /* [in] */ const String& fn);
 
-        CARAPI_(PInterface) Probe(
-            /* [in] */ REIID riid);
+        virtual CARAPI_(PInterface) Probe(
+            /* [in] */ REIID riid) = 0;
 
         /**
          * Resolves instances that are deserialized to the constant
@@ -106,7 +106,6 @@ public:
          * This constant stands for the currency symbol.
          */
         const static AutoPtr<INumberFormatField> CURRENCY;
-
     };
 
 public:

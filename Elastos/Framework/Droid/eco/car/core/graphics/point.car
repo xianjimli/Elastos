@@ -9,6 +9,12 @@ module
             [in] Int32 x,
             [in] Int32 y);
 
+        GetX(
+            [out] Int32* x);
+
+        GetY(
+            [out] Int32* y);
+
         /**
          * Negate the point's coordinates
          */
