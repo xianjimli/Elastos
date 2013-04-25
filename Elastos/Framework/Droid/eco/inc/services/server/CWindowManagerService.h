@@ -1033,6 +1033,10 @@ public:
 
     ~CWindowManagerService();
 
+    constructor(
+        /* [in] */ IContext* ctx,
+        /* [in] */ Boolean haveInputMethod);
+
     static CARAPI_(Boolean) CanBeImeTarget(
         /* [in] */ WindowState* w);
 

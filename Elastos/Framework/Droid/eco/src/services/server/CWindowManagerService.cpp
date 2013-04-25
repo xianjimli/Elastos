@@ -280,7 +280,6 @@ CWindowManagerService::AppWindowToken::AppWindowToken(
 CWindowManagerService::CWindowManagerService() :
     mKeyguardDisabled(FALSE),
     mAllowDisableKeyguard(ALLOW_DISABLE_UNKNOWN),
-    mHaveInputMethods(FALSE),
     mLimitedAlphaCompositing(FALSE),
     mBlurShown(FALSE),
     mTransactionSequence(0),
@@ -350,6 +349,14 @@ CWindowManagerService::CWindowManagerService() :
 CWindowManagerService::~CWindowManagerService()
 {
     ArrayOf<Float>::Free(mTmpFloats);
+}
+
+CWindowManagerService::constructor(
+    /* [in] */ IContext* ctx,
+    /* [in] */ Boolean haveInputMethod)
+{
+    mContext = ctx;
+    mHaveInputMethods = haveInputMethod;
 }
 
 //CWindowManagerService::CWindowManagerService(
@@ -918,7 +925,6 @@ Boolean CWindowManagerService::CheckCallingPermission(
     /* [in] */ const String& func)
 {
     // Quick check: if the calling permission is me, it's all okay.
-#if 0
     if (Binder::GetCallingPid() == Process::MyPid()) {
       return TRUE;
     }
@@ -929,15 +935,12 @@ Boolean CWindowManagerService::CheckCallingPermission(
       return TRUE;
     }
 
-    String msg = "Permission Denial: " + func + " from pid="
-           + Binder.getCallingPid()
-           + ", uid=" + Binder.getCallingUid()
-           + " requires " + permission;
-    Slog.w(TAG, msg);
+    // String msg = "Permission Denial: " + func + " from pid="
+    //        + Binder.getCallingPid()
+    //        + ", uid=" + Binder.getCallingUid()
+    //        + " requires " + permission;
+    // Slog.w(TAG, msg);
     return FALSE;
-#else
-    return TRUE;
-#endif
 }
 
 ECode CWindowManagerService::AddWindowToken(
@@ -2414,7 +2417,7 @@ ECode CWindowManagerService::StartAppFreezingScreen(
     /* [in] */ Int32 configChanges)
 {
     if (!CheckCallingPermission(String("elastos.permission.MANAGE_APP_TOKENS"), /*android.Manifest.permission.MANAGE_APP_TOKENS,*/
-            String("SetAppFreezingScreen()"))) {
+            String("StartAppFreezingScreen()"))) {
         //throw new SecurityException("Requires MANAGE_APP_TOKENS permission");
         return E_SECURITY_EXCEPTION;
     }
@@ -2445,7 +2448,7 @@ ECode CWindowManagerService::StopAppFreezingScreen(
     /* [in] */ Boolean force)
 {
     if (!CheckCallingPermission(String("elastos.permission.MANAGE_APP_TOKENS"), /*android.Manifest.permission.MANAGE_APP_TOKENS,*/
-            String("SetAppFreezingScreen()"))) {
+            String("StopAppFreezingScreen()"))) {
         //throw new SecurityException("Requires MANAGE_APP_TOKENS permission");
         return E_SECURITY_EXCEPTION;
     }

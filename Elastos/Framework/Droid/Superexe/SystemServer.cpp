@@ -29,7 +29,7 @@ ECode SystemServer::Init()
     IActivityManagerService::Probe(activityManagerService)->GetSystemContext((IContext**)&ctx);
     IActivityManagerService::Probe(activityManagerService)->SetSystemProcess();
 
-    CWindowManagerService::New((IWindowManager**)&windowManager);
+    CWindowManagerService::New(ctx, FALSE, (IWindowManager**)&windowManager);
     ec = serviceManager->AddService(String("window"), windowManager.Get());
     if (FAILED(ec)) return ec;
 

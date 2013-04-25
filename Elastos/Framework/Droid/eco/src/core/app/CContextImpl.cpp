@@ -283,6 +283,7 @@ ECode CContextImpl::ApplicationCapsuleManager::GetPermissionInfo(
     mPM->GetPermissionInfo(name, flags, (IPermissionInfo**)&pi);
     if (pi != NULL) {
         *info = pi.Get();
+        (*info)->AddRef();
         return NOERROR;
     }
     // } catch (RemoteException e) {
@@ -303,6 +304,7 @@ ECode CContextImpl::ApplicationCapsuleManager::QueryPermissionsByGroup(
     mPM->QueryPermissionsByGroup(group, flags, (IObjectContainer**)&pi);
     if (pi != NULL) {
         *infos = pi.Get();
+        (*infos)->AddRef();
         return NOERROR;
     }
     // } catch (RemoteException e) {
@@ -323,6 +325,7 @@ ECode CContextImpl::ApplicationCapsuleManager::GetPermissionGroupInfo(
     mPM->GetPermissionGroupInfo(name, flags, (IPermissionGroupInfo**)&pgi);
     if (pgi != NULL) {
         *info = pgi.Get();
+        (*info)->AddRef();
         return NOERROR;
     }
     // } catch (RemoteException e) {
