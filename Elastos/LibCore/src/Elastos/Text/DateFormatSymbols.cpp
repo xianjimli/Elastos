@@ -87,36 +87,6 @@ DateFormatSymbols::~DateFormatSymbols()
     }
 }
 
-ECode DateFormatSymbols::GetInstance(
-        /* [out] */ IDateFormatSymbols** instance)
-{
-    AutoPtr<ILocaleHelper> pLocaleHelper;
-    CLocaleHelper::AcquireSingleton((ILocaleHelper**)&pLocaleHelper);
-    AutoPtr<ILocale> pLocale;
-    pLocaleHelper->GetDefault((ILocale**)&pLocale);
-    return GetInstance((ILocale*)pLocale, instance);
-}
-
-ECode DateFormatSymbols::GetInstance(
-        /* [in] */ ILocale* locale,
-        /* [out] */ IDateFormatSymbols** instance)
-{
-    if (locale == NULL) {
-        //throw new NullPointerException();
-        return E_NULL_POINTER_EXCEPTION;
-    }
-//    CDateFormatSymbols::New(locale, instance);
-    return NOERROR;
-}
-
-ECode DateFormatSymbols::GetAvailableLocales(
-        /* [out, callee] */ ArrayOf<ILocale*>** arrayOfLocales)
-{
-    AutoPtr<IICUHelper> pICUHelper;
-    CICUHelper::AcquireSingleton((IICUHelper**)&pICUHelper);
-    return pICUHelper->GetAvailableDateFormatSymbolsLocales(arrayOfLocales);
-}
-
 Boolean DateFormatSymbols::TimeZoneStringsEqual(
         /* [in] */ IDateFormatSymbols *lhs,
         /* [in] */ IDateFormatSymbols *rhs)

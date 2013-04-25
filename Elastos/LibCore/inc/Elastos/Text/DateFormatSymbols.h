@@ -35,37 +35,6 @@ public:
     CARAPI Init(
         /* [in] */ ILocale* locale);
 
-    /**
-     * Returns a new {@code DateFormatSymbols} instance for the user's default locale.
-     * See "<a href="../util/Locale.html#default_locale">Be wary of the default locale</a>".
-     *
-     * @return an instance of {@code DateFormatSymbols}
-     * @since 1.6
-     */
-    static CARAPI GetInstance(
-        /* [out] */ IDateFormatSymbols** instance);
-
-    /**
-     * Returns a new {@code DateFormatSymbols} for the given locale.
-     *
-     * @param locale the locale
-     * @return an instance of {@code DateFormatSymbols}
-     * @throws NullPointerException if {@code locale == null}
-     * @since 1.6
-     */
-    static CARAPI GetInstance(
-        /* [in] */ ILocale* locale,
-        /* [out] */ IDateFormatSymbols** instance);
-
-    /**
-     * Returns an array of locales for which custom {@code DateFormatSymbols} instances
-     * are available.
-     * <p>Note that Android does not support user-supplied locale service providers.
-     * @since 1.6
-     */
-    static CARAPI GetAvailableLocales(
-        /* [out, callee] */ ArrayOf<ILocale*>** arrayOfLocales);
-
 //    @Override
 //    public Object clone() {
 //        try {

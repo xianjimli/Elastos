@@ -152,4 +152,17 @@ module
          */
         //SetZoneStrings(String[][] zoneStrings);
     }
+
+    interface IDateFormatSymbolsHelper
+    {
+        GetInstance(
+            [out] IDateFormatSymbols** instance);
+
+        GetInstanceEx(
+            [in] ILocale* locale,
+            [out] IDateFormatSymbols** instance);
+
+        GetAvailableLocales(
+            [out, callee] ArrayOf<ILocale*>* arrayOfLocales);
+    }
 }
