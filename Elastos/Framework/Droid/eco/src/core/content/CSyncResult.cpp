@@ -2,7 +2,7 @@
 #include "content/CSyncResult.h"
 #include "content/CSyncStats.h"
 
-const CSyncResult* CSyncResult::ALREADY_IN_PROGRESS = new CSyncResult(true);
+const CSyncResult* CSyncResult::ALREADY_IN_PROGRESS = NULL; //new CSyncResult(true);
 
 CSyncResult::CSyncResult()
 {
