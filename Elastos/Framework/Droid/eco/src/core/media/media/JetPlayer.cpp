@@ -4,7 +4,7 @@
 
 Int32 JetPlayer::MAXTRACKS;
 AutoPtr<IJetPlayer> JetPlayer::singletonRef;
-    
+
 //--------------------------------------------
 // Constructor, finalize
 //------------------------
@@ -45,9 +45,9 @@ JetPlayer::JetPlayer()
     //Int32 buffSizeInBytes = AudioTrack.getMinBufferSize(JET_OUTPUT_RATE,
     //        JET_OUTPUT_CHANNEL_CONFIG, AudioFormat.ENCODING_PCM_16BIT);
     //
-    //if ((buffSizeInBytes != AudioTrack.ERROR) 
+    //if ((buffSizeInBytes != AudioTrack.ERROR)
     //        && (buffSizeInBytes != AudioTrack.ERROR_BAD_VALUE)) {
-    //                    
+    //
     //    native_setup(new WeakReference<JetPlayer>(this),
     //            JetPlayer.getMaxTracks(),
     //            // bytes to frame conversion: sample format is ENCODING_PCM_16BIT, 2 channels
@@ -58,8 +58,8 @@ JetPlayer::JetPlayer()
 
 
 void JetPlayer::Finalize()
-{ 
-    native_finalize(); 
+{
+    native_finalize();
 }
 
 
@@ -168,11 +168,11 @@ Boolean JetPlayer::Pause()
  *    the General MIDI library.
  * @param repeatCount the number of times the segment will be repeated. 0 means the segment will
  *    only play once. -1 means the segment will repeat indefinitely.
- * @param transpose the amount of pitch transposition. Set to 0 for normal playback. 
+ * @param transpose the amount of pitch transposition. Set to 0 for normal playback.
  *    Range is -12 to +12.
  * @param muteFlags a bitmask to specify which MIDI tracks will be muted during playback. Bit 0
  *    affects track 0, bit 1 affects track 1 etc.
- * @param userID a value specified by the application that uniquely identifies the segment. 
+ * @param userID a value specified by the application that uniquely identifies the segment.
  *    this value is received in the
  *    {@link OnJetEventListener#onJetUserIdUpdate(JetPlayer, Int32, Int32)} event listener method.
  *    Normally, the application will keep a Byte value that is incremented each time a new
@@ -182,14 +182,14 @@ Boolean JetPlayer::Pause()
  *    parameters are invalid.
  */
 Boolean JetPlayer::QueueJetSegment(
-    /* [in] */ Int32 segmentNum, 
-    /* [in] */ Int32 libNum, 
+    /* [in] */ Int32 segmentNum,
+    /* [in] */ Int32 libNum,
     /* [in] */ Int32 repeatCount,
-    /* [in] */ Int32 transpose, 
-    /* [in] */ Int32 muteFlags, 
-    /* [in] */ Byte userID) 
+    /* [in] */ Int32 transpose,
+    /* [in] */ Int32 muteFlags,
+    /* [in] */ Byte userID)
 {
-    return native_queueJetSegment(segmentNum, libNum, repeatCount, 
+    return native_queueJetSegment(segmentNum, libNum, repeatCount,
             transpose, muteFlags, userID);
 }
 
@@ -201,12 +201,12 @@ Boolean JetPlayer::QueueJetSegment(
  *    the General MIDI library.
  * @param repeatCount the number of times the segment will be repeated. 0 means the segment will
  *    only play once. -1 means the segment will repeat indefinitely.
- * @param transpose the amount of pitch transposition. Set to 0 for normal playback. 
+ * @param transpose the amount of pitch transposition. Set to 0 for normal playback.
  *    Range is -12 to +12.
  * @param muteArray an array of booleans to specify which MIDI tracks will be muted during
- *    playback. The value at index 0 affects track 0, value at index 1 affects track 1 etc. 
+ *    playback. The value at index 0 affects track 0, value at index 1 affects track 1 etc.
  *    The length of the array must be {@link #getMaxTracks()} for the call to succeed.
- * @param userID a value specified by the application that uniquely identifies the segment. 
+ * @param userID a value specified by the application that uniquely identifies the segment.
  *    this value is received in the
  *    {@link OnJetEventListener#onJetUserIdUpdate(JetPlayer, Int32, Int32)} event listener method.
  *    Normally, the application will keep a Byte value that is incremented each time a new
@@ -216,12 +216,12 @@ Boolean JetPlayer::QueueJetSegment(
  *    parameters are invalid.
  */
 Boolean JetPlayer::QueueJetSegmentMuteArray(
-    /* [in] */ Int32 segmentNum, 
-    /* [in] */ Int32 libNum, 
+    /* [in] */ Int32 segmentNum,
+    /* [in] */ Int32 libNum,
     /* [in] */ Int32 repeatCount,
-    /* [in] */ Int32 transpose, 
-    /* [in] */ ArrayOf<Boolean>* muteArray, 
-    /* [in] */ Byte userID) 
+    /* [in] */ Int32 transpose,
+    /* [in] */ ArrayOf<Boolean>* muteArray,
+    /* [in] */ Byte userID)
 {
     if (muteArray->GetLength() != JetPlayer::GetMaxTracks()) {
         return FALSE;
@@ -237,12 +237,12 @@ Boolean JetPlayer::QueueJetSegmentMuteArray(
  *    bit 1 affects track 1 etc.
  * @param sync if false, the new mute flags will be applied as soon as possible by the JET
  *    render and playback engine. If true, the mute flags will be updated at the start of the
- *    next segment. If the segment is repeated, the flags will take effect the next time 
+ *    next segment. If the segment is repeated, the flags will take effect the next time
  *    segment is repeated.
  * @return true if the mute flags were successfully updated, false otherwise.
  */
 Boolean JetPlayer::SetMuteFlags(
-    /* [in] */ Int32 muteFlags, 
+    /* [in] */ Int32 muteFlags,
     /* [in] */ Boolean sync)
 {
     return native_setMuteFlags(muteFlags, sync);
@@ -252,17 +252,17 @@ Boolean JetPlayer::SetMuteFlags(
 /**
  * Modifies the mute flags for the current active segment.
  * @param muteArray an array of booleans to specify which MIDI tracks are muted. The value at
- *    index 0 affects track 0, value at index 1 affects track 1 etc. 
+ *    index 0 affects track 0, value at index 1 affects track 1 etc.
  *    The length of the array must be {@link #getMaxTracks()} for the call to succeed.
  * @param sync if false, the new mute flags will be applied as soon as possible by the JET
  *    render and playback engine. If true, the mute flags will be updated at the start of the
- *    next segment. If the segment is repeated, the flags will take effect the next time 
+ *    next segment. If the segment is repeated, the flags will take effect the next time
  *    segment is repeated.
  * @return true if the mute flags were successfully updated, false otherwise.
  */
 Boolean JetPlayer::SetMuteArray(
-    /* [in] */ ArrayOf<Boolean>* muteArray, 
-    /* [in] */ Boolean sync) 
+    /* [in] */ ArrayOf<Boolean>* muteArray,
+    /* [in] */ Boolean sync)
 {
     if(muteArray->GetLength() != JetPlayer::GetMaxTracks())
         return FALSE;
@@ -276,14 +276,14 @@ Boolean JetPlayer::SetMuteArray(
  * @param muteFlag set to true to mute, false to unmute.
  * @param sync if false, the new mute flags will be applied as soon as possible by the JET
  *    render and playback engine. If true, the mute flag will be updated at the start of the
- *    next segment. If the segment is repeated, the flag will take effect the next time 
+ *    next segment. If the segment is repeated, the flag will take effect the next time
  *    segment is repeated.
  * @return true if the mute flag was successfully updated, false otherwise.
  */
 Boolean JetPlayer::SetMuteFlag(
-    /* [in] */ Int32 trackId, 
-    /* [in] */ Boolean muteFlag, 
-    /* [in] */ Boolean sync) 
+    /* [in] */ Int32 trackId,
+    /* [in] */ Boolean muteFlag,
+    /* [in] */ Boolean sync)
 {
     return native_setMuteFlag(trackId, muteFlag, sync);
 }
@@ -291,9 +291,9 @@ Boolean JetPlayer::SetMuteFlag(
 
 /**
  * Schedules the playback of a clip.
- * This will automatically update the mute flags in sync with the JET Clip Marker (controller 
+ * This will automatically update the mute flags in sync with the JET Clip Marker (controller
  * 103). The parameter clipID must be in the range of 0-63. After the call to triggerClip, when
- * JET next encounters a controller event 103 with bits 0-5 of the value equal to clipID and 
+ * JET next encounters a controller event 103 with bits 0-5 of the value equal to clipID and
  * bit 6 set to 1, it will automatically unmute the track containing the controller event.
  * When JET encounters the complementary controller event 103 with bits 0-5 of the value equal
  * to clipID and bit 6 set to 0, it will mute the track again.
@@ -301,7 +301,7 @@ Boolean JetPlayer::SetMuteFlag(
  * @return true if the clip was successfully triggered, false otherwise.
  */
 Boolean JetPlayer::TriggerClip(
-    /* [in] */ Int32 clipId) 
+    /* [in] */ Int32 clipId)
 {
     return native_triggerClip(clipId);
 }
@@ -311,13 +311,13 @@ Boolean JetPlayer::TriggerClip(
  * Empties the segment queue, and clears all clips that are scheduled for playback.
  * @return true if the queue was successfully cleared, false otherwise.
  */
-Boolean JetPlayer::ClearQueue() 
+Boolean JetPlayer::ClearQueue()
 {
     return native_clearQueue();
 }
 
 //JetPlayer::NativeEventHandler::NativeEventHandler(
-//    /* [in] */ JetPlayer* jet, 
+//    /* [in] */ JetPlayer* jet,
 //    /* [in] */ Looper looper)
 //{
 //    super(looper);
@@ -325,7 +325,7 @@ Boolean JetPlayer::ClearQueue()
 //}
 
 ECode JetPlayer::NativeEventHandler::HandleMessage(
-    /* [in] */ IMessage* msg) 
+    /* [in] */ IMessage* msg)
 {
     //OnJetEventListener listener = NULL;
     //synchronized (mEventListenerLock) {
@@ -424,13 +424,13 @@ ECode JetPlayer::SetEventListener(
  * @param handler the Handler that will receive the event notification messages.
  */
 ECode JetPlayer::SetEventListener(
-    /* [in] */ IOnJetEventListener* listener, 
+    /* [in] */ IOnJetEventListener* listener,
     /* [in] */ IHandler* handler)
 {
     //synchronized(mEventListenerLock) {
-        
+
         mJetEventListener = listener;
-        
+
         //if (listener != NULL) {
         //    if (handler != NULL) {
         //        mEventHandler = new NativeEventHandler(this, handler.getLooper());
@@ -441,7 +441,7 @@ ECode JetPlayer::SetEventListener(
         //} else {
         //    mEventHandler = NULL;
         //}
-        
+
     //}
 
         return NOERROR;
@@ -453,7 +453,7 @@ ECode JetPlayer::SetEventListener(
 //------------------------
 Boolean JetPlayer::native_setup(
     /* [in] */ IInterface* Jet_this,
-    /* [in] */ Int32 maxTracks, 
+    /* [in] */ Int32 maxTracks,
     /* [in] */ Int32 trackBufferSize)
 {
     return FALSE;
@@ -476,8 +476,8 @@ Boolean JetPlayer::native_loadJetFromFile(
 }
 
 Boolean JetPlayer::native_loadJetFromFileD(
-    /* [in] */ IFileDescriptor* fd, 
-    /* [in] */ Int64 offset, 
+    /* [in] */ IFileDescriptor* fd,
+    /* [in] */ Int64 offset,
     /* [in] */ Int64 len)
 {
     return FALSE;
@@ -499,44 +499,44 @@ Boolean JetPlayer::native_pauseJet()
 }
 
 Boolean JetPlayer::native_queueJetSegment(
-    /* [in] */ Int32 segmentNum, 
+    /* [in] */ Int32 segmentNum,
     /* [in] */ Int32 libNum,
-    /* [in] */ Int32 repeatCount, 
-    /* [in] */ Int32 transpose, 
-    /* [in] */ Int32 muteFlags, 
+    /* [in] */ Int32 repeatCount,
+    /* [in] */ Int32 transpose,
+    /* [in] */ Int32 muteFlags,
     /* [in] */ Byte userID)
 {
     return FALSE;
 }
 
 Boolean JetPlayer::native_queueJetSegmentMuteArray(
-    /* [in] */ Int32 segmentNum, 
-    /* [in] */ Int32 libNum, 
-    /* [in] */ Int32 repeatCount, 
-    /* [in] */ Int32 transpose, 
-    /* [in] */ ArrayOf<Boolean>* muteArray, 
+    /* [in] */ Int32 segmentNum,
+    /* [in] */ Int32 libNum,
+    /* [in] */ Int32 repeatCount,
+    /* [in] */ Int32 transpose,
+    /* [in] */ ArrayOf<Boolean>* muteArray,
     /* [in] */ Byte userID)
 {
     return FALSE;
 }
 
 Boolean JetPlayer::native_setMuteFlags(
-    /* [in] */ Int32 muteFlags, 
+    /* [in] */ Int32 muteFlags,
     /* [in] */ Boolean sync)
 {
     return FALSE;
 }
 
 Boolean JetPlayer::native_setMuteArray(
-    /* [in] */ ArrayOf<Boolean>* muteArray, 
+    /* [in] */ ArrayOf<Boolean>* muteArray,
     /* [in] */ Boolean sync)
 {
     return FALSE;
 }
 
 Boolean JetPlayer::native_setMuteFlag(
-    /* [in] */ Int32 trackId, 
-    /* [in] */ Boolean muteFlag, 
+    /* [in] */ Int32 trackId,
+    /* [in] */ Boolean muteFlag,
     /* [in] */ Boolean sync)
 {
     return FALSE;
@@ -558,23 +558,23 @@ Boolean JetPlayer::native_clearQueue()
 //--------------------
 void JetPlayer::PostEventFromNative(
     /* [in] */ IInterface* jetplayer_ref,
-    /* [in] */ Int32 what, 
-    /* [in] */ Int32 arg1, 
+    /* [in] */ Int32 what,
+    /* [in] */ Int32 arg1,
     /* [in] */ Int32 arg2)
 {
     //logd("Event posted from the native side: event="+ what + " args="+ arg1+" "+arg2);
     /*JetPlayer jet = (JetPlayer)((WeakReference)jetplayer_ref).get();
 
     if ((jet != NULL) && (jet.mEventHandler != NULL)) {
-        Message m = 
+        Message m =
             jet.mEventHandler.obtainMessage(what, arg1, arg2, NULL);
         jet.mEventHandler.sendMessage(m);
     }*/
-    
+
 }
 
 void JetPlayer::Logd(
-    /* [in] */ String msg) 
+    /* [in] */ String msg)
 {
     //Log.d(TAG, "[ android.media.JetPlayer ] " + msg);
 }

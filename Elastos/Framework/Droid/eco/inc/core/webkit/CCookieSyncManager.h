@@ -77,7 +77,7 @@ private:
 		/* [in] */ Vector<AutoPtr<CCookieManager::Cookie> > & list);
 
 	CookieSyncManager(
-		/* [in] */ IContext* context);            
+		/* [in] */ IContext* context);
 
     // time when last update happened
 	Int64 mLastUpdate;

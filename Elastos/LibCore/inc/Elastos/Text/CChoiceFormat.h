@@ -15,6 +15,9 @@ public:
     CARAPI constructor(
         /* [in] */ const String& tem);
 
+    CARAPI_(PInterface) Probe(
+        /* [in] */ REIID riid);
+
     CARAPI FormatObject(
         /* [in] */ IInterface * pObject,
         /* [out] */ String * pValue);

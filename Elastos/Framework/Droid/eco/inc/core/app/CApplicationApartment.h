@@ -38,7 +38,10 @@ public:
             mNextIdle(NULL),
             mCapsuleInfo(NULL),
             mPendingResults(NULL),
-            mPendingIntents(NULL)
+            mPendingIntents(NULL),
+            mPaused(FALSE),
+            mStopped(FALSE),
+            mHideForNow(FALSE)
         {}
 
         CARAPI GetDescription(

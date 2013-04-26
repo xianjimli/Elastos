@@ -19,7 +19,7 @@ private:
     {
         android::AudioTrack mAudioTrack;
         IApartment* mHandler;
-        
+
         NativeEventHandlerDelegate(android::AudioTrack track, IApartment* handler) {
             mAudioTrack = track;
             // find the looper for our new event handler
@@ -30,7 +30,7 @@ private:
                 // no given handler, use the looper the AudioTrack was created in
                 looper = mInitializationLooper;
             }
-            
+
             // construct the event handler with this looper
             if (looper != NULL) {
                 // implement the event handler delegate
@@ -63,9 +63,9 @@ private:
                 };
             } else {
                 mHandler = NULL;
-            } 
+            }
         }
-        
+
         Handler getHandler() {
             return mHandler;
         }
@@ -269,7 +269,7 @@ private:
         /* [in] */ Int32 mode,
         /* [in] */ Int32 sessionId);
 
-    CARAPI_(Int32)GetNativeFrameCount(); 
+    CARAPI_(Int32)GetNativeFrameCount();
 
     CARAPI_(void) SetState(
         /* [in] */ Int32 state);
@@ -280,10 +280,10 @@ private:
         /* [in] */ uint32_t sampleRate);
 
     CARAPI_(Int32) WriteToTrack(
-        /* [in] */ android::AudioTrack* pTrack, 
-        /* [in] */ Int32 audioFormat, 
+        /* [in] */ android::AudioTrack* pTrack,
+        /* [in] */ Int32 audioFormat,
         /* [in] */ Byte* data,
-        /* [in] */ Int32 offsetInBytes, 
+        /* [in] */ Int32 offsetInBytes,
         /* [in] */ Int32 sizeInBytes) ;
 
     CARAPI_(void) PostEventFromNative(
@@ -309,11 +309,11 @@ private:
     CARAPI_(void) NativePause();
     CARAPI_(void) NativeFlush();
 
-    CARAPI_(Int32) NativeWriteByte(    
+    CARAPI_(Int32) NativeWriteByte(
         /* [in] */ ArrayOf<Byte> *javaAudioData,
         /* [in] */ Int32 offsetInBytes,
         /* [in] */ Int32 sizeInBytes,
-        /* [in] */ Int32 javaAudioFormat); 
+        /* [in] */ Int32 javaAudioFormat);
 
     CARAPI_(Int32) NativeWriteInt16(
         /* [in] */ ArrayOf<Int16> *javaAudioData,
@@ -326,7 +326,7 @@ private:
     CARAPI_(Int32) NativeGetNativeFrameCount();
 
     CARAPI_(void) NativeSetVolume(
-        /* [in] */ Float left, 
+        /* [in] */ Float left,
         /* [in] */ Float right);
 
     CARAPI_(Int32) NativeSetPlaybackRate(
@@ -346,15 +346,15 @@ private:
     CARAPI_(Int32) NativeGetPosition();
 
     CARAPI_(Int32) NativeSetLoop(
-        /* [in] */ Int32 loopStart, 
-        /* [in] */ Int32 loopEnd, 
+        /* [in] */ Int32 loopStart,
+        /* [in] */ Int32 loopEnd,
         /* [in] */ Int32 loopCount);
 
     CARAPI_(Int32) NativeGetOutputSampleRate(
         /* [in] */ Int32 javaStreamType);
 
     CARAPI_(Int32) NativeGetMinBuffSize(
-        /* [in] */ Int32 sampleRateInHertz, 
+        /* [in] */ Int32 sampleRateInHertz,
         /* [in] */ Int32 nbChannels,
         /* [in] */ Int32 audioFormat);
 
@@ -367,7 +367,7 @@ private:
     CARAPI_(void) NativeSetAuxEffectSendLevel(
         /* [in] */ Float level);
 
-private:  
+private:
     /** Minimum value for a channel volume */
     static const Float VOLUME_MIN = 0.0f;
 

@@ -13,6 +13,12 @@ ECode CChoiceFormat::constructor(
     return ChoiceFormat::Init(tem);
 }
 
+PInterface CChoiceFormat::Probe(
+    /* [in] */ REIID riid)
+{
+    return _CChoiceFormat::Probe(riid);
+}
+
 ECode CChoiceFormat::FormatObject(
     /* [in] */ IInterface * pObject,
     /* [out] */ String * pValue)

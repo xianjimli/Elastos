@@ -8,6 +8,37 @@
 class DecimalFormatSymbols
 {
 public:
+    /**
+     * Returns a new {@code DecimalFormatSymbols} instance for the user's default locale.
+     * See "<a href="../util/Locale.html#default_locale">Be wary of the default locale</a>".
+     *
+     * @return an instance of {@code DecimalFormatSymbols}
+     * @since 1.6
+     */
+    static CARAPI GetInstance(
+        /* [out] */ IDecimalFormatSymbols** instance);
+
+    /**
+     * Returns a new {@code DecimalFormatSymbols} for the given locale.
+     *
+     * @param locale the locale
+     * @return an instance of {@code DecimalFormatSymbols}
+     * @throws NullPointerException if {@code locale == null}
+     * @since 1.6
+     */
+    static CARAPI GetInstance(
+        /* [in] */ ILocale* locale,
+        /* [out] */ IDecimalFormatSymbols** instance);
+
+    /**
+     * Returns an array of locales for which custom {@code DecimalFormatSymbols} instances
+     * are available.
+     * <p>Note that Android does not support user-supplied locale service providers.
+     * @since 1.6
+     */
+    static CARAPI GetAvailableLocales(
+        /* [out, callee] */ ArrayOf<ILocale*>** locales);
+
     //@Override
     virtual CARAPI Clone(
         /* [out] */ IDecimalFormatSymbols** object);

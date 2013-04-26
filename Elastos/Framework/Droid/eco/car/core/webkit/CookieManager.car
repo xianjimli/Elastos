@@ -10,7 +10,7 @@ module
          * {@link WebView} is created or outside of {@link WebView} context, the
          * caller needs to call {@link CookieSyncManager#createInstance(Context)}
          * first.
-         * 
+         *
          * @return CookieManager
          * synchronized
          */
@@ -41,7 +41,7 @@ module
          * @param value The value for set-cookie: in http response header
          */
         SetCookie(
-           [in] CString url, 
+           [in] CString url,
            [in] CString value);
 
         /**
@@ -56,7 +56,7 @@ module
          * synchronized
          */
         SetCookieEx(
-           [in] IWebAddress* uri, 
+           [in] IWebAddress* uri,
            [in] CString value);
 
         /**

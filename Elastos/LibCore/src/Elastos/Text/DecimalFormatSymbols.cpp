@@ -45,6 +45,41 @@ ECode DecimalFormatSymbols::Init(
     return E_NOT_IMPLEMENTED;
 }
 
+ECode DecimalFormatSymbols::GetInstance(
+    /* [out] */ IDecimalFormatSymbols** instance)
+{
+    VALIDATE_NOT_NULL(instance);
+
+    AutoPtr<ILocaleHelper> localeHelper;
+    CLocaleHelper::AcquireSingleton((ILocaleHelper**)&localeHelper);
+    AutoPtr<ILocale> locale;
+    FAIL_RETURN(localeHelper->GetDefault((ILocale**)&locale));
+    return GetInstance(locale, instance);
+}
+
+ECode DecimalFormatSymbols::GetInstance(
+    /* [in] */ ILocale* locale,
+    /* [out] */ IDecimalFormatSymbols** instance)
+{
+    VALIDATE_NOT_NULL(instance);
+
+    if (locale == NULL) {
+        //throw new NullPointerException();
+        return E_NULL_POINTER_EXCEPTION;
+    }
+    return CDecimalFormatSymbols::New(locale, instance);
+}
+
+ECode DecimalFormatSymbols::GetAvailableLocales(
+    /* [out] */ ArrayOf<ILocale*>** locales)
+{
+    VALIDATE_NOT_NULL(locales);
+
+    AutoPtr<IICUHelper> ICUHelper;
+    CICUHelper::AcquireSingleton((IICUHelper**)&ICUHelper);
+    return ICUHelper->GetAvailableDecimalFormatSymbolsLocales(locales);
+}
+
 ECode DecimalFormatSymbols::Clone(
     /* [out] */ IDecimalFormatSymbols** object)
 {

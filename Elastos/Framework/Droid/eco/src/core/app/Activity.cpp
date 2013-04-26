@@ -770,6 +770,7 @@ ECode Activity::OnConfigurationChanged(
         // Pass the configuration changed event to the window
         return mWindow->OnConfigurationChanged(newConfig);
     }
+    return NOERROR;
 }
 
 ECode Activity::GetLastNonConfigurationChildInstances(

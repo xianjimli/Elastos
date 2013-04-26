@@ -249,7 +249,7 @@ module
         GetByteArray(
             [in] String key,
             [out, callee] ArrayOf<Byte>* value);
-            
+        
         /**
          * Returns a set of all of the keys and values
          *

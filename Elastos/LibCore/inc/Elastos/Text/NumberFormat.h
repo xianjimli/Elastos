@@ -109,8 +109,8 @@ public:
     };
 
 public:
-    CARAPI_(PInterface) Probe(
-        /* [in] */ REIID riid);
+    virtual CARAPI_(PInterface) Probe(
+        /* [in] */ REIID riid) = 0;
 
     /**
      * Returns a new {@code NumberFormat} with the same properties as this
@@ -256,6 +256,14 @@ public:
             /* [out] */ String* value);
 
     /**
+     * Returns an array of locales for which custom {@code NumberFormat} instances
+     * are available.
+     * <p>Note that Android does not support user-supplied locale service providers.
+     */
+    static CARAPI GetAvailableLocales(
+        /* [out, callee] */ ArrayOf<ILocale*>** locales);
+
+    /**
      * Returns the currency used by this number format.
      * <p>
      * This implementation throws {@code UnsupportedOperationException},
@@ -269,6 +277,71 @@ public:
      */
     virtual CARAPI GetCurrency(
         /* [out] */ ICurrency** currency);
+
+    /**
+     * Returns a {@code NumberFormat} for formatting and parsing currency values
+     * for the user's default locale.
+     * See "<a href="../util/Locale.html#default_locale">Be wary of the default locale</a>".
+     *
+     * @return a {@code NumberFormat} for handling currency values.
+     */
+    static CARAPI GetCurrencyInstance(
+        /* [out] */ INumberFormat** instance);
+
+    /**
+     * Returns a {@code NumberFormat} for formatting and parsing currency values
+     * for the specified locale.
+     *
+     * @param locale
+     *            the locale to use.
+     * @return a {@code NumberFormat} for handling currency values.
+     */
+    static CARAPI GetCurrencyInstance(
+        /* [in] */ ILocale* locale,
+        /* [out] */ INumberFormat** instance);
+
+    /**
+     * Returns a {@code NumberFormat} for formatting and parsing integers for the
+     * user's default locale.
+     * See "<a href="../util/Locale.html#default_locale">Be wary of the default locale</a>".
+     *
+     * @return a {@code NumberFormat} for handling integers.
+     */
+    static CARAPI GetIntegerInstance(
+        /* [out] */ INumberFormat** instance);
+
+    /**
+     * Returns a {@code NumberFormat} for formatting and parsing integers for
+     * the specified locale.
+     *
+     * @param locale
+     *            the locale to use.
+     * @return a {@code NumberFormat} for handling integers.
+     */
+    static CARAPI GetIntegerInstance(
+        /* [in] */ ILocale* locale,
+        /* [out] */ INumberFormat** instance);
+
+    /**
+     * Returns a {@code NumberFormat} for formatting and parsing numbers for the
+     * default locale.
+     *
+     * @return a {@code NumberFormat} for handling {@code Number} objects.
+     */
+    static CARAPI GetInstance(
+        /* [out] */ INumberFormat** instance);
+
+    /**
+     * Returns a {@code NumberFormat} for formatting and parsing numbers for the
+     * specified locale.
+     *
+     * @param locale
+     *            the locale to use.
+     * @return a {@code NumberFormat} for handling {@code Number} objects.
+     */
+    static CARAPI GetInstance(
+        /* [in] */ ILocale* locale,
+        /* [out] */ INumberFormat** instance);
 
     /**
      * Returns the maximum number of fraction digits that are printed when
@@ -307,6 +380,54 @@ public:
      */
     virtual CARAPI GetMinimumIntegerDigits(
         /* [out] */ Int32* number);
+
+    /**
+     * Returns a {@code NumberFormat} for formatting and parsing numbers for the
+     * user's default locale.
+     * See "<a href="../util/Locale.html#default_locale">Be wary of the default locale</a>".
+     *
+     * @return a {@code NumberFormat} for handling {@code Number} objects.
+     */
+    static CARAPI GetNumberInstance(
+        /* [out] */ INumberFormat** instance);
+
+    /**
+     * Returns a {@code NumberFormat} for formatting and parsing numbers for the
+     * specified locale.
+     *
+     * @param locale
+     *            the locale to use.
+     * @return a {@code NumberFormat} for handling {@code Number} objects.
+     */
+    static CARAPI GetNumberInstance(
+        /* [in] */ ILocale* locale,
+        /* [out] */ INumberFormat** instance);
+
+    /**
+     * Returns a {@code NumberFormat} for formatting and parsing percentage
+     * values for the user's default locale.
+     * See "<a href="../util/Locale.html#default_locale">Be wary of the default locale</a>".
+     *
+     * <p>The {@code NumberFormat} returned by this method should only be used
+     * to format floating-point numbers typically between 0 and 1 (with 1 being 100%).
+     * A value such as 0.53 will be treated as 53%, but 53.0 (or the integer 53) will be
+     * treated as 5,300%, which is rarely what you intended.
+     */
+    static CARAPI GetPercentInstance(
+        /* [out] */ INumberFormat** instance);
+
+    /**
+     * Returns a {@code NumberFormat} for formatting and parsing percentage
+     * values for the given {@code locale}.
+     *
+     * <p>The {@code NumberFormat} returned by this method should only be used
+     * to format floating-point numbers typically between 0 and 1 (with 1 being 100%).
+     * A value such as 0.53 will be treated as 53%, but 53.0 (or the integer 53) will be
+     * treated as 5,300%, which is rarely what you intended.
+     */
+    static CARAPI GetPercentInstance(
+        /* [in] */ ILocale* locale,
+        /* [out] */ INumberFormat** instance);
 
 //    @Override
 //    public int hashCode() {

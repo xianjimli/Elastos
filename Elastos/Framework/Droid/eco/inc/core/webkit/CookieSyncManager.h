@@ -43,14 +43,14 @@
  * asynchronously, so don't do it just as your activity is shutting
  * down.
  */
-class CookieSyncManager : public WebSyncManager 
+class CookieSyncManager : public WebSyncManager
 {
 public:
     /**
      * Singleton access to a {@link CookieSyncManager}. An
      * IllegalStateException will be thrown if
      * {@link CookieSyncManager#createInstance(Context)} is not called before.
-     * 
+     *
      * @return CookieSyncManager
      */
     static CARAPI_(CookieSyncManager*) GetInstance();

@@ -6,8 +6,8 @@
  * implement caption.
  */
 //Metadata::TimedText::TimedText(
-//    /* [in] */ Date time, 
-//    /* [in] */ Int32 duration, 
+//    /* [in] */ Date time,
+//    /* [in] */ Int32 duration,
 //    /* [in] */ String text)
 //{
 //    mTime = time;
@@ -52,8 +52,8 @@ Metadata::Metadata()
  * @return FALSE if an error occurred during parsing.
  */
 Boolean Metadata::ScanAllRecords(
-    /* [in] */ IParcel* parcel, 
-    /* [in] */ Int32 bytesLeft) 
+    /* [in] */ IParcel* parcel,
+    /* [in] */ Int32 bytesLeft)
 {
     Int32 recCount = 0;
     Boolean error = FALSE;
@@ -75,7 +75,7 @@ Boolean Metadata::ScanAllRecords(
         // Check the metadata key.
         Int32 metadataId;
         parcel->ReadInt32(&metadataId);
-        if (!CheckMetadataId(metadataId)) 
+        if (!CheckMetadataId(metadataId))
         {
             error = TRUE;
             break;
@@ -146,7 +146,7 @@ Boolean Metadata::ScanAllRecords(
  * @return FALSE if an error occurred.
  */
 Boolean Metadata::Parse(
-    /* [in] */ IParcel* parcel) 
+    /* [in] */ IParcel* parcel)
 {
     Int32 avail;
     //parcel->DataAvail(&avail);
@@ -212,8 +212,8 @@ Boolean Metadata::Has(
 String Metadata::GetString(
     /* [in] */ Int32 key)
 {
-    CheckType(key, STRING_VAL); 
-    
+    CheckType(key, STRING_VAL);
+
     String str;
     mParcel->ReadString(&str);
     return str;
@@ -239,10 +239,10 @@ Boolean Metadata::GetBoolean(
 }
 
 Int64 Metadata::GetInt64(
-    /* [in] */ Int32 key) 
+    /* [in] */ Int32 key)
 {
     CheckType(key, LONG_VAL);
-    
+
     Int64 res;
     mParcel->ReadInt64(&res);
     return res;
@@ -252,7 +252,7 @@ Double Metadata::GetDouble(
     /* [in] */ Int32 key)
 {
     CheckType(key, DOUBLE_VAL);
-    
+
     Double res;
     mParcel->ReadDouble(&res);
     return res;
@@ -296,28 +296,28 @@ ArrayOf<Byte>* Metadata::GetByteArray(
 
 // @return the last available system metadata id. Ids are
 // 1-indexed.
-Int32 Metadata::LastSytemId() 
-{ 
-    return LAST_SYSTEM; 
+Int32 Metadata::LastSytemId()
+{
+    return LAST_SYSTEM;
 }
 
 // @return the first available cutom metadata id.
-Int32 Metadata::FirstCustomId() 
-{ 
-    return FIRST_CUSTOM; 
+Int32 Metadata::FirstCustomId()
+{
+    return FIRST_CUSTOM;
 }
 
 // @return the last value of known type. Types are 1-indexed.
-Int32 Metadata::LastType() 
-{ 
-    return LAST_TYPE; 
+Int32 Metadata::LastType()
+{
+    return LAST_TYPE;
 }
 
 // Check val is either a system id or a custom one.
 // @param val Metadata key to test.
 // @return TRUE if it is in a valid range.
 Boolean Metadata::CheckMetadataId(
-    /* [in] */ Int32 val) 
+    /* [in] */ Int32 val)
 {
     if (val <= ANY || (LAST_SYSTEM < val && val < FIRST_CUSTOM)) {
         //Log.e(TAG, "Invalid metadata ID " + val);
@@ -328,7 +328,7 @@ Boolean Metadata::CheckMetadataId(
 
 // Check the type of the data match what is expected.
 void Metadata::CheckType(
-    /* [in] */ Int32 key, 
+    /* [in] */ Int32 key,
     /* [in] */ Int32 expectedType)
 {
     Int32 pos;// = mKeyToPosMap.Get(key);

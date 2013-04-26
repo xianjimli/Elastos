@@ -2,8 +2,7 @@
 #include <elastos/System.h>
 #include <Logger.h>
 #include <StringBuffer.h>
-#include <media/AudioEffect.h>
-#include <media/EffectApi.h>
+
 
 using namespace Elastos::Core;
 using namespace Elastos::Utility::Logging;

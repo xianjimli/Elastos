@@ -1,6 +1,6 @@
 #include "MessageFormat.h"
 #include "CMessageFormatField.h"
-#include "CNumberFormatHelper.h"
+
 
 static AutoPtr<IMessageFormatField> sInit(const String& name) {
     AutoPtr<IMessageFormatField> field;
@@ -192,11 +192,9 @@ ECode MessageFormat::FormatImpl(
             continue;
         }
         AutoPtr<IFormat> format = (*mFormats)[i];
-        AutoPtr<INumberFormatHelper> nfh;
-        CNumberFormatHelper::AcquireSingleton((INumberFormatHelper**)&nfh);
         if (format == NULL || arg == NULL) {
             if (arg->Probe(EIID_INumber) != NULL) {
-                nfh->GetInstance((INumberFormat**)&format);
+                NumberFormat::GetInstance((INumberFormat**)&format);
             } else if (arg->Probe(EIID_IDate) != NULL) {
                 DateFormat::GetInstance((IDateFormat**)&format);
             } else {
@@ -583,11 +581,9 @@ ECode MessageFormat::ParseVariable(
             *value = (type == 1) ? (IFormat*)v1 : (IFormat*)v2;
             return NOERROR;
         case 2: // number
-            AutoPtr<INumberFormatHelper> nfh;
-            CNumberFormatHelper::AcquireSingleton((INumberFormatHelper**)&nfh);
             if (ch == '}') {
                 // BEGIN android-changed
-                nfh->GetInstanceEx(mLocale, (INumberFormat**)value);
+                NumberFormat::GetInstance(mLocale, (INumberFormat**)value);
                 // END android-changed
                 return NOERROR;
             }
@@ -611,13 +607,13 @@ ECode MessageFormat::ParseVariable(
             ArrayOf<String>::Free(tokens3);
             switch (numberStyle) {
                 case 0: // currency
-                    nfh->GetCurrencyInstanceEx(mLocale, (INumberFormat**)value);
+                    NumberFormat::GetCurrencyInstance(mLocale, (INumberFormat**)value);
                     return NOERROR;
                 case 1: // percent
-                    nfh->GetPercentInstanceEx(mLocale, (INumberFormat**)value);
+                    NumberFormat::GetPercentInstance(mLocale, (INumberFormat**)value);
                     return NOERROR;
             }
-            nfh->GetIntegerInstanceEx(mLocale, (INumberFormat**)value);
+            NumberFormat::GetIntegerInstance(mLocale, (INumberFormat**)value);
             return NOERROR;
     }
     // choice
@@ -717,18 +713,14 @@ ECode MessageFormat::DecodeDecimalFormat(
     *buffer += ",number";
 
     INumberFormat* nff = reinterpret_cast<INumberFormat*>(format->Probe(EIID_INumberFormat));
-
-    AutoPtr<INumberFormatHelper> nfh;
-    CNumberFormatHelper::AcquireSingleton((INumberFormatHelper**)&nfh);
-
     AutoPtr<INumberFormat> nfn;
-    nfh->GetNumberInstanceEx(mLocale, (INumberFormat**)&nfn);
+    NumberFormat::GetNumberInstance(mLocale, (INumberFormat**)&nfn);
     AutoPtr<INumberFormat> nfi;
-    nfh->GetIntegerInstanceEx(mLocale, (INumberFormat**)&nfi);
+    NumberFormat::GetIntegerInstance(mLocale, (INumberFormat**)&nfi);
     AutoPtr<INumberFormat> nfc;
-    nfh->GetCurrencyInstanceEx(mLocale, (INumberFormat**)&nfc);
+    NumberFormat::GetCurrencyInstance(mLocale, (INumberFormat**)&nfc);
     AutoPtr<INumberFormat> nfp;
-    nfh->GetPercentInstanceEx(mLocale, (INumberFormat**)&nfp);
+    NumberFormat::GetPercentInstance(mLocale, (INumberFormat**)&nfp);
     if (nff == nfn.Get()) {
         // Empty block
     } else if (nff == nfi.Get()) {

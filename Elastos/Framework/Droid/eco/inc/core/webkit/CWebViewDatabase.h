@@ -47,7 +47,7 @@ public:
 
     /**
      * Remove a cache item.
-     * 
+     *
      * @param url The url
      */
     CARAPI_(void) RemoveCache(
@@ -166,7 +166,7 @@ public:
 
     /**
      * Get a cache item.
-     * 
+     *
      * @param url The url
      * @return CacheResult The CacheManager.CacheResult
      */
@@ -175,7 +175,7 @@ public:
 
     /**
      * Remove a cache item.
-     * 
+     *
      * @param url The url
      */
     CARAPI_(void) RemoveCache(
@@ -420,7 +420,7 @@ private:
     // 1 -> 2 Add expires String
     // 2 -> 3 Add content-disposition
     // 3 -> 4 Add crossdomain (For x-permitted-cross-domain-policies header)
-    
+
     static CWebViewDatabase* mInstance;
     static ISQLiteDatabase* mDatabase;
     static ISQLiteDatabase* mCacheDatabase;

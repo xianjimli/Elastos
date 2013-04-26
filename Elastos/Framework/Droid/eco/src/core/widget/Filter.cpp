@@ -149,10 +149,12 @@ ECode Filter::DoFilterEx(
         ASSERT_SUCCEEDED(CApartment::New(FALSE, (IApartment**)&mRequestApartment));
         mRequestApartment->Start(ApartmentAttr_New);
     }
+
     Int64 delay = 0;
     if (mDelayer != NULL) {
         mDelayer->GetPostingDelay(constraint, &delay);
     }
+
     RequestArguments* args = new RequestArguments();
     // make sure we use an immutable copy of the constraint, so that
     // it doesn't change while the filter operation is in progress
@@ -207,6 +209,7 @@ ECode Filter::HandleFilterMessage(
         (IFilterResults**)&args->mResults))) {
         args->mResults = new FilterResults();
     }
+
     ECode (STDCALL Filter::*pHandlerFunc)(RequestArguments* args);
 
     pHandlerFunc = &Filter::HandleResultsMessage;
@@ -226,6 +229,7 @@ ECode Filter::HandleFilterMessage(
         mRequestApartment->PostCppCallbackDelayed(
             (Handle32)this, *(Handle32*)&pHandlerFunc, params, 0, 3000);
     }
+
     return NOERROR;
 }
 
