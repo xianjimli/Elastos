@@ -7,7 +7,6 @@
 
 #include "_CContentProviderOperationBuilder.h"
 #include <elastos/AutoPtr.h>
-#include <elastos/AutoFree.h>
 #include <elastos/HashMap.h>
 
 CarClass(CContentProviderOperationBuilder)
@@ -31,8 +30,7 @@ public:
      * @return this builder, to allow for chaining.
      */
     CARAPI WithValueBackReferences(
-        /* [in] */ IContentValues* backReferences,
-        /* [out] */ IContentProviderOperationBuilder** operationBuilder);
+        /* [in] */ IContentValues* backReferences);
 
     /**
      * Add a ContentValues back reference.
@@ -43,8 +41,7 @@ public:
      */
     CARAPI WithValueBackReference(
         /* [in] */ const String& key,
-        /* [in] */ Int32 previousResult,
-        /* [out] */ IContentProviderOperationBuilder** operationBuilder);
+        /* [in] */ Int32 previousResult);
 
     /**
      * Add a back references as a selection arg. Any value at that index of the selection arg
@@ -54,8 +51,7 @@ public:
      */
     CARAPI WithSelectionBackReference(
         /* [in] */ Int32 selectionArgIndex,
-        /* [in] */ Int32 previousResult,
-        /* [out] */ IContentProviderOperationBuilder** operationBuilder);
+        /* [in] */ Int32 previousResult);
 
     /**
      * The ContentValues to use. This may be null. These values may be overwritten by
@@ -65,8 +61,7 @@ public:
      * @return this builder, to allow for chaining.
      */
     CARAPI WithValues(
-        /* [in] */ IContentValues* values,
-        /* [out] */ IContentProviderOperationBuilder** operationBuilder);
+        /* [in] */ IContentValues* values);
 
     /**
      * A value to insert or update. This value may be overwritten by
@@ -79,48 +74,39 @@ public:
      */
     CARAPI WithValue(
         /* [in] */ const String& key,
-        /* [in] */ const String& stringValue,
-        /* [out] */ IContentProviderOperationBuilder** operationBuilder);
+        /* [in] */ const String& stringValue);
 
     CARAPI WithValueEx(
         /* [in] */ const String& key,
-        /* [in] */ Byte byteValue,
-        /* [out] */ IContentProviderOperationBuilder** operationBuilder);
+        /* [in] */ Byte byteValue);
 
     CARAPI WithValueEx2(
         /* [in] */ const String& key,
-        /* [in] */ Int16 shortValue,
-        /* [out] */ IContentProviderOperationBuilder** operationBuilder);
+        /* [in] */ Int16 shortValue);
 
     CARAPI WithValueEx3(
         /* [in] */ const String& key,
-        /* [in] */ Int32 intValue,
-        /* [out] */ IContentProviderOperationBuilder** operationBuilder);
+        /* [in] */ Int32 intValue);
 
     CARAPI WithValueEx4(
         /* [in] */ const String& key,
-        /* [in] */ Int64 longValue,
-        /* [out] */ IContentProviderOperationBuilder** operationBuilder);
+        /* [in] */ Int64 longValue);
 
     CARAPI WithValueEx5(
         /* [in] */ const String& key,
-        /* [in] */ Float floatValue,
-        /* [out] */ IContentProviderOperationBuilder** operationBuilder);
+        /* [in] */ Float floatValue);
 
     CARAPI WithValueEx6(
         /* [in] */ const String& key,
-        /* [in] */ Double doubleValue,
-        /* [out] */ IContentProviderOperationBuilder** operationBuilder);
+        /* [in] */ Double doubleValue);
 
     CARAPI WithValueEx7(
         /* [in] */ const String& key,
-        /* [in] */ Boolean booleanValue,
-        /* [out] */ IContentProviderOperationBuilder** operationBuilder);
+        /* [in] */ Boolean booleanValue);
 
     CARAPI WithValueEx8(
         /* [in] */ const String& key,
-        /* [in] */ const ArrayOf<Byte>& arrayValue,
-        /* [out] */ IContentProviderOperationBuilder** operationBuilder);
+        /* [in] */ ArrayOf<Byte>* arrayValue);
 
     /**
      * The selection and arguments to use. An occurrence of '?' in the selection will be
@@ -132,8 +118,7 @@ public:
      */
     CARAPI WithSelection(
         /* [in] */ const String& selection,
-        /* [in] */ const ArrayOf<String>& selectionArgs,
-        /* [out] */ IContentProviderOperationBuilder** operationBuilder);
+        /* [in] */ ArrayOf<String>* selectionArgs);
 
     /**
      * If set then if the number of rows affected by this operation do not match
@@ -142,12 +127,10 @@ public:
      * @return this builder, to allow for chaining.
      */
     CARAPI WithExpectedCount(
-        /* [in] */ Int32 count,
-        /* [out] */ IContentProviderOperationBuilder** operationBuilder);
+        /* [in] */ Int32 count);
 
     CARAPI WithYieldAllowed(
-        /* [in] */ Boolean yieldAllowed,
-        /* [out] */ IContentProviderOperationBuilder** operationBuilder);
+        /* [in] */ Boolean yieldAllowed);
 
     CARAPI GetType(
         /* [out] */ Int32* type);
@@ -184,11 +167,11 @@ private:
     Int32 mType;
     AutoPtr<IUri> mUri;
     String mSelection;
-    AutoFree<ArrayOf<String> > mSelectionArgs;
+    ArrayOf<String>* mSelectionArgs;
     AutoPtr<IContentValues> mValues;
     Int32 mExpectedCount;
     AutoPtr<IContentValues> mValuesBackReferences;
-    HashMap<Int32, Int32> mSelectionArgsBackReferences;
+    HashMap<Int32, Int32>* mSelectionArgsBackReferences;
     Boolean mYieldAllowed;
 
 };

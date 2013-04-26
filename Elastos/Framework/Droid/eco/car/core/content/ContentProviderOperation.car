@@ -1,6 +1,8 @@
 
 module
 {
+    const E_OPERATION_APPLICATION_EXCEPTION = 0xB0000100;
+
     /** @hide exposed for unit tests */
     const ContentProviderOperation_TYPE_INSERT = 1;
     
@@ -18,6 +20,7 @@ module
     interface IContentValues;
     interface IUri;
 
+    [deprecated]
     interface IContentProviderOperation {
             
         GetUri(
@@ -52,7 +55,7 @@ module
          */
         Apply(
             [in] IContentProvider* provider,
-            [in] ArrayOf<IContentProviderResult*> backRefs,
+            [in] ArrayOf<IContentProviderResult*>* backRefs,
             [in] Int32 numBackRefs,
             [out] IContentProviderResult** providerResult);
         
@@ -70,7 +73,7 @@ module
          * is null
          */
         ResolveValueBackReferences(
-            [in] ArrayOf<IContentProviderResult*> backRefs,
+            [in] ArrayOf<IContentProviderResult*>* backRefs,
             [in] Int32 numBackRefs,
             [out] IContentValues** contentValues);
             
@@ -89,7 +92,7 @@ module
          * is null
          */
         ResolveSelectionArgsBackReferences(
-            [in] ArrayOf<IContentProviderResult*> backRefs,
+            [in] ArrayOf<IContentProviderResult*>* backRefs,
             [in] Int32 numBackRefs,
             [out, callee] ArrayOf<String>* stringArray);
         
@@ -97,6 +100,7 @@ module
             [out] String* result);
     }
     
+    [deprecated]
     interface IContentProviderOperationBuilder {
     
         /** Create a ContentProviderOperation from this {@link Builder}. */
@@ -113,8 +117,7 @@ module
          * @return this builder, to allow for chaining.
          */
         WithValueBackReferences(
-            [in] IContentValues* backReferences,
-            [out] IContentProviderOperationBuilder** operationBuilder);
+            [in] IContentValues* backReferences);
     
         /**
          * Add a ContentValues back reference.
@@ -125,8 +128,7 @@ module
          */
         WithValueBackReference(
             [in] String key,
-            [in] Int32 previousResult,
-            [out] IContentProviderOperationBuilder** operationBuilder);
+            [in] Int32 previousResult);
             
         /**
          * Add a back references as a selection arg. Any value at that index of the selection arg
@@ -136,8 +138,7 @@ module
          */
         WithSelectionBackReference(
             [in] Int32 selectionArgIndex,
-            [in] Int32 previousResult,
-            [out] IContentProviderOperationBuilder** operationBuilder);
+            [in] Int32 previousResult);
             
         /**
          * The ContentValues to use. This may be null. These values may be overwritten by
@@ -147,8 +148,7 @@ module
          * @return this builder, to allow for chaining.
          */
         WithValues(
-            [in] IContentValues* values,
-            [out] IContentProviderOperationBuilder** operationBuilder);
+            [in] IContentValues* values);
         
         /**
          * A value to insert or update. This value may be overwritten by
@@ -161,48 +161,39 @@ module
          */
         WithValue(
             [in] String key,
-            [in] String stringValue,
-            [out] IContentProviderOperationBuilder** operationBuilder);
+            [in] String stringValue);
             
         WithValueEx(
             [in] String key,
-            [in] Byte byteValue,
-            [out] IContentProviderOperationBuilder** operationBuilder);
+            [in] Byte byteValue);
             
         WithValueEx2(
             [in] String key,
-            [in] Int16 shortValue,
-            [out] IContentProviderOperationBuilder** operationBuilder);
+            [in] Int16 shortValue);
             
         WithValueEx3(
             [in] String key,
-            [in] Int32 intValue,
-            [out] IContentProviderOperationBuilder** operationBuilder);
+            [in] Int32 intValue);
             
         WithValueEx4(
             [in] String key,
-            [in] Int64 longValue,
-            [out] IContentProviderOperationBuilder** operationBuilder);
+            [in] Int64 longValue);
             
         WithValueEx5(
             [in] String key,
-            [in] Float floatValue,
-            [out] IContentProviderOperationBuilder** operationBuilder);
+            [in] Float floatValue);
             
         WithValueEx6(
             [in] String key,
-            [in] Double doubleValue,
-            [out] IContentProviderOperationBuilder** operationBuilder);
+            [in] Double doubleValue);
             
         WithValueEx7(
             [in] String key,
-            [in] Boolean booleanValue,
-            [out] IContentProviderOperationBuilder** operationBuilder);
+            [in] Boolean booleanValue);
             
         WithValueEx8(
             [in] String key,
-            [in] ArrayOf<Byte> arrayValue,
-            [out] IContentProviderOperationBuilder** operationBuilder);
+            [in] ArrayOf<Byte>* arrayValue);
         
         /**
          * The selection and arguments to use. An occurrence of '?' in the selection will be
@@ -214,8 +205,7 @@ module
          */
         WithSelection(
             [in] String selection,
-            [in] ArrayOf<String> selectionArgs,
-            [out] IContentProviderOperationBuilder** operationBuilder);
+            [in] ArrayOf<String>* selectionArgs);
         
         /**
          * If set then if the number of rows affected by this operation do not match
@@ -224,12 +214,10 @@ module
          * @return this builder, to allow for chaining.
          */
         WithExpectedCount(
-            [in] Int32 count,
-            [out] IContentProviderOperationBuilder** operationBuilder);
+            [in] Int32 count);
             
         WithYieldAllowed(
-            [in] Boolean yieldAllowed,
-            [out] IContentProviderOperationBuilder** operationBuilder);
+            [in] Boolean yieldAllowed);
             
         GetType(
             [out] Int32* type);

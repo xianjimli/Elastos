@@ -66,7 +66,7 @@ private:
     Int32 mCode;
     Int32 mWhich;
     String mText;
-    List<AutoPtr<CUriMatcher> > mChildren;
+    List<AutoPtr<CUriMatcher> >* mChildren;
 
 };
 

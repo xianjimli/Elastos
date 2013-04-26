@@ -1,16 +1,21 @@
 
 #include "content/CUriMatcher.h"
 #include "ext/frameworkext.h"
+#include <elastos/AutoFree.h>
 
 CUriMatcher::CUriMatcher()
     : mCode(UriMatcher_NO_MATCH)
     , mWhich(-1)
     , mText(NULL) 
+    , mChildren(NULL)
 {}
 
 CUriMatcher::~CUriMatcher()
 {
-    mChildren.Clear();
+    if (NULL != mChildren) {
+        mChildren->Clear();
+        delete mChildren;
+    }
 }
 
 ECode CUriMatcher::AddURI(
@@ -22,7 +27,7 @@ ECode CUriMatcher::AddURI(
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
 
-    ArrayOf<String>* tokens;
+    AutoFree<ArrayOf<String> > tokens;
 
     if (!path.IsNull()) {
         ICharSequence* pCS = NULL;
@@ -43,13 +48,13 @@ ECode CUriMatcher::AddURI(
             token.SetTo((*tokens)[i]);
         }
 
-        List<AutoPtr<CUriMatcher> > children = node->mChildren;
-        Int32 numChildren = children.GetSize();
+        List<AutoPtr<CUriMatcher> >* children = node->mChildren;
+        Int32 numChildren = children->GetSize();
         AutoPtr<CUriMatcher> child;
         Int32 j = 0;
         List<AutoPtr<CUriMatcher> >::Iterator it;
 
-        for (it = mChildren.Begin(); it != mChildren.End(); it++, j++) {
+        for (it = children->Begin(); it != children->End(); it++, j++) {
             child = *it;
             if (!token.Compare(child->mText)) {
                 node = child;
@@ -70,7 +75,7 @@ ECode CUriMatcher::AddURI(
             }
 
             child->mText.SetTo(token);
-            node->mChildren.PushBack(child);
+            node->mChildren->PushBack(child);
             node = child;
         }
     }
@@ -85,8 +90,8 @@ ECode CUriMatcher::Match(
 {
     VALIDATE_NOT_NULL(uri);
     VALIDATE_NOT_NULL(matchCode);
-    ArrayOf<String>* pathSegments;
-    FAIL_RETURN(uri->GetPathSegments(&pathSegments));
+    AutoFree<ArrayOf<String> > pathSegments;
+    FAIL_RETURN(uri->GetPathSegments((ArrayOf<String>**)&pathSegments));
     Int32 length = pathSegments->GetLength();
     AutoPtr<CUriMatcher> node = this;
     String authority;
@@ -106,12 +111,12 @@ ECode CUriMatcher::Match(
             u.SetTo((*pathSegments)[i]);
         }
 
-        List<AutoPtr<CUriMatcher> > list = node->mChildren;
-        if (list.IsEmpty()) break;
+        List<AutoPtr<CUriMatcher> >* list = node->mChildren;
+        if (list->IsEmpty()) break;
         node = NULL;
         List<AutoPtr<CUriMatcher> >::Iterator it;
 
-        for (it = list.Begin(); it != list.End(); it++) {
+        for (it = list->Begin(); it != list->End(); it++) {
             CUriMatcher* n = *it;
             Int32 lk = 0;
             //which_switch:
