@@ -9,12 +9,17 @@
 #include <elastos/ElRefBase.h>
 
 #include "os/SystemProperties.h"
+#include "os/SystemClock.h"
 
 using namespace Elastos;
 using namespace Elastos::Utility::Logging;
 
+
 CarClass(CSyncManager)
 {
+
+public:
+    class ActiveSyncContext;
 
 public:
     CSyncManager();
@@ -120,7 +125,7 @@ private:
 
     /*final*/ AutoPtr<ISyncStorageEngine> mSyncStorageEngine;
 
-//    AutoPtr<ActiveSyncContext> mActiveSyncContext; // = null;
+    AutoPtr<ActiveSyncContext> mActiveSyncContext; // = null;
 
     // set if the sync error indicator should be reported.
     Boolean mNeedSyncErrorNotification; // = false;
@@ -190,6 +195,37 @@ private:
         volatile Boolean mInitialized;
     };
 
+    class SyncTimeTracker : public ElRefBase
+    {
+    public:
+        SyncTimeTracker(CSyncManager* manager);
+        ~SyncTimeTracker();
+
+    public:
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        /** Call to let the tracker know that the sync state may have changed */
+        /*synchronized*/ void update();
+
+        /** Get how long we have been syncing, in ms */
+        /*synchronized*/ Int64 timeSpentSyncing();
+
+    public:
+        /** True if a sync was in progress on the most recent call to update() */
+        Boolean mLastWasSyncing; // = false;
+        /** Used to track when lastWasSyncing was last set */
+        Int64 mWhenSyncStarted; // = 0;
+
+    private:
+        AutoPtr<CSyncManager> mSyncmanager;
+
+        /** The cumulative time we have spent syncing */
+        Int64 mTimeSpentSyncing;
+
+    };
+
 
 public:
     class SyncAlarmIntentReceiver : public ElRefBase, public IBroadcastReceiver
@@ -219,6 +255,62 @@ public:
         AutoPtr<CSyncManager> mSyncmanager;
     };
 
+    class SyncHandlerMessagePayload : public ElRefBase
+    {
+    public:
+        SyncHandlerMessagePayload(
+            /* [in] */ ActiveSyncContext* syncContext,
+            /* [in] */ ISyncResult* syncResult);
+
+        ~SyncHandlerMessagePayload();
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+    public:
+        const AutoPtr<ActiveSyncContext> activeSyncContext;
+        const AutoPtr<ISyncResult> syncResult;
+    };
+
+    /**
+     * @hide
+     */
+    class ActiveSyncContext : public ElRefBase, public ISyncContextStub, public IServiceConnection
+    {
+    public:
+        CARAPI SendHeartbeat();
+
+        CARAPI OnFinished(
+            /* [in] */ ISyncResult* result);
+
+        CARAPI OnServiceConnected(
+            /* [in] */ IComponentName* name,
+            /* [in] */ IBinder* service);
+
+        CARAPI OnServiceDisconnected(
+            /* [in] */ IComponentName* name);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+    };
+
+    class ServiceConnectionData : public ElRefBase{
+    public:
+        ServiceConnectionData(
+            /* [in] */ ActiveSyncContext* activeSyncContext,
+            /* [in] */ ISyncAdapterStub* syncAdapter);
+
+        ~ServiceConnectionData();
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+    public:
+        AutoPtr<ActiveSyncContext> activeSyncContext;
+        /* final */ AutoPtr<ISyncAdapterStub> syncAdapter;
+    };
 };
 
 #endif // __CSYNCMANAGER_H__

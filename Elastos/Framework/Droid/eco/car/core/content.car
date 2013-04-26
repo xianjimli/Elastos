@@ -45,6 +45,10 @@ module
     merge("content/SyncStorageEngine.car");
     merge("content/SyncOperation.car");
     merge("content/SyncManager.car");
+    merge("content/SyncAdapter.car");
+    merge("content/SyncResult.car");
+    merge("content/SyncContext.car");
+    merge("content/SyncStats.car");
     merge("content/ContentService.car");
     merge("content/contentresolver.car");
     merge("content/contentvalues.car");
@@ -84,6 +88,29 @@ module
             [in] IContentValues* values);
 
         interface IContentValues;
+        interface IParcelable;
+    }
+    
+    class CSyncResult {
+        constructor();
+        
+        constructor(
+            [in] Boolean syncAlreadyInProgress);
+            
+        constructor(
+            [in] IParcel* parcel);
+
+        interface ISyncResult;
+        interface IParcelable;
+    }
+    
+    class CSyncStats {
+        constructor();
+        
+        constructor(
+            [in] IParcel* parcel);
+
+        interface ISyncStats;
         interface IParcelable;
     }
     
