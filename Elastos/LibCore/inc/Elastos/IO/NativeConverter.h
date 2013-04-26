@@ -184,6 +184,9 @@ private:
         /* [in] */ int32_t length,
         /* [in] */ UConverterCallbackReason reason,
         /* [out] */ UErrorCode* status);
+
+    static CARAPI CheckErrorCode(
+        /* [in] */ UErrorCode errorCode);
 };
 
 #endif // __NATIVECONVERTER_H__

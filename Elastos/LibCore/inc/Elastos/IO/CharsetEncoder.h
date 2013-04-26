@@ -11,18 +11,20 @@ using namespace Elastos;
 class CharsetEncoder
 {
 public:
-    CharsetEncoder(
+    CharsetEncoder();
+
+    ~CharsetEncoder();
+
+    CARAPI Init(
         /* [in] */ ICharset* cs,
         /* [in] */ Float averageBytesPerChar,
         /* [in] */ Float maxBytesPerChar);
 
-    CharsetEncoder(
+    CARAPI Init(
         /* [in] */ ICharset* cs,
         /* [in] */ Float averageBytesPerChar,
         /* [in] */ Float maxBytesPerChar,
         /* [in] */ const ArrayOf<Byte>& replacement);
-
-    ~CharsetEncoder();
 
     CARAPI AverageBytesPerChar(
         /* [out] */ Float* averageNumber);
@@ -47,11 +49,6 @@ public:
         /* [in, out] */ IByteBuffer* byteBuffer,
         /* [in] */ Boolean endOfInput,
         /* [out] */ ICoderResult** result);
-
-    virtual CARAPI EncodeLoop(
-        /* [in] */ ICharBuffer* charBuffer,
-        /* [in, out] */ IByteBuffer* byteBuffer,
-        /* [out] */ ICoderResult** result) = 0;
 
     CARAPI Flush(
         /* [in, out] */ IByteBuffer* byteBuffer,
@@ -87,6 +84,12 @@ public:
 
     CARAPI UnmappableCharacterAction(
         /* [out] */ ICodingErrorAction** errorAction);
+
+protected:
+    virtual CARAPI EncodeLoop(
+        /* [in] */ ICharBuffer* charBuffer,
+        /* [in, out] */ IByteBuffer* byteBuffer,
+        /* [out] */ ICoderResult** result) = 0;
 
 private:
     // implementation of canEncode
@@ -158,12 +161,6 @@ private:
     CARAPI ImplReset();
 
     CARAPI UncheckedReplaceWith(
-        /* [in] */ const ArrayOf<Byte>& replacement);
-
-    CARAPI Init(
-        /* [in] */ ICharset* cs,
-        /* [in] */ Float averageBytesPerChar,
-        /* [in] */ Float maxBytesPerChar,
         /* [in] */ const ArrayOf<Byte>& replacement);
 
 private:

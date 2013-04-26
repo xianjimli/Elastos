@@ -16,7 +16,9 @@ using namespace Elastos;
 class Charset
 {
 public:
-    Charset(
+    Charset();
+
+    CARAPI Init(
         /* [in] */ const String& canonicalName, 
         /* [in] */ const ArrayOf<String>& aliases);
 
@@ -94,19 +96,19 @@ private:
 
     static CARAPI CacheCharset(
         /* [in] */ const String& charsetName,
-        /* [in] */ Charset* s,
-        /* [out] */ Charset** charset);
+        /* [in] */ ICharset* s,
+        /* [out] */ ICharset** charset);
 
-    static Charset* GetDefaultCharset();
+    static ICharset* GetDefaultCharset();
 
 public:
     String mCanonicalName;
 
 private:
-    static HashMap<String, Charset*>* CACHED_CHARSETS;
+    static HashMap<String, ICharset*>* CACHED_CHARSETS;
         // = new HashMap<String, Charset>();
 
-    static const Charset* DEFAULT_CHARSET;
+    static const ICharset* DEFAULT_CHARSET;
         // = GetDefaultCharset();
 
     HashSet<String>* const mAliasesSet;
