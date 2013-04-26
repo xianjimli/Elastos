@@ -15,7 +15,7 @@ const AutoPtr<IInterface> BaseKeyListener::OLD_SEL_START = MetaKeyKeyListener::N
  * if any;
  * ALT+DEL deletes everything on the line the cursor is on.
  *
- * @return TRUE if anything was deleted; FALSE otherwise.   
+ * @return TRUE if anything was deleted; FALSE otherwise.
  */
 Boolean BaseKeyListener::Backspace(
     /* [in] */ IView* view,
@@ -90,7 +90,7 @@ Boolean BaseKeyListener::AltBackspace(
     if (end == start) {
         return FALSE;
     }
-    
+
     AutoPtr<IEditable> editable;
     content->Delete(start, end, (IEditable**)&editable);
     return TRUE;
@@ -128,7 +128,7 @@ Boolean BaseKeyListener::OnKeyDown(
         Backspace(view, content, keyCode, event);
         return TRUE;
     }
-    
+
     return MetaKeyKeyListener::OnKeyDown(view, content, keyCode, event);
 }
 
@@ -149,7 +149,7 @@ Boolean BaseKeyListener::OnKeyOther(
         // Not something we are interested in.
         return FALSE;
     }
-    
+
     Int32 selStart, selEnd;
 
     {
@@ -162,12 +162,12 @@ Boolean BaseKeyListener::OnKeyOther(
 
     String str;
     event->GetCharacters(&str);
-    AutoPtr<ICharSequence> text;
-    CStringWrapper::New(str, (ICharSequence**)&text);
-    if (text == NULL) {
+    if (str.IsNull()) {
         return FALSE;
     }
-    
+
+    AutoPtr<ICharSequence> text;
+    CStringWrapper::New(str, (ICharSequence**)&text);
     AutoPtr<IEditable> editable;
     content->ReplaceEx(selStart, selEnd, text, (IEditable**)&editable);
     return TRUE;

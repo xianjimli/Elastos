@@ -15,16 +15,15 @@ ECode CMyResultReceiver::Send(
     /* [in] */ IBundle* resultData)
 {
     if (((ResultReceiver*)mHost)->mHandler != NULL) {
-        //mHandler.post(new MyRunnable(resultCode, resultData, mHost));
-        AutoPtr<IRunnable> runnable = new ResultReceiver::MyRunnable(
+        //do not use AutoPtr<IRunnable> as the type of runnable here
+        IRunnable* runnable = new ResultReceiver::MyRunnable(
                 resultCode, resultData, (ResultReceiver*)mHost);
 
         ECode (STDCALL IRunnable::*pHandlerFunc)();
         pHandlerFunc = &IRunnable::Run;
 
-        //todo: maybe the runnable is deleted when call it's run
         ((ResultReceiver*)mHost)->mHandler->PostCppCallback(
-            (Handle32)runnable.Get(), *(Handle32*)&pHandlerFunc, NULL, 0);
+            (Handle32)runnable, *(Handle32*)&pHandlerFunc, NULL, 0);
     }
     else {
         ((ResultReceiver*)mHost)->OnReceiveResult(resultCode, resultData);

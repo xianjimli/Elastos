@@ -5323,6 +5323,7 @@ Int32 TextView::DoKeyDown(
             }
             doDown = FALSE;
             if (handled) {
+                EndBatchEdit();
                 return -1;
             }
 
@@ -5367,8 +5368,9 @@ Int32 TextView::DoKeyDown(
             mMovement->OnKeyDown(
                 (ITextView*)this->Probe(EIID_ITextView), ISpannable::Probe(mText),
                 keyCode, event, &res);
-            if (res)
+            if (res) {
                 return 2;
+            }
         }
     }
 

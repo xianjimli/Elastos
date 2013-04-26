@@ -1922,10 +1922,11 @@ void KeyboardView::HandleRemovePreview()
 void KeyboardView::HandleRepeat()
 {
     if (RepeatKey()) {
-        assert(0);
-        //TODO: in android's java, no code to process this message?
-        // Message repeat = Message.obtain(this, MSG_REPEAT);
-        // sendMessageDelayed(repeat, REPEAT_INTERVAL);
+        void (STDCALL KeyboardView::*pHandlerFunc)();
+        pHandlerFunc = &KeyboardView::HandleRepeat;
+        mHandler->PostCppCallbackDelayed(
+            (Handle32)this, *(Handle32*)&pHandlerFunc,
+            NULL, 0, REPEAT_INTERVAL);
     }
 }
 
