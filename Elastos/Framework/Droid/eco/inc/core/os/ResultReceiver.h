@@ -29,6 +29,8 @@ private:
             /* [in] */ IBundle* resultData,
             /* [in] */ ResultReceiver* host);
 
+        ~MyRunnable();
+
         CARAPI Run();
 
     private:

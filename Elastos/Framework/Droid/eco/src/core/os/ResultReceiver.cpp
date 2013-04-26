@@ -13,10 +13,15 @@ ResultReceiver::MyRunnable::MyRunnable(
     , mHost(host)
 {}
 
+ResultReceiver::MyRunnable::~MyRunnable()
+{}
+
 ECode ResultReceiver::MyRunnable::Run()
 {
     assert(mHost != NULL);
     mHost->OnReceiveResult(mResultCode, mResultData);
+    //delete this object here
+    delete this;
     return NOERROR;
 }
 

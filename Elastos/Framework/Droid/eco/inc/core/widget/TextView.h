@@ -46,9 +46,13 @@ protected:
     {
     public:
         InputMethodState()
-            : mCursorChanged(FALSE)
+            : mBatchEditNesting(0)
+            , mCursorChanged(FALSE)
             , mSelectionModeChanged(FALSE)
             , mContentChanged(FALSE)
+            , mChangedStart(0)
+            , mChangedEnd(0)
+            , mChangedDelta(0)
         {
             ASSERT_SUCCEEDED(CRect::NewByFriend((CRect**)&mCursorRectInWindow));
             ASSERT_SUCCEEDED(CRectF::NewByFriend((CRectF**)&mTmpRectF));
