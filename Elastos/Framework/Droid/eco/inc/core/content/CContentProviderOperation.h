@@ -49,7 +49,7 @@ public:
      */
     CARAPI Apply(
         /* [in] */ IContentProvider* provider,
-        /* [in] */ const ArrayOf<IContentProviderResult*>& backRefs,
+        /* [in] */ ArrayOf<IContentProviderResult*>* backRefs,
         /* [in] */ Int32 numBackRefs,
         /* [out] */ IContentProviderResult** providerResult);
 
@@ -67,7 +67,7 @@ public:
      * is null
      */
     CARAPI ResolveValueBackReferences(
-        /* [in] */ const ArrayOf<IContentProviderResult*>& backRefs,
+        /* [in] */ ArrayOf<IContentProviderResult*>* backRefs,
         /* [in] */ Int32 numBackRefs,
         /* [out] */ IContentValues** contentValues);
 
@@ -86,7 +86,7 @@ public:
      * is null
      */
     CARAPI ResolveSelectionArgsBackReferences(
-        /* [in] */ const ArrayOf<IContentProviderResult*>& backRefs,
+        /* [in] */ ArrayOf<IContentProviderResult*>* backRefs,
         /* [in] */ Int32 numBackRefs,
         /* [out, callee] */ ArrayOf<String>** stringArray);
 
@@ -106,6 +106,22 @@ public:
         /* [in] */ IParcel* source);
 
 private:
+    /**
+     * Return the string representation of the requested back reference.
+     * @param backRefs an array of results
+     * @param numBackRefs the number of items in the backRefs array that are valid
+     * @param backRefIndex which backRef to be used
+     * @throws ArrayIndexOutOfBoundsException thrown if the backRefIndex is larger than
+     * the numBackRefs
+     * @return the string representation of the requested back reference.
+     */
+    CARAPI BackRefToValue(
+        /* [in] */ ArrayOf<IContentProviderResult*>* backRefs,
+        /* [in] */ const Int32 numBackRefs,
+        /* [in] */ const Int32 backRefIndex,
+        /* [out] */ Int64* backRefValue);
+
+private:
     static CString TAG;
     Int32 mType;
     AutoPtr<IUri> mUri;
@@ -114,7 +130,7 @@ private:
     AutoPtr<IContentValues> mValues;
     Int32 mExpectedCount;
     AutoPtr<IContentValues> mValuesBackReferences;
-    HashMap<Int32, Int32> mSelectionArgsBackReferences;
+    HashMap<Int32, Int32>* mSelectionArgsBackReferences;
     Boolean mYieldAllowed;
 
 };
