@@ -820,6 +820,19 @@ module
         interface INativeConverter;
     }
 
+    class CCharsetICU {
+        constructor(
+            [in] String canonicalName,
+            [in] String icuCanonName,
+            [in] ArrayOf<String> aliases);
+
+        interface ICharset;
+    }
+
+    class CCharsetEncoderICU {
+        interface ICharsetEncoder;
+    }
+
     class CInputStreamReader {
         /**
          * Constructs a new {@code InputStreamReader} on the {@link InputStream}

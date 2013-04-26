@@ -11,24 +11,64 @@ const Int32 CharsetEncoder::ONGOING;
 const Int32 CharsetEncoder::END;
 const Int32 CharsetEncoder::FLUSH;
 
-CharsetEncoder::CharsetEncoder(
+CharsetEncoder::CharsetEncoder()
+{
+}
+
+ECode CharsetEncoder::Init(
     /* [in] */ ICharset* cs,
     /* [in] */ Float averageBytesPerChar,
     /* [in] */ Float maxBytesPerChar)
 {
     ArrayOf<Byte>* replacement = ArrayOf<Byte>::Alloc(1);
     (*replacement)[0] = (Byte)'?';
-    ASSERT_SUCCEEDED(Init(cs, averageBytesPerChar, maxBytesPerChar, *replacement));
+    ECode res = Init(cs, averageBytesPerChar, maxBytesPerChar, *replacement);
     ArrayOf<Byte>::Free(replacement);
+
+    return res;
 }
 
-CharsetEncoder::CharsetEncoder(
+ECode CharsetEncoder::Init(
     /* [in] */ ICharset* cs,
     /* [in] */ Float averageBytesPerChar,
     /* [in] */ Float maxBytesPerChar,
     /* [in] */ const ArrayOf<Byte>& replacement)
 {
-    ASSERT_SUCCEEDED(Init(cs, averageBytesPerChar, maxBytesPerChar, replacement));
+    if (averageBytesPerChar <= 0 || maxBytesPerChar <= 0) {
+        // throw new IllegalArgumentException("averageBytesPerChar and maxBytesPerChar must both be positive");
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
+    }
+    if (averageBytesPerChar > maxBytesPerChar) {
+        // throw new IllegalArgumentException("averageBytesPerChar is greater than maxBytesPerChar");
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
+    }
+
+    mCs = cs;
+    mAverBytes = averageBytesPerChar;
+    mMaxBytes = maxBytesPerChar;
+    mStatus = INIT;
+
+    AutoPtr<ICodingErrorAction> action;
+    CCodingErrorAction::New((ICodingErrorAction** )&action);
+    assert(action != NULL);
+    AutoPtr<ICodingErrorAction> report;
+    FAIL_RETURN(action->GetREPORT((ICodingErrorAction **)&report));
+
+    mMalformAction = report;
+    mUnmapAction = report;
+
+    // TODO:
+    ECode ec = E_RUNTIME_EXCEPTION;
+    // AutoPtr<IharsetEncoderICU> encoder = (IharsetEncoderICU*)this->Probe(EIID_IharsetEncoderICU);
+    // if (encoder != NULL) {
+    //     // The RI enforces unnecessary restrictions on the replacement bytes. We trust ICU to
+    //     // know what it's doing. This lets us support EUC-JP, SCSU, and Shift_JIS.
+    //     ec = UncheckedReplaceWith(replacement);
+    // } else {
+    //     ec = ReplaceWith(replacement);
+    // }
+
+    return ec;
 }
 
 CharsetEncoder::~CharsetEncoder()
@@ -532,47 +572,4 @@ ECode CharsetEncoder::UncheckedReplaceWith(
 
     mReplace = replacement.Clone();
     return ImplReplaceWith(*mReplace);
-}
-
-ECode CharsetEncoder::Init(
-    /* [in] */ ICharset* cs,
-    /* [in] */ Float averageBytesPerChar,
-    /* [in] */ Float maxBytesPerChar,
-    /* [in] */ const ArrayOf<Byte>& replacement)
-{
-    if (averageBytesPerChar <= 0 || maxBytesPerChar <= 0) {
-        // throw new IllegalArgumentException("averageBytesPerChar and maxBytesPerChar must both be positive");
-        return E_ILLEGAL_ARGUMENT_EXCEPTION;
-    }
-    if (averageBytesPerChar > maxBytesPerChar) {
-        // throw new IllegalArgumentException("averageBytesPerChar is greater than maxBytesPerChar");
-        return E_ILLEGAL_ARGUMENT_EXCEPTION;
-    }
-
-    mCs = cs;
-    mAverBytes = averageBytesPerChar;
-    mMaxBytes = maxBytesPerChar;
-    mStatus = INIT;
-
-    AutoPtr<ICodingErrorAction> action;
-    CCodingErrorAction::New((ICodingErrorAction** )&action);
-    assert(action != NULL);
-    AutoPtr<ICodingErrorAction> report;
-    FAIL_RETURN(action->GetREPORT((ICodingErrorAction **)&report));
-
-    mMalformAction = report;
-    mUnmapAction = report;
-
-    // TODO:
-    ECode ec = E_RUNTIME_EXCEPTION;
-    // AutoPtr<IharsetEncoderICU> encoder = (IharsetEncoderICU*)this->Probe(EIID_IharsetEncoderICU);
-    // if (encoder != NULL) {
-    //     // The RI enforces unnecessary restrictions on the replacement bytes. We trust ICU to
-    //     // know what it's doing. This lets us support EUC-JP, SCSU, and Shift_JIS.
-    //     ec = UncheckedReplaceWith(replacement);
-    // } else {
-    //     ec = ReplaceWith(replacement);
-    // }
-
-    return ec;
 }

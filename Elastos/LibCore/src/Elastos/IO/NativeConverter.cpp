@@ -6,6 +6,7 @@
 #include <unicode/ucnv_cb.h>
 #include <unicode/ustring.h>
 #include <unicode/uniset.h>
+#include <stdio.h>
 
 #define NativeConverter_REPORT 0
 #define NativeConverter_IGNORE 1
@@ -43,8 +44,8 @@ ECode NativeConverter::Decode(
     /* [in] */ Boolean flush,
     /* [out] */ Int32* errorCode)
 {
-	VALIDATE_NOT_NULL(data);
-	VALIDATE_NOT_NULL(errorCode);
+    VALIDATE_NOT_NULL(data);
+    VALIDATE_NOT_NULL(errorCode);
 
     UConverter* cnv = ToUConverter(converterHandle);
     if (cnv == NULL) {
@@ -93,12 +94,12 @@ ECode NativeConverter::Encode(
     /* [in] */ Boolean flush,
     /* [out] */ Int32* errorCode)
 {
-	VALIDATE_NOT_NULL(data);
-	VALIDATE_NOT_NULL(errorCode);
+    VALIDATE_NOT_NULL(data);
+    VALIDATE_NOT_NULL(errorCode);
 
     UConverter* cnv = ToUConverter(converterHandle);
     if (cnv == NULL) {
-    	*errorCode = U_ILLEGAL_ARGUMENT_ERROR;
+        *errorCode = U_ILLEGAL_ARGUMENT_ERROR;
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
 
@@ -142,8 +143,8 @@ ECode NativeConverter::FlushCharToByte(
     /* [in, out] */ ArrayOf<Int32>* data,
     /* [out] */ Int32* errorCode)
 {
-	VALIDATE_NOT_NULL(data);
-	VALIDATE_NOT_NULL(errorCode);
+    VALIDATE_NOT_NULL(data);
+    VALIDATE_NOT_NULL(errorCode);
 
     UConverter* cnv = ToUConverter(converterHandle);
     if (cnv == NULL) {
@@ -171,8 +172,8 @@ ECode NativeConverter::FlushByteToChar(
     /* [in, out] */ ArrayOf<Int32>* data,
     /* [out] */ Int32* errorCode)
 {
-	VALIDATE_NOT_NULL(data);
-	VALIDATE_NOT_NULL(errorCode);
+    VALIDATE_NOT_NULL(data);
+    VALIDATE_NOT_NULL(errorCode);
 
     UConverter* cnv = ToUConverter(converterHandle);
     if (cnv == NULL) {
@@ -198,16 +199,15 @@ ECode NativeConverter::OpenConverter(
     /* [in] */ const String& converterName,
     /* [out] */ Int64* converterHandle)
 {
-	VALIDATE_NOT_NULL(converterHandle);
+    VALIDATE_NOT_NULL(converterHandle);
 
     if (converterName.IsNull()) {
-    	*converterHandle = 0;
+        *converterHandle = 0;
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
     UErrorCode errorCode = U_ZERO_ERROR;
     UConverter* cnv = ucnv_open(converterName.string(), &errorCode);
-    // TODO:
-    // FAIL_RETURN(icu4jni_error(env, errorCode));
+    FAIL_RETURN(CheckErrorCode(errorCode));
     *converterHandle = reinterpret_cast<uintptr_t>(cnv);
 
     return NOERROR;
@@ -216,14 +216,14 @@ ECode NativeConverter::OpenConverter(
 ECode NativeConverter::CloseConverter(
     /* [in] */ Int64 converterHandle)
 {
-	ucnv_close(ToUConverter(converterHandle));
+    ucnv_close(ToUConverter(converterHandle));
     return NOERROR;
 }
 
 ECode NativeConverter::ResetByteToChar(
     /* [in] */ Int64 converterHandle)
 {
-	UConverter* cnv = ToUConverter(converterHandle);
+    UConverter* cnv = ToUConverter(converterHandle);
     if (cnv) {
         ucnv_resetToUnicode(cnv);
     }
@@ -268,13 +268,13 @@ ECode NativeConverter::GetMaxBytesPerChar(
     /* [in] */ Int64 converterHandle,
     /* [out] */ Int32* max)
 {
-	VALIDATE_NOT_NULL(max);
+    VALIDATE_NOT_NULL(max);
 
     UConverter* cnv = ToUConverter(converterHandle);
     if (cnv != NULL){
-    	*max = ucnv_getMaxCharSize(cnv);
+        *max = ucnv_getMaxCharSize(cnv);
     } else {
-    	*max = -1;
+        *max = -1;
     }
     return NOERROR;
 }
@@ -283,13 +283,13 @@ ECode NativeConverter::GetMinBytesPerChar(
     /* [in] */ Int64 converterHandle,
     /* [out] */ Int32* min)
 {
-	VALIDATE_NOT_NULL(min);
+    VALIDATE_NOT_NULL(min);
 
     UConverter* cnv = ToUConverter(converterHandle);
     if (cnv != NULL){
-    	*min = ucnv_getMinCharSize(cnv);
+        *min = ucnv_getMinCharSize(cnv);
     } else {
-    	*min = -1;
+        *min = -1;
     }
     return NOERROR;
 }
@@ -298,13 +298,13 @@ ECode NativeConverter::GetAveBytesPerChar(
     /* [in] */ Int64 converterHandle,
     /* [out] */ Float* ave)
 {
-	VALIDATE_NOT_NULL(ave);
+    VALIDATE_NOT_NULL(ave);
 
     UConverter* cnv = ToUConverter(converterHandle);
     if (cnv != NULL){
-    	*ave = (ucnv_getMaxCharSize(cnv) + ucnv_getMinCharSize(cnv)) / 2.0;
+        *ave = (ucnv_getMaxCharSize(cnv) + ucnv_getMinCharSize(cnv)) / 2.0;
     } else {
-    	*ave = -1;
+        *ave = -1;
     }
     return NOERROR;
 }
@@ -313,7 +313,7 @@ ECode NativeConverter::GetAveCharsPerByte(
     /* [in] */ Int64 converterHandle,
     /* [out] */ Float* ave)
 {
-	VALIDATE_NOT_NULL(ave);
+    VALIDATE_NOT_NULL(ave);
 
     Int32 max;
     FAIL_RETURN(GetMaxBytesPerChar(converterHandle, &max));
@@ -326,7 +326,7 @@ ECode NativeConverter::Contains(
     /* [in] */ const String& converterName2,
     /* [out] */ Boolean* isContains)
 {
-	VALIDATE_NOT_NULL(isContains);
+    VALIDATE_NOT_NULL(isContains);
 
     UErrorCode errorCode = U_ZERO_ERROR;
     UniqueUConverter converter1(ucnv_open(converterName1.string(), &errorCode));
@@ -346,13 +346,13 @@ ECode NativeConverter::CanEncode(
     /* [in] */ Int32 codeUnit,
     /* [out] */ Boolean* canEncode)
 {
-	VALIDATE_NOT_NULL(canEncode);
+    VALIDATE_NOT_NULL(canEncode);
 
     UErrorCode errorCode = U_ZERO_ERROR;
     UConverter* cnv = ToUConverter(converterHandle);
     if (cnv == NULL) {
-    	*canEncode = FALSE;
-    	return E_ILLEGAL_ARGUMENT_EXCEPTION;
+        *canEncode = FALSE;
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
 
     UChar srcBuffer[3];
@@ -375,7 +375,7 @@ ECode NativeConverter::CanEncode(
 ECode NativeConverter::GetAvailableCharsetNames(
     /* [out, callee] */ ArrayOf<String>** names)
 {
-	VALIDATE_NOT_NULL(names);
+    VALIDATE_NOT_NULL(names);
 
     int32_t num = ucnv_countAvailable();
     *names = ArrayOf<String>::Alloc(num);
@@ -390,12 +390,13 @@ ECode NativeConverter::CharsetForName(
     /* [in] */ const String& charsetName,
     /* [out] */ ICharset** charset)
 {
-	VALIDATE_NOT_NULL(charset);
+    VALIDATE_NOT_NULL(charset);
 
     // Get ICU's canonical name for this charset.
     const char* icuCanonicalName = GetICUCanonicalName(charsetName.string());
     if (icuCanonicalName == NULL) {
-        return NULL;
+        *charset = NULL;
+        return NOERROR;
     }
     // Get Java's canonical name for this charset.
     String javaCanonicalName = GetJavaCanonicalName(icuCanonicalName);
@@ -406,7 +407,8 @@ ECode NativeConverter::CharsetForName(
     UErrorCode dummy = U_ZERO_ERROR;
     UniqueUConverter cnv(ucnv_open(icuCanonicalName, &dummy));
     if (cnv.get() == NULL) {
-        return NULL;
+        *charset = NULL;
+        return NOERROR;
     }
     cnv.reset();
 
@@ -414,23 +416,20 @@ ECode NativeConverter::CharsetForName(
     ArrayOf<String>* aliases = GetAliases(icuCanonicalName);
 
     // Construct the CharsetICU object.
+    AutoPtr<ICharset> result;
     // TODO:
-    // jmethodID charsetConstructor = env->GetMethodID(JniConstants::charsetICUClass, "<init>",
-    //         "(Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;)V");
-    // if (env->ExceptionOccurred()) {
-    //     return NULL;
-    // }
-    // return env->NewObject(JniConstants::charsetICUClass, charsetConstructor,
-    //         javaCanonicalName, env->NewStringUTF(icuCanonicalName), aliases);
-    return E_NOT_IMPLEMENTED;
+    // CCharsetICU::New(javaCanonicalName, String(icuCanonicalName), *aliases, (ICharset**)&result);
+    *charset = result;
+
+    return NOERROR;
 }
 
 ECode NativeConverter::TranslateCodingErrorAction(
     /* [in] */ ICodingErrorAction* action,
     /* [out] */ Int32* errorCode)
 {
-	VALIDATE_NOT_NULL(action);
-	VALIDATE_NOT_NULL(errorCode);
+    VALIDATE_NOT_NULL(action);
+    VALIDATE_NOT_NULL(errorCode);
 
     AutoPtr<ICodingErrorAction> helper;
     AutoPtr<ICodingErrorAction> IGNORE;
@@ -463,7 +462,7 @@ ECode NativeConverter::SetCallbackDecode(
     /* [in] */ Int32 subCharsSize,
     /* [out] */ Int32* errorCode)
 {
-	VALIDATE_NOT_NULL(subChars);
+    VALIDATE_NOT_NULL(subChars);
 
     UConverter* cnv = ToUConverter(converterHandle);
     if (cnv == NULL) {
@@ -511,7 +510,7 @@ ECode NativeConverter::SetCallbackEncode(
     /* [in] */ Int32 subBytesSize,
     /* [out] */ Int32* errorCode)
 {
-	VALIDATE_NOT_NULL(subBytes);
+    VALIDATE_NOT_NULL(subBytes);
 
     UConverter* cnv = ToUConverter(converterHandle);
     if (!cnv) {
@@ -558,7 +557,7 @@ UConverter* NativeConverter::ToUConverter(
 
 
 String NativeConverter::GetJavaCanonicalName(
-	/* [in] */ const char* icuCanonicalName)
+    /* [in] */ const char* icuCanonicalName)
 {
     UErrorCode status = U_ZERO_ERROR;
 
@@ -789,4 +788,31 @@ void NativeConverter::CHARSET_DECODER_CALLBACK(
         *status = U_ILLEGAL_ARGUMENT_ERROR;
         return;
     }
+}
+
+ECode NativeConverter::CheckErrorCode(
+        /* [in] */ UErrorCode errorCode)
+{
+    // const char* message = u_errorName(errorCode);
+    if (errorCode <= U_ZERO_ERROR || errorCode >= U_ERROR_LIMIT) {
+        return NOERROR;
+    }
+
+    switch (errorCode) {
+    case U_ILLEGAL_ARGUMENT_ERROR:
+        // return jniThrowException(env, "java/lang/IllegalArgumentException", message);
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
+    case U_INDEX_OUTOFBOUNDS_ERROR:
+    case U_BUFFER_OVERFLOW_ERROR:
+        // return jniThrowException(env, "java/lang/ArrayIndexOutOfBoundsException", message);
+        return E_ARRAY_INDEX_OUT_OF_BOUNDS_EXCEPTION;
+    case U_UNSUPPORTED_ERROR:
+        // return jniThrowException(env, "java/lang/UnsupportedOperationException", message);
+        return E_UNSUPPORTED_OPERATION_EXCEPTION;
+    default:
+        // return jniThrowRuntimeException(env, message);
+        return E_RUNTIME_EXCEPTION;
+    }
+
+    return E_RUNTIME_EXCEPTION;
 }

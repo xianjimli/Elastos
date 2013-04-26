@@ -1,22 +1,27 @@
 #include "Charset.h"
 #include "cmdef.h"
 #include "CharBuffer.h"
+#include "NativeConverter.h"
 #include <elastos/Mutex.h>
 #include <elastos/AutoPtr.h>
 
 using namespace Elastos::Core::Threading;
 
-HashMap<String, Charset*>* Charset::CACHED_CHARSETS;
+HashMap<String, ICharset*>* Charset::CACHED_CHARSETS;
 
-const Charset* Charset::DEFAULT_CHARSET
+const ICharset* Charset::DEFAULT_CHARSET
     = Charset::GetDefaultCharset();
 
 static Mutex gCachedCharsetsLock;
 
-Charset::Charset(
+Charset::Charset()
+    : mAliasesSet(new HashSet<String>())
+{
+}
+
+ECode Charset::Init(
     /* [in] */ const String& canonicalName, 
     /* [in] */ const ArrayOf<String>& aliases)
-    : mAliasesSet(new HashSet<String>())
 {
     // check whether the given canonical name is legal
     ASSERT_SUCCEEDED(CheckCharsetName(canonicalName));
@@ -29,6 +34,8 @@ Charset::Charset(
             mAliasesSet->Insert(aliases[i]);
         }
     }
+
+    return NOERROR;
 }
 
 // TODO:
@@ -62,16 +69,16 @@ ECode Charset::ForName(
     VALIDATE_NOT_NULL(charset);
 
     // Is this charset in our cache?
-    Charset* cs;
+    AutoPtr<ICharset> cs;
     {
         Mutex::Autolock lock(gCachedCharsetsLock);
         if (CACHED_CHARSETS == NULL) {
-            CACHED_CHARSETS = new HashMap<String, Charset*>();
+            CACHED_CHARSETS = new HashMap<String, ICharset*>();
         }
 
-        HashMap<String, Charset*>::Iterator it = CACHED_CHARSETS->Find(charsetName);
+        HashMap<String, ICharset*>::Iterator it = CACHED_CHARSETS->Find(charsetName);
         if (it != CACHED_CHARSETS->End()) {
-            *charset = (ICharset *)it->mSecond;
+            *charset = it->mSecond;
             return NOERROR;
         }
     }
@@ -80,14 +87,17 @@ ECode Charset::ForName(
     if (charsetName.IsNull()) {
         return E_ILLEGAL_CHARSET_NAME_EXCEPTION;
     }
-    CheckCharsetName(charsetName);
-    // TODO: 
-    // cs = NativeConverter.charsetForName(charsetName);
-    // if (cs != null) {
-    //     return cacheCharset(charsetName, cs);
-    // }
+    FAIL_RETURN(CheckCharsetName(charsetName));
+    FAIL_RETURN(NativeConverter::CharsetForName(charsetName, (ICharset**)&cs));
+    if (cs != NULL) {
+        ICharset* result;
+        FAIL_RETURN(CacheCharset(charsetName, cs.Get(), &result));
+        *charset = result;
+        return NOERROR;
+    }
 
     // Does a configured CharsetProvider have this charset?
+    // TODO:
     // for (CharsetProvider charsetProvider : ServiceLoader.load(CharsetProvider.class, null)) {
     //     cs = charsetProvider.charsetForName(charsetName);
     //     if (cs != null) {
@@ -288,8 +298,8 @@ ECode Charset::IsValidCharsetNameCharacter(
 
 ECode Charset::CacheCharset(
     /* [in] */ const String& charsetName,
-    /* [in] */ Charset* cs,
-    /* [out] */ Charset** charset)
+    /* [in] */ ICharset* cs,
+    /* [out] */ ICharset** charset)
 {
     VALIDATE_NOT_NULL(cs);
     VALIDATE_NOT_NULL(charset);
@@ -299,13 +309,13 @@ ECode Charset::CacheCharset(
     // Get the canonical name for this charset, and the canonical instance from the table.
     String canonicalName;
     cs->Name(&canonicalName);
-    Charset* canonicalCharset;
+    ICharset* canonicalCharset;
 
     if (CACHED_CHARSETS == NULL) {
-        CACHED_CHARSETS = new HashMap<String, Charset*>();
+        CACHED_CHARSETS = new HashMap<String, ICharset*>();
     }
 
-    HashMap<String, Charset*>::Iterator it = CACHED_CHARSETS->Find(canonicalName);
+    HashMap<String, ICharset*>::Iterator it = CACHED_CHARSETS->Find(canonicalName);
     if (it == CACHED_CHARSETS->End()) {
         canonicalCharset = cs;
     }
@@ -321,7 +331,7 @@ ECode Charset::CacheCharset(
 
     // And all its aliases...
     HashSet<String>::Iterator itr;
-    for (itr = cs->mAliasesSet->Begin(); itr != cs->mAliasesSet->End(); itr++) {
+    for (itr = ((Charset*)cs)->mAliasesSet->Begin(); itr != ((Charset*)cs)->mAliasesSet->End(); itr++) {
         String alias = *itr;
         (*CACHED_CHARSETS)[alias] = canonicalCharset;
     }
@@ -331,7 +341,7 @@ ECode Charset::CacheCharset(
     return NOERROR;
 }
 
-Charset* Charset::GetDefaultCharset()
+ICharset* Charset::GetDefaultCharset()
 {
     // TODO:
     // String encoding = AccessController.doPrivileged(new PrivilegedAction<String>() {
@@ -344,5 +354,8 @@ Charset* Charset::GetDefaultCharset()
     // } catch (UnsupportedCharsetException e) {
     //     return Charset.forName("UTF-8");
     // }
-    return NULL;
+
+    AutoPtr<ICharset> result;
+    Charset::ForName(String("UTF-8"), (ICharset**)&result);
+    return result.Get();
 }
