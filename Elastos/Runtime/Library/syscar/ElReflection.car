@@ -420,6 +420,10 @@ library
             [in] Int32 index,
             [out] Char16* value);
 
+        SetOutputArgumentOfStringPtr(
+            [in] Int32 index,
+            [out] String* value);
+
         SetOutputArgumentOfBooleanPtr(
             [in] Int32 index,
             [out] Boolean* value);

@@ -136,6 +136,10 @@ public:
         /* [in] */ Int32 index,
         /* [out] */ Char16 * pValue);
 
+    CARAPI SetOutputArgumentOfStringPtr(
+        /* [in] */ Int32 index,
+        /* [out] */ String * pValue);
+
     CARAPI SetOutputArgumentOfBooleanPtr(
         /* [in] */ Int32 index,
         /* [out] */ Boolean * pValue);

@@ -129,7 +129,12 @@ ECode CArgumentList::SetParamValue(
         *(UInt16 *)(m_pParamBuf + m_pParamElem[index].pos) = *(UInt16 *)pParam;
     }
     else if (m_pParamElem[index].size == 4) {
-        *(UInt32 *)(m_pParamBuf + m_pParamElem[index].pos) = *(UInt32 *)pParam;
+        if (type == CarDataType_String) {
+            *(String **)(m_pParamBuf + m_pParamElem[index].pos) = (String *)pParam;
+        }
+        else {
+            *(UInt32 *)(m_pParamBuf + m_pParamElem[index].pos) = *(UInt32 *)pParam;
+        }
     }
     else if (m_pParamElem[index].size == 8) {
         *(UInt64 *)(m_pParamBuf + m_pParamElem[index].pos) = *(UInt64 *)pParam;
@@ -382,6 +387,14 @@ ECode CArgumentList::SetOutputArgumentOfChar16Ptr(
     /* [out] */ Char16 * pValue)
 {
     return SetParamValue(index, &pValue, CarDataType_Char16,
+        ParamIOAttribute_CallerAllocOut, 1);
+}
+
+ECode CArgumentList::SetOutputArgumentOfStringPtr(
+    /* [in] */ Int32 index,
+    /* [out] */ String * pValue)
+{
+    return SetParamValue(index, pValue, CarDataType_String,
         ParamIOAttribute_CallerAllocOut, 1);
 }
 
