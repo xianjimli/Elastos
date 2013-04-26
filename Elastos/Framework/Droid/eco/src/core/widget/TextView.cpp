@@ -160,6 +160,9 @@ PInterface TextView::CharWrapper::Probe(
     else if (riid == EIID_ICharSequence) {
         return (ICharSequence*)this;
     }
+    else if (riid == EIID_IObject) {
+        return (IObject*)this;
+    }
 
     return NULL;
 }
