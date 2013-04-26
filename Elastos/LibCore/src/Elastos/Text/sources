@@ -29,6 +29,7 @@ SOURCES += CChoiceFormat.cpp
 SOURCES += TimeZones.cpp
 SOURCES += DateFormatSymbols.cpp
 SOURCES += CDateFormatSymbols.cpp
+SOURCES += CDateFormatSymbolsHelper.cpp
 SOURCES += NativeDecimalFormat.cpp
 SOURCES += CNativeDecimalFormat.cpp
 SOURCES += NativeBreakIterator.cpp
@@ -37,6 +38,7 @@ SOURCES += RuleBasedBreakIterator.cpp
 SOURCES += CRuleBasedBreakIterator.cpp
 SOURCES += DecimalFormatSymbols.cpp
 SOURCES += CDecimalFormatSymbols.cpp
+SOURCES += CDecimalFormatSymbolsHelper.cpp
 SOURCES += SimpleDateFormat.cpp
 SOURCES += CSimpleDateFormat.cpp
 

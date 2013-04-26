@@ -339,4 +339,12 @@ module
     singleton class CNumberFormatHelper {
         interface INumberFormatHelper;
     }
+
+    singleton class CDecimalFormatSymbolsHelper {
+        interface IDecimalFormatSymbolsHelper;
+    }
+
+    singleton class CDateFormatSymbolsHelper {
+        interface IDateFormatSymbolsHelper;
+    }
 }

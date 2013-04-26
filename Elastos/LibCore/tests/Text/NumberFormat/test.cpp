@@ -124,7 +124,7 @@ int CTest::test_getIntegerInstance_ar(int argc, char* argv[])
 
     AutoPtr<IDecimalFormat> df2 = reinterpret_cast<IDecimalFormat *>(integerFormat->Probe(EIID_INumberFormat));
     df2->ToPattern(&str);
-    assert(String("#,##0;#,##0-").Equals(str));    
+    assert(String("#,##0;#,##0-").Equals(str));
 
     return 0;
 }
