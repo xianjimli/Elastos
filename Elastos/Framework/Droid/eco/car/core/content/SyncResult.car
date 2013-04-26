@@ -1,0 +1,76 @@
+
+module
+{
+    [deprecated]
+    interface ISyncResult {
+    
+    /**
+     * Convenience method for determining if the SyncResult indicates that a hard error
+     * occurred. See {@link #SyncResult()} for an explanation of what the SyncManager does
+     * when it sees a hard error.
+     * <p>
+     * A hard error is indicated when any of the following is true:
+     * <ul>
+     * <li> {@link SyncStats#numParseExceptions} > 0
+     * <li> {@link SyncStats#numConflictDetectedExceptions} > 0
+     * <li> {@link SyncStats#numAuthExceptions} > 0
+     * <li> {@link #tooManyDeletions}
+     * <li> {@link #tooManyRetries}
+     * <li> {@link #databaseError}
+     * @return true if a hard error is indicated
+     */
+    HasHardError(
+        [out] Boolean* hasError);
+        
+    /**
+     * Convenience method for determining if the SyncResult indicates that a soft error
+     * occurred. See {@link #SyncResult()} for an explanation of what the SyncManager does
+     * when it sees a soft error.
+     * <p>
+     * A soft error is indicated when any of the following is true:
+     * <ul>
+     * <li> {@link SyncStats#numIoExceptions} > 0
+     * <li> {@link #syncAlreadyInProgress}
+     * </ul>
+     * @return true if a hard error is indicated
+     */
+    HasSoftError(
+        [out] Boolean* hasError);
+        
+    /**
+     * A convenience method for determining of the SyncResult indicates that an error occurred.
+     * @return true if either a soft or hard error occurred
+     */
+    HasError(
+        [out] Boolean* hasError);
+        
+    MadeSomeProgress(
+        [out] Boolean* result);
+        
+    DescribeContents(
+        [out] Int32* result);
+    
+    /**
+     * Clears the SyncResult to a clean state. Throws an {@link UnsupportedOperationException}
+     * if this is called when {@link #syncAlreadyInProgress} is set.
+     */
+    Clear();
+    
+    ToString(
+        [out] String* str);
+
+    /**
+     * Generates a debugging string indicating the status.
+     * The string consist of a sequence of code letter followed by the count.
+     * Code letters are f - fullSyncRequested, r - partialSyncUnavailable,
+     * X - hardError, e - numParseExceptions, c - numConflictDetectedExceptions,
+     * a - numAuthExceptions, D - tooManyDeletions, R - tooManyRetries,
+     * b - databaseError, x - softError, l - syncAlreadyInProgress,
+     * I - numIoExceptions
+     * @return debugging string.
+     */
+    ToDebugString(
+        [out] String* str);
+    }
+    
+}

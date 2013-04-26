@@ -19,7 +19,7 @@ CSyncManager::CSyncManager()
     mNotificationMgr = NULL;
 //    mAlarmService = NULL;
     mSyncStorageEngine = NULL;
-//    mActiveSyncContext = NULL;
+    mActiveSyncContext = NULL;
     mNeedSyncErrorNotification = FALSE;
     mNeedSyncActiveNotification = FALSE;
     mSyncAlarmIntent = NULL;
@@ -331,3 +331,111 @@ ECode CSyncManager::SyncAlarmIntentReceiver::OnReceive(
     return E_NOT_IMPLEMENTED;
 }
 
+/**************************************************************************************
+ * implement class CSyncManager::SyncHandlerMessagePayload below
+ **************************************************************************************/
+CSyncManager::SyncHandlerMessagePayload::SyncHandlerMessagePayload(
+    /* [in] */ ActiveSyncContext* syncContext,
+    /* [in] */ ISyncResult* syncResult):
+    activeSyncContext(syncContext),
+    syncResult(syncResult)
+{
+}
+
+CSyncManager::SyncHandlerMessagePayload::~SyncHandlerMessagePayload()
+{
+}
+
+UInt32 CSyncManager::SyncHandlerMessagePayload::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 CSyncManager::SyncHandlerMessagePayload::Release()
+{
+    return ElRefBase::Release();
+}
+
+/**************************************************************************************
+ * implement class CSyncManager::SyncTimeTracker below
+ **************************************************************************************/
+CSyncManager::SyncTimeTracker::SyncTimeTracker(
+/* [in] */CSyncManager* manager) :
+mSyncmanager(manager)
+{
+    mLastWasSyncing = FALSE;
+    mWhenSyncStarted = 0;
+    mTimeSpentSyncing = 0;
+}
+
+CSyncManager::SyncTimeTracker::~SyncTimeTracker()
+{
+}
+
+void CSyncManager::SyncTimeTracker::update()
+{
+    Boolean isSyncInProgress = (mSyncmanager->mActiveSyncContext != NULL);
+
+    if (isSyncInProgress == mLastWasSyncing) {
+        return;
+    }
+
+    Int64 now = SystemClock::GetElapsedRealtime();
+
+    if (isSyncInProgress) {
+        mWhenSyncStarted = now;
+    } else {
+        mTimeSpentSyncing += now - mWhenSyncStarted;
+    }
+
+    mLastWasSyncing = isSyncInProgress;
+}
+
+Int64 CSyncManager::SyncTimeTracker::timeSpentSyncing()
+{
+    if (!mLastWasSyncing) {
+        return mTimeSpentSyncing;
+    }
+
+    Int64 now = SystemClock::GetElapsedRealtime();
+
+    return mTimeSpentSyncing + (now - mWhenSyncStarted);
+
+}
+
+UInt32 CSyncManager::SyncTimeTracker::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 CSyncManager::SyncTimeTracker::Release()
+{
+    return ElRefBase::Release();
+}
+
+/**************************************************************************************
+ * implement class CSyncManager::ServiceConnectionData below
+ **************************************************************************************/
+CSyncManager::ServiceConnectionData::ServiceConnectionData(
+/* [in] */ ActiveSyncContext* activeSyncContext,
+/* [in] */ ISyncAdapterStub* syncAdapter):
+activeSyncContext(activeSyncContext),
+syncAdapter(syncAdapter)
+{
+
+}
+
+CSyncManager::ServiceConnectionData::~ServiceConnectionData()
+{
+
+}
+
+UInt32 CSyncManager::ServiceConnectionData::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 CSyncManager::ServiceConnectionData::Release()
+{
+    return ElRefBase::Release();
+}
