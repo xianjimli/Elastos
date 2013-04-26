@@ -1,7 +1,7 @@
 
 module
 {
-    interface IHandler;
+    interface IApartment;
     interface IWebViewClient;
     interface IDownloadListener;
     interface IWebBackForwardListClient;
@@ -17,10 +17,9 @@ module
     interface IGeolocationPermissionsCallback;
     interface IWebHistoryItem;
     interface IWebBackForwardList;
-    interface IMessage;
     interface IBrowserFrame;
 
-    interface ICallbackProxy extends IHandler {
+    interface ICallbackProxy extends IApartment {
 
        /**
          * Set the WebViewClient.
@@ -80,10 +79,6 @@ module
         UiOverrideKeyEvent(
            [in] IKeyEvent* event,
            [out] Boolean* flag);
-
-        //@Override
-        HandleMessage(
-           [in] IMessage* msg);
 
         /**
          * Return the latest progress.

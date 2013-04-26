@@ -1,7 +1,6 @@
 
 module
 {
-    interface IHandler;
     interface ISslCertificate;
     interface IApartment;
     interface IParcel;
@@ -59,14 +58,6 @@ module
          * Destroy all native components of the BrowserFrame.
          */
         Destroy();
-
-        /**
-         * Handle messages posted to us.
-         * @param msg The message to handle.
-         */
-        //@Override
-        //HandleMessage(
-        //    [in] IMessage* msg);
 
         /**
          * Retrieves the render tree of this frame and puts it as the object for

@@ -61,50 +61,14 @@ CARAPI_(void) JWebCoreJavaBridge::FireSharedTimer()
     delete checker;
 }
 
-/**
- * handleMessage
- * @param msg The dispatched message.
- *
- * The only accepted message currently is TIMER_MESSAGE
- */
-//@Override
-CARAPI_(void) JWebCoreJavaBridge::HandleMessage(
-	/* [in] */ IMessage* msg)
-{
-	assert(msg != NULL);
-
-	switch (0/*msg.what*/)
-	{
-        case TIMER_MESSAGE:
-	        {
-	            if (mTimerPaused) {
-	                mHasDeferredTimers = TRUE;
-	            } else {
-	                FireSharedTimer();
-	            }
-	            break;
-	        }
-
-        case FUNCPTR_MESSAGE:
-            NativeServiceFuncPtrQueue();
-            break;
-
-        case REFRESH_PLUGINS:
-//            nativeUpdatePluginDirectories(PluginManager.getInstance(null)
-//                    .getPluginDirectories(), ((Boolean) msg.obj)
-//                    .booleanValue());
-            break;
-    }
-}
-
 // called from JNI side
 CARAPI_(void) JWebCoreJavaBridge::SignalServiceFuncPtrQueue()
 {
-    /*
-    AutoPtr<IMessage> msg;
-    msg = ObtainMessage(FUNCPTR_MESSAGE);
-    SendMessage(msg);
-    */
+    void (STDCALL JWebCoreJavaBridge::*pHandlerFunc)();
+
+    pHandlerFunc = &JWebCoreJavaBridge::NativeServiceFuncPtrQueue;
+
+    SendMessage(*(Handle32*)&pHandlerFunc, NULL);
 }
 
 CARAPI_(void) JWebCoreJavaBridge::NativeServiceFuncPtrQueue()
@@ -237,7 +201,28 @@ CARAPI_(void) JWebCoreJavaBridge::GetPluginSharedDataDirectory(
  */
 CARAPI_(void) JWebCoreJavaBridge::SetSharedTimer(
 	/* [in] */ Int64 timemillis)
-{}
+{
+//    if (DebugFlags.J_WEB_CORE_JAVA_BRIDGE) Log.v(LOGTAG, "setSharedTimer " + timemillis);
+
+    ECode (STDCALL JWebCoreJavaBridge::*pHandlerFunc)();
+
+    pHandlerFunc = &JWebCoreJavaBridge::HandleTimerMessage;
+
+    if (timemillis <= 0) {
+        // we don't accumulate the sharedTimer unless it is a delayed
+        // request. This way we won't flood the message queue with
+        // WebKit messages. This should improve the browser's
+        // responsiveness to key events.
+        if (mHasInstantTimer) {
+            return;
+        } else {
+            mHasInstantTimer = TRUE;
+            PostCppCallbackDelayed((Handle32)this, *(Handle32*)&pHandlerFunc, NULL, 0, timemillis);
+        }
+    } else {
+        PostCppCallbackDelayed((Handle32)this, *(Handle32*)&pHandlerFunc, NULL, 0, timemillis);
+    }
+}
 
 /**
  * Stop the shared timer.
@@ -247,7 +232,12 @@ CARAPI_(void) JWebCoreJavaBridge::StopSharedTimer()
 //	if (DebugFlags.J_WEB_CORE_JAVA_BRIDGE) {
 //        Log.v(LOGTAG, "stopSharedTimer removing all timers");
 //    }
-//    RemoveMessages(TIMER_MESSAGE);
+
+    ECode (STDCALL JWebCoreJavaBridge::*pHandlerFunc)();
+    pHandlerFunc = &JWebCoreJavaBridge::HandleTimerMessage;
+
+    RemoveMessage(*(Handle32*)&pHandlerFunc);
+
     mHasInstantTimer = FALSE;
     mHasDeferredTimers = FALSE;
 }
@@ -321,3 +311,165 @@ CARAPI_(void) JWebCoreJavaBridge::AddPackageName(
 CARAPI_(void) JWebCoreJavaBridge::RemovePackageName(
     /* [in] */ const String& packageName)
 {}
+
+
+PInterface JWebCoreJavaBridge::Probe(
+    /* [in] */ REIID riid)
+{
+    return NULL;
+}
+
+UInt32 JWebCoreJavaBridge::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 JWebCoreJavaBridge::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode JWebCoreJavaBridge::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+
+ECode JWebCoreJavaBridge::Start(
+    /* [in] */ ApartmentAttr attr)
+{
+    assert(0);
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode JWebCoreJavaBridge::Finish()
+{
+    assert(0);
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode JWebCoreJavaBridge::PostCppCallback(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ IParcel* params,
+    /* [in] */ Int32 id)
+{
+    assert(mApartment != NULL);
+    return mApartment->PostCppCallback(target, func, params, id);
+}
+
+ECode JWebCoreJavaBridge::PostCppCallbackAtTime(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ IParcel* params,
+    /* [in] */ Int32 id,
+    /* [in] */ Millisecond64 uptimeMillis)
+{
+    assert(mApartment != NULL);
+    return mApartment->PostCppCallbackAtTime(target, func, params, id, uptimeMillis);
+}
+
+ECode JWebCoreJavaBridge::PostCppCallbackDelayed(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ IParcel* params,
+    /* [in] */ Int32 id,
+    /* [in] */ Millisecond64 delayMillis)
+{
+    assert(mApartment != NULL);
+    return mApartment->PostCppCallbackDelayed(target, func, params, id, delayMillis);
+}
+
+ECode JWebCoreJavaBridge::PostCppCallbackAtFrontOfQueue(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ IParcel* params,
+    /* [in] */ Int32 id)
+{
+    assert(mApartment != NULL);
+    return mApartment->PostCppCallbackAtFrontOfQueue(target, func, params, id);
+}
+
+ECode JWebCoreJavaBridge::RemoveCppCallbacks(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func)
+{
+    assert(mApartment != NULL);
+    return mApartment->RemoveCppCallbacks(target, func);
+}
+
+ECode JWebCoreJavaBridge::RemoveCppCallbacksEx(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ Int32 id)
+{
+    assert(mApartment != NULL);
+    return mApartment->RemoveCppCallbacksEx(target, func, id);
+}
+
+ECode JWebCoreJavaBridge::HasCppCallbacks(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [out] */ Boolean* result)
+{
+    assert(mApartment != NULL);
+    return mApartment->HasCppCallbacks(target, func, result);
+}
+
+ECode JWebCoreJavaBridge::HasCppCallbacksEx(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ Int32 id,
+    /* [out] */ Boolean* result)
+{
+    assert(mApartment != NULL);
+    return mApartment->HasCppCallbacksEx(target, func, id, result);
+}
+
+ECode JWebCoreJavaBridge::SendMessage(
+    /* [in] */ Int32 message,
+    /* [in] */ IParcel* params)
+{
+    if (message == REFRESH_PLUGINS) {
+//        NativeUpdatePluginDirectories(PluginManager.getInstance(null)
+//                        .getPluginDirectories(), ((Boolean) msg.obj)
+//                        .booleanValue());
+
+        return NOERROR;
+    }
+
+    return E_ILLEGAL_ARGUMENT_EXCEPTION;
+}
+
+ECode JWebCoreJavaBridge::SendMessage(
+    /* [in] */ Handle32 pvFunc,
+    /* [in] */ IParcel* params)
+{
+    return mApartment->PostCppCallback((Handle32)this, pvFunc, params, 0);
+}
+
+ECode JWebCoreJavaBridge::SendMessageAtTime(
+    /* [in] */ Handle32 pvFunc,
+    /* [in] */ IParcel* params,
+    /* [in] */ Millisecond64 uptimeMillis)
+{
+    return mApartment->PostCppCallbackAtTime(
+        (Handle32)this, pvFunc, params, 0, uptimeMillis);
+}
+
+ECode JWebCoreJavaBridge::RemoveMessage(
+    /* [in] */ Handle32 func)
+{
+    return mApartment->RemoveCppCallbacks((Handle32)this, func);
+}
+
+ECode JWebCoreJavaBridge::HandleTimerMessage()
+{
+    if (mTimerPaused) {
+        mHasDeferredTimers = TRUE;
+    } else {
+        FireSharedTimer();
+    }
+}

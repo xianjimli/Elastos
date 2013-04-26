@@ -46,9 +46,6 @@ public:
         /* [in] */ IKeyEvent* event,
         /* [out] */ Boolean* flag);
 
-    CARAPI HandleMessage(
-        /* [in] */ IMessage* msg);
-
     CARAPI GetProgress(
         /* [out] */ Int32* progress);
 
@@ -204,6 +201,61 @@ public:
         /* [in] */ IContext* context,
         /* [in] */ IWebView* w);
 
+        CARAPI Start(
+        /* [in] */ ApartmentAttr attr);
+
+    CARAPI Finish();
+
+    CARAPI PostCppCallback(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [in] */ IParcel* params,
+        /* [in] */ Int32 id);
+
+    CARAPI PostCppCallbackAtTime(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [in] */ IParcel* params,
+        /* [in] */ Int32 id,
+        /* [in] */ Millisecond64 uptimeMillis);
+
+    CARAPI PostCppCallbackDelayed(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [in] */ IParcel* params,
+        /* [in] */ Int32 id,
+        /* [in] */ Millisecond64 delayMillis);
+
+    CARAPI PostCppCallbackAtFrontOfQueue(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [in] */ IParcel* params,
+        /* [in] */ Int32 id);
+
+    CARAPI RemoveCppCallbacks(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func);
+
+    CARAPI RemoveCppCallbacksEx(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [in] */ Int32 id);
+
+    CARAPI HasCppCallbacks(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [out] */ Boolean* result);
+
+    CARAPI HasCppCallbacksEx(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [in] */ Int32 id,
+        /* [out] */ Boolean* result);
+
+    CARAPI SendMessage(
+        /* [in] */ Int32 message,
+        /* [in] */ IParcel* params);
+
 public:
     CARAPI_(void) SetWebBackForwardListClient(
         /* [in] */ IWebBackForwardListClient* client);
@@ -317,6 +369,41 @@ private:
         /* [out] */ String& str);
 
 private:
+    CARAPI SendMessage(
+        /* [in] */ Handle32 pvFunc,
+        /* [in] */ IParcel* params);
+
+    CARAPI SendMessageAtTime(
+        /* [in] */ Handle32 pvFunc,
+        /* [in] */ IParcel* params,
+        /* [in] */ Millisecond64 uptimeMillis);
+
+    CARAPI RemoveMessage(
+        /* [in] */ Handle32 func);
+
+    CARAPI HandlePageStarted(
+        /* [in] */ IBitmap* bitmap,
+        /* [in] */ String& url);
+
+    CARAPI HandlePageFinished(
+        /* [in] */ String& url);
+
+    CARAPI HandleReceivedIcon(
+        /* [in] */ IBitmap* bitmap);
+
+    CARAPI HandleReceivedTouchIconUrl(
+        /* [in] */ String& obj,
+        /* [in] */ Int32 arg);
+
+    CARAPI HandleReceivedTitle(
+        /* [in] */ String& title);
+
+    CARAPI HandleReportError(
+        /* [in] */ Int32 reasonCode,
+        /* [in] */ String& description,
+        /* [in] */ String& failUrl);
+
+private:
 
     // Logging tag
     static const CString LOGTAG;// = "CallbackProxy";
@@ -350,6 +437,8 @@ private:
     static const Boolean PERF_PROBE = FALSE;
     Int64 mWebCoreThreadTime;
     Int64 mWebCoreIdleTime;
+
+    AutoPtr<IApartment> mApartment;
 };
 
 #endif // __CCALLBACKPROXY_H__

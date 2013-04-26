@@ -1,13 +1,9 @@
 
 module
 {
-    interface IMessage;
+    interface IApartment;
 
-    interface IHttpAuthHandler extends IHandler {
-
-        //@Override
-        HandleMessage(
-           [in] IMessage* msg);
+    interface IHttpAuthHandler extends IApartment {
 
         /**
          * Proceed with the authorization with the given credentials

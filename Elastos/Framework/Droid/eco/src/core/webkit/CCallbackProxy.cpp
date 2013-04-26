@@ -2,6 +2,8 @@
 #include "webkit/CCallbackProxy.h"
 #include "webkit/Network.h"
 #include "webkit/WebBackForwardList.h"
+#include "webkit/CWebView.h"
+#include "webkit/CWebHistoryItem.h"
 
 const CString CCallbackProxy::LOGTAG = "CallbackProxy";
 
@@ -119,10 +121,10 @@ ECode CCallbackProxy::UiOverrideKeyEvent(
     return NOERROR;
 }
 
+#if 0
 ECode CCallbackProxy::HandleMessage(
     /* [in] */ IMessage* msg)
 {
-#if 0
     // We don't have to do synchronization because this function operates
         // in the UI thread. The WebViewClient and WebChromeClient functions
         // that check for a non-null callback are ok because java ensures atomic
@@ -627,10 +629,10 @@ ECode CCallbackProxy::HandleMessage(
                     host, realm, username, password);
             break;
     }
-#endif
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
+#endif
 
 ECode CCallbackProxy::GetProgress(
     /* [out] */ Int32* progress)
@@ -660,10 +662,17 @@ ECode CCallbackProxy::OnPageStarted(
         mWebCoreIdleTime = 0;
         Network::GetInstance((IContext*)mContext)->StartTiming();
     }
-//    Message msg = ObtainMessage(PAGE_STARTED);
-//    msg.obj = favicon;
-//    msg.getData().putString("url", url);
-//    sendMessage(msg);
+
+    ECode (STDCALL CCallbackProxy::*pHandlerFunc)(IBitmap*, String&);
+
+    pHandlerFunc = &CCallbackProxy::HandlePageStarted;
+
+    AutoPtr<IParcel> params;
+    CCallbackParcel::New((IParcel**)&params);
+    params->WriteInterfacePtr(favicon);
+    params->WriteString(url);
+
+    SendMessage(*(Handle32*)&pHandlerFunc, params);
 
     return NOERROR;
 }
@@ -679,8 +688,16 @@ ECode CCallbackProxy::OnPageFinished(
 //                + " ms and idled " + mWebCoreIdleTime + " ms");
         Network::GetInstance((IContext*)mContext)->StopTiming();
     }
-//    Message msg = obtainMessage(PAGE_FINISHED, url);
-//    sendMessage(msg);
+
+    ECode (STDCALL CCallbackProxy::*pHandlerFunc)(String&);
+
+    pHandlerFunc = &CCallbackProxy::HandlePageFinished;
+
+    AutoPtr<IParcel> params;
+    CCallbackParcel::New((IParcel**)&params);
+    params->WriteString(url);
+
+    SendMessage(*(Handle32*)&pHandlerFunc, params);
 
     return NOERROR;
 }
@@ -698,8 +715,25 @@ ECode CCallbackProxy::OnReceivedError(
     /* [in] */ const String& description,
     /* [in] */ const String& failingUrl)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    // Do an unsynchronized quick check to avoid posting if no callback has
+    // been set.
+    if (mWebViewClient == NULL) {
+        return E_NOT_IMPLEMENTED;
+    }
+
+    ECode (STDCALL CCallbackProxy::*pHandlerFunc)(Int32, String&, String&);
+
+    pHandlerFunc = &CCallbackProxy::HandleReportError;
+
+    AutoPtr<IParcel> params;
+    CCallbackParcel::New((IParcel**)&params);
+    params->WriteInt32(errorCode);
+    params->WriteString(description);
+    params->WriteString(failingUrl);
+
+    SendMessage(*(Handle32*)&pHandlerFunc, params);
+
+    return NOERROR;
 }
 
 ECode CCallbackProxy::OnFormResubmission(
@@ -837,15 +871,52 @@ ECode CCallbackProxy::OnCloseWindow(
 ECode CCallbackProxy::OnReceivedIcon(
     /* [in] */ IBitmap* icon)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    // The current item might be null if the icon was already stored in the
+    // database and this is a new WebView.
+    AutoPtr<IWebHistoryItem> i;
+    mBackForwardList->GetCurrentItem((IWebHistoryItem**)&i);
+    if (i != NULL) {
+        ((CWebHistoryItem*)i.Get())->SetFavicon(icon);
+    }
+    // Do an unsynchronized quick check to avoid posting if no callback has
+    // been set.
+    if (mWebChromeClient == NULL) {
+        return E_NOT_IMPLEMENTED;
+    }
+
+    ECode (STDCALL CCallbackProxy::*pHandlerFunc)(IBitmap*);
+
+    pHandlerFunc = &CCallbackProxy::HandleReceivedIcon;
+
+    AutoPtr<IParcel> params;
+    CCallbackParcel::New((IParcel**)&params);
+    params->WriteInterfacePtr(icon);
+
+    SendMessage(*(Handle32*)&pHandlerFunc, params);
+
+    return NOERROR;
 }
 
 ECode CCallbackProxy::OnReceivedTitle(
     /* [in] */ const String& title)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    // Do an unsynchronized quick check to avoid posting if no callback has
+    // been set.
+    if (mWebChromeClient == NULL) {
+        return E_NOT_IMPLEMENTED;
+    }
+
+    ECode (STDCALL CCallbackProxy::*pHandlerFunc)(String&);
+
+    pHandlerFunc = &CCallbackProxy::HandleReceivedTitle;
+
+    AutoPtr<IParcel> params;
+    CCallbackParcel::New((IParcel**)&params);
+    params->WriteString(title);
+
+    SendMessage(*(Handle32*)&pHandlerFunc, params);
+
+    return NOERROR;
 }
 
 ECode CCallbackProxy::OnJsAlert(
@@ -995,7 +1066,36 @@ CARAPI_(void) CCallbackProxy::SwitchOutDrawHistory()
 CARAPI_(void) CCallbackProxy::OnReceivedTouchIconUrl(
     /* [in] */ const String& url,
     /* [in] */ Boolean precomposed)
-{}
+{
+    // We should have a current item but we do not want to crash so check
+    // for null.
+    AutoPtr<IWebHistoryItem> i;
+    mBackForwardList->GetCurrentItem((IWebHistoryItem**)&i);
+    if (i != NULL) {
+        String str;
+        i->GetTouchIconUrl(&str);
+        if (precomposed || str.GetLength() == 0) {
+            ((CWebHistoryItem*)i.Get())->SetTouchIconUrl(url);
+        }
+    }
+
+    // Do an unsynchronized quick check to avoid posting if no callback has
+    // been set.
+    if (mWebChromeClient == NULL) {
+        return;
+    }
+
+    ECode (STDCALL CCallbackProxy::*pHandlerFunc)(String&, Int32);
+
+    pHandlerFunc = &CCallbackProxy::HandleReceivedTouchIconUrl;
+
+    AutoPtr<IParcel> params;
+    CCallbackParcel::New((IParcel**)&params);
+    params->WriteString(url);
+    params->WriteInt32(precomposed ? 1 : 0);
+
+    SendMessage(*(Handle32*)&pHandlerFunc, params);
+}
 
 /**
  * Called by WebViewCore to open a file chooser.
@@ -1040,3 +1140,202 @@ CARAPI_(void) CCallbackProxy::UploadFile::OnReceiveValue(
 
 CARAPI_(AutoPtr<IUri>) CCallbackProxy::UploadFile::GetResult() const
 {}
+
+
+
+ECode CCallbackProxy::Start(
+    /* [in] */ ApartmentAttr attr)
+{
+    assert(0);
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CCallbackProxy::Finish()
+{
+    assert(0);
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CCallbackProxy::PostCppCallback(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ IParcel* params,
+    /* [in] */ Int32 id)
+{
+    assert(mApartment != NULL);
+    return mApartment->PostCppCallback(target, func, params, id);
+}
+
+ECode CCallbackProxy::PostCppCallbackAtTime(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ IParcel* params,
+    /* [in] */ Int32 id,
+    /* [in] */ Millisecond64 uptimeMillis)
+{
+    assert(mApartment != NULL);
+    return mApartment->PostCppCallbackAtTime(target, func, params, id, uptimeMillis);
+}
+
+ECode CCallbackProxy::PostCppCallbackDelayed(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ IParcel* params,
+    /* [in] */ Int32 id,
+    /* [in] */ Millisecond64 delayMillis)
+{
+    assert(mApartment != NULL);
+    return mApartment->PostCppCallbackDelayed(target, func, params, id, delayMillis);
+}
+
+ECode CCallbackProxy::PostCppCallbackAtFrontOfQueue(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ IParcel* params,
+    /* [in] */ Int32 id)
+{
+    assert(mApartment != NULL);
+    return mApartment->PostCppCallbackAtFrontOfQueue(target, func, params, id);
+}
+
+ECode CCallbackProxy::RemoveCppCallbacks(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func)
+{
+    assert(mApartment != NULL);
+    return mApartment->RemoveCppCallbacks(target, func);
+}
+
+ECode CCallbackProxy::RemoveCppCallbacksEx(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ Int32 id)
+{
+    assert(mApartment != NULL);
+    return mApartment->RemoveCppCallbacksEx(target, func, id);
+}
+
+ECode CCallbackProxy::HasCppCallbacks(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [out] */ Boolean* result)
+{
+    assert(mApartment != NULL);
+    return mApartment->HasCppCallbacks(target, func, result);
+}
+
+ECode CCallbackProxy::HasCppCallbacksEx(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ Int32 id,
+    /* [out] */ Boolean* result)
+{
+    assert(mApartment != NULL);
+    return mApartment->HasCppCallbacksEx(target, func, id, result);
+}
+
+ECode CCallbackProxy::SendMessage(
+    /* [in] */ Int32 message,
+    /* [in] */ IParcel* params)
+{
+    return E_ILLEGAL_ARGUMENT_EXCEPTION;
+}
+
+ECode CCallbackProxy::SendMessage(
+    /* [in] */ Handle32 pvFunc,
+    /* [in] */ IParcel* params)
+{
+    return mApartment->PostCppCallback((Handle32)this, pvFunc, params, 0);
+}
+
+ECode CCallbackProxy::SendMessageAtTime(
+    /* [in] */ Handle32 pvFunc,
+    /* [in] */ IParcel* params,
+    /* [in] */ Millisecond64 uptimeMillis)
+{
+    return mApartment->PostCppCallbackAtTime(
+        (Handle32)this, pvFunc, params, 0, uptimeMillis);
+}
+
+ECode CCallbackProxy::RemoveMessage(
+    /* [in] */ Handle32 func)
+{
+    return mApartment->RemoveCppCallbacks((Handle32)this, func);
+}
+
+ECode CCallbackProxy::HandlePageStarted(
+    /* [in] */ IBitmap* bitmap,
+    /* [in] */ String& url)
+{
+    // every time we start a new page, we want to reset the
+    // WebView certificate:
+    // if the new site is secure, we will reload it and get a
+    // new certificate set;
+    // if the new site is not secure, the certificate must be
+    // null, and that will be the case
+    mWebView->SetCertificate(NULL);
+    if (mWebViewClient != NULL) {
+        mWebViewClient->OnPageStarted(mWebView, url, bitmap);
+    }
+
+    return NOERROR;
+}
+
+ECode CCallbackProxy::HandlePageFinished(
+    /* [in] */ String& url)
+{
+    ((CWebView*)mWebView.Get())->OnPageFinished(url);
+    if (mWebViewClient != NULL) {
+        mWebViewClient->OnPageFinished(mWebView, url);
+    }
+
+    return NOERROR;
+}
+
+ECode CCallbackProxy::HandleReceivedIcon(
+    /* [in] */ IBitmap* bitmap)
+{
+    if (mWebChromeClient != NULL) {
+        mWebChromeClient->OnReceivedIcon(mWebView, bitmap);
+    }
+
+    return NOERROR;
+}
+
+ECode CCallbackProxy::HandleReceivedTouchIconUrl(
+    /* [in] */ String& obj,
+    /* [in] */ Int32 arg)
+{
+    if (mWebChromeClient != NULL) {
+        mWebChromeClient->OnReceivedTouchIconUrl(mWebView,
+                obj, arg == 1);
+    }
+
+    return NOERROR;
+}
+
+ECode CCallbackProxy::HandleReceivedTitle(
+    /* [in] */ String& title)
+{
+    if (mWebChromeClient != NULL) {
+        mWebChromeClient->OnReceivedTitle(mWebView, title);
+    }
+
+    return NOERROR;
+}
+
+ECode CCallbackProxy::HandleReportError(
+    /* [in] */ Int32 reasonCode,
+    /* [in] */ String& description,
+    /* [in] */ String& failUrl)
+{
+    if (mWebViewClient != NULL) {
+        mWebViewClient->OnReceivedError(mWebView, reasonCode,
+                description, failUrl);
+    }
+
+    return NOERROR;
+}
+
+//ECode CCallbackProxy::HandleResendPostData()
+//{}

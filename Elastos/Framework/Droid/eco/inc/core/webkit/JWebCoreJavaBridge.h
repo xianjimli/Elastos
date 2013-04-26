@@ -10,7 +10,7 @@
 
 #include "CWebView.h"
 
-class JWebCoreJavaBridge : public ElRefBase//: public Handler 
+class JWebCoreJavaBridge : public ElRefBase, public IApartment
 {
 
 public:
@@ -32,16 +32,6 @@ public:
     /* synchronized */
     static  CARAPI_(void) RemoveActiveWebView(
     	/* [in] */ IWebView* webview);
-
-    /**
-     * handleMessage
-     * @param msg The dispatched message.
-     *
-     * The only accepted message currently is TIMER_MESSAGE
-     */
-    //@Override
-	virtual CARAPI_(void) HandleMessage(
-		/* [in] */ IMessage* msg);
 
     /**
      * Pause all timers.
@@ -81,6 +71,73 @@ public:
 
 	virtual CARAPI_(void) RemovePackageName(
 		/* [in] */ const String& packageName);
+
+public:
+    CARAPI_(PInterface) Probe(
+        /* [in] */ REIID riid);
+
+    CARAPI_(UInt32) AddRef();
+
+    CARAPI_(UInt32) Release();
+
+    CARAPI GetInterfaceID(
+        /* [in] */ IInterface *pObject,
+        /* [out] */ InterfaceID *pIID);
+
+    CARAPI Start(
+        /* [in] */ ApartmentAttr attr);
+
+    CARAPI Finish();
+
+    CARAPI PostCppCallback(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [in] */ IParcel* params,
+        /* [in] */ Int32 id);
+
+    CARAPI PostCppCallbackAtTime(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [in] */ IParcel* params,
+        /* [in] */ Int32 id,
+        /* [in] */ Millisecond64 uptimeMillis);
+
+    CARAPI PostCppCallbackDelayed(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [in] */ IParcel* params,
+        /* [in] */ Int32 id,
+        /* [in] */ Millisecond64 delayMillis);
+
+    CARAPI PostCppCallbackAtFrontOfQueue(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [in] */ IParcel* params,
+        /* [in] */ Int32 id);
+
+    CARAPI RemoveCppCallbacks(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func);
+
+    CARAPI RemoveCppCallbacksEx(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [in] */ Int32 id);
+
+    CARAPI HasCppCallbacks(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [out] */ Boolean* result);
+
+    CARAPI HasCppCallbacksEx(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [in] */ Int32 id,
+        /* [out] */ Boolean* result);
+
+    CARAPI SendMessage(
+        /* [in] */ Int32 message,
+        /* [in] */ IParcel* params);
 
 protected:
 	//@Override
@@ -169,6 +226,21 @@ private:
     	/* [in] */ Boolean reload);
 
 private:
+    CARAPI SendMessage(
+        /* [in] */ Handle32 pvFunc,
+        /* [in] */ IParcel* params);
+
+    CARAPI SendMessageAtTime(
+        /* [in] */ Handle32 pvFunc,
+        /* [in] */ IParcel* params,
+        /* [in] */ Millisecond64 uptimeMillis);
+
+    CARAPI RemoveMessage(
+        /* [in] */ Handle32 func);
+
+    CARAPI HandleTimerMessage();
+
+private:
 	// Identifier for the timer message.
 	static const Int32 TIMER_MESSAGE = 1;
     // ID for servicing functionptr queue
@@ -195,6 +267,8 @@ private:
 
     Core::Threading::Mutex mutexThis;
     static Core::Threading::Mutex mutexClass;
+
+    AutoPtr<IApartment> mApartment;
 };
 
 #endif //__JWEBCOREJAVABRIDGE_H_

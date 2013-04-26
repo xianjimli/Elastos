@@ -12,7 +12,7 @@ module
     interface IJsPromptResult;
     interface IBitmap;
 
-      interface IWebChromeClientCustomViewCallback {
+    interface IWebChromeClientCustomViewCallback {
 
         /**
          * Invoked when the host application dismisses the
