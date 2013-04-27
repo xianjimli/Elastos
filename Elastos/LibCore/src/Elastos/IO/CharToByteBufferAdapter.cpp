@@ -49,6 +49,8 @@ ECode CharToByteBufferAdapter::Wrap(
     /* [out] */ ICharBuffer** buffer)
 {
     VALIDATE_NOT_NULL(buffer);
+    VALIDATE_NOT_NULL(byteBuffer);
+
     AutoPtr<IByteBuffer> buf;
     byteBuffer->Slice((IByteBuffer**)&buf);
     Int32 cap;
