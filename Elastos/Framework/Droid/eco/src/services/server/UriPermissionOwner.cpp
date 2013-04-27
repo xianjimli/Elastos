@@ -16,28 +16,70 @@ UriPermissionOwner::ExternalToken::ExternalToken(UriPermissionOwner* uriOwner)
     mUriOwner = uriOwner;
 }
 
+UInt32 UriPermissionOwner::ExternalToken::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 UriPermissionOwner::ExternalToken::Release()
+{
+    return ElRefBase::Release();
+}
+
+PInterface UriPermissionOwner::ExternalToken::Probe(
+    /* [in]  */ REIID riid)
+{
+    // if (riid == NULL) {
+    //     return (IInterface*)this;
+    // }
+
+    return NULL;
+}
+
+ECode UriPermissionOwner::ExternalToken::GetInterfaceID(
+    /* [in]  */ IInterface* pObject,
+    /* [out]  */ InterfaceID* pIID)
+{
+    VALIDATE_NOT_NULL(pIID);
+
+    // if (pObject == (IInterface*)(IBackupAgent*)this) {
+    //     *pIID = EIID_IBackupAgent;
+    // }
+    // else {
+    //     return E_INVALID_ARGUMENT;
+    // }
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode UriPermissionOwner::ExternalToken::GetDescription(
+    /* [in] */ String* des)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
 UriPermissionOwner* UriPermissionOwner::ExternalToken::GetOwner()
 {
     return mUriOwner;
 }
 
-Binder* UriPermissionOwner::GetExternalTokenLocked()
+IBinder* UriPermissionOwner::GetExternalTokenLocked()
 {
+    // mExternalToken != NULL or mExternalToken == NULL ???
     if (mExternalToken != NULL) {
         mExternalToken = new UriPermissionOwner::ExternalToken(this);
     }
 
+    mExternalToken->AddRef();
     return mExternalToken;
 }
 
 UriPermissionOwner* UriPermissionOwner::FromExternalToken(
-    /* [in] */ Binder* token)
+    /* [in] */ IBinder* token)
 {
     //TODO:
     // if (token instanceof ExternalToken) {
-    //     return ((ExternalToken)token).getOwner();
+    return ((UriPermissionOwner::ExternalToken*)token)->GetOwner();
     // }
-    return NULL;
 }
 
 void UriPermissionOwner::RemoveUriPermissionsLocked()

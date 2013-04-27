@@ -11,11 +11,25 @@ class UriPermission;
 class UriPermissionOwner
 {
 public:
-    class ExternalToken : public Binder
+    class ExternalToken : public Binder, public IBinder , public ElRefBase
     {
     public:
         ExternalToken(
-        /* [in] */ UriPermissionOwner* uriOwner);
+            /* [in] */ UriPermissionOwner* uriOwner);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI_(PInterface) Probe(
+            /* [in]  */ REIID riid);
+
+        CARAPI GetInterfaceID(
+            /* [in]  */ IInterface* pObject,
+            /* [out]  */ InterfaceID* rIID);
+
+        CARAPI GetDescription(
+            /* [in] */ String* des);
 
         CARAPI_(UriPermissionOwner*) GetOwner();
 
@@ -28,10 +42,10 @@ public:
         /* [in] */ CActivityManagerService* service,
         /* [in] */ Handle32 owner);
 
-    CARAPI_(Binder*) GetExternalTokenLocked();
+    CARAPI_(IBinder*) GetExternalTokenLocked();
 
-    CARAPI_(UriPermissionOwner*) FromExternalToken(
-        /* [in] */ Binder* token);
+    static CARAPI_(UriPermissionOwner*) FromExternalToken(
+        /* [in] */ IBinder* token);
 
     CARAPI_(void) RemoveUriPermissionsLocked();
 
@@ -55,9 +69,9 @@ public:
         /* [in] */ UriPermission* perm);
 
 public:
-    CActivityManagerService* mService;
-    IObject* mOwner;
-    Binder* mExternalToken;
+    AutoPtr<CActivityManagerService> mService;
+    AutoPtr<IObject> mOwner;
+    AutoPtr<IBinder> mExternalToken;
     Set<UriPermission*>* mReadUriPermissions; // special access to reading uris.
     Set<UriPermission*>* mWriteUriPermissions; // special access to writing uris.
 };

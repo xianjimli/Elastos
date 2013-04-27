@@ -414,11 +414,13 @@ Boolean CAppWidgetService::CanAccessAppWidgetId(
         // Apps providing the AppWidget have access to it (if the appWidgetId has been bound)
         return TRUE;
     }
-    // if (mContext.checkCallingOrSelfPermission(android.Manifest.permission.BIND_APPWIDGET)
-    //         == PackageManager.PERMISSION_GRANTED) {
-    //     // Apps that can bind have access to all appWidgetIds.
-    //     return true;
-    // }
+
+    Int32 perm;
+    mContext->CheckCallingOrSelfPermission(String("android.Manifest.permission.BIND_APPWIDGET"), &perm);
+    if (perm == CapsuleManager_PERMISSION_GRANTED) {
+        // Apps that can bind have access to all appWidgetIds.
+        return TRUE;
+    }
     // Nobody else can access it.
 
     return FALSE;

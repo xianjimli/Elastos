@@ -2561,15 +2561,17 @@ ECode CAudioService::SendMsg(
 Boolean CAudioService::CheckAudioSettingsPermission(
     /* [in] */ const String& method)
 {
-    /*if (mContext->CheckCallingOrSelfPermission("android.permission.MODIFY_AUDIO_SETTINGS")
-            == PackageManager.PERMISSION_GRANTED) {
+    Int32 perm;
+    mContext->CheckCallingOrSelfPermission(String("android.permission.MODIFY_AUDIO_SETTINGS"), &perm);
+    if (perm == CapsuleManager_PERMISSION_GRANTED) {
         return TRUE;
     }
-    String msg = "Audio Settings Permission Denial: " + method + " from pid="
-            + Binder.getCallingPid()
-            + ", uid=" + Binder.getCallingUid();
-    Log.w(TAG, msg);*/
-    return TRUE;
+
+    // String msg = "Audio Settings Permission Denial: " + method + " from pid="
+    //         + Binder.getCallingPid()
+    //         + ", uid=" + Binder.getCallingUid();
+    // Log.w(TAG, msg);
+    return FALSE;
 }
 
 void CAudioService::MakeA2dpDeviceAvailable(

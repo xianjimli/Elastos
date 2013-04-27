@@ -1115,6 +1115,12 @@ private:
         /* [in] */ const String& targetCap,
         /* [in] */ IIntent* intent);
 
+    CARAPI_(Int32) GetLRURecordIndexForAppLocked(
+        /* [in] */ IApplicationApartment* thread);
+
+    CARAPI_(ProcessRecord*) GetRecordForAppLocked(
+        /* [in] */ IApplicationApartment* thread);
+
     CARAPI_(void) GrantUriPermissionUncheckedFromIntentLocked(
         /* [in] */ Int32 targetUid,
         /* [in] */ const String& targetCap,

@@ -18,6 +18,10 @@ module
     }
 
     class CWindowManagerService {
+        constructor(
+            [in] IContext* ctx,
+            [in] Boolean haveInputMethod);
+
         interface IWindowManager;
     }
 

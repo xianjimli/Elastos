@@ -3949,48 +3949,81 @@ void CActivityManagerService::GrantUriPermissionFromIntentLocked(
     GrantUriPermissionUncheckedFromIntentLocked(targetUid, targetCap, intent, owner);
 }
 
+Int32 CActivityManagerService::GetLRURecordIndexForAppLocked(
+    /* [in] */ IApplicationApartment* thread)
+{
+    //TODO:
+    // IBinder threadBinder = thread.asBinder();
+
+    // // Find the application record.
+    // for (int i=mLruProcesses.size()-1; i>=0; i--) {
+    //     ProcessRecord rec = mLruProcesses.get(i);
+    //     if (rec.thread != null && rec.thread.asBinder() == threadBinder) {
+    //         return i;
+    //     }
+    // }
+    return -1;
+}
+
+ProcessRecord* CActivityManagerService::GetRecordForAppLocked(
+    /* [in] */ IApplicationApartment* thread)
+{
+    if (thread == NULL) {
+        return NULL;
+    }
+
+    Int32 appIndex = GetLRURecordIndexForAppLocked(thread);
+    return appIndex >= 0 ? mLRUProcesses[appIndex] : NULL;
+}
+
 ECode CActivityManagerService::GrantUriPermission(
     /* [in] */ IApplicationApartment* caller,
     /* [in] */ const String& targetPkg,
     /* [in] */ IUri* uri,
     /* [in] */ Int32 modeFlags)
 {
-//    synchronized(this) {
-//        final ProcessRecord r = getRecordForAppLocked(caller);
-//        if (r == null) {
-//            throw new SecurityException("Unable to find app for caller "
-//                    + caller
-//                    + " when granting permission to uri " + uri);
-//        }
-//        if (targetPkg == null) {
-//            throw new IllegalArgumentException("null target");
-//        }
-//        if (uri == null) {
-//            throw new IllegalArgumentException("null uri");
-//        }
-//
-//        grantUriPermissionLocked(r.info.uid, targetPkg, uri, modeFlags,
-//                null);
-//    }
-    return E_NOT_IMPLEMENTED;
+    Mutex::Autolock lock(_m_syncLock);
+
+    ProcessRecord* r = GetRecordForAppLocked(caller);
+    if (r == NULL) {
+        // throw new SecurityException("Unable to find app for caller "
+           // + caller
+           // + " when granting permission to uri " + uri);
+        return E_SECURITY_EXCEPTION;
+    }
+    if (targetPkg == NULL) {
+        // throw new IllegalArgumentException("null target");
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
+    }
+    if (uri == NULL) {
+        // throw new IllegalArgumentException("null uri");
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
+    }
+
+    Int32 uid;
+    r->mInfo.Get()->GetUid(&uid);
+    GrantUriPermissionLocked(uid, targetPkg, uri, modeFlags, NULL);
+    return NOERROR;
 }
 
 void CActivityManagerService::RemoveUriPermissionIfNeededLocked(
     /* [in] */ UriPermission* perm)
 {
-//    if ((perm.modeFlags&(Intent.FLAG_GRANT_READ_URI_PERMISSION
-//            |Intent.FLAG_GRANT_WRITE_URI_PERMISSION)) == 0) {
-//        HashMap<Uri, UriPermission> perms
-//                = mGrantedUriPermissions.get(perm.uid);
-//        if (perms != null) {
-//            if (DEBUG_URI_PERMISSION) Slog.v(TAG,
-//                    "Removing " + perm.uid + " permission to " + perm.uri);
-//            perms.remove(perm.uri);
-//            if (perms.size() == 0) {
-//                mGrantedUriPermissions.remove(perm.uid);
-//            }
-//        }
-//    }
+    if ((perm->mModeFlags & (Intent_FLAG_GRANT_READ_URI_PERMISSION
+           | Intent_FLAG_GRANT_WRITE_URI_PERMISSION)) == 0) {
+        HashMap<IUri*, UriPermission*>* perms
+                = mGrantedUriPermissions[perm->mUid];
+        if (perms != NULL) {
+            if (DEBUG_URI_PERMISSION) {
+                Slogger::V(TAG,
+                    StringBuffer("Removing ") + perm->mUid + " permission to " + perm->mUri);
+            }
+            perms->Erase(perm->mUri);
+            if (perms->GetSize() == 0) {
+                mGrantedUriPermissions.Erase(perm->mUid);
+            }
+        }
+    }
 }
 
 void CActivityManagerService::RevokeUriPermissionLocked(
@@ -4086,57 +4119,65 @@ ECode CActivityManagerService::RevokeUriPermission(
     /* [in] */ IUri* uri,
     /* [in]*/ Int32 modeFlags)
 {
-//    synchronized(this) {
-//        final ProcessRecord r = getRecordForAppLocked(caller);
-//        if (r == null) {
-//            throw new SecurityException("Unable to find app for caller "
-//                    + caller
-//                    + " when revoking permission to uri " + uri);
-//        }
-//        if (uri == null) {
-//            Slogger::W(TAG, "revokeUriPermission: null uri");
-//            return;
-//        }
-//
-//        modeFlags &= (Intent.FLAG_GRANT_READ_URI_PERMISSION
-//                | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-//        if (modeFlags == 0) {
-//            return;
-//        }
-//
-//        final IPackageManager pm = AppGlobals.getPackageManager();
-//
-//        final String authority = uri.getAuthority();
-//        ProviderInfo pi = null;
-//        ContentProviderRecord cpr = mProvidersByName.get(authority);
-//        if (cpr != null) {
-//            pi = cpr.info;
-//        } else {
-//            try {
-//                pi = pm.resolveContentProvider(authority,
-//                        PackageManager.GET_URI_PERMISSION_PATTERNS);
-//            } catch (RemoteException ex) {
-//            }
-//        }
-//        if (pi == null) {
-//            Slogger::W(TAG, "No content provider found for: " + authority);
-//            return;
-//        }
-//
-//        revokeUriPermissionLocked(r.info.uid, uri, modeFlags);
-//    }
-    return E_NOT_IMPLEMENTED;
+    Mutex::Autolock lock(_m_syncLock);
+
+    ProcessRecord* r = GetRecordForAppLocked(caller);
+    if (r == NULL) {
+        // throw new SecurityException("Unable to find app for caller "
+        //        + caller
+        //        + " when revoking permission to uri " + uri);
+        return E_SECURITY_EXCEPTION;
+    }
+    if (uri == NULL) {
+        Slogger::W(TAG, "revokeUriPermission: null uri");
+        return E_INVALID_ARGUMENT;;
+    }
+
+    modeFlags &= (Intent_FLAG_GRANT_READ_URI_PERMISSION
+           | Intent_FLAG_GRANT_WRITE_URI_PERMISSION);
+    if (modeFlags == 0) {
+       return E_ILLEGAL_ARGUMENT_EXCEPTION;
+    }
+
+    AutoPtr<ICapsuleManager> pm = GetCapsuleManager();
+
+    String authority;
+    uri->GetAuthority(&authority);
+    ContentProviderRecord* cpr = mProvidersByName[authority];
+    AutoPtr<IContentProviderInfo> pi;
+    if (cpr != NULL) {
+        cpr->mHolder->GetContentProviderInfo((IContentProviderInfo**)&pi);
+    }
+    else {
+        // try {
+        pm->ResolveContentProvider(authority,
+           CapsuleManager_GET_URI_PERMISSION_PATTERNS, (IContentProviderInfo**)&pi);
+        // }
+        // catch (RemoteException ex) {
+        // }
+    }
+    if (pi == NULL) {
+        Slogger::W(TAG, "No content provider found for: " + authority);
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
+    }
+
+    Int32 uid;
+    r->mInfo->GetUid(&uid);
+    RevokeUriPermissionLocked(uid, uri, modeFlags);
+
+    return NOERROR;
 }
 
 ECode CActivityManagerService::NewUriPermissionOwner(
     /* [in] */ const String& name,
     /* [out] */ IBinder** token)
 {
-//    synchronized(this) {
-//        UriPermissionOwner owner = new UriPermissionOwner(this, name);
-//        return owner.getExternalTokenLocked();
-//    }
-    return E_NOT_IMPLEMENTED;
+    Mutex::Autolock lock(_m_syncLock);
+    UriPermissionOwner* owner = new UriPermissionOwner(this, (Handle32)&name);
+    *token = owner->GetExternalTokenLocked();
+
+    delete(owner);
+    return NOERROR;
 }
 
 ECode CActivityManagerService::GrantUriPermissionFromOwner(
@@ -4146,28 +4187,31 @@ ECode CActivityManagerService::GrantUriPermissionFromOwner(
     /* [in] */ IUri* uri,
     /* [in] */ Int32 modeFlags)
 {
-//    synchronized(this) {
-//        UriPermissionOwner owner = UriPermissionOwner.fromExternalToken(token);
-//        if (owner == null) {
-//            throw new IllegalArgumentException("Unknown owner: " + token);
-//        }
-//        if (fromUid != Binder.getCallingUid()) {
-//            if (Binder.getCallingUid() != Process.myUid()) {
-//                // Only system code can grant URI permissions on behalf
-//                // of other users.
-//                throw new SecurityException("nice try");
-//            }
-//        }
-//        if (targetPkg == null) {
-//            throw new IllegalArgumentException("null target");
-//        }
-//        if (uri == null) {
-//            throw new IllegalArgumentException("null uri");
-//        }
-//
-//        grantUriPermissionLocked(fromUid, targetPkg, uri, modeFlags, owner);
-//    }
-    return E_NOT_IMPLEMENTED;
+    Mutex::Autolock lock(_m_syncLock);
+    UriPermissionOwner* owner = UriPermissionOwner::FromExternalToken(token);
+    if (owner == NULL) {
+        // throw new IllegalArgumentException("Unknown owner: " + token);
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
+    }
+    if (fromUid != Binder::GetCallingUid()) {
+       if (Binder::GetCallingUid() != Process::MyUid()) {
+            // Only system code can grant URI permissions on behalf
+            // of other users.
+            // throw new SecurityException("nice try");
+            return E_SECURITY_EXCEPTION;
+       }
+    }
+    if (targetPkg == NULL) {
+        // throw new IllegalArgumentException("null target");
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
+    }
+    if (uri == NULL) {
+        // throw new IllegalArgumentException("null uri");
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
+    }
+
+    GrantUriPermissionLocked(fromUid, targetPkg, uri, modeFlags, owner);
+    return NOERROR;
 }
 
 ECode CActivityManagerService::RevokeUriPermissionFromOwner(
@@ -4175,19 +4219,20 @@ ECode CActivityManagerService::RevokeUriPermissionFromOwner(
     /* [in] */ IUri* uri,
     /* [in] */ Int32 mode)
 {
-//    synchronized(this) {
-//        UriPermissionOwner owner = UriPermissionOwner.fromExternalToken(token);
-//        if (owner == null) {
-//            throw new IllegalArgumentException("Unknown owner: " + token);
-//        }
-//
-//        if (uri == null) {
-//            owner.removeUriPermissionsLocked(mode);
-//        } else {
-//            owner.removeUriPermissionLocked(uri, mode);
-//        }
-//    }
-    return E_NOT_IMPLEMENTED;
+    Mutex::Autolock lock(_m_syncLock);
+    UriPermissionOwner* owner = UriPermissionOwner::FromExternalToken(token);
+    if (owner == NULL) {
+        // throw new IllegalArgumentException("Unknown owner: " + token);
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
+    }
+
+    if (uri == NULL) {
+       owner->RemoveUriPermissionsLocked(mode);
+    }
+    else{
+       owner->RemoveUriPermissionLocked(uri, mode);
+    }
+    return NOERROR;
 }
 
 ECode CActivityManagerService::ShowWaitingForDebugger(
