@@ -2,7 +2,17 @@
 #include "content/CSyncResult.h"
 #include "content/CSyncStats.h"
 
-const CSyncResult* CSyncResult::ALREADY_IN_PROGRESS = NULL; //new CSyncResult(true);
+const AutoPtr<CSyncResult> CSyncResult::ALREADY_IN_PROGRESS = CSyncResult::CreateSyncResult();
+
+AutoPtr<CSyncResult> CSyncResult::CreateSyncResult()
+{
+    AutoPtr<CSyncResult> syncResult;
+
+    CSyncResult::NewByFriend((CSyncResult**) &syncResult);
+
+    return syncResult;
+}
+
 
 CSyncResult::CSyncResult()
 {

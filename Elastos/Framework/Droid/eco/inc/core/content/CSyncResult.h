@@ -3,6 +3,7 @@
 #define __CSYNCRESULT_H__
 
 #include "_CSyncResult.h"
+#include "CSyncStats.h"
 #include <ext/frameworkdef.h>
 #include <elastos/AutoPtr.h>
 
@@ -11,6 +12,8 @@ CarClass(CSyncResult)
 public:
     CSyncResult();
     CSyncResult(Boolean);
+
+    static AutoPtr<CSyncResult> CreateSyncResult();
 
 public:
     CARAPI HasHardError(
@@ -113,14 +116,14 @@ public:
      * the sync request resulted in a hard or soft error, others are for purely informational
      * purposes.
      */
-    /*const*/ AutoPtr<ISyncStats> stats;
+    /*const*/ AutoPtr<CSyncStats> stats;
 
     /**
      * This instance of a SyncResult is returned by the SyncAdapter in response to a
      * sync request when a sync is already underway. The SyncManager will reschedule the
      * sync request to try again later.
      */
-    const static CSyncResult* ALREADY_IN_PROGRESS;
+    const static AutoPtr<CSyncResult> ALREADY_IN_PROGRESS;
 
 private:
     // TODO: Add your private member variables here.
