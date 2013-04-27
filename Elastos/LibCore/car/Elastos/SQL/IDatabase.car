@@ -212,18 +212,6 @@ module
             [in] ITableResult* tbl);
 
         /**
-         * See if an SQL statement is complete.
-         * Returns true if the input string comprises
-         * one or more complete SQL statements.
-         *
-         * @param sql the SQL statement to be checked
-         */
-        // synchronized//////////////////////////////////
-        Complete(
-            [in] String sql,
-            [out] Boolean* resukt);
-
-        /**
          * Return SQLite version number as string.
          * Don't rely on this when both SQLite 2 and 3 are compiled
          * into the native part. Use the class method in this case.
@@ -471,5 +459,18 @@ module
         Julian_from_long(
             [in] Int64 ms,
             [out] Double* result);
+    }
+
+    interface IDatabaseHelper {
+        /**
+         * See if an SQL statement is complete.
+         * Returns true if the input string comprises
+         * one or more complete SQL statements.
+         *
+         * @param sql the SQL statement to be checked
+         */
+        Complete(
+            [in] String sql,
+            [out] Boolean* resukt);
     }
 }

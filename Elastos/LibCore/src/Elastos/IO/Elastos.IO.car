@@ -1115,4 +1115,295 @@ module
 		
 		interface IChannels;
 	}
+
+    class CPrintWriter {
+        /**
+         * Constructs a new {@code PrintWriter} with {@code out} as its target
+         * stream. By default, the new print writer does not automatically flush its
+         * contents to the target stream when a newline is encountered.
+         *
+         * @param out
+         *            the target output stream.
+         * @throws NullPointerException
+         *             if {@code out} is {@code null}.
+         */
+        constructor(
+            [in] IOutputStream* outs);
+
+        /**
+         * Constructs a new {@code PrintWriter} with {@code out} as its target
+         * stream. The parameter {@code autoflush} determines if the print writer
+         * automatically flushes its contents to the target stream when a newline is
+         * encountered.
+         *
+         * @param out
+         *            the target output stream.
+         * @param autoflush
+         *            indicates whether contents are flushed upon encountering a
+         *            newline sequence.
+         * @throws NullPointerException
+         *             if {@code out} is {@code null}.
+         */
+        constructor(
+            [in] IOutputStream* outs, 
+            [in] Boolean autoflush);
+
+        /**
+         * Constructs a new {@code PrintWriter} with {@code wr} as its target
+         * writer. By default, the new print writer does not automatically flush its
+         * contents to the target writer when a newline is encountered.
+         *
+         * @param wr
+         *            the target writer.
+         * @throws NullPointerException
+         *             if {@code wr} is {@code null}.
+         */
+        constructor(
+            [in] IWriter* wr);
+
+        /**
+         * Constructs a new {@code PrintWriter} with {@code out} as its target
+         * writer. The parameter {@code autoflush} determines if the print writer
+         * automatically flushes its contents to the target writer when a newline is
+         * encountered.
+         *
+         * @param wr
+         *            the target writer.
+         * @param autoflush
+         *            indicates whether to flush contents upon encountering a
+         *            newline sequence.
+         * @throws NullPointerException
+         *             if {@code out} is {@code null}.
+         */
+        constructor(
+            [in] IWriter* wr, 
+            [in] Boolean autoflush);
+
+        /**
+         * Constructs a new {@code PrintWriter} with {@code file} as its target. The
+         * virtual machine's default character set is used for character encoding.
+         * The print writer does not automatically flush its contents to the target
+         * file when a newline is encountered. The output to the file is buffered.
+         *
+         * @param file
+         *            the target file. If the file already exists, its contents are
+         *            removed, otherwise a new file is created.
+         * @throws FileNotFoundException
+         *             if an error occurs while opening or creating the target file.
+         * @throws SecurityException
+         *             if a security manager exists and it denies writing to the
+         *             target file.
+         */
+        constructor(
+            [in] IFile* file);
+
+        /**
+         * Constructs a new {@code PrintWriter} with {@code file} as its target. The
+         * character set named {@code csn} is used for character encoding.
+         * The print writer does not automatically flush its contents to the target
+         * file when a newline is encountered. The output to the file is buffered.
+         *
+         * @param file
+         *            the target file. If the file already exists, its contents are
+         *            removed, otherwise a new file is created.
+         * @param csn
+         *            the name of the character set used for character encoding.
+         * @throws FileNotFoundException
+         *             if an error occurs while opening or creating the target file.
+         * @throws NullPointerException
+         *             if {@code csn} is {@code null}.
+         * @throws SecurityException
+         *             if a security manager exists and it denies writing to the
+         *             target file.
+         * @throws UnsupportedEncodingException
+         *             if the encoding specified by {@code csn} is not supported.
+         */
+        constructor(
+            [in] IFile* file, 
+            [in] String csn);
+        /**
+         * Constructs a new {@code PrintWriter} with the file identified by {@code
+         * fileName} as its target. The virtual machine's default character set is
+         * used for character encoding. The print writer does not automatically
+         * flush its contents to the target file when a newline is encountered. The
+         * output to the file is buffered.
+         *
+         * @param fileName
+         *            the target file's name. If the file already exists, its
+         *            contents are removed, otherwise a new file is created.
+         * @throws FileNotFoundException
+         *             if an error occurs while opening or creating the target file.
+         * @throws SecurityException
+         *             if a security manager exists and it denies writing to the
+         *             target file.
+         */
+        constructor(
+            [in] String fileName);
+
+        /**
+         * Constructs a new {@code PrintWriter} with the file identified by {@code
+         * fileName} as its target. The character set named {@code csn} is used for
+         * character encoding. The print writer does not automatically flush its
+         * contents to the target file when a newline is encountered. The output to
+         * the file is buffered.
+         *
+         * @param fileName
+         *            the target file's name. If the file already exists, its
+         *            contents are removed, otherwise a new file is created.
+         * @param csn
+         *            the name of the character set used for character encoding.
+         * @throws FileNotFoundException
+         *             if an error occurs while opening or creating the target file.
+         * @throws NullPointerException
+         *             if {@code csn} is {@code null}.
+         * @throws SecurityException
+         *             if a security manager exists and it denies writing to the
+         *             target file.
+         * @throws UnsupportedEncodingException
+         *             if the encoding specified by {@code csn} is not supported.
+         */
+        constructor(
+            [in] String fileName, 
+            [in] String csn);
+
+        interface IPrintWriter;
+    }
+
+    class CPrintStream {
+        /**
+         * Constructs a new {@code PrintStream} with {@code out} as its target
+         * stream. By default, the new print stream does not automatically flush its
+         * contents to the target stream when a newline is encountered.
+         *
+         * @param out
+         *            the target output stream.
+         * @throws NullPointerException
+         *             if {@code out} is {@code null}.
+         */
+        constructor(
+            [in] IOutputStream* outs);
+
+        /**
+         * Constructs a new {@code PrintStream} with {@code out} as its target
+         * stream. The parameter {@code autoflush} determines if the print stream
+         * automatically flushes its contents to the target stream when a newline is
+         * encountered.
+         *
+         * @param out
+         *            the target output stream.
+         * @param autoflush
+         *            indicates whether to flush contents upon encountering a
+         *            newline sequence.
+         * @throws NullPointerException
+         *             if {@code out} is {@code null}.
+         */
+        constructor(
+            [in] IOutputStream* outs, 
+            [in] Boolean autoflush);
+
+        /**
+         * Constructs a new {@code PrintStream} with {@code out} as its target
+         * stream and using the character encoding {@code enc} while writing. The
+         * parameter {@code autoflush} determines if the print stream automatically
+         * flushes its contents to the target stream when a newline is encountered.
+         *
+         * @param out
+         *            the target output stream.
+         * @param autoflush
+         *            indicates whether or not to flush contents upon encountering a
+         *            newline sequence.
+         * @param enc
+         *            the non-null string describing the desired character encoding.
+         * @throws NullPointerException
+         *             if {@code out} or {@code enc} are {@code null}.
+         * @throws UnsupportedEncodingException
+         *             if the encoding specified by {@code enc} is not supported.
+         */
+        constructor(
+            [in] IOutputStream* outs, 
+            [in] Boolean autoflush, 
+            [in] String enc);
+
+        /**
+         * Constructs a new {@code PrintStream} with {@code file} as its target. The
+         * virtual machine's default character set is used for character encoding.
+         *
+         * @param file
+         *            the target file. If the file already exists, its contents are
+         *            removed, otherwise a new file is created.
+         * @throws FileNotFoundException
+         *             if an error occurs while opening or creating the target file.
+         * @throws SecurityException
+         *             if a security manager exists and it denies writing to the
+         *             target file.
+         */
+        constructor(
+            [in] IFile* file);
+
+        /**
+         * Constructs a new {@code PrintStream} with {@code file} as its target. The
+         * character set named {@code csn} is used for character encoding.
+         *
+         * @param file
+         *            the target file. If the file already exists, its contents are
+         *            removed, otherwise a new file is created.
+         * @param csn
+         *            the name of the character set used for character encoding.
+         * @throws FileNotFoundException
+         *             if an error occurs while opening or creating the target file.
+         * @throws NullPointerException
+         *             if {@code csn} is {@code null}.
+         * @throws SecurityException
+         *             if a security manager exists and it denies writing to the
+         *             target file.
+         * @throws UnsupportedEncodingException
+         *             if the encoding specified by {@code csn} is not supported.
+         */
+        constructor(
+            [in] IFile* file, 
+            [in] String csn);
+
+        /**
+         * Constructs a new {@code PrintStream} with the file identified by
+         * {@code fileName} as its target. The virtual machine's default character
+         * set is used for character encoding.
+         *
+         * @param fileName
+         *            the target file's name. If the file already exists, its
+         *            contents are removed, otherwise a new file is created.
+         * @throws FileNotFoundException
+         *             if an error occurs while opening or creating the target file.
+         * @throws SecurityException
+         *             if a security manager exists and it denies writing to the
+         *             target file.
+         */
+        constructor(
+            [in] String fileName);
+
+        /**
+         * Constructs a new {@code PrintStream} with the file identified by
+         * {@code fileName} as its target. The character set named {@code csn} is
+         * used for character encoding.
+         *
+         * @param fileName
+         *            the target file's name. If the file already exists, its
+         *            contents are removed, otherwise a new file is created.
+         * @param csn
+         *            the name of the character set used for character encoding.
+         * @throws FileNotFoundException
+         *             if an error occurs while opening or creating the target file.
+         * @throws NullPointerException
+         *             if {@code csn} is {@code null}.
+         * @throws SecurityException
+         *             if a security manager exists and it denies writing to the
+         *             target file.
+         * @throws UnsupportedEncodingException
+         *             if the encoding specified by {@code csn} is not supported.
+         */
+        constructor(
+            [in] String fileName, 
+            [in] String csn);
+
+        interface IPrintStream;
+    }
 }

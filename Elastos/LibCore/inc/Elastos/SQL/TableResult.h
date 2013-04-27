@@ -34,6 +34,7 @@ public:
     /**
      * Rows of the result set. Each row is stored as a String array.
      */
+    //public Vector rows;
  //   Elastos::Vector<ArrayOf<String>*> *mRows;
 
     /**

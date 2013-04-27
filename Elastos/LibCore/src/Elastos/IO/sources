@@ -139,6 +139,8 @@ SOURCES += Channels.cpp
 SOURCES += CChannels.cpp
 SOURCES += AbstractInterruptibleChannel.cpp
 SOURCES += CCharBufferHelper.cpp
+SOURCES += CPrintWriter.cpp
+SOURCES += CPrintStream.cpp
 
 LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.lib
 LIBRARIES += $(XDK_USER_LIB)/Elastos.Utility.lib

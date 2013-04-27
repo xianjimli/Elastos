@@ -2,7 +2,9 @@
 #include "Shell.h"
 #include "StringBuffer.h"
 #include "CTableResult.h"
+#include "CDatabaseHelper.h"
 #include "CShell.h"
+ #include <elastos/System.h>
 
 Shell::Shell()
 {}
@@ -34,7 +36,8 @@ ECode Shell::Sql_quote_dbl(
         *result = String("NULL");
         return NOERROR;
     }
-    Int32 i, single = 0, dbl = 0;
+    UInt32 i;
+    Int32 single = 0, dbl = 0;
     for (i = 0; i < str.GetLength(); i++) {
         if (str.GetChar(i) == '\'') {
             single++;
@@ -73,7 +76,8 @@ ECode Shell::Sql_quote(
         *result = String("NULL");
         return NOERROR;
     }
-    Int32 i, single = 0, dbl = 0;
+    UInt32 i;
+    Int32 single = 0, dbl = 0;
     for (i = 0; i < str.GetLength(); i++) {
         if (str.GetChar(i) == '\'') {
             single++;
@@ -268,9 +272,10 @@ ECode Shell::Clone(
     /* [out] */IInterface** obj)
 {
     //AutoPtr<Shell> s = new Shell(mPw, mErr);
-    AutoPtr<IShell> s;
-    CShell::New(mPw, mErr, (IShell**)&s); 
-/*
+    AutoPtr<IShell> sh;
+    CShell::New(mPw, mErr, (IShell**)&sh); 
+    Shell* s = (Shell *)sh->Probe(EIID_IShell);
+
     s->mDb = mDb;
     s->mEcho = mEcho;
     s->mMode = mMode;
@@ -280,7 +285,7 @@ ECode Shell::Clone(
     s->mSep = mSep;
     s->mColwidth = mColwidth;
 
-    *obj = (IInterface*)s;*/
+    *obj = (IInterface*)sh;
 
     return NOERROR;
 }
@@ -295,12 +300,12 @@ ECode Shell::Html_quote(
         return NOERROR;
     }
     StringBuffer sb;
-    for (Int32 i = 0; i < str.GetLength(); i++) {
+    for (UInt32 i = 0; i < str.GetLength(); i++) {
         Char8 c = str.GetChar(i);
         if (c == '<') {
             sb += ("&lt;");
         } else if (c == '>') {
-        sb += ("&gt;");
+            sb += ("&gt;");
         } else if (c == '&') {
             sb += ("&amp;");
         } else {
@@ -351,168 +356,171 @@ ECode Shell::Set_table_name(
 
 ECode Shell::Do_meta(
     /* [in] */const String& line)
-{/*
-
-    StringTokenizer st = new StringTokenizer(line.toLowerCase());
-    int n = st.countTokens();
+{
+    //emake
+    //String tmp(String::Duplicate(line));
+    //tmp.ToLowerCase();
+    String tmp("?????????????");//?????????????????????????
+    StringTokenizer *st = new StringTokenizer(tmp);
+    Int32 n = st->GetCount();
     if (n <= 0) {
-        return;
+        return NOERROR;
     }
-    String cmd = st.nextToken();
-    String args[] = new String[n - 1];
-    int i = 0;
-    while (st.hasMoreTokens()) {
-        args[i] = st.nextToken();
+    String cmd = st->NextToken();
+    //String args[] = new String[n - 1];
+    ArrayOf<String>* args = ArrayOf<String>::Alloc(n - 1);
+    Int32 i = 0;
+    while (st->HasMoreTokens()) {
+        (*args)[i] = st->NextToken();
         ++i;
     }
-    if (cmd.compareTo(".dump") == 0) {
-        new DBDump(this, args);
-        return;
+    if (cmd.Compare(".dump") == 0) {
+        new DBDump((IShell *)this, *args);//??????????
+        return NOERROR;
     }
-    if (cmd.compareTo(".echo") == 0) {
-        if (args.length > 0 &&
-        (args[0].startsWith("y") || args[0].startsWith("on"))) {
-        echo = true;
+    if (cmd.Compare(".echo") == 0) {
+        if (args->GetLength() > 0 &&
+            ((*args)[0].StartWith("y") || (*args)[0].StartWith("on"))) {
+            mEcho = TRUE;
         }
-        return;
+        return NOERROR;
     }
-    if (cmd.compareTo(".exit") == 0) {
-        try {
-        db.close();
-        } catch (Exception e) {
+    if (cmd.Compare(".exit") == 0) {
+        mDb->Close();
+        return NOERROR; //System::Exit(0); ???????????????????????????
+    }
+    if (cmd.Compare(".header") == 0) {
+        if (args->GetLength() > 0 &&
+            ((*args)[0].StartWith("y") || (*args)[0].StartWith("on"))) {
+            mShowHeader = TRUE;
         }
-        System.exit(0);
+        return NOERROR;
     }
-    if (cmd.compareTo(".header") == 0) {
-        if (args.length > 0 &&
-        (args[0].startsWith("y") || args[0].startsWith("on"))) {
-        showHeader = true;
-        }
-        return;
+    if (cmd.Compare(".help") == 0) {
+        mPw->PrintlnString(String(".dump ?TABLE? ...  Dump database in text fmt"));
+        mPw->PrintlnString(String(".echo ON|OFF       Command echo on or off"));
+        mPw->PrintlnString(String(".enc ?NAME?        Change encoding"));
+        mPw->PrintlnString(String(".exit              Exit program"));
+        mPw->PrintlnString(String(".header ON|OFF     Display headers on or off"));
+        mPw->PrintlnString(String(".help              This message"));
+        mPw->PrintlnString(String(".mode MODE         Set output mode to\n") +
+               String("                   line, column, insert\n") +
+               String("                   list, or html"));
+        mPw->PrintlnString(String(".mode insert TABLE Generate SQL insert stmts"));
+        mPw->PrintlnString(String(".schema ?PATTERN?  List table schema"));
+        mPw->PrintlnString(String(".separator STRING  Set separator string"));
+        mPw->PrintlnString(String(".tables ?PATTERN?  List table names"));
+        return NOERROR;
     }
-    if (cmd.compareTo(".help") == 0) {
-        pw.println(".dump ?TABLE? ...  Dump database in text fmt");
-        pw.println(".echo ON|OFF       Command echo on or off");
-        pw.println(".enc ?NAME?        Change encoding");
-        pw.println(".exit              Exit program");
-        pw.println(".header ON|OFF     Display headers on or off");
-        pw.println(".help              This message");
-        pw.println(".mode MODE         Set output mode to\n" +
-               "                   line, column, insert\n" +
-               "                   list, or html");
-        pw.println(".mode insert TABLE Generate SQL insert stmts");
-        pw.println(".schema ?PATTERN?  List table schema");
-        pw.println(".separator STRING  Set separator string");
-        pw.println(".tables ?PATTERN?  List table names");
-        return;
-    }
-    if (cmd.compareTo(".mode") == 0) {
-        if (args.length > 0) {
-        if (args[0].compareTo("line") == 0) {
-            mode = Shell.MODE_Line;
-        } else if (args[0].compareTo("column") == 0) {
-            mode = Shell.MODE_Column;
-        } else if (args[0].compareTo("list") == 0) {
-            mode = Shell.MODE_List;
-        } else if (args[0].compareTo("html") == 0) {
-            mode = Shell.MODE_Html;
-        } else if (args[0].compareTo("insert") == 0) {
-            mode = Shell.MODE_Insert;
-            if (args.length > 1) {
-            destTable = args[1];
+    if (cmd.Compare(".mode") == 0) {
+        if (args->GetLength() > 0) {
+        if ((*args)[0].Compare("line") == 0) {
+            mMode = IShell_MODE_Line;
+        } else if ((*args)[0].Compare("column") == 0) {
+            mMode = IShell_MODE_Column;
+        } else if ((*args)[0].Compare("list") == 0) {
+            mMode = IShell_MODE_List;
+        } else if ((*args)[0].Compare("html") == 0) {
+            mMode = IShell_MODE_Html;
+        } else if ((*args)[0].Compare("insert") == 0) {
+            mMode = IShell_MODE_Insert;
+            if (args->GetLength() > 1) {
+                mDestTable = (*args)[1];
             }
         }
         }
-        return;
+        return NOERROR;
     }
-    if (cmd.compareTo(".separator") == 0) {
-        if (args.length > 0) {
-        sep = args[0];
+    if (cmd.Compare(".separator") == 0) {
+        if (args->GetLength() > 0) {
+            mSep = (*args)[0];
         }
-        return;
+        return NOERROR;
     }
-    if (cmd.compareTo(".tables") == 0) {
-        TableResult t = null;
-        if (args.length > 0) {
-        try {
-            String qarg[] = new String[1];
-            qarg[0] = args[0];
-            t = db.get_table("SELECT name FROM sqlite_master " +
-                     "WHERE type='table' AND " +
-                     "name LIKE '%%%q%%' " +
-                     "ORDER BY name", qarg);
-        } catch (Exception e) {
-            err.println("SQL Error: " + e);
-            err.flush();
-        }
+    if (cmd.Compare(".tables") == 0) {
+        AutoPtr<ITableResult> t;
+        if (args->GetLength() > 0) {
+            //String qarg[] = new String[1];
+            ArrayOf<String> *qarg = ArrayOf<String>::Alloc(1);
+            (*qarg)[0] = (*args)[0];
+            if(NOERROR != mDb->Get_tableEx3(String("SELECT name FROM sqlite_master ") +
+                     String("WHERE type='table' AND ") +
+                     String("name LIKE '%%%q%%' ") +
+                     String("ORDER BY name"), qarg, (ITableResult**)&t)){
+                mErr->PrintlnString(String("SQL Error: "));
+                mErr->Flush();
+            }
         } else {
-        try {
-            t = db.get_table("SELECT name FROM sqlite_master " +
-                     "WHERE type='table' ORDER BY name");
-        } catch (Exception e) {
-            err.println("SQL Error: " + e);
-            err.flush();
-        }
-        }
-        if (t != null) {
-        for (i = 0; i < t.nrows; i++) {
-            String tab = ((String[]) t.rows.elementAt(i))[0];
-            if (tab != null) {
-            pw.println(tab);
+            if(NOERROR != mDb->Get_tableEx(String("SELECT name FROM sqlite_master ") +
+                     String("WHERE type='table' ORDER BY name"), (ITableResult**)&t)){
+                mErr->PrintlnString(String("SQL Error: "));
+                mErr->Flush();
             }
         }
+        if (t != NULL) {
+            //for (i = 0; i < t->mNrows; i++) {
+                //String tab = ((String[]) t->mRows.elementAt(i))[0]; ????????????????????????????
+                //if (tab != null) {
+                //    pw.println(tab);
+                //}
+            //}
         }
-        return;
+        return NOERROR;
     }
-    if (cmd.compareTo(".schema") == 0) {
-        if (args.length > 0) {
-        try {
-            String qarg[] = new String[1];
-            qarg[0] = args[0];
-            db.exec("SELECT sql FROM sqlite_master " +
-                "WHERE type!='meta' AND " +
-                "name LIKE '%%%q%%' AND " +
-                "sql NOTNULL " +
-                "ORDER BY type DESC, name",
-                this, qarg);
-        } catch (Exception e) {
-            err.println("SQL Error: " + e);
-            err.flush();
-        }
+    if (cmd.Compare(".schema") == 0) {
+        if (args->GetLength() > 0) {
+            ArrayOf<String> *qarg = ArrayOf<String>::Alloc(1);
+            (*qarg)[0] = (*args)[0];
+            if(NOERROR != mDb->ExecEx(String("SELECT sql FROM sqlite_master ") +
+                String("WHERE type!='meta' AND ") +
+                String("name LIKE '%%%q%%' AND ") +
+                String("sql NOTNULL ") +
+                String("ORDER BY type DESC, name"),
+                (ICallback*)this, qarg)) {
+                mErr->PrintlnString(String("SQL Error: "));
+                mErr->Flush();
+            }
+            ArrayOf<String>::Free(qarg);
         } else {
-        try {
-            db.exec("SELECT sql FROM sqlite_master " +
-                "WHERE type!='meta' AND " +
-                "sql NOTNULL " +
-                "ORDER BY tbl_name, type DESC, name",
-                this);
-        } catch (Exception e) {
-            err.println("SQL Error: " + e);
-            err.flush();
+            if(NOERROR != mDb->Exec(String("SELECT sql FROM sqlite_master ") +
+                    String("WHERE type!='meta' AND ") +
+                    String("sql NOTNULL ") +
+                    String("ORDER BY tbl_name, type DESC, name"),
+                    (ICallback*)this)) {
+                mErr->PrintlnString(String("SQL Error: "));
+                mErr->Flush();
+            }
         }
-        }
-        return;
+        return NOERROR;
     }
-    if (cmd.compareTo(".enc") == 0) {
-        try {
-        db.set_encoding(args.length > 0 ? args[0] : null);
-        } catch (Exception e) {
-        err.println("" + e);
-        err.flush();
+    if (cmd.Compare(".enc") == 0) {
+        if(NOERROR != mDb->Set_encoding(args->GetLength() > 0 ? (*args)[0] : String("")))
+        {
+            mErr->PrintlnString(String("SQL Error: "));
+            mErr->Flush();
         }
-        return;
+        return NOERROR;
     }
-    if (cmd.compareTo(".rekey") == 0) {
-        try {
-        db.rekey(args.length > 0 ? args[0] : null);
-        } catch (Exception e) {
-        err.println("" + e);
-        err.flush();
+    if (cmd.Compare(".rekey") == 0) {
+        ArrayOf<Byte>* tmpargs;
+        if(args->GetLength() > 0){
+            tmpargs = ArrayOf<Byte>::Alloc((*args)[0].GetLength());
+            UInt32 i;
+            for(i=0;i<(*args)[0].GetLength();i++)
+            {
+                (*tmpargs)[i] = (Byte)(*args)[0][i];
+            }
+
         }
-        return;
+        if(NOERROR != mDb->Rekey(args->GetLength() > 0 ? tmpargs : NULL))
+        {
+            mErr->PrintlnString(String("SQL Error: "));
+            mErr->Flush();
+        }
+        return NOERROR;
     }
-    err.println("Unknown command '" + cmd + "'");
-    err.flush();*/
+    mErr->PrintlnString(String("Unknown command  "));
+    mErr->Flush();
     return NOERROR;
 }
 
@@ -521,78 +529,89 @@ ECode Shell::Read_line(
     /* [in] */const String& prompt,
     /* [out] */String* str)
 {
-    assert(str != NULL);/*
-    try {
-        if (prompt != null) {
-        pw.print(prompt);
-        pw.flush();
-        }
-        String line = is.readLine();
-        return line;
-    } catch (IOException e) {
-        return null;
-    }*/
+    assert(str != NULL);
+
+    if (!prompt.IsNull()) {
+        mPw->PrintString(prompt);
+        mPw->Flush();
+    }
+    String line;
+    if(NOERROR != is->ReadLine(&line))
+    {
+        *str = line;
+        return NOERROR;
+    } else {
+        *str = "";
+        return NOERROR;
+    }
     return NOERROR;
 }
 
 ECode Shell::Do_input(
     /* [in] */IBufferedReader* is)
-{/*
-    String line, sql = null;
-    String prompt = "SQLITE> ";
-    while ((line = read_line(is, prompt)) != null) {
-        if (echo) {
-        pw.println(line);
+{
+    String line, sql;
+    sql = "";
+    String prompt = String("SQLITE> ");
+    Read_line(is, prompt, &line);
+    while (!line.IsNull()) {
+        if (mEcho) {
+            mPw->PrintlnString(line);
         }
-        if (line.length() > 0 && line.charAt(0) == '.') {
-            do_meta(line);
+        if (line.GetLength() > 0 && line.GetChar(0) == '.') {
+            Do_meta(line);
         } else {
-        if (sql == null) {
-            sql = line;
-        } else {
-            sql = sql + " " + line;
-        }
-        if (Database.complete(sql)) {
-            try {
-            db.exec(sql, this);
-            } catch (Exception e) {
-            if (!echo) {
-                err.println(sql);
+            if (sql.IsNull()) {
+                sql = line;
+            } else {
+                sql = sql + " " + line;
             }
-            err.println("SQL Error: " + e);
-            err.flush();
+            AutoPtr<IDatabaseHelper> dbh;
+            Boolean result;
+            CDatabaseHelper::AcquireSingleton((IDatabaseHelper**)&dbh);
+            dbh->Complete(sql, &result);
+            
+            if (result) {
+                if(NOERROR != mDb->Exec(sql, (ICallback*)this))
+                {
+                    if (!mEcho) {
+                        mErr->PrintlnString(sql);
+                    }
+                    mErr->PrintlnString(String("SQL Error: "));
+                    mErr->Flush();
+                }
+                sql = "";
+                prompt = "SQLITE> ";
+            } else {
+                prompt = "SQLITE? ";
             }
-            sql = null;
-            prompt = "SQLITE> ";
-        } else {
-            prompt = "SQLITE? ";
         }
-        }
-        pw.flush();
+        mPw->Flush();
+        Read_line(is, prompt, &line);
     }
-    if (sql != null) {
-        err.println("Incomplete SQL: " + sql);
-        err.flush();
-    }*/
+    if (!sql.IsNull()) {
+        mErr->PrintlnString(String("Incomplete SQL: " + sql));
+        mErr->Flush();
+    }
     return NOERROR;
 }
 
 ECode Shell::Do_cmd(
     /* [in] */const String& sql)
-{/*
-    if (db == null) {
-        return;
+{
+    if (mDb == NULL) {
+        return NOERROR;
     }
-        if (sql.length() > 0 && sql.charAt(0) == '.') {
-        do_meta(sql);
+
+    if (sql.GetLength() > 0 && sql.GetChar(0) == '.') {
+        Do_meta(sql);
     } else {
-        try {
-            db.exec(sql, this);
-        } catch (Exception e) {
-        err.println("SQL Error: " + e);
-        err.flush();
+        if(NOERROR != mDb->Exec(sql, (ICallback*)this))
+        {
+            mErr->PrintlnString(String("SQL Error: "));
+            mErr->Flush();
         }
-    }*/
+    }
     return NOERROR;
 }
 
@@ -610,8 +629,8 @@ DBDump::DBDump(
           String("ORDER BY substr(type,2,1), name"), (ICallback*)this);
         if(NOERROR != ec)
         {
-          //  she->mErr->PrintlnString(String("SQL Error: " + String(ec)));
-          //  she->mErr->Flush();
+            she->mErr->PrintlnString(String("SQL Error: "));
+            she->mErr->Flush();
         }
     } else {
         //String arg[] = new String[1];
@@ -625,8 +644,8 @@ DBDump::DBDump(
                       (ICallback*)this, arg);
             if(NOERROR != ec)
             {
-            //    she->mErr.PrintlnString("SQL Error: " + e);
-            //    she->mErr.Flush();
+                she->mErr->PrintlnString(String("SQL Error: "));
+                she->mErr->Flush();
             }
         }
         ArrayOf<String>::Free(arg);

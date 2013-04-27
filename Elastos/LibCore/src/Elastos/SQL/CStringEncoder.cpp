@@ -70,7 +70,7 @@ ECode CStringEncoder::Decode(
 {
     //char[] a = s.toCharArray();
     ArrayOf<Char8> *a = ArrayOf<Char8>::Alloc(s.GetLength());
-    for(Int32 i=0;i<s.GetLength();i++){
+    for(UInt32 i=0;i<s.GetLength();i++){
         (*a)[i] = s.GetChar(i);
     }
 
@@ -140,7 +140,7 @@ ECode CStringEncoder::Decode(
     // first element is the shift
     //byte[] result = new byte[a.length-1];
     ArrayOf<Byte> *result = ArrayOf<Byte>::Alloc(a->GetLength()-1);
-    Int32 i = 0;
+    UInt32 i = 0;
     Int32 shift = s.GetChar(i++);
     Int32 j = 0;
     while (i < s.GetLength()) {

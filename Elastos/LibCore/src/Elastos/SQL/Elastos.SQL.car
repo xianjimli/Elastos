@@ -71,6 +71,10 @@ module
         interface IDatabase;
     }
 
+    singleton class CDatabaseHelper {
+        interface IDatabaseHelper;
+    }
+
     class CFunctionContext {
         constructor();
 

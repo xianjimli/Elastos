@@ -12,6 +12,7 @@ IMPORTS += Com.Kortide.Platform.eco
 SOURCES = Elastos.SQL.car
 SOURCES += Database.cpp
 SOURCES += CDatabase.cpp
+SOURCES += CDatabaseHelper.cpp
 SOURCES += FunctionContext.cpp
 SOURCES += CFunctionContext.cpp
 SOURCES += JDBCDriver.cpp
