@@ -67,5 +67,7 @@ SOURCES += CContentProviderOperation.cpp
 SOURCES += CContentProviderOperationBuilder.cpp
 SOURCES += CContentProviderOperationHelper.cpp
 SOURCES += CIntegerMapWrapper.cpp
+SOURCES += CEntity.cpp
+SOURCES += CEntityNamedContentValues.cpp
 
 LIBRARIES += cm/cm.lib
