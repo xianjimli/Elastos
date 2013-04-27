@@ -70,6 +70,7 @@ module
     merge("content/PathPermission.car");
     merge("content/SharedPreferences.car");
     merge("content/UriMatcher.car");
+    merge("content/Entity.car");
   
     
     interface ICursor;
@@ -681,6 +682,21 @@ module
             [in] Int32 value);
             
         interface IIntegerMapWrapper;
+    }
+    
+    class CEntity {
+        constructor(
+            [in] IContentValues* values);
+            
+        interface IEntity;
+    }
+    
+    class CEntityNamedContentValues {
+        constructor(
+            [in] IUri* uri,
+            [in] IContentValues* values);
+            
+        interface IEntityNamedContentValues;
     }
 }
 

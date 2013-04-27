@@ -1,0 +1,31 @@
+
+module
+{
+    interface IContentValues;
+    interface IUri;
+
+    interface IEntity {
+        GetEntityValues(
+            [out] IContentValues** contentValues);
+        
+        GetSubValues(
+            [out] IObjectContainer** result);
+        
+        AddSubValue(
+            [in] IUri* uri,
+            [in] IContentValues* contentValues);
+        
+        ToString(
+            [out] String* result);
+        
+    }
+
+    interface IEntityNamedContentValues {    
+        GetUri(
+            [out] IUri** uri);
+            
+        GetValues(
+            [out] IContentValues** values);
+            
+    }
+}
