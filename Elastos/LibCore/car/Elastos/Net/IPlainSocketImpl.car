@@ -1,0 +1,6 @@
+module
+{
+    interface IPlainSocketImpl extends ISocketImpl
+    {
+    }
+}

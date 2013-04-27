@@ -1,5 +1,6 @@
 
 #include "CSocketInputStream.h"
+
 ECode CSocketInputStream::Available(
     /* [out] */ Int32 * pNumber)
 {

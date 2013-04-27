@@ -2,17 +2,29 @@
 #include "InetAddress.h"
 #include "CSocketInputStream.h"
 #include "CSocketOutputStream.h"
-
+#include "CInet4Address.h"
+//#include <stdio.h>
+#include "CPlainSocketImpl.h"
 
 AutoPtr<IInetAddress> PlainSocketImpl::sLastConnectedAddress;
 Int32 PlainSocketImpl::sLastConnectedPort;
 
-PlainSocketImpl::PlainSocketImpl(
+PlainSocketImpl::PlainSocketImpl()
+    :SocketImpl()
+{
+}
+
+//void PlainSocketImpl::PrintAddr()
+//{
+//    printf("=^^=this mAddress is%x PlainSocketImpl %x\n", mAddress, this);
+//}
+
+ECode PlainSocketImpl::Init(
     /* [in] */ IFileDescriptor* fd)
-    : SocketImpl()
 {
     mFd = fd;
     mFd->GetDescriptor(&mIfd);
+    return NOERROR;
 }
 
 //    AutoPtr<IInetAddress> mAddress;
@@ -32,41 +44,49 @@ PlainSocketImpl::PlainSocketImpl(
 //     */
 //    Int32 mLocalport;
 
-PlainSocketImpl::PlainSocketImpl(
+ECode PlainSocketImpl::Init(
     /* [in] */ IProxy* proxy)
-    : SocketImpl()
 {
     AutoPtr<IFileDescriptor> fd;
     CFileDescriptor::New((IFileDescriptor**) &fd);
     mFd = fd;
     mFd->GetDescriptor(&mIfd);
     mProxy = proxy;
+    return NOERROR;
 }
 
-PlainSocketImpl::PlainSocketImpl()
-    : SocketImpl()
+ECode PlainSocketImpl::Init()
 {
     AutoPtr<IFileDescriptor> fd;
     CFileDescriptor::New((IFileDescriptor**) &fd);
     mFd = fd;
     mFd->GetDescriptor(&mIfd);
+    return NOERROR;
 }
 
-PlainSocketImpl::PlainSocketImpl(
+ECode PlainSocketImpl::Init(
     /* [in] */ IFileDescriptor* fd,
     /* [in] */ Int32 localport,
     /* [in] */ IInetAddress* addr,
     /* [in] */ Int32 port)
-    : SocketImpl()
 {
     mFd = fd;
     mFd->GetDescriptor(&mIfd);
-
     mLocalport = localport;
+    addr->AddRef();
     mAddress = addr;
     mPort = port;
-
+    return NOERROR;
 }
+
+//ECode PlainSocketImpl::Set(
+//    /* [in] */ IFileDescriptor* fd,
+//    /* [in] */ Int32 localport,
+//    /* [in] */ IInetAddress* addr,
+//    /* [in] */ Int32 port)
+//{
+//
+//}
 
 ECode PlainSocketImpl::InitLocalPort(
     /* [in] */ Int32 localPort)
@@ -90,8 +110,14 @@ ECode PlainSocketImpl::SetOption(
 
 ECode PlainSocketImpl::SocksAccept()
 {
-    return E_NOT_IMPLEMENTED;
+    Socks4Message *reply;
+    SocksReadReply(&reply);
+    if (reply->GetCommandOrResult() != Socks4Message::RETURN_SUCCESS) {
+        return E_FAIL;
+    }
+    return NOERROR;
 }
+
 
 ECode PlainSocketImpl::GetFD(
         /* [out] */ IFileDescriptor** ppFd)
@@ -110,8 +136,13 @@ ECode PlainSocketImpl::Read(
     }
 
     Int32 read;
-    mNetImpl->Read(mIfd, offset, count, buffer, &read);
+    ECode ec = NOERROR;
+    ec = mNetImpl->Read(mIfd, offset, count, buffer, &read);
     // Return of zero bytes for a blocking socket means a timeout occurred
+    if (FAILED(ec)) {
+        return ec;
+    }
+
     if (read == 0) {
         return E_SOCKET_EXCEPTION;
     }
@@ -119,6 +150,7 @@ ECode PlainSocketImpl::Read(
     if (read == -1) {
         mShutdownInput = true;
     }
+    *value = read;
     return read;
 }
 
@@ -146,12 +178,33 @@ ECode PlainSocketImpl::Write(
 ECode PlainSocketImpl::Accept(
     /* [in] */ ISocketImpl* newImpl)
 {
+    ECode ec = NOERROR;
     if (UsingSocks()) {
-        ((PlainSocketImpl*) newImpl)->SocksBind();
-        ((PlainSocketImpl*) newImpl)->SocksAccept();
+        ((CPlainSocketImpl*) newImpl)->SocksBind();
+        ((CPlainSocketImpl*) newImpl)->SocksAccept();
         return NOERROR;
     }
 
+    AutoPtr<IFileDescriptor> afd;
+    ((PlainSocketImpl*) newImpl)->GetFileDescriptor((IFileDescriptor**)&afd);
+    ArrayOf<Byte> *array;
+    Int32 port;
+    Int32 localport;
+    Int32 cfd;
+
+    ec = mNetImpl->Accept(mIfd, &array, &port, &localport, &cfd);
+
+    IFileDescriptor* fileFd;
+    IInet4Address* addr;
+    CFileDescriptor::New((IFileDescriptor**)&fileFd);
+    fileFd->SetDescriptor(cfd);
+    CInet4Address::New((*array), (IInet4Address**)&addr);
+    addr->AddRef();
+
+    ((CPlainSocketImpl*) newImpl)->constructor(fileFd, localport, addr, port);
+
+    //CPlainSocketImpl::NewByFriend(fileFd, localport, addr, port, &
+    return ec;
 //    if (newImpl instanceof PlainSocketImpl) {
 //        PlainSocketImpl newPlainSocketImpl = (PlainSocketImpl) newImpl;
 //        netImpl.accept(fd, newImpl, newPlainSocketImpl.getFileDescriptor());
@@ -179,9 +232,12 @@ ECode PlainSocketImpl::Bind(
 {
     ECode ec = NOERROR;
     ArrayOf<Byte> *array = NULL;
+
     address->GetAddress(&array);
     ec = mNetImpl->Bind(mIfd, *array, port);
+
     mAddress = address;
+
     ArrayOf<Byte>::Free(array);
     if (port != 0) {
         mLocalport = port;
@@ -222,7 +278,9 @@ ECode PlainSocketImpl::Create(
     /* [in] */ Boolean streaming)
 {
     mStreaming = streaming;
-    return mNetImpl->Socket(streaming, &mIfd);
+    ECode ec = NOERROR;
+    ec = mNetImpl->Socket(streaming, &mIfd);
+    return ec;
 }
 
 ECode PlainSocketImpl::Finalize()
@@ -549,3 +607,4 @@ ECode PlainSocketImpl::SocksReadReply(
     *ppMessage = reply;
     return NOERROR;
 }
+

@@ -4,6 +4,7 @@
 #include "CInet4Address.h"
 #include "InetAddress.h"
 #include "CInetSocketAddress.h"
+#include "CPlainSocketImpl.h"
 #include <stdio.h>
 
 
@@ -27,8 +28,9 @@ ECode Socket::Init()
         sFactory->CreateSocketImpl((ISocketImpl**)&mImpl);
     }
     else {
-        assert(0);
-        mImpl = NULL;//new PlainSocketImpl();
+        CPlainSocketImpl::New((IPlainSocketImpl**)&mImpl);
+//        assert(0);
+//        mImpl = NULL;//new PlainSocketImpl();
     }
     mProxy = NULL;
 
@@ -77,6 +79,7 @@ ECode Socket::Init(
     /* [in] */ const String& dstName,
     /* [in] */ Int32 dstPort)
 {
+
     return Init(dstName, dstPort, NULL, 0);
 }
 
@@ -86,7 +89,9 @@ ECode Socket::Init(
     /* [in] */ IInetAddress* localAddress,
     /* [in] */ Int32 localPort)
 {
+
     FAIL_RETURN(Init());
+
     return TryAllAddresses(dstName, dstPort, localAddress, localPort, TRUE);
 }
 
@@ -138,12 +143,15 @@ ECode Socket::TryAllAddresses(
 {
     ECode ec;
     ArrayOf<IInetAddress*>* dstAddresses;
+
     FAIL_RETURN(InetAddress::GetAllByName(dstName, &dstAddresses));
+
     // Loop through all the destination addresses except the last, trying to
     // connect to each one and ignoring errors. There must be at least one
     // address, or getAllByName would have thrown UnknownHostException.
+
     IInetAddress* dstAddress;
-    for (Int32 i = 0; i < dstAddresses->GetLength() - 1; i++) {
+    for (Int32 i = 0; i < dstAddresses->GetLength(); i++) {
         dstAddress = (*dstAddresses)[i];
 //        try {
         ec = CheckDestination(dstAddress, dstPort);
@@ -151,6 +159,7 @@ ECode Socket::TryAllAddresses(
             ec = StartupSocket(dstAddress, dstPort, localAddress, localPort, streaming);
             if (SUCCEEDED(ec)) goto ret;
         }
+
 //        } catch (SecurityException e1) {
 //        } catch (IOException e2) {
 //        }
@@ -194,7 +203,8 @@ ECode Socket::CheckConnectPermission(
 //    if (security != null) {
 //        security.checkConnect(hostname, dstPort);
 //    }
-    return E_NOT_IMPLEMENTED;
+
+    return NOERROR;
 }
 
 ECode Socket::Close()
@@ -475,7 +485,7 @@ ECode Socket::StartupSocket(
     /* [in] */ Int32 localPort,
     /* [in] */ Boolean streaming)
 {
-    printf("%s, %d\n", __FILE__, __LINE__);
+
     if (localPort < 0 || localPort > 65535) {
 //        throw new IllegalArgumentException("Local port out of range: " + localPort);
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
@@ -484,8 +494,9 @@ ECode Socket::StartupSocket(
     IInetAddress* addr = localAddress == NULL ? CInet4Address::ANY.Get() : localAddress;
 
     Mutex::Autolock lock(GetSelfLock());
-
+//    printf("%s, %d, %x\n", __FILE__, __LINE__, mImpl);
     mImpl->Create(streaming);
+
     mIsCreated = TRUE;
 //    try {
     ECode ec = NOERROR;
@@ -496,12 +507,14 @@ ECode Socket::StartupSocket(
             return ec;
         }
     }
+
     mIsBound = TRUE;
     ec = mImpl->ConnectEx(dstAddress, dstPort);
     if (FAILED(ec)) {
         mImpl->Close();
         return ec;
     }
+
     mIsConnected = TRUE;
     CacheLocalAddress();
 //    } catch (IOException e) {
@@ -866,7 +879,7 @@ void Socket::CacheLocalAddress()
     ASSERT_SUCCEEDED(CPlatform::AcquireSingleton((IPlatform**)&platform));
     AutoPtr<INetworkSystem> networkSystem;
     platform->GetNetworkSystem((INetworkSystem**)&networkSystem);
-    assert(0);
+    //assert(0);
     // mLocalAddress = networkSystem->GetSocketLocalAddress(mImpl->mFd);
 }
 

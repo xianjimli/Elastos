@@ -1,5 +1,6 @@
 
 #include "CSocketOutputStream.h"
+
 ECode CSocketOutputStream::Close()
 {
     // TODO: Add your code here
@@ -45,7 +46,7 @@ ECode CSocketOutputStream::WriteBufferEx(
         return E_INVALID_ARGUMENT;
     }
     if (0 <= offset && offset <= buffer.GetLength() && 0 <= count && count <= buffer.GetLength() - offset) {
-        return mSocket->Write(buffer, offset, count, &number);
+        mSocket->Write(buffer, offset, count, &number);
     } else {
         return E_BUFFER_UNDER_FLOW_EXCEPTION;
     }

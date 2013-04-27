@@ -51,6 +51,9 @@ module
     merge("../../../car/Elastos/Net/ISecureCacheResponse.car");
     merge("../../../car/Elastos/Net/ISocketInputStream.car");
     merge("../../../car/Elastos/Net/ISocketOutputStream.car");
+    merge("../../../car/Elastos/Net/IPlainSocketImpl.car");
+    merge("../../../car/Elastos/Net/IPlainServerSocketImpl.car");
+    merge("../../../car/Elastos/Net/INetGlobalInit.car");
 
     class CInet4Address {
         constructor(
@@ -1166,5 +1169,38 @@ module
             [in] ISocketImpl* impl);
 
         interface ISocketOutputStream;
+    }
+
+    class CPlainServerSocketImpl {
+        constructor();
+
+        constructor(
+            [in] IFileDescriptor* fd);
+
+        interface IPlainServerSocketImpl;
+    }
+
+    class CPlainSocketImpl {
+        constructor();
+
+        constructor(
+            [in] IFileDescriptor* fd);
+
+        constructor(
+            [in] IProxy* proxy);
+
+        constructor(
+            [in] IFileDescriptor* fd,
+            [in] Int32 localport,
+            [in] IInetAddress *addr,
+            [in] Int32 port);
+
+        interface IPlainSocketImpl;
+    }
+
+    class CNetGlobalInit {
+        constructor();
+
+        interface INetGlobalInit;
     }
 }

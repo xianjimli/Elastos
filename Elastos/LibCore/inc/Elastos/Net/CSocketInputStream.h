@@ -3,7 +3,7 @@
 #define __CSOCKETINPUTSTREAM_H__
 
 #include "_CSocketInputStream.h"
-#include "PlainSocketImpl.h"
+#include "CPlainSocketImpl.h"
 
 CarClass(CSocketInputStream)
 {

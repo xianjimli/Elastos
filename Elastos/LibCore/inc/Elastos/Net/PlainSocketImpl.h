@@ -14,15 +14,17 @@ class PlainSocketImpl : public SocketImpl
     friend class CSocketInputStream;
     friend class CSocketOutputStream;
 public:
-    PlainSocketImpl(
-        /* [in] */ IFileDescriptor* fd);
-
-    PlainSocketImpl(
-        /* [in] */ IProxy* proxy);
-
     PlainSocketImpl();
 
-    PlainSocketImpl(
+    ECode Init(
+        /* [in] */ IFileDescriptor* fd);
+
+    ECode Init(
+        /* [in] */ IProxy* proxy);
+
+    ECode Init();
+
+    ECode Init(
         /* [in] */ IFileDescriptor* fd,
         /* [in] */ Int32 localport,
         /* [in] */ IInetAddress* addr,
@@ -59,6 +61,7 @@ public:
         /* [in] */ Int32 count,
         /* [out] */ Int32* value);
 
+//    void PrintAddr();
 protected:
     ECode Accept(
         /* [in] */ ISocketImpl* newImpl);
@@ -107,6 +110,12 @@ protected:
 
     ECode SendUrgentData(
         /* [in] */ Int32 value);
+
+//    ECode Set(
+//        /* [in] */ IFileDescriptor* fd,
+//        /* [in] */ Int32 localport,
+//        /* [in] */ IInetAddress* addr,
+//        /* [in] */ Int32 port)
 
 private:
     Boolean UsingSocks();
