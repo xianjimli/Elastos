@@ -207,16 +207,18 @@ void BoringLayout::Init(
 {
     Int32 spacing;
 
+    mDirect = String(NULL);
+
     IObject* obj = IObject::Probe(source);
-    assert(obj != NULL);
-    ClassID clsid;
-    obj->GetClassID(&clsid);
-    if (clsid == ECLSID_CStringWrapper && align == LayoutAlignment_ALIGN_NORMAL) {
-        source->ToString(&mDirect);
+    if (obj != NULL) {
+        ClassID clsid;
+        obj->GetClassID(&clsid);
+
+        if (clsid == ECLSID_CStringWrapper && align == LayoutAlignment_ALIGN_NORMAL) {
+            source->ToString(&mDirect);
+        }
     }
-    else {
-        mDirect = String(NULL);
-    }
+
 
     mPaint = paint;
 
