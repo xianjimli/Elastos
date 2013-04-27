@@ -32,6 +32,7 @@ SOURCES += CSpannableStringBuilder.cpp
 SOURCES += CEditableFactory.cpp
 SOURCES += CNoCopySpan.cpp
 SOURCES += CClipboardManager.cpp
+SOURCES += CSelectionHelper.cpp
 
 LIBRARIES += method/method.lib
 #LIBRARIES += method/format.lib

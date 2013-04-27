@@ -19,6 +19,7 @@ module
     merge("text/TextWatcher.car");
     merge("text/ClipboardManager.car");
     merge("text/IClipboard.car");
+    merge("text/Selection.car");
     merge("text/style/ParagraphStyle.car");
     merge("text/style/LineBackgroundSpan.car");
     merge("text/style/AlignmentSpan.car");
@@ -305,5 +306,9 @@ module
 
         interface IUnderlineSpan;
         interface IParcelable;
+    }
+
+    singleton class CSelectionHelper {
+        interface ISelectionHelper;
     }
 }
