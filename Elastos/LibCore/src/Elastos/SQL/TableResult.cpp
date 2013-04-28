@@ -1,4 +1,5 @@
 #include "TableResult.h"
+#include <StringBuffer.h>
 
 TableResult::TableResult()
     :mMaxrows(0)
@@ -72,24 +73,24 @@ ECode TableResult::Newrow(
 
 ECode TableResult::ToString(
     /** [out] **/String* str)
-{/*
-    StringBuffer sb = new StringBuffer();
-    int i;
-    for (i = 0; i < ncolumns; i++) {
-        sb.append(column[i] == null ? "NULL" : column[i]);
-        sb.append('|');
+{
+    StringBuffer sb;
+    Int32 i;
+    for (i = 0; i < mNcolumns; i++) {
+        sb += ((*mColumn)[i] == NULL ? "NULL" : (*mColumn)[i]);
+        sb += ('|');
     }
-    sb.append('\n');
-    for (i = 0; i < nrows; i++) {
-        int k;
-        String row[] = (String[]) rows.elementAt(i);
-        for (k = 0; k < ncolumns; k++) {
-        sb.append(row[k] == null ? "NULL" : row[k]);
-        sb.append('|');
-        }
-        sb.append('\n');
+    sb += ('\n');
+    for (i = 0; i < mNrows; i++) {
+        //Int32 k;
+       // String row[] = (String[]) rows.elementAt(i);    ?????????????????????????????
+       // for (k = 0; k < ncolumns; k++) {
+       //     sb += (row[k] == null ? "NULL" : row[k]);
+       //     sb += ('|');
+       // }
+        sb += ('\n');
     }
-    return sb.toString();*/
+    *str = String(sb);
 
     return NOERROR;
 }

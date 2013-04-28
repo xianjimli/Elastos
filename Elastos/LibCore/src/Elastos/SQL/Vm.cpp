@@ -277,7 +277,7 @@ ECode Vm::Dovmfinal(
 
     if (v) {
         if (v->h) {
-            handle *h = v->h;
+            //handle *h = v->h;
             hvm *vv, **vvp;
 #if HAVE_SQLITE_COMPILE
             vvp = &h->vms;
@@ -307,6 +307,7 @@ ECode Vm::Dovmfinal(
         //throwex(env, "vm already closed");
         return E_SQLITE_EXCEPTION;
     }
+    return NOERROR;
 }
 
 

@@ -4,5 +4,373 @@ module
     interface IFilterOutputStream;
 
     interface IPrintStream extends IFilterOutputStream {
+        /**
+	     * Sets the error state of the stream to false.
+	     * @since 1.6
+	     */
+        ClearError();
+
+        /**
+	     * Formats {@code args} according to the format string {@code format}, and writes the result
+	     * to this stream. This method uses the user's default locale.
+	     * See "<a href="../util/Locale.html#default_locale">Be wary of the default locale</a>".
+	     *
+	     * @param format the format string (see {@link java.util.Formatter#format})
+	     * @param args
+	     *            the list of arguments passed to the formatter. If there are
+	     *            more arguments than required by {@code format},
+	     *            additional arguments are ignored.
+	     * @return this stream.
+	     * @throws IllegalFormatException
+	     *             if the format string is illegal or incompatible with the
+	     *             arguments, if there are not enough arguments or if any other
+	     *             error regarding the format string or arguments is detected.
+	     * @throws NullPointerException if {@code format == null}
+	     */
+	    Format(
+	        [in] String format, 
+	     //   [in] Object... args,
+	        [out] IPrintStream** ps);
+
+	    /**
+	     * Writes a string formatted by an intermediate {@link Formatter} to this
+	     * stream using the specified locale, format string and arguments.
+	     *
+	     * @param l
+	     *            the locale used in the method. No localization will be applied
+	     *            if {@code l} is {@code null}.
+	     * @param format the format string (see {@link java.util.Formatter#format})
+	     * @param args
+	     *            the list of arguments passed to the formatter. If there are
+	     *            more arguments than required by {@code format},
+	     *            additional arguments are ignored.
+	     * @return this stream.
+	     * @throws IllegalFormatException
+	     *             if the format string is illegal or incompatible with the
+	     *             arguments, if there are not enough arguments or if any other
+	     *             error regarding the format string or arguments is detected.
+	     * @throws NullPointerException if {@code format == null}
+	     */
+	    FormatEx(
+	        [in] ILocale* l, 
+	        [in] String format, 
+	    //    [in] Object... args,
+	        [out] IPrintStream** ps);
+
+        /**
+	     * Prints a formatted string. The behavior of this method is the same as
+	     * this stream's {@code #format(String, Object...)} method. For the locale,
+	     * the default value of the current virtual machine instance is used.
+	     *
+	     * @param format the format string (see {@link java.util.Formatter#format})
+	     * @param args
+	     *            the list of arguments passed to the formatter. If there are
+	     *            more arguments than required by {@code format},
+	     *            additional arguments are ignored.
+	     * @return this stream.
+	     * @throws IllegalFormatException
+	     *             if the format string is illegal or incompatible with the
+	     *             arguments, if there are not enough arguments or if any other
+	     *             error regarding the format string or arguments is detected.
+	     * @throws NullPointerException if {@code format == null}
+	     */
+	    Printf(
+	        [in] String format, 
+	    //    [in] Object... args,
+	        [out] IPrintStream** ps);
+
+	    /**
+	     * Prints a formatted string. The behavior of this method is the same as
+	     * this stream's {@code #format(Locale, String, Object...)} method.
+	     *
+	     * @param l
+	     *            the locale used in the method. No localization will be applied
+	     *            if {@code l} is {@code null}.
+	     * @param format the format string (see {@link java.util.Formatter#format})
+	     * @param args
+	     *            the list of arguments passed to the formatter. If there are
+	     *            more arguments than required by {@code format},
+	     *            additional arguments are ignored.
+	     * @return this stream.
+	     * @throws IllegalFormatException
+	     *             if the format string is illegal or incompatible with the
+	     *             arguments, if there are not enough arguments or if any other
+	     *             error regarding the format string or arguments is detected.
+	     * @throws NullPointerException if {@code format == null}.
+	     */
+	    PrintfEX(
+	        [in] ILocale* l, 
+	        [in] String format, 
+	    //  [in] Object... args,
+	        [out] IPrintStream** ps);
+        
+        /**
+	     * Prints the string representation of the specified character to the target
+	     * stream.
+	     *
+	     * @param ch
+	     *            the character to print to the target stream.
+	     * @see #print(String)
+	     */
+	    PrintChar8(
+            [in] Char8 ch);
+
+        /**
+	     * Prints the string representation of the specified character array
+	     * to the target stream.
+	     *
+	     * @param charArray
+	     *            the character array to print to the target stream.
+	     * @see #print(String)
+	     */
+	    PrintChar8Ex(
+            [in] ArrayOf<Char8> charArray);
+
+        /**
+	     * Prints the string representation of the specified double to the target
+	     * stream.
+	     *
+	     * @param dnum
+	     *            the double value to print to the target stream.
+	     * @see #print(String)
+	     */
+	    PrintDouble(
+            [in] Double dnum);
+
+        /**
+	     * Prints the string representation of the specified float to the target
+	     * stream.
+	     *
+	     * @param fnum
+	     *            the float value to print to the target stream.
+	     * @see #print(String)
+	     */
+	    PrintFloat(
+            [in] Float fnum);
+
+        /**
+	     * Prints the string representation of the specified integer to the target
+	     * stream.
+	     *
+	     * @param inum
+	     *            the integer value to print to the target stream.
+	     * @see #print(String)
+	     */
+	    PrintInt32(
+            [in] Int32 inum);
+
+        /**
+	     * Prints the string representation of the specified long to the target
+	     * stream.
+	     *
+	     * @param lnum
+	     *            the long value to print to the target stream.
+	     * @see #print(String)
+	     */
+	    PrintInt64(
+            [in] Int64 lnum);
+
+        /**
+	     * Prints the string representation of the specified object to the target
+	     * stream.
+	     *
+	     * @param obj
+	     *            the object to print to the target stream.
+	     * @see #print(String)
+	     */
+	    PrintObj(
+            [in] IInterface* obj);
+
+        /**
+	     * Prints a string to the target stream. The string is converted to an array
+	     * of bytes using the encoding chosen during the construction of this
+	     * stream. The bytes are then written to the target stream with
+	     * {@code write(int)}.
+	     * <p>
+	     * If an I/O error occurs, this stream's error state is set to {@code true}.
+	     *
+	     * @param str
+	     *            the string to print to the target stream.
+	     * @see #write(int)
+	     */
+        PrintString(
+            [in] String str);
+
+        /**
+	     * Prints the string representation of the specified boolean to the target
+	     * stream.
+	     *
+	     * @param bool
+	     *            the boolean value to print the target stream.
+	     * @see #print(String)
+	     */
+	    PrintBoolean(
+            [in] Boolean result);
+
+        /**
+	     * Prints the string representation of the system property
+	     * {@code "line.separator"} to the target stream.
+	     */
+        Println();;
+
+        /**
+	     * Prints the string representation of the specified character followed by
+	     * the system property {@code "line.separator"} to the target stream.
+	     *
+	     * @param ch
+	     *            the character to print to the target stream.
+	     * @see #print(String)
+	     */
+	    PrintlnChar8(
+            [in] Char8 ch);
+
+        /**
+	     * Prints the string representation of the specified character array
+	     * followed by the system property {@code "line.separator"} to the target
+	     * stream.
+	     *
+	     * @param charArray
+	     *            the character array to print to the target stream.
+	     * @see #print(String)
+	     */
+	    PrintlnChar8Ex(
+            [in] ArrayOf<Char8> charArray);
+
+        /**
+	     * Prints the string representation of the specified double followed by the
+	     * system property {@code "line.separator"} to the target stream.
+	     *
+	     * @param dnum
+	     *            the double value to print to the target stream.
+	     * @see #print(String)
+	     */
+	    PrintlnDouble(
+            [in] Double dnum);
+
+        /**
+	     * Prints the string representation of the specified float followed by the
+	     * system property {@code "line.separator"} to the target stream.
+	     *
+	     * @param fnum
+	     *            the float value to print to the target stream.
+	     * @see #print(String)
+	     */
+	    PrintlnFloat(
+            [in] Float fnum);
+
+        /**
+	     * Prints the string representation of the specified integer followed by the
+	     * system property {@code "line.separator"} to the target stream.
+	     *
+	     * @param inum
+	     *            the integer value to print to the target stream.
+	     * @see #print(String)
+	     */
+	    PrintlnInt32(
+            [in] Int32 inum);
+
+        /**
+	     * Prints the string representation of the specified long followed by the
+	     * system property {@code "line.separator"} to the target stream.
+	     *
+	     * @param lnum
+	     *            the long value to print to the target stream.
+	     * @see #print(String)
+	     */
+	    PrintlnInt64(
+            [in] Int64 lnum);
+
+        /**
+	     * Prints the string representation of the specified object followed by the
+	     * system property {@code "line.separator"} to the target stream.
+	     *
+	     * @param obj
+	     *            the object to print to the target stream.
+	     * @see #print(String)
+	     */
+	    PrintlnObj(
+            [in] IInterface* obj);
+
+        /**
+	     * Prints a string followed by the system property {@code "line.separator"}
+	     * to the target stream. The string is converted to an array of bytes using
+	     * the encoding chosen during the construction of this stream. The bytes are
+	     * then written to the target stream with {@code write(int)}.
+	     * <p>
+	     * If an I/O error occurs, this stream's error state is set to {@code true}.
+	     * </p>
+	     *
+	     * @param str
+	     *            the string to print to the target stream.
+	     * @see #write(int)
+	     */
+        PrintlnString(
+            [in] String str);
+
+        /**
+	     * Prints the string representation of the specified boolean followed by the
+	     * system property {@code "line.separator"} to the target stream.
+	     *
+	     * @param bool
+	     *            the boolean value to print to the target stream.
+	     * @see #print(String)
+	     */
+	    PrintlnBoolean(
+            [in] Boolean result);
+
+        /**
+	     * Sets the error flag of this print stream to true.
+	     */
+	    SetError();
+
+	    /**
+	     * Appends the character {@code c} to the target stream. This method works
+	     * the same way as {@link #print(char)}.
+	     *
+	     * @param c
+	     *            the character to append to the target stream.
+	     * @return this stream.
+	     */
+	    Append(
+            [in] Char32 c);
+
+        /**
+	     * Appends the character sequence {@code csq} to the target stream. This
+	     * method works the same way as {@code PrintStream.print(csq.toString())}.
+	     * If {@code csq} is {@code null}, then the string "null" is written to the
+	     * target stream.
+	     *
+	     * @param csq
+	     *            the character sequence appended to the target stream.
+	     * @return this stream.
+	     */
+        AppendEx(
+            [in] ICharSequence* csq);
+
+	    /**
+	     * Appends a subsequence of the character sequence {@code csq} to the target
+	     * stream. This method works the same way as {@code
+	     * PrintStream.print(csq.subsequence(start, end).toString())}. If {@code
+	     * csq} is {@code null}, then the specified subsequence of the string "null"
+	     * will be written to the target stream.
+	     *
+	     * @param csq
+	     *            the character sequence appended to the target stream.
+	     * @param start
+	     *            the index of the first char in the character sequence appended
+	     *            to the target stream.
+	     * @param end
+	     *            the index of the character following the last character of the
+	     *            subsequence appended to the target stream.
+	     * @return this stream.
+	     * @throws IndexOutOfBoundsException
+	     *             if {@code start > end}, {@code start < 0}, {@code end < 0} or
+	     *             either {@code start} or {@code end} are greater or equal than
+	     *             the length of {@code csq}.
+	     */
+        AppendEx2(
+            [in] ICharSequence* csq,
+            [in] Int32 start,
+            [in] Int32 end);
     }
 }

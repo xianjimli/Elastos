@@ -812,7 +812,7 @@ ECode Database::KeyExLocked(
     ArrayOf<Byte> *ekey;
     if (!skey.IsNull() && skey.GetLength() > 0) {
     ekey = ArrayOf<Byte>::Alloc(skey.GetLength());
-    for (Int32 i = 0; i< skey.GetLength(); i++) {
+    for (UInt32 i = 0; i< skey.GetLength(); i++) {
         Char8 c = skey.GetChar(i);
         (*ekey)[i] = (Byte) ((c & 0xff) ^ (c >> 8));
     }
@@ -852,7 +852,7 @@ ECode Database::RekeyExLocked(
     ArrayOf<Byte> *ekey = NULL;
     if (!skey.IsNull()  && skey.GetLength() > 0) {
         ekey = ArrayOf<Byte>::Alloc(skey.GetLength());
-        for (Int32 i = 0; i< skey.GetLength(); i++) {
+        for (UInt32 i = 0; i< skey.GetLength(); i++) {
             Char8 c = skey.GetChar(i);
             (*ekey)[i] = (Byte) ((c & 0xff) ^ (c >> 8));
         }

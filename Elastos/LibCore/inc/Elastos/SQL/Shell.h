@@ -7,6 +7,7 @@
 
 using namespace Elastos;
 
+
 class Shell// : public ICallback
 {
 public:

@@ -66,5 +66,8 @@ module
             [in] Int32 offset,
             [in] Int32 count,
             [in] ArrayOf<Byte> buffer);
+
+        CheckError(
+            [out] Boolean* hasError);
     }
 }

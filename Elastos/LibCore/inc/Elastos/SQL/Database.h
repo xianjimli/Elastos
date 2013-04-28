@@ -299,14 +299,13 @@ public:
      *
      * @param sql the SQL statement to be checked
      */
-    // synchronized//////////////////////////////////
-    CARAPI Complete(
+    static CARAPI Complete(
         /** [in] **/const String &sql,
-        /** [out] **/Boolean* resukt);
+        /** [out] **/Boolean* result);
 
-    CARAPI CompleteLocked(
+    static CARAPI CompleteLocked(
         /** [in] **/const String &sql,
-        /** [out] **/Boolean* resukt);
+        /** [out] **/Boolean* result);
 
     /**
      * Return SQLite version number as string.
@@ -684,7 +683,7 @@ private:
         /** [in] **/Int32 ms);
 
     //native
-    CARAPI_(Boolean) _complete(
+    static CARAPI_(Boolean) _complete(
         /** [in] **/String sql);
 
     CARAPI mkfunc_common(
