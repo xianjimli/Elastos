@@ -78,7 +78,6 @@ ECode CSocket::GetInputStream(
     /* [out] */ IInputStream** is)
 {
     VALIDATE_NOT_NULL(is);
-
     return Socket::GetInputStream(is);
 }
 

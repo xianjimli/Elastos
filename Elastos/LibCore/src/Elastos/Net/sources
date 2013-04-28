@@ -63,7 +63,10 @@ SOURCES += CSocketInputStream.cpp
 SOURCES += CSocketOutputStream.cpp
 SOURCES += PlainSocketImpl.cpp
 SOURCES += PlainServerSocketImpl.cpp
+SOURCES += CPlainSocketImpl.cpp
+SOURCES += CPlainServerSocketImpl.cpp
 SOURCES += Socks4Message.cpp
+SOURCES += CNetGlobalInit.cpp
 
 #SOURCES += netext.cpp
 

@@ -3,10 +3,13 @@
 #include <Elastos.Net.h>
 #include <elastos/AutoPtr.h>
 #include <elastos/System.h>
+#include <malloc.h>
 using namespace Elastos;
 using namespace Elastos::Core;
 //using namespace Elastos::Core;
-#define DINFO() printf("%s. %d\n", __FILE__, __LINE__);
+//#define DINFO() printf("%s, %d\n", __FILE__, __LINE__)
+#define DINFO()
+
 int CTest::test1(int argc, char* argv[])
 {
     AutoPtr<IServerSocket> pServerSocket;
@@ -14,10 +17,15 @@ int CTest::test1(int argc, char* argv[])
     AutoPtr<IBufferedReader> pBufReader;
     AutoPtr<IInputStreamReader> pInReader;
     AutoPtr<IInputStream> pIn;
+    AutoPtr<INetGlobalInit> init;
 
     ECode ec = NOERROR;
-    DINFO();
-    DINFO();
+    ec = CNetGlobalInit::New((INetGlobalInit**)&init);
+    if (FAILED(ec)) {
+        printf("Global Init Failed! %x\n", ec);
+        return ec;
+    }
+
     ec = CServerSocket::New(10000, (IServerSocket**)&pServerSocket);
     DINFO();
     if (FAILED(ec)) {
@@ -25,7 +33,6 @@ int CTest::test1(int argc, char* argv[])
         return ec;
     }
 
-    DINFO();
     while(1) {
         DINFO();
         ec = pServerSocket->Accept((ISocket**)&pSock);
@@ -33,29 +40,51 @@ int CTest::test1(int argc, char* argv[])
             printf("Cann't Accept from the server Socket! ec = %x\n", ec);
             return ec;
         }
-
+        DINFO();
         ec = pSock->GetInputStream((IInputStream**) &pIn);
         if (FAILED(ec)) {
             printf("Cann't GetInputStream from the Socket! ec = %x\n", ec);
             return ec;
         }
         DINFO();
-        ec = CInputStreamReader::New(pIn, (IInputStreamReader**)&pInReader);
+
+        IDataInputStream* pDataIn;
+        ec = CDataInputStream::New(pIn, (IDataInputStream**)&pDataIn);
         if (FAILED(ec)) {
-            printf("New IInputStreamReader FAILED! ec = %x\n", ec);
+            printf("New DataInputStream Failed!\n");
             return ec;
         }
 
-        ec = CBufferedReader::New(pInReader, (IBufferedReader**) &pBufReader);
-        if (FAILED(ec)) {
-            printf("New CBufferedReader FAILED! ec = %x\n", ec);
-            return ec;
+        ArrayOf<Byte>* buf = ArrayOf<Byte>::Alloc(1000);
+        Int32 number = 0;
+        Int32 totalnumber = 0;
+        pDataIn->ReadBufferEx(0, 29, buf, &number);
+        while(number > 0) {
+            totalnumber += number;
+            ec = pDataIn->ReadBufferEx(0, 29, buf, &number);
+            if (FAILED(ec)) {
+                printf("Continue Read FAILED!\n");
+            }
         }
-
-        String str;
-        pBufReader->ReadLine(&str);
-
-        printf("the str is %s\n", (const char*) str);
+        printf("the totalnumber is %d\n", totalnumber);
+//        ec = CInputStreamReader::New(pIn, (IInputStreamReader**)&pInReader);
+//        DINFO();
+//        if (FAILED(ec)) {
+//            printf("New IInputStreamReader FAILED! ec = %x\n", ec);
+//            return ec;
+//        }
+//        DINFO();
+//        ec = CBufferedReader::New(pInReader, (IBufferedReader**) &pBufReader);
+//        DINFO();
+//        if (FAILED(ec)) {
+//            printf("New CBufferedReader FAILED! ec = %x\n", ec);
+//            return ec;
+//        }
+//        DINFO();
+//        String str;
+//        DINFO();
+//        pBufReader->ReadLine(&str);
+//        DINFO();
         pSock->Close();
     }
 
@@ -68,15 +97,21 @@ int CTest::test2(int argc, char* argv[])
     AutoPtr<ISocket> pSock;
     AutoPtr<IOutputStream> pOut;
     AutoPtr<IDataOutputStream> pDataOutput;
-
+    AutoPtr<INetGlobalInit> init;
 
     ECode ec = NOERROR;
-    DINFO();
+    ec = CNetGlobalInit::New((INetGlobalInit**)&init);
+    if (FAILED(ec)) {
+        printf("Global Init Failed! %x\n", ec);
+        return ec;
+    }
+
     ec = CSocket::New(String("127.0.0.1"), 10000, (ISocket**) &pSock);
     if (FAILED(ec)) {
         printf("Cann't Create the socket!ec = %x, line = %d\n", ec, __LINE__);
         return ec;
     }
+
     DINFO();
     ec = pSock->GetOutputStream((IOutputStream**) &pOut);
     if (FAILED(ec)) {
@@ -90,13 +125,18 @@ int CTest::test2(int argc, char* argv[])
         printf("Cann't CDataOutputStream = %x, line = %d\n", ec, __LINE__);
         return ec;
     }
+
     DINFO();
     ArrayOf<Byte> *buf;
-    buf = ArrayOf<Byte>::Alloc(100);
-    buf->Copy((Byte*)"12345jianfeng simple testdfgop", 30);
-    pDataOutput->WriteBuffer(*buf);
-
-
+    Int32 count = 0;
+    buf = ArrayOf<Byte>::Alloc(30);
+    while(count < 10) {
+        count++;
+        buf->Copy((Byte*)"12345jianfeng simple testdfgop", 30);
+        pDataOutput->WriteBuffer(*buf);
+    }
+    DINFO();
+    pSock->Close();
     return 0;
 }
 

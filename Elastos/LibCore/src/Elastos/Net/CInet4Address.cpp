@@ -2,7 +2,6 @@
 #include "cmdef.h"
 #include "CInet4Address.h"
 
-
 static AutoPtr<IInetAddress> InitANY()
 {
     ArrayOf<Byte>* ipAddress = ArrayOf<Byte>::Alloc(4);
@@ -28,6 +27,12 @@ static AutoPtr<IInetAddress> InitLOOPBACK()
 const Int32 CInet4Address::AF_INET;
 AutoPtr<IInetAddress> CInet4Address::ANY;
 AutoPtr<IInetAddress> CInet4Address::LOOPBACK;
+
+void InitCNet4Address()
+{
+    CInet4Address::ANY = InitANY();
+    CInet4Address::LOOPBACK = InitLOOPBACK();
+}
 
 PInterface CInet4Address::Probe(
     /* [in]  */ REIID riid)

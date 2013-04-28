@@ -1,22 +1,29 @@
 #include "PlainServerSocketImpl.h"
 
-PlainServerSocketImpl::PlainServerSocketImpl()
+ECode PlainServerSocketImpl::Init()
 {
+    return PlainSocketImpl::Init();
 }
 
 
-PlainServerSocketImpl::PlainServerSocketImpl(
+ECode PlainServerSocketImpl::Init(
     /* [in] */ IFileDescriptor* fd)
-    : PlainSocketImpl(fd)
 {
+    return PlainSocketImpl::Init(fd);
 }
 
 
 ECode PlainServerSocketImpl::Create(
     /* [in] */ Boolean isStreaming)
 {
-    PlainSocketImpl::Create(isStreaming);
+    ECode ec = NOERROR;
+    ec = PlainSocketImpl::Create(isStreaming);
+    if (FAILED(ec)) {
+        return ec;
+    }
+
     if (isStreaming) {
         SetOption(0, TRUE);
     }
+    return ec;
 }

@@ -275,7 +275,7 @@ protected:
     /**
      * The remote address this socket is connected to.
      */
-    AutoPtr<IInetAddress> mAddress;
+    IInetAddress* mAddress;
 
     /**
      * The remote port this socket is connected to.

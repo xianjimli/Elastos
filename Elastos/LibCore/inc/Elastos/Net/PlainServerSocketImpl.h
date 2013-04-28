@@ -7,9 +7,9 @@
 class PlainServerSocketImpl : public PlainSocketImpl
 {
 public:
-    PlainServerSocketImpl();
+    Init();
 
-    PlainServerSocketImpl(
+    Init(
         /* [in] */ IFileDescriptor *fd);
 
 protected:

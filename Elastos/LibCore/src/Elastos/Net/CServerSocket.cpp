@@ -1,7 +1,6 @@
 
 #include "cmdef.h"
 #include "CServerSocket.h"
-#include <stdio.h>
 
 ECode CServerSocket::constructor()
 {
@@ -11,7 +10,6 @@ ECode CServerSocket::constructor()
 ECode CServerSocket::constructor(
     /* [in] */ Int32 aPort)
 {
-    printf("%s, %d\n", __FILE__, __LINE__);
     return ServerSocket::Init(aPort);
 }
 

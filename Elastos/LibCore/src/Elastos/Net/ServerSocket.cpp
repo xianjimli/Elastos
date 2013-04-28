@@ -4,6 +4,8 @@
 #include "CInet4Address.h"
 #include "CInetSocketAddress.h"
 #include <stdio.h>
+#include "CPlainServerSocketImpl.h"
+#include "CPlainSocketImpl.h"
 
 AutoPtr<ISocketImplFactory> ServerSocket::sFactory;
 Mutex ServerSocket::sLock;
@@ -20,9 +22,7 @@ ECode ServerSocket::Init()
         return sFactory->CreateSocketImpl((ISocketImpl**)&mImpl);
     }
     else {
-        // new PlainServerSocketImpl();
-        assert(0);
-        return E_NOT_IMPLEMENTED;
+        return CPlainServerSocketImpl::NewByFriend((CPlainServerSocketImpl**)&mImpl);
     }
 }
 
@@ -36,7 +36,6 @@ ECode ServerSocket::Init(
 ECode ServerSocket::Init(
     /* [in] */ Int32 aPort)
 {
-    printf("%s, %d\n", __FILE__, __LINE__);
     return Init(aPort, DefaultBacklog(), CInet4Address::ANY);
 }
 
@@ -52,33 +51,32 @@ ECode ServerSocket::Init(
     /* [in] */ Int32 backlog,
     /* [in] */ IInetAddress* localAddr)
 {
-    printf("%s, %d\n", __FILE__, __LINE__);
     FAIL_RETURN(CheckListen(aPort));
-
-    printf("%s, %d\n", __FILE__, __LINE__);
+    ECode ec = NOERROR;
     if (sFactory != NULL) {
-            printf("%s, %d\n", __FILE__, __LINE__);
-        return sFactory->CreateSocketImpl((ISocketImpl**)&mImpl);
+        ec = sFactory->CreateSocketImpl((ISocketImpl**)&mImpl);
+        if (FAILED(ec)) {
+            return ec;
+        }
     }
     else {
-        // new PlainServerSocketImpl();
-        assert(0);
-        return E_NOT_IMPLEMENTED;
+        ec = CPlainServerSocketImpl::NewByFriend((CPlainServerSocketImpl**)&mImpl);
+        if (FAILED(ec)) {
+            return ec;
+        }
     }
-    printf("%s, %d\n", __FILE__, __LINE__);
+
     IInetAddress* addr = localAddr == NULL ? CInet4Address::ANY.Get() : localAddr;
-    printf("%s, %d\n", __FILE__, __LINE__);
     Mutex::Autolock lock(&mLock);
-    printf("%s, %d\n", __FILE__, __LINE__);
     mImpl->Create(TRUE);
     mIsCreated = TRUE;
 //    try {
-    ECode ec = mImpl->Bind(addr, aPort);
+    ec = mImpl->Bind(addr, aPort);
     if (FAILED(ec)) {
         Close();
         return ec;
     }
-    printf("%s, %d\n", __FILE__, __LINE__);
+
     mIsBound = TRUE;
     ec = mImpl->Listen(backlog > 0 ? backlog : DefaultBacklog());
     if (FAILED(ec)) {
@@ -97,9 +95,7 @@ ECode ServerSocket::Accept(
     /* [out] */ ISocket** socket)
 {
     VALIDATE_NOT_NULL(socket);
-
     FAIL_RETURN(CheckClosedAndCreate(FALSE));
-
     Boolean isBound;
     if (IsBound(&isBound), !isBound) {
 //        throw new SocketException("Socket is not bound");
@@ -213,7 +209,6 @@ ECode ServerSocket::ImplAccept(
 {
     {
         Mutex::Autolock lock(&mLock);
-
         mImpl->Accept(aSocket->mImpl);
         aSocket->Accepted();
     }

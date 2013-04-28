@@ -1,14 +1,13 @@
 
 #include "cmdef.h"
 #include "SocketImpl.h"
-#include <stdio.h>
 
 SocketImpl::SocketImpl()
     : mPort(0)
     , mLocalport(0)
     , mStreaming(TRUE)
+    , mAddress(NULL)
 {
-    printf("%s,%d\n", __FILE__, __LINE__);
     AutoPtr<IPlatform> platform;
     ASSERT_SUCCEEDED(CPlatform::AcquireSingleton((IPlatform**)&platform));
     ASSERT_SUCCEEDED(platform->GetNetworkSystem((INetworkSystem**)&mNetImpl));
