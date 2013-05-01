@@ -72,5 +72,8 @@ module
         GetSerial(
             [out] String* serial);
 
+        Equals(
+            [in] IInterface* obj,
+            [out] Boolean* result);
     }
 }

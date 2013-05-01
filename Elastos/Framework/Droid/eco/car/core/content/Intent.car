@@ -676,6 +676,86 @@ module
     const Intent_ACTION_HEADSET_PLUG = "elastos.intent.action.HEADSET_PLUG";
 
     /**
+     * Broadcast Action: An analog audio speaker/headset plugged in or unplugged.
+     *
+     * <p>The intent will have the following extra values:
+     * <ul>
+     *   <li><em>state</em> - 0 for unplugged, 1 for plugged. </li>
+     *   <li><em>name</em> - Headset type, human readable string </li>
+     * </ul>
+     * </ul>
+     * @hide
+     */
+    const Intent_ACTION_ANALOG_AUDIO_DOCK_PLUG = "android.intent.action.ANALOG_AUDIO_DOCK_PLUG";
+
+    /**
+     * Broadcast Action: A digital audio speaker/headset plugged in or unplugged.
+     *
+     * <p>The intent will have the following extra values:
+     * <ul>
+     *   <li><em>state</em> - 0 for unplugged, 1 for plugged. </li>
+     *   <li><em>name</em> - Headset type, human readable string </li>
+     * </ul>
+     * </ul>
+     * @hide
+     */
+    const Intent_ACTION_DIGITAL_AUDIO_DOCK_PLUG = "android.intent.action.DIGITAL_AUDIO_DOCK_PLUG";
+
+    /**
+     * Broadcast Action: A HMDI cable was plugged or unplugged
+     *
+     * <p>The intent will have the following extra values:
+     * <ul>
+     *   <li><em>state</em> - 0 for unplugged, 1 for plugged. </li>
+     *   <li><em>name</em> - HDMI cable, human readable string </li>
+     * </ul>
+     * </ul>
+     * @hide
+     */
+    const Intent_ACTION_HDMI_AUDIO_PLUG = "android.intent.action.HDMI_AUDIO_PLUG";
+
+    /**
+     * Broadcast Action: A USB audio accessory was plugged in or unplugged.
+     *
+     * <p>The intent will have the following extra values:
+     * <ul>
+     *   <li><em>state</em> - 0 for unplugged, 1 for plugged. </li>
+     *   <li><em>card</em> - ALSA card number (integer) </li>
+     *   <li><em>device</em> - ALSA device number (integer) </li>
+     * </ul>
+     * </ul>
+     * @hide
+     */
+    const Intent_ACTION_USB_AUDIO_ACCESSORY_PLUG = "android.intent.action.USB_AUDIO_ACCESSORY_PLUG";
+
+    /**
+     * Broadcast Action: A USB audio device was plugged in or unplugged.
+     *
+     * <p>The intent will have the following extra values:
+     * <ul>
+     *   <li><em>state</em> - 0 for unplugged, 1 for plugged. </li>
+     *   <li><em>card</em> - ALSA card number (integer) </li>
+     *   <li><em>device</em> - ALSA device number (integer) </li>
+     * </ul>
+     * </ul>
+     * @hide
+     */
+    const Intent_ACTION_USB_AUDIO_DEVICE_PLUG = "android.intent.action.USB_AUDIO_DEVICE_PLUG";
+
+    /**
+     * <p>Broadcast Action: The user has switched on advanced settings in the settings app:</p>
+     * <ul>
+     *   <li><em>state</em> - A boolean value indicating whether the settings is on or off.</li>
+     * </ul>
+     *
+     * <p class="note">This is a protected intent that can only be sent
+     * by the system.
+     *
+     * @hide
+     */
+    const Intent_ACTION_ADVANCED_SETTINGS_CHANGED = "android.intent.action.ADVANCED_SETTINGS";
+
+    /**
      * Broadcast Action: An outgoing call is about to be placed.
      *
      * <p>The Intent will have the following extra value:

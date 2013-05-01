@@ -80,6 +80,10 @@ module
         GetInterface(
             [in] Int32 index,
             [out] IUsbInterface** usbInterface);
+
+        Equals(
+            [in] IInterface* obj,
+            [out] Boolean* result);
     }
 
     interface IUsbDeviceHelper {
