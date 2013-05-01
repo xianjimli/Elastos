@@ -296,7 +296,7 @@ ECode CSyncResult::constructor(
     moreRecordsToGet = FALSE;
     delayUntil = 0;
 
-    CSyncStats::New((ISyncStats**)&stats);
+    CSyncStats::NewByFriend((CSyncStats**)&stats);
 
     return NOERROR;
 }

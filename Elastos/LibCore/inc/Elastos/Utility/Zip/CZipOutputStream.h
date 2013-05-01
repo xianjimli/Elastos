@@ -25,6 +25,9 @@ public:
         /* [in] */ Int32 count,
         /* [in] */ const ArrayOf<Byte>& buffer);
 
+    CARAPI CheckError(
+        /* [out] */ Boolean* hasError);
+
     CARAPI Finish();
 
     CARAPI CloseEntry();

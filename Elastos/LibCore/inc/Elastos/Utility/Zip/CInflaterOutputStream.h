@@ -27,6 +27,9 @@ public:
 
     CARAPI Finish();
 
+    CARAPI CheckError(
+        /* [out] */ Boolean* hasError);
+
     /**
      * Constructs an {@code InflaterOutputStream} with a new {@code Inflater} and an
      * implementation-defined default internal buffer size. {@code out} is a destination

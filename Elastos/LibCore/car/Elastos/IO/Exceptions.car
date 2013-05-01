@@ -43,6 +43,4 @@ module
     const E_UNMAPPABLE_CHARACTER_EXCEPTION              = 0xA2210000;
     const E_MALFORMED_INPUT_EXCEPTION                   = 0xA2220000;
     const E_UTF_DATA_FORMAT_EXCEPTION                   = 0xA2230000;
-    const E_ARRAY_INDEX_OUT_OF_BOUNDS_EXCEPTION         = 0xA2240000;
-    const E_NULL_POINTER_EXCEPTION                      = 0xA2250000;
 }

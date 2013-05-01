@@ -1,4 +1,5 @@
 
+#include "cmdef.h"
 #include "CSocketOutputStream.h"
 
 ECode CSocketOutputStream::Close()
@@ -50,6 +51,14 @@ ECode CSocketOutputStream::WriteBufferEx(
     } else {
         return E_BUFFER_UNDER_FLOW_EXCEPTION;
     }
+}
+
+ECode CSocketOutputStream::CheckError(
+    /* [out] */ Boolean* hasError)
+{
+    VALIDATE_NOT_NULL(hasError);
+    *hasError = FALSE;
+    return NOERROR;
 }
 
 ECode CSocketOutputStream::constructor(

@@ -46,6 +46,9 @@ public:
     CARAPI WriteBuffer(
         /* [in] */ const ArrayOf<Byte> & buffer);
 
+    CARAPI CheckError(
+        /* [out] */ Boolean* hasError);
+
     /**
      * Construct a new {@code GZIPOutputStream} to write data in GZIP format to
      * the underlying stream.

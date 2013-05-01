@@ -27,6 +27,9 @@ public:
 
     CARAPI Finish();
 
+    CARAPI CheckError(
+        /* [out] */ Boolean* hasError);
+
     /**
      * This is the most basic constructor. You only need to pass the {@code
      * OutputStream} to which the compressed data shall be written to. The

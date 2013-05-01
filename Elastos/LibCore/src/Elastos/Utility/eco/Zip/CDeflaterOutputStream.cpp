@@ -1,4 +1,5 @@
 
+#include "cmdef.h"
 #include "CDeflaterOutputStream.h"
 
 
@@ -35,6 +36,13 @@ ECode CDeflaterOutputStream::WriteBufferEx(
 ECode CDeflaterOutputStream::Finish()
 {
     return DeflaterOutputStream::Finish();
+}
+
+ECode CDeflaterOutputStream::CheckError(
+    /* [out] */ Boolean* hasError)
+{
+    VALIDATE_NOT_NULL(hasError);
+    return DeflaterOutputStream::CheckError(hasError);
 }
 
 /**

@@ -901,6 +901,14 @@ ECode ProcessManager::ProcessOutputStream::GetFD(
     return mFOut->GetFD(fd);
 }
 
+ECode ProcessManager::ProcessOutputStream::CheckError(
+    /* [out] */ Boolean* hasError)
+{
+    VALIDATE_NOT_NULL(hasError);
+    *hasError = FALSE;
+    return NOERROR;
+}
+
 const ProcessManager* ProcessManager::GetInstance()
 {
     return mInstance;

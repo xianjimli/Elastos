@@ -209,6 +209,9 @@ private:
         CARAPI GetFD(
             /* [out] */ IFileDescriptor** fd);
 
+        CARAPI CheckError(
+            /* [out] */ Boolean* hasError);
+
     private:
         AutoPtr<IFileDescriptor> mFd;
         AutoPtr<IFileOutputStream> mFOut;

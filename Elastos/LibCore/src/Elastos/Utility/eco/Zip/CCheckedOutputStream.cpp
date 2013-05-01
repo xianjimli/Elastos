@@ -82,6 +82,14 @@ ECode CCheckedOutputStream::WriteBuffer(
     return WriteBufferEx(0, buffer.GetLength(), buffer);
 }
 
+ECode CCheckedOutputStream::CheckError(
+    /* [out] */ Boolean* hasError)
+{
+    VALIDATE_NOT_NULL(hasError);
+    *hasError = FALSE;
+    return NOERROR;
+}
+
 /**
  * Constructs a new {@code CheckedOutputStream} on {@code OutputStream}
  * {@code os}. The checksum is calculated using the algorithm implemented

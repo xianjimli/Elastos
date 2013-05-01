@@ -153,6 +153,14 @@ ECode DeflaterOutputStream::Flush()
     return mOut->Flush();
 }
 
+ECode DeflaterOutputStream::CheckError(
+    /* [out] */ Boolean* hasError)
+{
+    assert(hasError != NULL);
+    *hasError = FALSE;
+    return NOERROR;
+}
+
 /**
  * This constructor lets you pass the {@code Deflater} specifying the
  * compression algorithm.

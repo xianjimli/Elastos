@@ -1,4 +1,5 @@
 
+#include "cmdef.h"
 #include "CInflaterOutputStream.h"
 
 
@@ -35,6 +36,13 @@ ECode CInflaterOutputStream::WriteBufferEx(
 ECode CInflaterOutputStream::Finish()
 {
     return InflaterOutputStream::Finish();
+}
+
+ECode CInflaterOutputStream::CheckError(
+    /* [out] */ Boolean* hasError)
+{
+    VALIDATE_NOT_NULL(hasError);
+    return InflaterOutputStream::CheckError(hasError);
 }
 
 /**

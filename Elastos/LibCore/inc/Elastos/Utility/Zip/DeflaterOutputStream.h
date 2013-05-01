@@ -80,6 +80,9 @@ public:
     virtual CARAPI WriteBuffer(
         /* [in] */ const ArrayOf<Byte>& buffer);
 
+    virtual CARAPI CheckError(
+        /* [out] */ Boolean* hasError);
+
 protected:
     /**
      * Compress the data in the input buffer and write it to the underlying

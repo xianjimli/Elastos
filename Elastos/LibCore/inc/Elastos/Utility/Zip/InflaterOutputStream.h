@@ -70,6 +70,9 @@ public:
     virtual CARAPI WriteBuffer(
         /* [in] */ const ArrayOf<Byte>& buffer);
 
+    virtual CARAPI CheckError(
+        /* [out] */ Boolean* hasError);
+
 protected:
     /**
      * Constructs an {@code InflaterOutputStream} with a new {@code Inflater} and an

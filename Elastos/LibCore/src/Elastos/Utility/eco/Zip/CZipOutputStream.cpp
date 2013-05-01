@@ -32,6 +32,13 @@ ECode CZipOutputStream::WriteBufferEx(
     return ZipOutputStream::WriteBufferEx(offset, count, buffer);
 }
 
+ECode CZipOutputStream::CheckError(
+    /* [out] */ Boolean* hasError)
+{
+    VALIDATE_NOT_NULL(hasError);
+    return ZipOutputStream::CheckError(hasError);
+}
+
 ECode CZipOutputStream::Finish()
 {
     return ZipOutputStream::Finish();

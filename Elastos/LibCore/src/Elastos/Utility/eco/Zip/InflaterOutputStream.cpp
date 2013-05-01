@@ -131,6 +131,14 @@ ECode InflaterOutputStream::WriteBuffer(
     return WriteBufferEx(0, buffer.GetLength(), buffer);
 }
 
+ECode InflaterOutputStream::CheckError(
+    /* [out] */ Boolean* hasError)
+{
+    assert(hasError != NULL);
+    *hasError = FALSE;
+    return NOERROR;
+}
+
 /**
  * Constructs an {@code InflaterOutputStream} with a new {@code Inflater} and an
  * implementation-defined default internal buffer size. {@code out} is a destination

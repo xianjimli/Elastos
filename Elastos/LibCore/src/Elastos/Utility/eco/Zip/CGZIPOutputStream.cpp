@@ -97,6 +97,13 @@ ECode CGZIPOutputStream::WriteBuffer(
     return DeflaterOutputStream::WriteBuffer(buffer);
 }
 
+ECode CGZIPOutputStream::CheckError(
+    /* [out] */ Boolean* hasError)
+{
+    VALIDATE_NOT_NULL(hasError);
+    return DeflaterOutputStream::CheckError(hasError);
+}
+
 /**
  * Construct a new {@code GZIPOutputStream} to write data in GZIP format to
  * the underlying stream. Set the internal compression buffer to size

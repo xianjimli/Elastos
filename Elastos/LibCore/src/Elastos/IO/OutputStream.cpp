@@ -54,7 +54,7 @@ ECode OutputStream::WriteBufferEx(
 }
 
 ECode OutputStream::CheckError(
-        /* [out] */ Boolean* hasError)
+    /* [out] */ Boolean* hasError)
 {
     assert(hasError != NULL);
     *hasError = FALSE;

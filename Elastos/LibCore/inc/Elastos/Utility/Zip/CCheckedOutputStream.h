@@ -57,6 +57,9 @@ public:
     CARAPI WriteBuffer(
         /* [in] */ const ArrayOf<Byte> & buffer);
 
+    CARAPI CheckError(
+        /* [out] */ Boolean* hasError);
+
     /**
      * Constructs a new {@code CheckedOutputStream} on {@code OutputStream}
      * {@code os}. The checksum is calculated using the algorithm implemented
