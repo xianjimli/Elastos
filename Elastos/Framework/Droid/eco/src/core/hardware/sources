@@ -20,4 +20,4 @@ SOURCES += CSensorManagerHelper.cpp
 SOURCES += CSensorManagerLegacyListener.cpp
 SOURCES += CSensorManagerListenerDelegate.cpp
 
-#LIBRARIES += usb/usb.lib
+LIBRARIES += usb/usb.lib

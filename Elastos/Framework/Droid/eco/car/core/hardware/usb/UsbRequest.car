@@ -1,6 +1,10 @@
 
 module
 {
+    interface IUsbDeviceConnection;
+    interface IUsbEndpoint;
+
+
     interface IUsbRequest {
         /**
          * Initializes the request so it can read or write data on the given endpoint.

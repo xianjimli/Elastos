@@ -1,4 +1,4 @@
 
 DIRS += location
 DIRS += connectivity
-#DIRS += usb
+DIRS += usb

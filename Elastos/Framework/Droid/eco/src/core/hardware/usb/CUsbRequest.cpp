@@ -194,7 +194,7 @@ Boolean CUsbRequest::NativeInit(
     desc.wMaxPacketSize = ep_max_packet_size;
     desc.bInterval = ep_interval;
 
-    struct usb_request* request = usb_request_new(device, &desc);
+    struct usb_request* request = NULL; // TODO: usb_request_new(device, &desc);
     if (request){
         (((CUsbDeviceConnection*)connection)->mNativeContext) = (Int32)request;
     }
@@ -208,7 +208,7 @@ void CUsbRequest::NativeClose()
     Logger::D(CUsbRequest::TAG, "close\n");
     struct usb_request* request = Get_request_from_object(this);
     if (request) {
-        usb_request_free(request);
+        // TODO: usb_request_free(request);
         this->mNativeContext = 0;
     }
 }
@@ -237,10 +237,10 @@ Boolean CUsbRequest::NativeQueueArray(
             Byte * tmp = (Byte *)(request->buffer);
             for (Int32 i=0; i<length ;i++)
             {
-                tmp[i] = (Byte)(*buffer)[i];    
+                tmp[i] = (Byte)(*buffer)[i];
             }
         }
-    } 
+    }
 
     else {
         request->buffer = NULL;
@@ -248,14 +248,14 @@ Boolean CUsbRequest::NativeQueueArray(
 
     request->buffer_length = length;
 
-    if (usb_request_queue(request)) {
+    if (FALSE/* TODO: usb_request_queue(request)*/) {
         if (request->buffer) {
             // free our buffer if usb_request_queue fails
             free(request->buffer);
             request->buffer = NULL;
         }
         return FALSE;
-    } 
+    }
 
     else {
         // save a reference to ourselves so UsbDeviceConnection.waitRequest() can find us
@@ -282,7 +282,7 @@ void CUsbRequest::NativeDequeueArray(
         Byte * tmp = (Byte *)(request->buffer);
         for (Int32 i=0; i<length ;i++)
         {
-            (*buffer)[i] = tmp[i];    
+            (*buffer)[i] = tmp[i];
         }
     }
     free(request->buffer);
@@ -305,7 +305,7 @@ Boolean CUsbRequest::NativeQueueDirect(
         request->buffer = &buffer ;//GetDirectBufferAddress(buffer)
         if (!request->buffer)
             return FALSE;
-    } 
+    }
 
     else {
         request->buffer = NULL;
@@ -313,10 +313,10 @@ Boolean CUsbRequest::NativeQueueDirect(
 
     request->buffer_length = length;
 
-    if (usb_request_queue(request)) {
+    if (FALSE/* TODO: usb_request_queue(request)*/) {
         request->buffer = NULL;
         return FALSE;
-    } 
+    }
 
     else {
         // save a reference to ourselves so UsbDeviceConnection.waitRequest() can find us
@@ -348,5 +348,5 @@ Boolean CUsbRequest::NativeCancel()
         return FALSE;
     }
 
-    return (usb_request_cancel(request) == 0);
+    return FALSE; // TODO: (usb_request_cancel(request) == 0);
 }

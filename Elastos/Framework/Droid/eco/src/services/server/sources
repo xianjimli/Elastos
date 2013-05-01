@@ -63,4 +63,4 @@ SOURCES += CClipboardService.cpp
 
 LIBRARIES += location/location.lib
 LIBRARIES += connectivity/connectivity.lib
-#LIBRARIES += usb/usb.lib
+LIBRARIES += usb/usb.lib

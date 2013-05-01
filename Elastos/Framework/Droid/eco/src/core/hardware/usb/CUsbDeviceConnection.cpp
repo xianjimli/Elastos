@@ -151,7 +151,7 @@ Int32 Android_hardware_UsbDeviceConnection_get_fd(IUsbDeviceConnection* thi)
         return -1;
     }
 
-    return usb_device_get_fd(device);
+    return -1; // TODO: usb_device_get_fd(device);
 }
 
 Boolean CUsbDeviceConnection::NativeOpen(
@@ -167,10 +167,10 @@ Boolean CUsbDeviceConnection::NativeOpen(
     }
 
     const char *deviceNameStr = deviceName ;
-    struct usb_device* device = usb_device_new(deviceNameStr, fd);
+    struct usb_device* device = NULL; // TODO: usb_device_new(deviceNameStr, fd);
     if (device) {
         this->mNativeContext = (Int32) device ;
-    } 
+    }
 
     else {
         //ALOGE("usb_device_open failed for %s", deviceNameStr);
@@ -188,7 +188,7 @@ void CUsbDeviceConnection::NativeClose()
     Logger::D(CUsbDeviceConnection::TAG, "close\n");
     struct usb_device* device = CUsbDeviceConnection_Get_device_from_object(this);
     if (device) {
-        usb_device_close(device);
+        // TODO: usb_device_close(device);
         this->mNativeContext = 0;
     }
 }
@@ -201,7 +201,7 @@ Int32 CUsbDeviceConnection::NativeGetFd()
         Logger::D(CUsbDeviceConnection::TAG, "device is closed in native_get_fd");
         return -1;
     }
-    return usb_device_get_fd(device);
+    return -1; // TODO: usb_device_get_fd(device);
 }
 
 ArrayOf<Byte>* CUsbDeviceConnection::NativeGetDesc()
@@ -241,11 +241,11 @@ Boolean CUsbDeviceConnection::NativeClaimInterface(
         return -1;
     }
 
-    Int32 ret = usb_device_claim_interface(device, interfaceID);
+    Int32 ret = 0; // TODO: usb_device_claim_interface(device, interfaceID);
     if (ret && force ) {//&& errno == EBUSY
         // disconnect kernel driver and try again
-        usb_device_connect_kernel_driver(device, interfaceID, false);
-        ret = usb_device_claim_interface(device, interfaceID);
+        // TODO: usb_device_connect_kernel_driver(device, interfaceID, false);
+        ret = 0; // TODO: usb_device_claim_interface(device, interfaceID);
     }
     return ret == 0;
 }
@@ -259,10 +259,10 @@ Boolean CUsbDeviceConnection::NativeReleaseInterface(
         Logger::D(CUsbDeviceConnection::TAG, "device is closed in native_release_interface");
         return -1;
     }
-    Int32 ret = usb_device_release_interface(device, interfaceID);
+    Int32 ret = 0; // TODO: usb_device_release_interface(device, interfaceID);
     if (ret == 0) {
         // allow kernel to reconnect its driver
-        usb_device_connect_kernel_driver(device, interfaceID, true);
+        // TODO: usb_device_connect_kernel_driver(device, interfaceID, true);
     }
     return ret;
 }
@@ -292,7 +292,7 @@ Int32 CUsbDeviceConnection::NativeControlRequest(
         bufferBytes = (Byte*)buffer[0];
     }
 
-    Int32 result = usb_device_control_transfer(device, requestType, request, value, index, bufferBytes, length, timeout);
+    Int32 result = 0; // TODO: usb_device_control_transfer(device, requestType, request, value, index, bufferBytes, length, timeout);
 
     if (bufferBytes)
         //ReleaseByteArrayElements(buffer, bufferBytes, 0);
@@ -322,7 +322,7 @@ Int32 CUsbDeviceConnection::NativeBulkRequest(
         bufferBytes = (Byte*)buffer[0];
     }
 
-    Int32 result = usb_device_bulk_transfer(device, endpoint, bufferBytes, length, timeout);
+    Int32 result = 0; //TODO: usb_device_bulk_transfer(device, endpoint, bufferBytes, length, timeout);
 
     if (bufferBytes)
         //ReleaseByteArrayElements(buffer, bufferBytes, 0);
@@ -339,7 +339,7 @@ IUsbRequest* CUsbDeviceConnection::NativeRequestWait()
         return NULL;
     }
 
-    struct usb_request* request = usb_request_wait(device);
+    struct usb_request* request = NULL; //TODO: usb_request_wait(device);
     if (request){
         return (IUsbRequest*)request->client_data;
     }
@@ -358,7 +358,7 @@ String CUsbDeviceConnection::NativeGetSerial()
         return String("");
     }
 
-    char* serial = usb_device_get_serial(device);
+    char* serial = NULL; //TODO: usb_device_get_serial(device);
     if (!serial){
         return String("");
     }
