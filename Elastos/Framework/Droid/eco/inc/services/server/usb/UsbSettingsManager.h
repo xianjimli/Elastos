@@ -171,7 +171,7 @@ private:
     CARAPI_(void) ResolveActivity(
         /* [in] */ IIntent* intent,
         /* [in] */ const ArrayOf<IResolveInfo*>& matches,
-        /* [in] */ const String* defaultPackage,
+        /* [in] */ const String& defaultPackage,
         /* [in] */ IUsbDevice* device,
         /* [in] */ IUsbAccessory* accessory);
 
@@ -200,6 +200,14 @@ private:
         /* [in] */ const String& packageName);
 
 private:
+    CARAPI_(void) RemoveDevicePermissionRef(
+        /* [in] */ const String& name,
+        /* [out] */ Boolean* result);
+
+    CARAPI_(void) RemoveAccessoryPermissionRef(
+        /* [in] */ IUsbAccessory* filter,
+        /* [out] */ Boolean* result);
+
     CARAPI_(String) GetDevicePreferenceRef(
         /* [in] */ DeviceFilter* filter);
 

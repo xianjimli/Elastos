@@ -121,19 +121,106 @@ void UsbSettingsManager::DeviceAttached(
 void UsbSettingsManager::DeviceDetached(
     /* [in] */ IUsbDevice* device)
 {
-    // NOT IMPLEMENTED
+    // clear temporary permissions for the device
+    String name;
+    device->GetDeviceName(&name);
+
+    Boolean result = FALSE;
+    RemoveDevicePermissionRef(name, &result);
+
+    AutoPtr<IIntent> intent;
+    CIntent::New(String(UsbManager_ACTION_USB_DEVICE_DETACHED), (IIntent**)&intent);
+    intent->PutParcelableExtra(String(UsbManager_EXTRA_DEVICE), (IParcelable*)device);
+
+    if (DEBUG == TRUE) {
+        String shortString;
+        intent->ToShortString(TRUE, TRUE, &shortString);
+
+        StringBuffer buf;
+        buf += "usbDeviceRemoved, sending ";
+        buf += shortString;
+
+        Logger::D(UsbSettingsManager::TAG, (String)buf);
+    }
+
+    mContext->SendBroadcast(intent);
+
+    Boolean usbAudio = FALSE;
+
+    Int32 count;
+    device->GetInterfaceCount(&count);
+
+    ArrayOf<IUsbInterface*>* interfaces = ArrayOf<IUsbInterface*>::Alloc(count);
+    for (Int32 i = 0; i < count; i++) {
+        device->GetInterface(i, &(*interfaces)[i]);
+
+        Int32 cls;
+        (*interfaces)[i]->GetInterfaceClass(&cls);
+
+        StringBuffer buf;
+        buf += "interfaces";
+        buf += i;
+        buf += "num";
+        buf += cls;
+        Logger::V(UsbSettingsManager::TAG, (String)buf);
+
+        if (cls != 1) {
+            continue;
+        }
+
+        usbAudio = TRUE;
+    }
+
+    if (usbAudio == FALSE) {
+        return;
+    }
+
+    AutoPtr<IIntent> intentUsbAudio;
+    CIntent::New(String(Intent_ACTION_USB_AUDIO_DEVICE_PLUG), (IIntent**)&intentUsbAudio);
+    intentUsbAudio->PutInt32Extra(String("state"), 0);
+    mContext->SendBroadcast(intentUsbAudio);
 }
 
 void UsbSettingsManager::AccessoryAttached(
     /* [in] */ IUsbAccessory* accessory)
 {
-    // NOT IMPLEMENTED
+    AutoPtr<IIntent> intent;
+    CIntent::New(String(UsbManager_ACTION_USB_ACCESSORY_ATTACHED), (IIntent**)&intent);
+
+    intent->PutParcelableExtra(String(UsbManager_EXTRA_ACCESSORY), (IParcelable*)accessory);
+    intent->AddFlags(Intent_FLAG_ACTIVITY_NEW_TASK);
+
+    ArrayOf<IResolveInfo*>* matches;
+    String defaultPackage;
+
+    {
+        Mutex::Autolock lock(mLock);
+
+        matches = GetAccessoryMatchesLocked(accessory, intent);
+
+        /*
+         * Launch our default activity directly, if we have one.
+         * Otherwise we will start the UsbResolverActivity to allow the user to choose.
+         */
+        AutoPtr<AccessoryFilter> filter = new AccessoryFilter(accessory);
+        defaultPackage = GetAccessoryPreferenceRef(filter);
+    }
+
+    ResolveActivity(intent, *matches, defaultPackage, NULL, accessory);
 }
 
 void UsbSettingsManager::AccessoryDetached(
     /* [in] */ IUsbAccessory* accessory)
 {
-    // NOT IMPLEMENTED
+    // clear temporary permissions for the accessory
+    Boolean result = FALSE;
+    RemoveAccessoryPermissionRef(accessory, &result);
+
+    AutoPtr<IIntent> intent;
+    CIntent::New(String(UsbManager_ACTION_USB_ACCESSORY_DETACHED), (IIntent**)&intent);
+
+    intent->PutParcelableExtra(String(UsbManager_EXTRA_ACCESSORY), (IParcelable*)accessory);
+    mContext->SendBroadcast(intent);
 }
 
 Boolean UsbSettingsManager::HasPermission(
@@ -460,7 +547,7 @@ ArrayOf<IResolveInfo*>* UsbSettingsManager::GetAccessoryMatchesLocked(
 void UsbSettingsManager::ResolveActivity(
     /* [in] */ IIntent* intent,
     /* [in] */ const ArrayOf<IResolveInfo*>& matches,
-    /* [in] */ const String* defaultPackage,
+    /* [in] */ const String& defaultPackage,
     /* [in] */ IUsbDevice* device,
     /* [in] */ IUsbAccessory* accessory)
 {
@@ -497,6 +584,20 @@ Boolean UsbSettingsManager::HandlePackageUpdateLocked(
 void UsbSettingsManager::HandlePackageUpdate(
     /* [in] */ const String& packageName)
 {
+    /*
+     * Check to see if the package supports any USB devices or accessories.
+     * If so, clear any non-matching preferences for matching devices/accessories.
+     */
+    Mutex::Autolock lock(mLock);
+
+
+
+
+
+
+
+
+
     // NOT IMPLEMENTED
 }
 
@@ -569,6 +670,47 @@ Boolean UsbSettingsManager::ClearPackageDefaultsLocked(
     }
 
     return cleared;
+}
+
+void UsbSettingsManager::RemoveDevicePermissionRef(
+    /* [in] */ const String& name,
+    /* [out] */ Boolean* result)
+{
+    *result = FALSE;
+
+    HashMap< String, HashMap<Int32, Boolean>* >::Iterator it;
+
+    for (it = mDevicePermissionMap->Begin(); it != mDevicePermissionMap->End(); ++it)
+    {
+        if (name != it->mFirst) {
+            continue;
+        }
+
+        *result = TRUE;
+        mDevicePermissionMap->Erase(it);
+    }
+}
+
+void UsbSettingsManager::RemoveAccessoryPermissionRef(
+    /* [in] */ IUsbAccessory* filter,
+    /* [out] */ Boolean* result)
+{
+    *result = FALSE;
+
+    HashMap< AutoPtr<IUsbAccessory>, HashMap<Int32, Boolean>* >::Iterator it;
+
+    for (it = mAccessoryPermissionMap->Begin(); it != mAccessoryPermissionMap->End(); ++it)
+    {
+        Boolean isEquals = FALSE;
+        it->mFirst->Equals(filter, &isEquals);
+
+        if (isEquals == FALSE) {
+            continue;
+        }
+
+        *result = TRUE;
+        mAccessoryPermissionMap->Erase(it);
+    }
 }
 
 String UsbSettingsManager::GetDevicePreferenceRef(
