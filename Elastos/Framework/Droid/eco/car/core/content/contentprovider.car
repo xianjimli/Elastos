@@ -1,6 +1,29 @@
 
 module
 {
+    /* IPC constants */
+    const contentprovider_descriptor = "elastos.content.IContentProvider";
+
+    const contentprovider_QUERY_TRANSACTION = 0x00000001;
+
+    const contentprovider_GET_TYPE_TRANSACTION = 0x00000002;
+
+    const contentprovider_INSERT_TRANSACTION = 0x00000003;
+
+    const contentprovider_DELETE_TRANSACTION = 0x00000004;
+
+    const contentprovider_UPDATE_TRANSACTION = 0x0000000a;
+
+    const contentprovider_BULK_INSERT_TRANSACTION = 0x0000000d;
+
+    const contentprovider_OPEN_FILE_TRANSACTION = 0x0000000e;
+
+    const contentprovider_OPEN_ASSET_FILE_TRANSACTION = 0x0000000f;
+
+    const contentprovider_APPLY_BATCH_TRANSACTION = 0x00000014;
+    
+    const contentprovider_CALL_TRANSACTION = 0x00000015;
+
     interface IContext;
     interface IContentProviderInfo;
     interface IUri;
