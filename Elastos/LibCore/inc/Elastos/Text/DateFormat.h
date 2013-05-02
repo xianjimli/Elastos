@@ -272,14 +272,6 @@ public:
         /* [out] */ String* result) = 0;
 
     /**
-     * Returns an array of locales for which custom {@code DateFormat} instances
-     * are available.
-     * <p>Note that Android does not support user-supplied locale service providers.
-     */
-    static CARAPI GetAvailableLocales(
-        /* [out, callee] */ ArrayOf<ILocale*>** locales);
-
-    /**
      * Returns the calendar used by this {@code DateFormat}.
      *
      * @return the calendar used by this date format.
@@ -288,160 +280,12 @@ public:
         /* [out] */ ICalendar** calendar);
 
     /**
-     * Returns a {@code DateFormat} instance for formatting and parsing dates in
-     * the DEFAULT style for the default locale.
-     *
-     * @return the {@code DateFormat} instance for the default style and locale.
-     */
-    static CARAPI GetDateInstance(
-        /* [out] */ IDateFormat** instance);
-
-    /**
-     * Returns a {@code DateFormat} instance for formatting and parsing dates in
-     * the specified style for the user's default locale.
-     * See "<a href="../util/Locale.html#default_locale">Be wary of the default locale</a>".
-     * @param style
-     *            one of SHORT, MEDIUM, LONG, FULL, or DEFAULT.
-     * @return the {@code DateFormat} instance for {@code style} and the default
-     *         locale.
-     * @throws IllegalArgumentException
-     *             if {@code style} is not one of SHORT, MEDIUM, LONG, FULL, or
-     *             DEFAULT.
-     */
-    static CARAPI GetDateInstance(
-        /* [in] */ Int32 style,
-        /* [out] */ IDateFormat** instance);
-
-    /**
-     * Returns a {@code DateFormat} instance for formatting and parsing dates in
-     * the specified style for the specified locale.
-     *
-     * @param style
-     *            one of SHORT, MEDIUM, LONG, FULL, or DEFAULT.
-     * @param locale
-     *            the locale.
-     * @throws IllegalArgumentException
-     *             if {@code style} is not one of SHORT, MEDIUM, LONG, FULL, or
-     *             DEFAULT.
-     * @return the {@code DateFormat} instance for {@code style} and
-     *         {@code locale}.
-     */
-    static CARAPI GetDateInstance(
-        /* [in] */ Int32 style,
-        /* [in] */ ILocale* locale,
-        /* [out] */ IDateFormat** instance);
-
-    /**
-     * Returns a {@code DateFormat} instance for formatting and parsing dates
-     * and time values in the DEFAULT style for the default locale.
-     *
-     * @return the {@code DateFormat} instance for the default style and locale.
-     */
-    static CARAPI GetDateTimeInstance(
-        /* [out] */ IDateFormat** instance);
-
-    /**
-     * Returns a {@code DateFormat} instance for formatting and parsing of both
-     * dates and time values in the manner appropriate for the user's default locale.
-     * See "<a href="../util/Locale.html#default_locale">Be wary of the default locale</a>".
-     * @param dateStyle
-     *            one of SHORT, MEDIUM, LONG, FULL, or DEFAULT.
-     * @param timeStyle
-     *            one of SHORT, MEDIUM, LONG, FULL, or DEFAULT.
-     * @return the {@code DateFormat} instance for {@code dateStyle},
-     *         {@code timeStyle} and the default locale.
-     * @throws IllegalArgumentException
-     *             if {@code dateStyle} or {@code timeStyle} is not one of
-     *             SHORT, MEDIUM, LONG, FULL, or DEFAULT.
-     */
-    static CARAPI GetDateTimeInstance(
-        /* [in] */ Int32 dateStyle,
-        /* [in] */ Int32 timeStyle,
-        /* [out] */ IDateFormat** instance);
-
-    /**
-     * Returns a {@code DateFormat} instance for formatting and parsing dates
-     * and time values in the specified styles for the specified locale.
-     *
-     * @param dateStyle
-     *            one of SHORT, MEDIUM, LONG, FULL, or DEFAULT.
-     * @param timeStyle
-     *            one of SHORT, MEDIUM, LONG, FULL, or DEFAULT.
-     * @param locale
-     *            the locale.
-     * @return the {@code DateFormat} instance for {@code dateStyle},
-     *         {@code timeStyle} and {@code locale}.
-     * @throws IllegalArgumentException
-     *             if {@code dateStyle} or {@code timeStyle} is not one of
-     *             SHORT, MEDIUM, LONG, FULL, or DEFAULT.
-     */
-    static CARAPI GetDateTimeInstance(
-        /* [in] */ Int32 dateStyle,
-        /* [in] */ Int32 timeStyle,
-        /* [in] */ ILocale* locale,
-        /* [out] */ IDateFormat** instance);
-
-    /**
-     * Returns a {@code DateFormat} instance for formatting and parsing dates
-     * and times in the SHORT style for the default locale.
-     *
-     * @return the {@code DateFormat} instance for the SHORT style and default
-     *         locale.
-     */
-    static CARAPI GetInstance(
-        /* [out] */ IDateFormat** instance);
-
-    /**
      * Returns the {@code NumberFormat} used by this {@code DateFormat}.
      *
      * @return the {@code NumberFormat} used by this date format.
      */
     virtual CARAPI GetNumberFormat(
         /* [out] */ INumberFormat** numberFormat);
-
-    /**
-     * Returns a {@code DateFormat} instance for formatting and parsing time
-     * values in the DEFAULT style for the default locale.
-     *
-     * @return the {@code DateFormat} instance for the default style and locale.
-     */
-    static CARAPI GetTimeInstance(
-        /* [out] */ IDateFormat** instance);
-
-    /**
-     * Returns a {@code DateFormat} instance for formatting and parsing time
-     * values in the specified style for the user's default locale.
-     * See "<a href="../util/Locale.html#default_locale">Be wary of the default locale</a>".
-     * @param style
-     *            one of SHORT, MEDIUM, LONG, FULL, or DEFAULT.
-     * @return the {@code DateFormat} instance for {@code style} and the default
-     *         locale.
-     * @throws IllegalArgumentException
-     *             if {@code style} is not one of SHORT, MEDIUM, LONG, FULL, or
-     *             DEFAULT.
-     */
-    static CARAPI GetTimeInstance(
-        /* [in] */ Int32 style,
-        /* [out] */ IDateFormat** instance);
-
-    /**
-     * Returns a {@code DateFormat} instance for formatting and parsing time
-     * values in the specified style for the specified locale.
-     *
-     * @param style
-     *            one of SHORT, MEDIUM, LONG, FULL, or DEFAULT.
-     * @param locale
-     *            the locale.
-     * @throws IllegalArgumentException
-     *             if {@code style} is not one of SHORT, MEDIUM, LONG, FULL, or
-     *             DEFAULT.
-     * @return the {@code DateFormat} instance for {@code style} and
-     *         {@code locale}.
-     */
-    static CARAPI GetTimeInstance(
-        /* [in] */ Int32 style,
-        /* [in] */ ILocale* locale,
-        /* [out] */ IDateFormat** instance);
 
     /**
      * Returns the time zone of this date format's calendar.
@@ -632,13 +476,6 @@ protected:
 
     virtual CARAPI_(PInterface) Probe(
         /* [in] */ REIID riid) = 0;
-
-private:
-    static CARAPI CheckDateStyle(
-        /* [in] */ Int32 style);
-
-    static CARAPI CheckTimeStyle(
-        /* [in] */ Int32 style);
 
 protected:
     /**

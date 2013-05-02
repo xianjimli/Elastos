@@ -258,4 +258,51 @@ module
         SetTimeZone(
             [in] ITimeZone* timezone);
     }
+
+    interface IDateFormatHelper
+    {
+        GetAvailableLocales(
+            [out, callee] ArrayOf<ILocale*>* locales);
+
+        GetDateInstance(
+            [out] IDateFormat** instance);
+
+        GetDateInstanceEx(
+            [in] Int32 style,
+            [out] IDateFormat** instance);
+
+        GetDateInstanceEx2(
+            [in] Int32 style,
+            [in] ILocale* locale,
+            [out] IDateFormat** instance);
+
+        GetDateTimeInstance(
+            [out] IDateFormat** instance);
+
+        GetDateTimeInstanceEx(
+            [in] Int32 dateStyle,
+            [in] Int32 timeStyle,
+            [out] IDateFormat** instance);
+
+        GetDateTimeInstanceEx2(
+            [in] Int32 dateStyle,
+            [in] Int32 timeStyle,
+            [in] ILocale* locale,
+            [out] IDateFormat** instance);
+
+        GetInstance(
+            [out] IDateFormat** instance);
+
+        GetTimeInstance(
+            [out] IDateFormat** instance);
+
+        GetTimeInstanceEx(
+            [in] Int32 style,
+            [out] IDateFormat** instance);
+
+        GetTimeInstanceEx2(
+            [in] Int32 style,
+            [in] ILocale* locale,
+            [out] IDateFormat** instance);
+    }
 }
