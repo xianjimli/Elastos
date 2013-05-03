@@ -1,0 +1,9 @@
+
+module
+{
+    interface IHostNameResolver {
+        Resolve (
+            [in] String hostname,
+            [out] IInetAddress** address);
+    }
+}

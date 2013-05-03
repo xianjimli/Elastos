@@ -1,0 +1,130 @@
+
+module
+{
+    /**
+     * Represents a protocol version, as specified in RFC 2616.
+     * RFC 2616 specifies only HTTP versions, like "HTTP/1.1" and "HTTP/1.0".
+     * RFC 3261 specifies a message format that is identical to HTTP except
+     * for the protocol name. It defines a protocol version "SIP/2.0".
+     * There are some nitty-gritty differences between the interpretation
+     * of versions in HTTP and SIP. In those cases, HTTP takes precedence.
+     * <p>
+     * This class defines a protocol version as a combination of
+     * protocol name, major version number, and minor version number.
+     * Note that {@link #equals} and {@link #hashCode} are defined as
+     * final here, they cannot be overridden in derived classes.
+     *
+     * @author <a href="mailto:oleg@ural.ru">Oleg Kalnichevski</a>
+     * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
+     *
+     * @version $Revision: 609106 $
+     */
+    interface IProtocolVersion {
+        /**
+         * Returns the name of the protocol.
+         *
+         * @return the protocol name
+         */
+        GetProtocol(
+            [out] String* protocol);
+
+        /**
+         * Returns the major version number of the protocol.
+         *
+         * @return the major version number.
+         */
+        GetMajor(
+            [out] Int32* major);
+
+        /**
+         * Returns the minor version number of the HTTP protocol.
+         *
+         * @return the minor version number.
+         */
+        GetMinor(
+            [out] Int32* minor);
+
+
+        /**
+         * Obtains a specific version of this protocol.
+         * This can be used by derived classes to instantiate themselves instead
+         * of the base class, and to define constants for commonly used versions.
+         * <br/>
+         * The default implementation in this class returns <code>this</code>
+         * if the version matches, and creates a new {@link ProtocolVersion}
+         * otherwise.
+         *
+         * @param major     the major version
+         * @param minor     the minor version
+         *
+         * @return  a protocol version with the same protocol name
+         *          and the argument version
+         */
+        RorVersion(
+            [in] Int32 major,
+            [in] Int32 minor,
+            [out] IProtocolVersion** protocolVersion);
+
+        /**
+         * Checks whether this protocol can be compared to another one.
+         * Only protocol versions with the same protocol name can be
+         * {@link #compareToVersion compared}.
+         *
+         * @param that      the protocol version to consider
+         *
+         * @return  <code>true</code> if {@link #compareToVersion compareToVersion}
+         *          can be called with the argument, <code>false</code> otherwise
+         */
+        IsComparable(
+            [in] IProtocolVersion* that,
+            [out] Boolean* isComparable);
+
+        /**
+         * Compares this protocol version with another one.
+         * Only protocol versions with the same protocol name can be compared.
+         * This method does <i>not</i> define a total ordering, as it would be
+         * required for {@link java.lang.Comparable}.
+         *
+         * @param that      the protocl version to compare with
+         *
+         * @return   a negative integer, zero, or a positive integer
+         *           as this version is less than, equal to, or greater than
+         *           the argument version.
+         *
+         * @throws IllegalArgumentException
+         *         if the argument has a different protocol name than this object,
+         *         or if the argument is <code>null</code>
+         */
+        CompareToVersion(
+            [in] IProtocolVersion* that,
+            [out] Int32* result);
+
+        /**
+         * Tests if this protocol version is greater or equal to the given one.
+         *
+         * @param version   the version against which to check this version
+         *
+         * @return  <code>true</code> if this protocol version is
+         *          {@link #isComparable comparable} to the argument
+         *          and {@link #compareToVersion compares} as greater or equal,
+         *          <code>false</code> otherwise
+         */
+        GreaterEquals(
+            [in] IProtocolVersion* protocolVersion,
+            [out] Boolean* result);
+
+        /**
+         * Tests if this protocol version is less or equal to the given one.
+         *
+         * @param version   the version against which to check this version
+         *
+         * @return  <code>true</code> if this protocol version is
+         *          {@link #isComparable comparable} to the argument
+         *          and {@link #compareToVersion compares} as less or equal,
+         *          <code>false</code> otherwise
+         */
+        LessEquals(
+            [in] IProtocolVersion* protocolVersion,
+            [out] Boolean* result);
+    }
+}

@@ -1,0 +1,18 @@
+
+module
+{
+    interface IHttpParams;
+    interface IAuthScheme;
+
+    /**
+     *
+     * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
+     *
+     * @since 4.0
+     */
+    interface IAuthSchemeFactory {
+        NewInstance(
+            [in] IHttpParams* params,
+            [out] IAuthScheme** scheme);
+    }
+}

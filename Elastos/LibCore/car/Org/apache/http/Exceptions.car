@@ -1,0 +1,26 @@
+
+module
+{
+//    const FAMILY_CORE = 0x2B    // apache exception codes
+
+//    #define FRAMEWORK_ERROR(c)      MAKE_ECODE(SEVERITY_ERROR, FAMILY_FRAMEWORK, c)
+//    #define FRAMEWORK_SUCCESS(c)    MAKE_SUCCESS(FAMILY_FRAMEWORK, c)
+
+    //==========================================================================
+    // Elastos apache exception codes (Family: 0x30)
+    const E_CIRCULAR_REDIRECT_EXCEPTION                              = 0x30010000;
+    const E_CLIENT_PROTOCOL_EXCEPTION                                = 0x30020000;
+    const E_HTTP_RESPONSE_EXCEPTION                                  = 0x30030000;
+    const E_NON_REPEATABLE_REQUEST_EXCEPTION                         = 0x30040000;
+    const E_REDIRECT_EXCEPTION                                       = 0x30050000;
+    const E_CONNECTION_POOL_TIMEOUT_EXCEPTION                        = 0x30060000;
+    const E_CONNECT_TIMEOUT_EXCEPTION                                = 0x30070000;
+    const E_HTTP_HOST_CONNECT_EXCEPTION                              = 0x30080000;
+    const E_HTTP_EXCEPTION                                           = 0x30090000;
+    const E_MALFORMED_CHUNK_CODING_EXCEPTION                         = 0x300A0000;
+    const E_METHOD_NOT_SUPPORTED_EXCEPTION                           = 0x300B0000;
+    const E_NO_HTTP_RESPONSE_EXCEPTION                               = 0x300C0000;
+    const E_PARSE_EXCEPTION                                          = 0x300D0000;
+    const E_PROTOCOL_EXCEPTION                                       = 0x300E0000;
+    const E_UNSUPPORTED_HTTP_VERSION_EXCEPTION                       = 0x300F0000;
+}

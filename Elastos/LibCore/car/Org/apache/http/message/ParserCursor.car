@@ -1,0 +1,24 @@
+
+module
+{
+    interface IParserCursor {
+        ParserCursor(
+            [in] Int32 lowerBound,
+            [in] Int32 upperBound);
+
+        GetLowerBound(
+            [out] Int32* lowerBound);
+
+        GetUpperBound(
+            [out] Int32* upperBound);
+
+        GetPos(
+            [out] Int32* pos);
+
+        UpdatePos(
+            [in] Int32 pos);
+
+        AtEnd(
+            [out] Boolean* isAtEnd);
+    }
+}

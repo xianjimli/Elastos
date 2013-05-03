@@ -1,0 +1,28 @@
+
+module
+{
+    interface IHttpResponse;
+    interface IHttpContext;
+    interface IAuthScheme;
+
+    /**
+     * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
+     */
+    interface IAuthenticationHandler {
+        IsAuthenticationRequested(
+            [in] IHttpResponse* response,
+            [in] IHttpContext* context,
+            [out] Boolean* result);
+
+        GetChallenges(
+            [in] IHttpResponse* response,
+            [in] IHttpContext* context,
+            [out] IObjectStringMap** headers);
+
+        SelectScheme(
+            [in] IObjectStringMap* challenges,
+            [in] IHttpResponse* response,
+            [in] IHttpContext* context,
+            [out] IAuthScheme** scheme);
+    }
+}

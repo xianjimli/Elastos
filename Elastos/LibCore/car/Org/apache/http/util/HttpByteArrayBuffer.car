@@ -1,0 +1,62 @@
+
+module
+{
+    interface IHttpCharArrayBuffer;
+
+    /**
+     * A resizable byte array.
+     *
+     * @author <a href="mailto:oleg@ural.ru">Oleg Kalnichevski</a>
+     *
+     * @version $Revision: 496070 $
+     *
+     * @since 4.0
+     */
+    interface IHttpByteArrayBuffer {
+        Append(
+            [in] ArrayOf<Byte> b,
+            [in] Int32 off,
+            [in] Int32 len);
+
+
+        AppendEx(
+            [in] Int32 b);
+
+        AppendEx2(
+            [in] ArrayOf<Char32> b,
+            [in] Int32 off,
+            [in] Int32 len);
+
+        AppendEx3(
+            [in] IHttpCharArrayBuffer* b,
+            [in] Int32 off,
+            [in] Int32 len);
+
+        Clear();
+
+        ToByteArray(
+            [out, callee] ArrayOf<Byte>* byteArray);
+
+        ByteAt(
+            [in] Int32 i,
+            [out] Int32* b);
+
+        Buffer(
+            [out, callee] ArrayOf<Byte>* byteArray);
+
+        GetCapacity(
+            [out] Int32* capacity);
+
+        GetLength(
+            [out] Int32* len);
+
+        SetLength(
+            [in] Int32 len);
+
+        IsEmpty(
+            [out] Boolean* isEmpty);
+
+        IsFull(
+            [out] Boolean* isFull);
+    }
+}

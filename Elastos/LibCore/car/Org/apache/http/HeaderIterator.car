@@ -1,0 +1,31 @@
+
+module
+{
+    interface IHeader;
+
+    /**
+     * A type-safe iterator for {@link Header Header} objects.
+     *
+     * @version $Revision: 581981 $
+     */
+    interface IHeaderIterator /* extends Iterator */ {
+        /**
+         * Indicates whether there is another header in this iteration.
+         *
+         * @return  <code>true</code> if there is another header,
+         *          <code>false</code> otherwise
+         */
+        HasNext(
+            [out] Boolean* hasNext);
+
+        /**
+         * Obtains the next header from this iteration.
+         * This method should only be called while {@link #hasNext hasNext}
+         * is true.
+         *
+         * @return  the next header in this iteration
+         */
+        NextElement(
+            [out] IHeader** element);
+    }
+}

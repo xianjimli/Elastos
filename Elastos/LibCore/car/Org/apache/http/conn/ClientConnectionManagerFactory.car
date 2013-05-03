@@ -1,0 +1,21 @@
+
+module
+{
+    interface IHttpParams;
+    interface ISchemeRegistry;
+    interface IClientConnectionManager;
+
+    /**
+     * A factory for creating new {@link ClientConnectionManager} instances.
+     *
+     * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
+     *
+     * @since 4.0
+     */
+    interface IClientConnectionManagerFactory {
+        NewInstance(
+            [in] IHttpParams* params,
+            [in] ISchemeRegistry* schemeRegistry,
+            [out] IClientConnectionManager** connManager);
+    }
+}

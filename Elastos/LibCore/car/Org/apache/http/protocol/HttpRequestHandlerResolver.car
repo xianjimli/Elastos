@@ -1,0 +1,17 @@
+
+module
+{
+    /**
+     * Interface to be implemented by objects that can resolve
+     * {@link HttpRequestHandler} instances by request URI.
+     *
+     * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
+     *
+     * @version $Revision: 613298 $
+     */
+    interface IHttpRequestHandlerResolver {
+        Lookup(
+            [in] String requestURI,
+            [out] IHttpRequestHandler** handler);
+    }
+}

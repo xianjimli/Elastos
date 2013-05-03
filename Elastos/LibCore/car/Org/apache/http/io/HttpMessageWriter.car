@@ -1,0 +1,19 @@
+
+module
+{
+    interface IHttpMessage;
+
+    /**
+     * Generic message writer interface.
+     *
+     * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
+     *
+     * @version $Revision: 567370 $
+     *
+     * @since 4.0
+     */
+    interface IHttpMessageWriter {
+        Write(
+            [in] IHttpMessage* message);
+    }
+}

@@ -1,0 +1,106 @@
+
+module
+{
+    interface IHeaderElement;
+    interface INameValuePair;
+
+    /**
+     * Interface for formatting elements of a header value.
+     * This is the complement to {@link HeaderValueParser}.
+     * Instances of this interface are expected to be stateless and thread-safe.
+     *
+     * <p>
+     * All formatting methods accept an optional buffer argument.
+     * If a buffer is passed in, the formatted element will be appended
+     * and the modified buffer is returned. If no buffer is passed in,
+     * a new buffer will be created and filled with the formatted element.
+     * In both cases, the caller is allowed to modify the returned buffer.
+     * </p>
+     *
+     *
+     * <!-- empty lines above to avoid 'svn diff' context problems -->
+     * @version $Revision: 571954 $
+     *
+     * @since 4.0
+     */
+    interface IHeaderValueFormatter {
+        /**
+         * Formats an array of header elements.
+         *
+         * @param buffer    the buffer to append to, or
+         *                  <code>null</code> to create a new buffer
+         * @param elems     the header elements to format
+         * @param quote     <code>true</code> to always format with quoted values,
+         *                  <code>false</code> to use quotes only when necessary
+         *
+         * @return  a buffer with the formatted header elements.
+         *          If the <code>buffer</code> argument was not <code>null</code>,
+         *          that buffer will be used and returned.
+         */
+        FormatElements(
+            [in] IHttpCharArrayBuffer* buffer,
+            [in] IObjectContainer* elems,
+            [in] Boolean quote,
+            [out] IHttpCharArrayBuffer** buf);
+
+
+        /**
+         * Formats one header element.
+         *
+         * @param buffer    the buffer to append to, or
+         *                  <code>null</code> to create a new buffer
+         * @param elem      the header element to format
+         * @param quote     <code>true</code> to always format with quoted values,
+         *                  <code>false</code> to use quotes only when necessary
+         *
+         * @return  a buffer with the formatted header element.
+         *          If the <code>buffer</code> argument was not <code>null</code>,
+         *          that buffer will be used and returned.
+         */
+        FormatHeaderElement(
+            [in] IHttpCharArrayBuffer* buffer,
+            [in] IHeaderElement* elem,
+            [in] Boolean quote,
+            [out] IHttpCharArrayBuffer** buf);
+
+        /**
+         * Formats the parameters of a header element.
+         * That's a list of name-value pairs, to be separated by semicolons.
+         * This method will <i>not</i> generate a leading semicolon.
+         *
+         * @param buffer    the buffer to append to, or
+         *                  <code>null</code> to create a new buffer
+         * @param nvps      the parameters (name-value pairs) to format
+         * @param quote     <code>true</code> to always format with quoted values,
+         *                  <code>false</code> to use quotes only when necessary
+         *
+         * @return  a buffer with the formatted parameters.
+         *          If the <code>buffer</code> argument was not <code>null</code>,
+         *          that buffer will be used and returned.
+         */
+        FormatParameters(
+            [in] IHttpCharArrayBuffer* buffer,
+            [in] IObjectContainer* nvps,
+            [in] Boolean quote,
+            [out] IHttpCharArrayBuffer** buf);
+
+        /**
+         * Formats one name-value pair, where the value is optional.
+         *
+         * @param buffer    the buffer to append to, or
+         *                  <code>null</code> to create a new buffer
+         * @param nvp       the name-value pair to format
+         * @param quote     <code>true</code> to always format with a quoted value,
+         *                  <code>false</code> to use quotes only when necessary
+         *
+         * @return  a buffer with the formatted name-value pair.
+         *          If the <code>buffer</code> argument was not <code>null</code>,
+         *          that buffer will be used and returned.
+         */
+        FormatNameValuePair(
+            [in] IHttpCharArrayBuffer* buffer,
+            [in] INameValuePair* nvp,
+            [in] Boolean quote,
+            [out] IHttpCharArrayBuffer** buf);
+    }
+}

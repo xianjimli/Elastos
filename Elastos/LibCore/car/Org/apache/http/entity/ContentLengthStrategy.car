@@ -1,0 +1,24 @@
+
+module
+{
+    interface IHttpMessage;
+
+    const ContentLengthStrategy_IDENTITY         = -1;
+    const ContentLengthStrategy_CHUNKED          = -2;
+
+    /**
+     * Represents a strategy to determine the content length based on the properties
+     * of an HTTP message.
+     *
+     * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
+     *
+     * @version $Revision: 613298 $
+     *
+     * @since 4.0
+     */
+    interface IContentLengthStrategy {
+        DetermineLength(
+            [in] IHttpMessage* message,
+            [out] Int64* length);
+    }
+}

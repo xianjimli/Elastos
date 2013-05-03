@@ -1,0 +1,50 @@
+
+module
+{
+    /**
+     * The class represents an authentication scope consisting of a host name,
+     * a port number, a realm name and an authentication scheme name which
+     * {@link Credentials Credentials} apply to.
+     *
+     * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
+     * @author <a href="mailto:adrian@intencha.com">Adrian Sutton</a>
+     *
+     * @since 4.0
+     */
+    interface IAuthScope {
+        /**
+         * @return the host
+         */
+        GetHost(
+            [out] String* host);
+
+        /**
+         * @return the port
+         */
+        GetPort(
+            [out] Int32* port);
+
+        /**
+         * @return the realm name
+         */
+        GetRealm(
+            [out] String* realm);
+
+        /**
+         * @return the scheme type
+         */
+        GetScheme(
+            [out] String* scheme);
+
+        /**
+         * Tests if the authentication scopes match.
+         *
+         * @return the match factor. Negative value signifies no match.
+         *    Non-negative signifies a match. The greater the returned value
+         *    the closer the match.
+         */
+        Match(
+            [in] IAuthScope* that,
+            [out] Int32* result);
+    }
+}

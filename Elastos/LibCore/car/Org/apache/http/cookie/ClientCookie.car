@@ -1,0 +1,42 @@
+
+module
+{
+    interface ICookie;
+
+    // RFC2109 attributes
+    const ClientCookie_VERSION_ATTR    = "version";
+    const ClientCookie_PATH_ATTR       = "path";
+    const ClientCookie_DOMAIN_ATTR     = "domain";
+    const ClientCookie_MAX_AGE_ATTR    = "max-age";
+    const ClientCookie_SECURE_ATTR     = "secure";
+    const ClientCookie_COMMENT_ATTR    = "comment";
+    const ClientCookie_EXPIRES_ATTR    = "expires";
+
+    // RFC2965 attributes
+    const ClientCookie_PORT_ATTR       = "port";
+    const ClientCookie_COMMENTURL_ATTR = "commenturl";
+    const ClientCookie_DISCARD_ATTR    = "discard";
+
+    /**
+     * ClientCookie extends the standard {@link Cookie} interface with
+     * additional client specific functionality such ability to retrieve
+     * original cookie attributes exactly as they were specified by the
+     * origin server. This is important for generating the <tt>Cookie</tt>
+     * header because some cookie specifications require that the
+     * <tt>Cookie</tt> header should include certain attributes only if
+     * they were specified in the <tt>Set-Cookie</tt> header.
+     *
+     * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
+     *
+     * @since 4.0
+     */
+    interface IClientCookie extends ICookie {
+        GetAttribute(
+            [in] String name,
+            [out] String* attr);
+
+        ContainsAttribute(
+            [in] String name,
+            [out] Boolean* isContain);
+    }
+}

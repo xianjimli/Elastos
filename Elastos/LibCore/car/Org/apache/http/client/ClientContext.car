@@ -1,0 +1,21 @@
+
+module
+{
+    const ClientContext_COOKIESPEC_REGISTRY   = "http.cookiespec-registry";
+    const ClientContext_AUTHSCHEME_REGISTRY   = "http.authscheme-registry";
+    const ClientContext_COOKIE_STORE          = "http.cookie-store";
+    const ClientContext_COOKIE_SPEC           = "http.cookie-spec";
+    const ClientContext_COOKIE_ORIGIN         = "http.cookie-origin";
+    const ClientContext_CREDS_PROVIDER        = "http.auth.credentials-provider";
+    const ClientContext_TARGET_AUTH_STATE     = "http.auth.target-scope";
+    const ClientContext_PROXY_AUTH_STATE      = "http.auth.proxy-scope";
+    const ClientContext_AUTH_SCHEME_PREF      = "http.auth.scheme-pref";
+    const ClientContext_USER_TOKEN            = "http.user-token";
+
+    /**
+     * {@link org.apache.http.protocol.HttpContext Context}
+     * attribute names for client.
+     */
+    interface IClientContext {
+    }
+}

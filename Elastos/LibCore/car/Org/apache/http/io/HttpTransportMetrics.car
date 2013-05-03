@@ -1,0 +1,16 @@
+
+module
+{
+    interface IHttpTransportMetrics {
+        /**
+         * Returns the number of bytes trasferred.
+         */
+        GetBytesTransferred(
+            [out] Int64* num);
+
+        /**
+         * Resets the counts
+         */
+        Reset();
+    }
+}

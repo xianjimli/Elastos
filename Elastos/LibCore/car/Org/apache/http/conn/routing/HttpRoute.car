@@ -1,0 +1,62 @@
+
+module
+{
+    interface IHttpHost;
+
+    /**
+     * The route for a request.
+     * Instances of this class are unmodifiable and therefore suitable
+     * for use as lookup keys.
+     *
+     * @author <a href="mailto:rolandw at apache.org">Roland Weber</a>
+     *
+     *
+     * <!-- empty lines to avoid svn diff problems -->
+     * @version $Revision: 653041 $
+     *
+     * @since 4.0
+     */
+    interface IHttpRoute {
+        // non-JavaDoc, see interface RouteInfo
+        GetTargetHost(
+            [out] IHttpHost** host);
+
+        // non-JavaDoc, see interface RouteInfo
+        GetLocalAddress(
+            [out] IInetAddress** addr);
+
+        // non-JavaDoc, see interface RouteInfo
+        GetHopCount(
+            [out] Int32* count);
+
+        // non-JavaDoc, see interface RouteInfo
+        GetHopTarget(
+            [in] Int32 hop,
+            [out] IHttpHost** host);
+
+        // non-JavaDoc, see interface RouteInfo
+        GetProxyHost(
+            [out] IHttpHost** host);
+
+        // non-JavaDoc, see interface RouteInfo
+        GetTunnelType(
+            [out] TunnelType* tunnelType);
+
+        // non-JavaDoc, see interface RouteInfo
+        IsTunnelled(
+            [out] Boolean* isTunnelled);
+
+        // non-JavaDoc, see interface RouteInfo
+        GetLayerType(
+            [out] LayerType* layerType);
+
+
+        // non-JavaDoc, see interface RouteInfo
+        IsLayered(
+            [out] Boolean* isLayered);
+
+        // non-JavaDoc, see interface RouteInfo
+        IsSecure(
+            [out] Boolean* isSecure);
+    }
+}

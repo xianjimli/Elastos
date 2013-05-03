@@ -1,0 +1,34 @@
+
+module
+{
+    interface IProtocolVersion;
+
+    /**
+     * An iterator for {@link String} tokens.
+     * This interface is designed as a complement to
+     * {@link HeaderElementIterator}, in cases where the items
+     * are plain strings rather than full header elements.
+     *
+     * @version $Revision: 601000 $
+     */
+    interface ITokenIterator /* extends Iterator */ {
+        /**
+         * Indicates whether there is another token in this iteration.
+         *
+         * @return  <code>true</code> if there is another token,
+         *          <code>false</code> otherwise
+         */
+        HasNext(
+            [out] Boolean* hasNext);
+
+        /**
+         * Obtains the next token from this iteration.
+         * This method should only be called while {@link #hasNext hasNext}
+         * is true.
+         *
+         * @return  the next token in this iteration
+         */
+        NextToken(
+            [out] String* nextToken);
+    }
+}

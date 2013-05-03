@@ -1,0 +1,102 @@
+
+module
+{
+    interface IHttpByteArrayBuffer;
+
+    /**
+     * A resizable char array.
+     *
+     * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
+     *
+     * @version $Revision: 496070 $
+     *
+     * @since 4.0
+     */
+    interface IHttpCharArrayBuffer {
+        Append(
+            [in] ArrayOf<Char32> b,
+            [in] Int32 off,
+            [in] Int32 len);
+
+
+        AppendEx(
+            [in] String str);
+
+        AppendEx2(
+            [in] IHttpCharArrayBuffer* b,
+            [in] Int32 off,
+            [in] Int32 len);
+
+        AppendEx3(
+            [in] IHttpCharArrayBuffer* b);
+
+        AppendEx4(
+            [in] Char32 ch);
+
+        AppendEx5(
+            [in] ArrayOf<Byte> b,
+            [in] Int32 off,
+            [in] Int32 len);
+
+        AppendEx6(
+            [in] IHttpByteArrayBuffer* b,
+            [in] Int32 off,
+            [in] Int32 len);
+
+        AppendEx7(
+            [in] IInterface* obj);
+
+        Clear();
+
+        ToCharArray(
+            [out, callee] ArrayOf<Char32>* charArray);
+
+        CharAt(
+            [in] Int32 i,
+            [out] Char32* c);
+
+        Buffer(
+            [out, callee] ArrayOf<Char32>* charArray);
+
+        GetCapacity(
+            [out] Int32* capacity);
+
+        GetLength(
+            [out] Int32* len);
+
+        EnsureCapacity(
+            [in] Int32 required);
+
+        SetLength(
+            [in] Int32 len);
+
+        IsEmpty(
+            [out] Boolean* isEmpty);
+
+        IsFull(
+            [out] Boolean* isFull);
+
+        IndexOf(
+            [in] Int32 ch,
+            [in] Int32 beginIndex,
+            [in] Int32 endIndex,
+            [out] Int32* index);
+
+        IndexOfEx(
+            [in] Int32 ch,
+            [out] Int32* index);
+
+        Substring(
+            [in] Int32 beginIndex,
+            [in] Int32 endIndex,
+            [out] String* substring);
+
+        SubstringTrimmed(
+            [in] Int32 beginIndex,
+            [in] Int32 endIndex,
+            [out] String* substring);
+
+        ToString(
+            [out] String* s);
+    }
+}

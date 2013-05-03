@@ -1,0 +1,22 @@
+
+module
+{
+    const ExecutionContext_HTTP_CONNECTION  = "http.connection";
+    const ExecutionContext_HTTP_REQUEST     = "http.request";
+    const ExecutionContext_HTTP_RESPONSE    = "http.response";
+    const ExecutionContext_HTTP_TARGET_HOST = "http.target_host";
+    const ExecutionContext_HTTP_PROXY_HOST  = "http.proxy_host";
+    const ExecutionContext_HTTP_REQ_SENT    = "http.request_sent";
+
+    /**
+     * {@link HttpContext Context} attribute names for protocol execution.
+     *
+     * @author <a href="mailto:oleg at ural.ru">Oleg Kalnichevski</a>
+     *
+     * @version $Revision: 558154 $
+     *
+     * @since 4.0
+     */
+    interface IExecutionContext {
+    }
+}
