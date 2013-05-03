@@ -51,13 +51,13 @@ private:
         /* [in] */ IContext * context); 
 
 private:
-	static const CString sLOGTAG;
+    static const CString LOGTAG;
 
-    static const CString sPLUGIN_SYSTEM_LIB;
+    static const CString PLUGIN_SYSTEM_LIB;
 
-    static const CString sPLUGIN_TYPE;
+    static const CString PLUGIN_TYPE;
     
-    static const CString sTYPE_NATIVE;
+    static const CString TYPE_NATIVE;
 
     static IPluginManager * sInstance;
 
@@ -67,9 +67,9 @@ private:
 
     // Only plugin matches one of the signatures in the list can be loaded
     // inside the WebView process
-    static const CString sSIGNATURE_1;
+    static const CString SIGNATURE_1;
 
-    static const AutoFree < ArrayOf < AutoPtr <ISignature> > > sSIGNATURES;
+    static const AutoFree < ArrayOf < AutoPtr <ISignature> > > SIGNATURES;
 
     static Core::Threading::Mutex mMutexClass;
     Core::Threading::Mutex mMutexPackageInfoCache;

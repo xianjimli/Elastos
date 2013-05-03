@@ -88,7 +88,7 @@ ECode CWebBackForwardList::AddHistoryItem(
     // Add the item to the list.
     mArray.PushBack(item);
     if (mCallbackProxy.Get() != NULL) {
-        mCallbackProxy -> OnNewHistoryItem(item);
+        mCallbackProxy->OnNewHistoryItem(item);
     }
     return NOERROR;
 }
@@ -130,25 +130,23 @@ ECode CWebBackForwardList::Clone(
     /* [in] */ IWebBackForwardList** webBackForwardList)
 {
     Mutex::Autolock lock(_m_syncLock);
-
     AutoPtr<CWebBackForwardList> l = new CWebBackForwardList();
     if (mClearPending)  {
         // If a clear is pending, return a copy with only the current item.
         AutoPtr<IWebHistoryItem> webHistoryItem;
         GetCurrentItem((IWebHistoryItem**)&webHistoryItem);
-        l-> AddHistoryItem(webHistoryItem.Get());
+        l->AddHistoryItem(webHistoryItem.Get());
         *webBackForwardList = (IWebBackForwardList*)(l.Get());
         return NOERROR;
     }
-    l -> mCurrentIndex = mCurrentIndex;
+    l->mCurrentIndex = mCurrentIndex;
     Int32 size = 0;
     GetSize(&size);
     for (Int32 i = 0; i < size; i++)  {
         // Add a copy of each WebHistoryItem
-        (l -> mArray).PushBack(mArray[i]);
+        (l->mArray).PushBack(mArray[i]);
     }
     *webBackForwardList = (IWebBackForwardList*)(l.Get());
-
     return NOERROR;
 }
 
@@ -159,9 +157,8 @@ ECode CWebBackForwardList::SetCurrentIndex(
     if (mCallbackProxy != NULL) {
         AutoPtr<IWebHistoryItem> webHistoryItem;
         GetItemAtIndex(newIndex,(IWebHistoryItem**)&webHistoryItem);
-        mCallbackProxy -> OnIndexChanged(webHistoryItem.Get(), newIndex);
+        mCallbackProxy->OnIndexChanged(webHistoryItem.Get(), newIndex);
     }
-
     return NOERROR;
 }
 
@@ -179,4 +176,3 @@ ECode CWebBackForwardList::NativeClose(
     //Mutex::Autolock lock(mMutexClass);
     return E_NOT_IMPLEMENTED;
 }
-

@@ -174,9 +174,13 @@ void ViewManager::ChildView::AttachView(
     }
     SetBounds(x, y, width, height);
 
-    Boolean bPost = FALSE;
     AutoPtr<RunnableAttachView> pRunnable = new RunnableAttachView(this,mViewManager);
-//    ( ((CWebView*)((mViewManager ->mWebView).Get())) -> mPrivateHandler ) -> Post((IRunnable*)pRunnable.Get(),&bPost);
+
+    ECode (STDCALL RunnableAttachView::*pHandlerFunc)();
+    pHandlerFunc = &RunnableAttachView::Run;
+    AutoPtr<IParcel> params;
+    CCallbackParcel::New((IParcel**)&params);
+    ( ((CWebView*)((mViewManager ->mWebView).Get())) -> mPrivateHandler ) -> PostCppCallback( (Handle32)(pRunnable.Get()), *(Handle32*)&pHandlerFunc, params, 0);
 }
 
 void ViewManager::ChildView::AttachViewOnUIThread()
@@ -193,9 +197,14 @@ void ViewManager::ChildView::RemoveView()
     if( mView.Get() == NULL ) {
         return;
     }
-    Boolean bPost = FALSE;
+
     AutoPtr<RunnableRemoveView> pRunnable = new RunnableRemoveView(this);
-//    ( ((CWebView*)((mViewManager -> mWebView).Get())) -> mPrivateHandler ) -> Post((IRunnable*)pRunnable.Get(),&bPost);
+
+    ECode (STDCALL RunnableRemoveView::*pHandlerFunc)();
+    pHandlerFunc = &RunnableRemoveView::Run;
+    AutoPtr<IParcel> params;
+    CCallbackParcel::New((IParcel**)&params);
+    ( ((CWebView*)((mViewManager ->mWebView).Get())) -> mPrivateHandler ) -> PostCppCallback( (Handle32)(pRunnable.Get()), *(Handle32*)&pHandlerFunc, params, 0);
 }
 
 void ViewManager::ChildView::RemoveViewOnUIThread()
@@ -341,9 +350,13 @@ void ViewManager::RequestLayout(
                 // to VISIBLE now, it will use the old dimension to set the
                 // size. Post a message to ensure that it shows the new size.
 
-                Boolean bPost = FALSE;
-                ChildView::RunnableSetVisibility * pRunnable = new ChildView::RunnableSetVisibility(sView.Get());
-//                ( ((CWebView*)(mWebView.Get())) -> mPrivateHandler ) -> Post((IRunnable*)pRunnable,&bPost);
+                AutoPtr<ChildView::RunnableSetVisibility> pRunnable = new ChildView::RunnableSetVisibility(sView.Get());
+
+                ECode (STDCALL ChildView::RunnableSetVisibility::*pHandlerFunc)();
+                pHandlerFunc = &ChildView::RunnableSetVisibility::Run;
+                AutoPtr<IParcel> params;
+                CCallbackParcel::New((IParcel**)&params);
+                ( ((CWebView*)((mWebView).Get())) -> mPrivateHandler ) -> PostCppCallback( (Handle32)(pRunnable.Get()), *(Handle32*)&pHandlerFunc, params, 0);
             }
             else  {
                 AutoPtr<ISurfaceHolder> sHolder;
@@ -431,16 +444,24 @@ void ViewManager::ShowAll()
 
 void ViewManager::PostResetStateAll()
 {
-    Boolean bPost = FALSE;
     AutoPtr<ChildView::RunnablePostResetState> pRunnable = new ChildView::RunnablePostResetState(this);
-//    ( ((CWebView*)(mWebView.Get())) -> mPrivateHandler ) -> Post((IRunnable*)pRunnable.Get(),&bPost);
+
+    ECode (STDCALL ChildView::RunnablePostResetState::*pHandlerFunc)();
+    pHandlerFunc = &ChildView::RunnablePostResetState::Run;
+    AutoPtr<IParcel> params;
+    CCallbackParcel::New((IParcel**)&params);
+    ( ((CWebView*)((mWebView).Get())) -> mPrivateHandler ) -> PostCppCallback( (Handle32)(pRunnable.Get()), *(Handle32*)&pHandlerFunc, params, 0);
 }
 
 void ViewManager::PostReadyToDrawAll()
 {
-    Boolean bPost = FALSE;
     AutoPtr<ChildView::RunnablePostReadyToDraw> pRunnable = new ChildView::RunnablePostReadyToDraw(this);
-//    ( ((CWebView*)(mWebView.Get())) -> mPrivateHandler ) -> Post((IRunnable*)pRunnable.Get(),&bPost);
+
+    ECode (STDCALL ChildView::RunnablePostReadyToDraw::*pHandlerFunc)();
+    pHandlerFunc = &ChildView::RunnablePostReadyToDraw::Run;
+    AutoPtr<IParcel> params;
+    CCallbackParcel::New((IParcel**)&params);
+    ( ((CWebView*)((mWebView).Get())) -> mPrivateHandler ) -> PostCppCallback( (Handle32)(pRunnable.Get()), *(Handle32*)&pHandlerFunc, params, 0);
 }
 
 ViewManager::ChildView* ViewManager::HitTest(

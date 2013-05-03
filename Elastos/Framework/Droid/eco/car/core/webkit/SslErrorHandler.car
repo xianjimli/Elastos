@@ -1,14 +1,10 @@
 
 module
 {
-    interface IHandler;
+    interface IApartment;
     interface IMessage;
 
-    interface ISslErrorHandler extends IHandler {
-
-        //@Override
-        HandleMessage(
-           [in] IMessage* msg);
+    interface ISslErrorHandler extends IApartment {
 
         /**
          * Proceed with the SSL certificate.

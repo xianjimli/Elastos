@@ -27,7 +27,9 @@
  * that indicates the content should not be cached.
  *
  */
-class StreamLoader //: public IHandlerCallback
+class StreamLoader://public IHandlerCallback
+    public ElRefBase,
+    public IApartment
 {
 public:
     /**
@@ -50,9 +52,85 @@ public:
     //package
     CARAPI_(void) Load();
 
-    //public
-    virtual CARAPI_(Boolean) HandleMessage(
-        /* [in] */ const IMessage* msg);
+public:
+    //IInterface
+    CARAPI_(PInterface) Probe(
+        /* [in] */ REIID riid);
+
+    CARAPI_(UInt32) AddRef();
+
+    CARAPI_(UInt32) Release();
+
+    CARAPI GetInterfaceID(
+        /* [in] */ IInterface* object,
+        /* [out] */ InterfaceID* iID);
+
+public:
+    //IApartment
+    CARAPI Start(
+        /* [in] */ ApartmentAttr attr);
+
+    CARAPI Finish();
+
+    CARAPI PostCppCallback(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [in] */ IParcel* params,
+        /* [in] */ Int32 id);
+
+    CARAPI PostCppCallbackAtTime(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [in] */ IParcel* params,
+        /* [in] */ Int32 id,
+        /* [in] */ Millisecond64 uptimeMillis);
+
+    CARAPI PostCppCallbackDelayed(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [in] */ IParcel* params,
+        /* [in] */ Int32 id,
+        /* [in] */ Millisecond64 delayMillis);
+
+    CARAPI PostCppCallbackAtFrontOfQueue(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [in] */ IParcel* params,
+        /* [in] */ Int32 id);
+
+    CARAPI RemoveCppCallbacks(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func);
+
+    CARAPI RemoveCppCallbacksEx(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [in] */ Int32 id);
+
+    CARAPI HasCppCallbacks(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [out] */ Boolean* result);
+
+    CARAPI HasCppCallbacksEx(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [in] */ Int32 id,
+        /* [out] */ Boolean* result);
+
+    CARAPI SendMessage(
+        /* [in] */ Int32 message,
+        /* [in] */ IParcel* params);
+
+public:
+    //HandleMessage
+    void HandleMsgStatus();
+
+    void HandleMsgHeaders();
+
+    void HandleMsgData();
+
+    void HandleMsgEnd();
 
 protected:
     /*const*/ AutoPtr<IContext>  mContext;
@@ -108,7 +186,9 @@ private:
     AutoFree < ArrayOf<Byte> > mData; // buffer to pass data to loader with.
 
     // Handler which will be initialized in the thread where load() is called.
-    AutoPtr<IHandler> mHandler;
+    AutoPtr<IApartment> mHandler;
+
+    AutoPtr<IApartment> mApartment;
 
     Elastos::Core::Threading::Mutex mMutex;
 };

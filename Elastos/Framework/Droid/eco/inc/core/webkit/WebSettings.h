@@ -108,7 +108,7 @@ private:
     public:
         friend class WebSettings;
     private:
-        class WsEhHandler: public ElRefBase,public IHandler
+        class WsEhHandler: public ElRefBase,public IApartment
         {
         public:
             CARAPI_(PInterface) Probe(
@@ -122,16 +122,78 @@ private:
                 /* [in] */ IInterface* Object,
                 /* [out] */ InterfaceID* iID);
 
+        public:
+            //IApartment
+            CARAPI Start(
+                /* [in] */ ApartmentAttr attr);
+
+            CARAPI Finish();
+
+            CARAPI PostCppCallback(
+                /* [in] */ Handle32 target,
+                /* [in] */ Handle32 func,
+                /* [in] */ IParcel* params,
+                /* [in] */ Int32 id);
+
+            CARAPI PostCppCallbackAtTime(
+                /* [in] */ Handle32 target,
+                /* [in] */ Handle32 func,
+                /* [in] */ IParcel* params,
+                /* [in] */ Int32 id,
+                /* [in] */ Millisecond64 uptimeMillis);
+
+            CARAPI PostCppCallbackDelayed(
+                /* [in] */ Handle32 target,
+                /* [in] */ Handle32 func,
+                /* [in] */ IParcel* params,
+                /* [in] */ Int32 id,
+                /* [in] */ Millisecond64 delayMillis);
+
+            CARAPI PostCppCallbackAtFrontOfQueue(
+                /* [in] */ Handle32 target,
+                /* [in] */ Handle32 func,
+                /* [in] */ IParcel* params,
+                /* [in] */ Int32 id);
+
+            CARAPI RemoveCppCallbacks(
+                /* [in] */ Handle32 target,
+                /* [in] */ Handle32 func);
+
+            CARAPI RemoveCppCallbacksEx(
+                /* [in] */ Handle32 target,
+                /* [in] */ Handle32 func,
+                /* [in] */ Int32 id);
+
+            CARAPI HasCppCallbacks(
+                /* [in] */ Handle32 target,
+                /* [in] */ Handle32 func,
+                /* [out] */ Boolean* result);
+
+            CARAPI HasCppCallbacksEx(
+                /* [in] */ Handle32 target,
+                /* [in] */ Handle32 func,
+                /* [in] */ Int32 id,
+                /* [out] */ Boolean* result);
+
+            CARAPI SendMessage(
+                /* [in] */ Int32 message,
+                /* [in] */ IParcel* params);
+
+        public:
+            void HandleSYNC();
+
+            void HandlePRIORITY();
+
+            void HandleSetDoubleTapToastCount();
+                     
+        public:
             WsEhHandler(
                 /* [in] */ WsEventHandler* eventHandler,
                 /* [in] */ WebSettings* webSettings);
-        public:
-            //@Override
-            CARAPI_(void) HandleMessage(
-                /* [in] */ IMessage* msg);
         private:
             WsEventHandler* mEventHandler;
             WebSettings* mWebSettings;
+            AutoPtr<IApartment> mApartment;
         };
     public:
         WsEventHandler(
@@ -145,7 +207,8 @@ private:
          * Send a message to the private queue or handler.
          */
         CARAPI_(Boolean) SendMessage(
-            /* [in] */ IMessage* msg);
+            /* [in] */ Int32 message,
+            /* [in] */ IParcel* params);
 
     public:
         // Message id for syncing
@@ -156,7 +219,7 @@ private:
         static const Int32 SET_DOUBLE_TAP_TOAST_COUNT = 2;
     private:
         // Actual WebCore thread handler
-        AutoPtr<IHandler> mHandler;
+        AutoPtr<IApartment> mHandler;
     private:
         WebSettings* mWebSettings;
         Core::Threading::Mutex mMutexWsEhThis;

@@ -1671,7 +1671,7 @@ public:
 
     // Handler for dispatching UI messages.
     /* package */
-    const AutoPtr<IHandler> mPrivateHandler;// = new PrivateHandler();
+    const AutoPtr<IApartment> mPrivateHandler;// = new PrivateHandler();
 
     // Used by WebViewCore to create child views.
     /* package */

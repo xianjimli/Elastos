@@ -52,10 +52,51 @@ void WebTextView::AutoCompleteAdapter::SetTextView(
 }
 
 /*******************************OutlineDrawable*********************************/
-/*void*/ECode WebTextView::OutlineDrawable::Draw(
+PInterface WebTextView::OutlineDrawable::Probe(
+    /* [in] */ REIID riid)
+{
+    if (riid == EIID_IInterface) {
+        return (IInterface*)(IDrawable*)this;
+    }
+    else if (riid == EIID_IDrawable) {
+        return (IDrawable*)this;
+    }
+    return NULL;
+}
+
+UInt32 WebTextView::OutlineDrawable::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 WebTextView::OutlineDrawable::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode WebTextView::OutlineDrawable::GetInterfaceID(
+    /* [in] */ IInterface* Object,
+    /* [out] */ InterfaceID* iID)
+{
+    VALIDATE_NOT_NULL(iID);
+    if (iID == NULL) {
+        return E_INVALID_ARGUMENT;
+    }
+
+    if (Object == (IInterface*)(IDrawable*)this) {
+        *iID = EIID_IDrawable;
+    }
+    else {
+        return E_INVALID_ARGUMENT;
+    }
+    return NOERROR;
+}
+
+ECode WebTextView::OutlineDrawable::Draw(
     /* [in] */ ICanvas* canvas)
 {
-    AutoPtr<IRect> bounds = GetBounds();
+    AutoPtr<IRect> bounds;
+    GetBounds((IRect**)&bounds);
     AutoPtr<IPaint> paint;
     CPaint::New( (IPaint**)&paint );
     paint -> SetAntiAlias(TRUE);
@@ -68,25 +109,260 @@ void WebTextView::AutoCompleteAdapter::SetTextView(
     canvas -> DrawRectEx(bounds.Get(), paint.Get());
 }
 
-// Always want it to be opaque.
-CARAPI_(Int32) WebTextView::OutlineDrawable::GetOpacity()
-{
-    return ElPixelFormat::OPAQUE;
+ECode WebTextView::OutlineDrawable::SetBounds(
+    /* [in] */ Int32 left,
+    /* [in] */ Int32 top,
+    /* [in] */ Int32 right,
+    /* [in] */ Int32 bottom)
+{    
+    return Drawable::SetBounds(left, top, right, bottom);
 }
 
-// These are needed because they are abstract in Drawable.
-/*void*/ECode WebTextView::OutlineDrawable::SetAlpha(
-    /* [in] */ Int32 alpha)
-{}
-
-/*void*/ECode WebTextView::OutlineDrawable::SetColorFilter(
-    /* [in] */ IColorFilter* cf)
-{}
-
-CARAPI_(PInterface) WebTextView::OutlineDrawable::Probe(
-    /* [in] */ REIID riid)
+ECode WebTextView::OutlineDrawable::SetBoundsEx(
+    /* [in] */ IRect* bounds)
 {
-    return NULL;
+    return Drawable::SetBounds(bounds);
+}
+
+ECode WebTextView::OutlineDrawable::CopyBounds(
+    /* [in] */ IRect* bounds)
+{
+    Drawable::CopyBounds(bounds);
+    return NOERROR;
+}
+
+ECode WebTextView::OutlineDrawable::CopyBoundsEx(
+    /* [out] */ IRect** rect)
+{
+    *rect = Drawable::CopyBounds();
+    return NOERROR;
+}
+
+ECode WebTextView::OutlineDrawable::GetBounds(
+    /* [out] */ IRect** rect)
+{
+    *rect = Drawable::GetBounds();
+    return NOERROR;
+}
+
+ECode WebTextView::OutlineDrawable::SetChangingConfigurations(
+    /* [in] */ Int32 configs)
+{
+    return Drawable::SetChangingConfigurations(configs);
+}
+
+ECode WebTextView::OutlineDrawable::GetChangingConfigurations(
+    /* [out] */ Int32* configs)
+{
+    *configs = Drawable::GetChangingConfigurations();
+    return NOERROR;
+}
+
+ECode WebTextView::OutlineDrawable::SetDither(
+    /* [in] */ Boolean dither)
+{
+    return Drawable::SetDither(dither);
+}
+
+ECode WebTextView::OutlineDrawable::SetFilterBitmap(
+    /* [in] */ Boolean filter)
+{
+    return Drawable::SetFilterBitmap(filter);
+}
+
+ECode WebTextView::OutlineDrawable::SetCallback(
+    /* [in] */ IDrawableCallback* cb)
+{
+    return Drawable::SetCallback(cb);
+}
+
+ECode WebTextView::OutlineDrawable::InvalidateSelf()
+{
+    return Drawable::InvalidateSelf();
+}
+
+ECode WebTextView::OutlineDrawable::ScheduleSelf(
+    /* [in] */ IRunnable* what,
+    /* [in] */ Int32 when)
+{
+    return Drawable::ScheduleSelf(what, when);
+}
+
+ECode WebTextView::OutlineDrawable::UnscheduleSelf(
+    /* [in] */ IRunnable* what)
+{
+    return Drawable::UnscheduleSelf(what);
+}
+
+ECode WebTextView::OutlineDrawable::SetAlpha(
+    /* [in] */ Int32 alpha)
+{//=0(virtural)
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode WebTextView::OutlineDrawable::SetColorFilter(
+    /* [in] */ IColorFilter* cf)
+{//=0(virtural)
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode WebTextView::OutlineDrawable::SetColorFilterEx(
+    /* [in] */ Int32 color,
+    /* [in] */ PorterDuffMode mode)
+{
+    return Drawable::SetColorFilter(color, mode);
+}
+
+ECode WebTextView::OutlineDrawable::ClearColorFilter()
+{
+    return Drawable::ClearColorFilter();
+}
+
+ECode WebTextView::OutlineDrawable::IsStateful(
+    /* [out] */ Boolean* isStateful)
+{
+    *isStateful = Drawable::IsStateful();
+    return NOERROR;
+}
+
+ECode WebTextView::OutlineDrawable::SetState(
+    /* [in] */ ArrayOf<Int32>* stateSet,
+    /* [out] */ Boolean* isStateful)
+{
+    *isStateful = Drawable::SetState(stateSet);
+    return NOERROR;
+}
+
+ECode WebTextView::OutlineDrawable::GetState(
+    /* [out] */ ArrayOf<Int32>** stateSet)
+{
+    *stateSet = Drawable::GetState();
+    return NOERROR;
+}
+
+ECode WebTextView::OutlineDrawable::GetCurrent(
+    /* [out] */ IDrawable** drawable)
+{
+    *drawable = Drawable::GetCurrent();
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode WebTextView::OutlineDrawable::SetLevel(
+    /* [in] */ Int32 level,
+    /* [out] */ Boolean* changed)
+{
+    *changed = Drawable::SetLevel(level);
+    return NOERROR;
+}
+
+ECode WebTextView::OutlineDrawable::GetLevel(
+    /* [out] */ Int32* curLevel)
+{
+    *curLevel = Drawable::GetLevel();
+    return NOERROR;
+}
+
+ECode WebTextView::OutlineDrawable::SetVisible(
+    /* [in] */ Boolean visible,
+    /* [in] */ Boolean restart,
+    /* [out] */ Boolean* isDifferent)
+{
+    *isDifferent = Drawable::SetVisible(visible, restart);
+    return NOERROR;
+}
+
+ECode WebTextView::OutlineDrawable::IsVisible(
+    /* [out] */ Boolean* visible)
+{
+    *visible = Drawable::IsVisible();
+    return NOERROR;
+}
+
+// Always want it to be opaque.
+ECode WebTextView::OutlineDrawable::GetOpacity(
+    /* [out] */ Int32* opacity)
+{
+    *opacity = ElPixelFormat::OPAQUE;
+    return NOERROR;
+}
+
+ECode WebTextView::OutlineDrawable::ResolveOpacity(
+    /* [in] */ Int32 op1,
+    /* [in] */ Int32 op2,
+    /* [out] */ Int32* opacity)
+{
+    *opacity = Drawable::ResolveOpacity(op1, op2);
+    return NOERROR;
+}
+
+ECode WebTextView::OutlineDrawable::GetTransparentRegion(
+    /* [out] */ IRegion** bounds)
+{
+    *bounds = (Drawable::GetTransparentRegion()).Get();
+    return NOERROR;
+}
+
+ECode WebTextView::OutlineDrawable::GetIntrinsicWidth(
+    /* [out] */ Int32* width)
+{
+    *width = Drawable::GetIntrinsicWidth();
+    return NOERROR;
+}
+
+ECode WebTextView::OutlineDrawable::GetIntrinsicHeight(
+    /* [out] */ Int32* height)
+{
+    *height = Drawable::GetIntrinsicHeight();
+    return NOERROR;
+}
+
+ECode WebTextView::OutlineDrawable::GetMinimumWidth(
+    /* [out] */ Int32* width)
+{
+    *width = Drawable::GetMinimumWidth();
+    return NOERROR;
+}
+
+ECode WebTextView::OutlineDrawable::GetMinimumHeight(
+    /* [out] */ Int32* height)
+{
+    *height = Drawable::GetMinimumHeight();
+    return NOERROR;
+}
+
+ECode WebTextView::OutlineDrawable::GetPadding(
+    /* [in] */ IRect* padding,
+    /* [out] */ Boolean* isPadding)
+{
+    *isPadding = Drawable::GetPadding(padding);
+    return NOERROR;
+}
+
+ECode WebTextView::OutlineDrawable::Mutate(
+    /* [out] */ IDrawable** drawable)
+{
+    *drawable = (Drawable::Mutate()).Get();
+    return NOERROR;
+}
+
+ECode WebTextView::OutlineDrawable::Inflate(
+    /* [in] */ IResources* r,
+    /* [in] */ IXmlPullParser* parser,
+    /* [in] */ IAttributeSet* attrs)
+{
+    return Drawable::Inflate(r, parser, attrs);
+}
+
+ECode WebTextView::OutlineDrawable::GetConstantState(
+    /* [out] */ IDrawableConstantState** state)
+{
+    *state = (Drawable::GetConstantState()).Get();
+    return NOERROR;
+}
+
+Int32 WebTextView::OutlineDrawable::GetOpacity()
+{
+    return ElPixelFormat::OPAQUE;
 }
 
 /*******************************WebTextView*********************************/
@@ -812,7 +1088,7 @@ void WebTextView::CreateBackground()
     if (mBackground != NULL) {
             return;
     }
-    //mBackground = new OutlineDrawable();
+    mBackground = new OutlineDrawable();
 
     SetGravity(Gravity_CENTER_VERTICAL);
     // Turn on subpixel text, and turn off kerning, so it better matches

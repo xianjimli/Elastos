@@ -19,7 +19,6 @@
 #include "graphics/CRect.h"
 #include "webkit/WebViewWorker.h"
 #include "webkit/Network.h"
-#include <elastos/Set.h>
 #include "webkit/DebugFlags.h"
 #include "webkit/CWebBackForwardList.h"
 #include "webkit/CCacheManager.h"
@@ -30,6 +29,9 @@
 #include "graphics/CRect.h"
 #include "utils/CDisplayMetrics.h"
 #include "webkit/CPluginManager.h"
+#include "os/CApartment.h"
+#include "os/CBundle.h"
+#include "webkit/CWebView.h"
 
 const CString WebViewCore::THREAD_NAME = "WebViewCoreThread";
 const CString WebViewCore::LOGTAG = "webcore";
@@ -99,7 +101,7 @@ const CString WebViewCore::HandlerDebugString[] = {
     "VALID_NODE_BOUNDS", // = 146
 };
 
-AutoPtr<IHandler> WebViewCore::sWebCoreHandler;
+AutoPtr<IApartment> WebViewCore::sWebCoreHandler;
 
 Boolean WebViewCore::mRepaintScheduled = FALSE;
 
@@ -132,588 +134,1837 @@ WebViewCore::WvcWebStorageQuotaUpdater::WvcWebStorageQuotaUpdater(
 }
 
 /*****************************WebViewCore::WebCoreThread*****************************/
+PInterface WebViewCore::WebCoreThread::WvcWctHandler::Probe(
+    /* [in] */ REIID riid)
+{
+    if (riid == EIID_IInterface) {
+        return (IInterface*)(IApartment*)this;
+    }
+    else if (riid == EIID_IApartment) {
+        return (IApartment*)this;
+    }
+    return NULL;
+}
+
+UInt32 WebViewCore::WebCoreThread::WvcWctHandler::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 WebViewCore::WebCoreThread::WvcWctHandler::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode WebViewCore::WebCoreThread::WvcWctHandler::GetInterfaceID(
+    /* [in] */ IInterface* Object,
+    /* [out] */ InterfaceID* iID)
+{
+    VALIDATE_NOT_NULL(iID);
+    if (iID == NULL) {
+        return E_INVALID_ARGUMENT;
+    }
+
+    if (Object == (IInterface*)(IApartment*)this) {
+        *iID = EIID_IApartment;
+    }
+    else {
+        return E_INVALID_ARGUMENT;
+    }
+    return NOERROR;
+}
+
+
+ECode WebViewCore::WebCoreThread::WvcWctHandler::Start(
+    /* [in] */ ApartmentAttr attr)
+{
+    assert(0);
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode WebViewCore::WebCoreThread::WvcWctHandler::Finish()
+{
+    assert(0);
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode WebViewCore::WebCoreThread::WvcWctHandler::PostCppCallback(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ IParcel* params,
+    /* [in] */ Int32 id)
+{
+    assert(mApartment != NULL);
+    return mApartment->PostCppCallback(target, func, params, id);
+}
+
+ECode WebViewCore::WebCoreThread::WvcWctHandler::PostCppCallbackAtTime(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ IParcel* params,
+    /* [in] */ Int32 id,
+    /* [in] */ Millisecond64 uptimeMillis)
+{
+    assert(mApartment != NULL);
+    return mApartment->PostCppCallbackAtTime(target, func, params, id, uptimeMillis);
+}
+
+ECode WebViewCore::WebCoreThread::WvcWctHandler::PostCppCallbackDelayed(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ IParcel* params,
+    /* [in] */ Int32 id,
+    /* [in] */ Millisecond64 delayMillis)
+{
+    assert(mApartment != NULL);
+    return mApartment->PostCppCallbackDelayed(target, func, params, id, delayMillis);
+}
+
+ECode WebViewCore::WebCoreThread::WvcWctHandler::PostCppCallbackAtFrontOfQueue(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ IParcel* params,
+    /* [in] */ Int32 id)
+{
+    assert(mApartment != NULL);
+    return mApartment->PostCppCallbackAtFrontOfQueue(target, func, params, id);
+}
+
+ECode WebViewCore::WebCoreThread::WvcWctHandler::RemoveCppCallbacks(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func)
+{
+    assert(mApartment != NULL);
+    return mApartment->RemoveCppCallbacks(target, func);
+}
+
+ECode WebViewCore::WebCoreThread::WvcWctHandler::RemoveCppCallbacksEx(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ Int32 id)
+{
+    assert(mApartment != NULL);
+    return mApartment->RemoveCppCallbacksEx(target, func, id);
+}
+
+ECode WebViewCore::WebCoreThread::WvcWctHandler::HasCppCallbacks(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [out] */ Boolean* result)
+{
+    assert(mApartment != NULL);
+    return mApartment->HasCppCallbacks(target, func, result);
+}
+
+ECode WebViewCore::WebCoreThread::WvcWctHandler::HasCppCallbacksEx(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ Int32 id,
+    /* [out] */ Boolean* result)
+{
+    assert(mApartment != NULL);
+    return mApartment->HasCppCallbacksEx(target, func, id, result);
+}
+
+ECode WebViewCore::WebCoreThread::WvcWctHandler::SendMessage(
+    /* [in] */ Int32 message,
+    /* [in] */ IParcel* params)
+{
+    if (message == WebViewCore::WebCoreThread::INITIALIZE) {
+        void (STDCALL WebViewCore::WebCoreThread::WvcWctHandler::*pHandlerFunc)(WebViewCore*);
+        pHandlerFunc = &WebViewCore::WebCoreThread::WvcWctHandler::HandleInitialize;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);
+    }
+    if (message == WebViewCore::WebCoreThread::REDUCE_PRIORITY) {
+        void (STDCALL WebViewCore::WebCoreThread::WvcWctHandler::*pHandlerFunc)();
+        pHandlerFunc = &WebViewCore::WebCoreThread::WvcWctHandler::HandleReducePriority;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);
+    }
+    if (message == WebViewCore::WebCoreThread::RESUME_PRIORITY) {
+        void (STDCALL WebViewCore::WebCoreThread::WvcWctHandler::*pHandlerFunc)();
+        pHandlerFunc = &WebViewCore::WebCoreThread::WvcWctHandler::HandleResumePriority;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);
+    }
+    return E_ILLEGAL_ARGUMENT_EXCEPTION;
+}
+
+Handle32 WebViewCore::WebCoreThread::WvcWctHandler::GetFunc(
+    /* [in] */ Int32 message)
+{
+    if (message == WebViewCore::WebCoreThread::INITIALIZE) {
+        void (STDCALL WebViewCore::WebCoreThread::WvcWctHandler::*pHandlerFunc)(WebViewCore*);
+        pHandlerFunc = &WebViewCore::WebCoreThread::WvcWctHandler::HandleInitialize;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if (message == WebViewCore::WebCoreThread::REDUCE_PRIORITY) {
+        void (STDCALL WebViewCore::WebCoreThread::WvcWctHandler::*pHandlerFunc)();
+        pHandlerFunc = &WebViewCore::WebCoreThread::WvcWctHandler::HandleReducePriority;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if (message == WebViewCore::WebCoreThread::RESUME_PRIORITY) {
+        void (STDCALL WebViewCore::WebCoreThread::WvcWctHandler::*pHandlerFunc)();
+        pHandlerFunc = &WebViewCore::WebCoreThread::WvcWctHandler::HandleResumePriority;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    return NULL;
+}
+
+void WebViewCore::WebCoreThread::WvcWctHandler::HandleInitialize(
+    /* [in] */ WebViewCore* webViewCore)
+{
+    AutoPtr<WebViewCore> core = webViewCore;
+    core -> Initialize();
+}
+
+void WebViewCore::WebCoreThread::WvcWctHandler::HandleReducePriority()
+{
+    // 3 is an adjustable number.
+    Process::SetThreadPriority(
+                        Process::THREAD_PRIORITY_DEFAULT + 
+                        3 * Process::THREAD_PRIORITY_LESS_FAVORABLE);
+}
+
+void WebViewCore::WebCoreThread::WvcWctHandler::HandleResumePriority()
+{
+    Process::SetThreadPriority(Process::THREAD_PRIORITY_DEFAULT);                    
+}
+
+WebViewCore::WebCoreThread::WvcWctHandler::WvcWctHandler()
+{
+    assert(SUCCEEDED(CApartment::GetMainApartment((IApartment**)&mApartment))
+        && (mApartment != NULL));
+}
+
+/*****************************WebViewCore::WebCoreThread*****************************/
 ECode WebViewCore::WebCoreThread::Run()
 {
-    class WvcWctHandler//:public Handler
-    {
-    public:
-        CARAPI HandleMessage(
-            /* [in] */ IMessage* msg)
-        {
-            switch (/*msg -> what*/0) {
-                case WebCoreThread::INITIALIZE:
-                {
-                    AutoPtr<WebViewCore> core = (WebViewCore*)(/*msg->obj*/NULL);
-                    core -> Initialize();
-                    break;
-                }
-                case WebCoreThread::REDUCE_PRIORITY:
-                {
-                    // 3 is an adjustable number.
-                    Process::SetThreadPriority(
-                                        Process::THREAD_PRIORITY_DEFAULT + 
-                                        3 * Process::THREAD_PRIORITY_LESS_FAVORABLE);
-                    break;
-                }
-                case WebCoreThread::RESUME_PRIORITY:
-                {
-                    Process::SetThreadPriority(Process::THREAD_PRIORITY_DEFAULT);
-                    break;
-                }
-            }
-            return NOERROR;
-        };
-    };
     //Looper::Prepare();    //JAVA:  os/Loop.java(public class)
     assert(sWebCoreHandler.Get() == NULL);  //JAVA:  Assert.assertNull(sWebCoreHandler);
     Core::Threading::Mutex::Autolock lock(WebViewCore::mMutexClass);
-    WebViewCore::sWebCoreHandler = (IHandler*)(new WvcWctHandler());
+    WebViewCore::sWebCoreHandler = (IApartment*)(new WvcWctHandler());
     //WebViewCore.class.notify();
     //Looper::Loop();    //JAVA:  os/Loop.java(public class)
     return NOERROR;
 }
 /*****************************WebViewCore::EventHub::WvcEhHandler*****************************/
+PInterface WebViewCore::EventHub::WvcEhHandler::Probe(
+    /* [in] */ REIID riid)
+{
+    if (riid == EIID_IInterface) {
+        return (IInterface*)(IApartment*)this;
+    }
+    else if (riid == EIID_IApartment) {
+        return (IApartment*)this;
+    }
+    return NULL;
+}
+
+UInt32 WebViewCore::EventHub::WvcEhHandler::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 WebViewCore::EventHub::WvcEhHandler::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode WebViewCore::EventHub::WvcEhHandler::GetInterfaceID(
+    /* [in] */ IInterface* Object,
+    /* [out] */ InterfaceID* iID)
+{
+    VALIDATE_NOT_NULL(iID);
+    if (iID == NULL) {
+        return E_INVALID_ARGUMENT;
+    }
+
+    if (Object == (IInterface*)(IApartment*)this) {
+        *iID = EIID_IApartment;
+    }
+    else {
+        return E_INVALID_ARGUMENT;
+    }
+    return NOERROR;
+}
+
+
+ECode WebViewCore::EventHub::WvcEhHandler::Start(
+    /* [in] */ ApartmentAttr attr)
+{
+    assert(0);
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode WebViewCore::EventHub::WvcEhHandler::Finish()
+{
+    assert(0);
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode WebViewCore::EventHub::WvcEhHandler::PostCppCallback(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ IParcel* params,
+    /* [in] */ Int32 id)
+{
+    assert(mApartment != NULL);
+    return mApartment->PostCppCallback(target, func, params, id);
+}
+
+ECode WebViewCore::EventHub::WvcEhHandler::PostCppCallbackAtTime(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ IParcel* params,
+    /* [in] */ Int32 id,
+    /* [in] */ Millisecond64 uptimeMillis)
+{
+    assert(mApartment != NULL);
+    return mApartment->PostCppCallbackAtTime(target, func, params, id, uptimeMillis);
+}
+
+ECode WebViewCore::EventHub::WvcEhHandler::PostCppCallbackDelayed(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ IParcel* params,
+    /* [in] */ Int32 id,
+    /* [in] */ Millisecond64 delayMillis)
+{
+    assert(mApartment != NULL);
+    return mApartment->PostCppCallbackDelayed(target, func, params, id, delayMillis);
+}
+
+ECode WebViewCore::EventHub::WvcEhHandler::PostCppCallbackAtFrontOfQueue(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ IParcel* params,
+    /* [in] */ Int32 id)
+{
+    assert(mApartment != NULL);
+    return mApartment->PostCppCallbackAtFrontOfQueue(target, func, params, id);
+}
+
+ECode WebViewCore::EventHub::WvcEhHandler::RemoveCppCallbacks(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func)
+{
+    assert(mApartment != NULL);
+    return mApartment->RemoveCppCallbacks(target, func);
+}
+
+ECode WebViewCore::EventHub::WvcEhHandler::RemoveCppCallbacksEx(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ Int32 id)
+{
+    assert(mApartment != NULL);
+    return mApartment->RemoveCppCallbacksEx(target, func, id);
+}
+
+ECode WebViewCore::EventHub::WvcEhHandler::HasCppCallbacks(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [out] */ Boolean* result)
+{
+    assert(mApartment != NULL);
+    return mApartment->HasCppCallbacks(target, func, result);
+}
+
+ECode WebViewCore::EventHub::WvcEhHandler::HasCppCallbacksEx(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ Int32 id,
+    /* [out] */ Boolean* result)
+{
+    assert(mApartment != NULL);
+    return mApartment->HasCppCallbacksEx(target, func, id, result);
+}
+
+ECode WebViewCore::EventHub::WvcEhHandler::SendMessage(
+    /* [in] */ Int32 message,
+    /* [in] */ IParcel* params)
+{
+    /*
+    if (DebugFlags::sWEB_VIEW_CORE) {
+        Int32 arg1,arg2,obj;
+        String strOut = ((message) < EventHub::REQUEST_LABEL)
+                || ((message) > VALID_NODE_BOUNDS) ? String::FromInt32(message): String(HandlerDebugString[message - EventHub::REQUEST_LABEL]);
+        strOut += String(" arg1=") + String::FromInt32(arg1);
+        strOut += String(" arg2=") + String::FromInt32(arg2);
+        strOut += String(" obj=") + String::FromInt32(obj);
+        Utility::Logging::Logger::V(LOGTAG, strOut + String("\n") );
+    }
+    */
+    if(message == EventHub::WEBKIT_DRAW )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)();
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleWebkitDraw;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::DESTROY )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)();
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleDestroy;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::REQUEST_LABEL )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(Int32,Int32);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleRequestLabel;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::UPDATE_FRAME_CACHE_IF_LOADING )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)();
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleUpdateFrameCacheIfLoading;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::SCROLL_TEXT_INPUT )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(Int32,Float);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleScrollTextInput;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::LOAD_URL )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(GetUrlData*);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleLoadUrl;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::POST_URL )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(PostUrlData*);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandlePostUrl;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::LOAD_DATA )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(BaseUrlData*);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleLoadData;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::STOP_LOADING )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)();
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleStopLoading;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::RELOAD )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)();
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleReload;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::KEY_DOWN )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(IKeyEvent*);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleKeyDown;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::KEY_UP )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(IKeyEvent*);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleKeyUp;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::CLICK )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(Int32,Int32);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleClick;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::VIEW_SIZE_CHANGED )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(Handle32);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleViewSizeChanged;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::SET_SCROLL_OFFSET )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(Int32,CPoint*);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleSetScrollOffset;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::SET_GLOBAL_BOUNDS )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(IRect*);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleSetGlobalBounds;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::GO_BACK_FORWARD )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(Int32);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleGoBackForward;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::RESTORE_STATE )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(Int32);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleRestoreState;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::PAUSE_TIMERS )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)();
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandlePauseTimers;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::RESUME_TIMERS )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)();
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleResumeTimers;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::ON_PAUSE )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)();
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleOnPause;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::ON_RESUME )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)();
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleOnResume;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::FREE_MEMORY )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)();
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleFreeMemory;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::SET_NETWORK_STATE )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(Int32);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleSetNetworkState;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::SET_NETWORK_TYPE )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(IObjectStringMap*);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleSetNetworkType;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::CLEAR_CACHE )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(Int32);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleClearCache;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::CLEAR_HISTORY )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)();
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleClearHistory;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::REPLACE_TEXT )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(Int32,Int32,ReplaceTextData*);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleReplaceText;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::PASS_TO_JS )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(Int32,JSKeyData*);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandlePassToJs;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::SAVE_DOCUMENT_STATE )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(CursorData*);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleSaveDocumentState;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::CLEAR_SSL_PREF_TABLE )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)();
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleClearSslPrefTable;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::TOUCH_UP )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(TouchUpData*);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleTouchUp;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::TOUCH_EVENT )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(TouchEventData*);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleTouchEvent;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::SET_ACTIVE )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(Int32);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleSetActive;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::ADD_JS_INTERFACE )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(JSInterfaceData*);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleAddJsInterface;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::REQUEST_EXT_REPRESENTATION )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(IApartment*,Int32,IParcel*);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleRequestExtRepresentation;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::REQUEST_DOC_AS_TEXT )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(IApartment*,Int32,IParcel*);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleRequestDocAsText;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::SET_MOVE_FOCUS )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(CursorData*);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleSetMoveFocus;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::SET_MOVE_MOUSE )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(CursorData*);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleSetMoveMouse;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::SET_MOVE_MOUSE_IF_LATEST )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(CursorData*);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleSetMoveMouseIfLatest;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::REQUEST_CURSOR_HREF )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(Int32,Int32,IApartment*,Int32,IParcel*);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleRequestCursorHref;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::UPDATE_CACHE_AND_TEXT_ENTRY )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)();
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleUpdateCacheAndTextEntry;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::DOC_HAS_IMAGES )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(IApartment*,Int32,IParcel*);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleDocHasImages;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::DELETE_SELECTION )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(Int32,TextSelectionData*);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleDeleteSelection;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::SET_SELECTION )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(Int32,Int32);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleSetSelection;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::LISTBOX_CHOICES )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(Int32/*, ISparseBooleanArray* */);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleListboxChoices;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::SINGLE_LISTBOX_CHOICE )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(Int32);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleSingleListboxChoices;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::SET_BACKGROUND_COLOR )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(Int32);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleSetBackgroundColor;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::DUMP_DOMTREE )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(Int32);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleDumpDomTree;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::DUMP_RENDERTREE )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(Int32);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleDumpRenderTree;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::DUMP_NAVTREE )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)();
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleDumpNavTree;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::DUMP_V8COUNTERS )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)();
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleDumpV8Counters;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::SET_JS_FLAGS )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(String);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleSetJsFlags;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::GEOLOCATION_PERMISSIONS_PROVIDE )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(GeolocationPermissionsData*);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleGeolocationPermissionsProvide;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::SYNC_SCROLL )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(Int32, Int32);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleSyncScroll;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::SPLIT_PICTURE_SET )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)();
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleSplitPictureSet;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::CLEAR_CONTENT )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)();
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleClearContent;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::MESSAGE_RELAY )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(IApartment*,Int32,IParcel*);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleMessageRelay;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::POPULATE_VISITED_LINKS )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(ArrayOf<String>*);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandlePopulateVisitedLinks;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::VALID_NODE_BOUNDS )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(MotionUpData*);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleValidNodeBounds;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::HIDE_FULLSCREEN )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(Int32);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleHideFullScreen;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::ADD_PACKAGE_NAMES )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(Set<String>*);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleAddPackageNames;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::ADD_PACKAGE_NAME )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(String);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleAddPackageName;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    if(message == EventHub::REMOVE_PACKAGE_NAME )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(String);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleRemovePackageName;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
+    }
+    return E_ILLEGAL_ARGUMENT_EXCEPTION;
+}
+
+Handle32 WebViewCore::EventHub::WvcEhHandler::GetFunc(
+    /* [in] */ Int32 message)
+{
+    if(message == EventHub::WEBKIT_DRAW )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)();
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleWebkitDraw;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::DESTROY )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)();
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleDestroy;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::REQUEST_LABEL )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(Int32,Int32);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleRequestLabel;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::UPDATE_FRAME_CACHE_IF_LOADING )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)();
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleUpdateFrameCacheIfLoading;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::SCROLL_TEXT_INPUT )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(Int32,Float);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleScrollTextInput;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::LOAD_URL )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(GetUrlData*);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleLoadUrl;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::POST_URL )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(PostUrlData*);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandlePostUrl;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::LOAD_DATA )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(BaseUrlData*);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleLoadData;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::STOP_LOADING )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)();
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleStopLoading;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::RELOAD )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)();
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleReload;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::KEY_DOWN )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(IKeyEvent*);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleKeyDown;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::KEY_UP )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(IKeyEvent*);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleKeyUp;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::CLICK )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(Int32,Int32);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleClick;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::VIEW_SIZE_CHANGED )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(Handle32);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleViewSizeChanged;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::SET_SCROLL_OFFSET )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(Int32,CPoint*);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleSetScrollOffset;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::SET_GLOBAL_BOUNDS )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(IRect*);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleSetGlobalBounds;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::GO_BACK_FORWARD )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(Int32);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleGoBackForward;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::RESTORE_STATE )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(Int32);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleRestoreState;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::PAUSE_TIMERS )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)();
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandlePauseTimers;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::RESUME_TIMERS )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)();
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleResumeTimers;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::ON_PAUSE )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)();
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleOnPause;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::ON_RESUME )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)();
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleOnResume;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::FREE_MEMORY )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)();
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleFreeMemory;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::SET_NETWORK_STATE )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(Int32);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleSetNetworkState;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::SET_NETWORK_TYPE )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(IObjectStringMap*);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleSetNetworkType;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::CLEAR_CACHE )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(Int32);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleClearCache;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::CLEAR_HISTORY )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)();
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleClearHistory;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::REPLACE_TEXT )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(Int32,Int32,ReplaceTextData*);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleReplaceText;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::PASS_TO_JS )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(Int32,JSKeyData*);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandlePassToJs;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::SAVE_DOCUMENT_STATE )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(CursorData*);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleSaveDocumentState;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::CLEAR_SSL_PREF_TABLE )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)();
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleClearSslPrefTable;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::TOUCH_UP )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(TouchUpData*);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleTouchUp;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::TOUCH_EVENT )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(TouchEventData*);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleTouchEvent;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::SET_ACTIVE )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(Int32);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleSetActive;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::ADD_JS_INTERFACE )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(JSInterfaceData*);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleAddJsInterface;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::REQUEST_EXT_REPRESENTATION )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(IApartment*,Int32,IParcel*);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleRequestExtRepresentation;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::REQUEST_DOC_AS_TEXT )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(IApartment*,Int32,IParcel*);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleRequestDocAsText;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::SET_MOVE_FOCUS )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(CursorData*);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleSetMoveFocus;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::SET_MOVE_MOUSE )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(CursorData*);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleSetMoveMouse;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::SET_MOVE_MOUSE_IF_LATEST )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(CursorData*);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleSetMoveMouseIfLatest;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::REQUEST_CURSOR_HREF )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(Int32,Int32,IApartment*,Int32,IParcel*);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleRequestCursorHref;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::UPDATE_CACHE_AND_TEXT_ENTRY )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)();
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleUpdateCacheAndTextEntry;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::DOC_HAS_IMAGES )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(IApartment*,Int32,IParcel*);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleDocHasImages;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::DELETE_SELECTION )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(Int32,TextSelectionData*);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleDeleteSelection;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::SET_SELECTION )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(Int32,Int32);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleSetSelection;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::LISTBOX_CHOICES )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(Int32/*, ISparseBooleanArray* */);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleListboxChoices;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::SINGLE_LISTBOX_CHOICE )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(Int32);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleSingleListboxChoices;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::SET_BACKGROUND_COLOR )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(Int32);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleSetBackgroundColor;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::DUMP_DOMTREE )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(Int32);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleDumpDomTree;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::DUMP_RENDERTREE )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(Int32);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleDumpRenderTree;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::DUMP_NAVTREE )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)();
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleDumpNavTree;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::DUMP_V8COUNTERS )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)();
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleDumpV8Counters;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::SET_JS_FLAGS )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(String);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleSetJsFlags;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::GEOLOCATION_PERMISSIONS_PROVIDE )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(GeolocationPermissionsData*);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleGeolocationPermissionsProvide;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::SYNC_SCROLL )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(Int32, Int32);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleSyncScroll;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::SPLIT_PICTURE_SET )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)();
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleSplitPictureSet;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::CLEAR_CONTENT )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)();
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleClearContent;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::MESSAGE_RELAY )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(IApartment*,Int32,IParcel*);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleMessageRelay;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::POPULATE_VISITED_LINKS )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(ArrayOf<String>*);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandlePopulateVisitedLinks;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::VALID_NODE_BOUNDS )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(MotionUpData*);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleValidNodeBounds;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::HIDE_FULLSCREEN )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(Int32);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleHideFullScreen;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::ADD_PACKAGE_NAMES )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(Set<String>*);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleAddPackageNames;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::ADD_PACKAGE_NAME )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(String);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleAddPackageName;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    if(message == EventHub::REMOVE_PACKAGE_NAME )
+    {
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(String);
+        pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleRemovePackageName;
+        return *(Handle32*)&pHandlerFunc;
+    }
+    return NULL;
+}
+
 WebViewCore::EventHub::WvcEhHandler::WvcEhHandler(
     /* [in] */ WebViewCore* webViewCore,
     /* [in] */ EventHub* eventHub)
 {
+    assert(SUCCEEDED(CApartment::GetMainApartment((IApartment**)&mApartment))
+        && (mApartment != NULL));
     mWebViewCore = webViewCore;
     mEventHub = eventHub;
 }
 
-ECode WebViewCore::EventHub::WvcEhHandler::HandleMessage(
-    /* [in] */ IMessage* msg){
-    if (DebugFlags::sWEB_VIEW_CORE) {
-        String strOut = ((/*msg->what*/0) < EventHub::REQUEST_LABEL)
-                || ((/*msg->what*/0) > VALID_NODE_BOUNDS) ? String::FromInt32(/*msg->what*/0): String(HandlerDebugString[/*(msg->what)*/0 - EventHub::REQUEST_LABEL]);
-        strOut += String(" arg1=") + String::FromInt32(/*msg->arg1*/0);
-        strOut += String(" arg2=") + String::FromInt32(/*msg->arg2*/0);
-        strOut += String(" obj=") + String::FromInt32(/*msg->obj*/0);
-        Utility::Logging::Logger::V(LOGTAG, strOut + String("\n") );
+//EventHub::WEBKIT_DRAW
+void WebViewCore::EventHub::WvcEhHandler::HandleWebkitDraw()
+{
+    mWebViewCore -> WebkitDraw();
+}
+
+//EventHub::DESTROY
+void WebViewCore::EventHub::WvcEhHandler::HandleDestroy()
+{
+    // Time to take down the world. Cancel all pending
+    // loads and destroy the native view and frame.
+    if(TRUE)
+    {
+        Core::Threading::Mutex::Autolock lock( mWebViewCore -> mutexThis );
+        (mWebViewCore -> mBrowserFrame)->Destroy();
+        (mWebViewCore -> mBrowserFrame) = NULL;
+        (mWebViewCore -> mSettings)->OnDestroyed();
+        (mWebViewCore -> mNativeClass) = 0;
+        (mWebViewCore -> mWebView) = NULL;
     }
-    switch (/*msg->what*/0) {
-        case EventHub::WEBKIT_DRAW: {
-            mWebViewCore -> WebkitDraw();
-            break;
-        }
-        case EventHub::DESTROY:{
-            // Time to take down the world. Cancel all pending
-            // loads and destroy the native view and frame.
-            if(TRUE)
-            {
-                Core::Threading::Mutex::Autolock lock( mWebViewCore -> mutexThis );
-                (mWebViewCore -> mBrowserFrame)->Destroy();
-                (mWebViewCore -> mBrowserFrame) = NULL;
-                (mWebViewCore -> mSettings)->OnDestroyed();
-                (mWebViewCore -> mNativeClass) = 0;
-                (mWebViewCore -> mWebView) = NULL;
-            }
-            break;
-        }
-        case EventHub::REQUEST_LABEL:{
-            if ((mWebViewCore -> mWebView).Get() != NULL) {
-                Int32 nodePointer = /*(msg->arg2)*/0;
-                String label = mWebViewCore -> NativeRequestLabel(/*msg->arg1*/0, nodePointer);
-                if (label.GetLength() > 0) {
-                    AutoPtr<IMessage> messageT;
-                    //messageT = CMessage::Obtain( (((CWebView*)(mWebView.Get())) -> mPrivateHandler).Get(), CWebView::RETURN_LABEL, nodePointer, 0, label);
-                    //messageT -> SendToTarget();
-                }
-            }
-            break;
-        }
+}
 
-        case EventHub::UPDATE_FRAME_CACHE_IF_LOADING:{
-            mWebViewCore -> NativeUpdateFrameCacheIfLoading();
-            break;                    
+//EventHub::REQUEST_LABEL
+void WebViewCore::EventHub::WvcEhHandler::HandleRequestLabel(
+    /* [in] */ Int32 arg1, 
+    /* [in] */ Int32 arg2)
+{
+    if ((mWebViewCore->mWebView).Get() != NULL) {
+        Int32 nodePointer = arg2;
+        String label = mWebViewCore->NativeRequestLabel(arg1, nodePointer);
+        if (label.GetLength() > 0) {
+            //JAVA:  Message.obtain(mWebView.mPrivateHandler, WebView.RETURN_LABEL, nodePointer, 0, label).sendToTarget();
+            void (STDCALL CWebView::*pHandlerFunc)(Int32,String);
+            //pHandlerFunc = &CWebView::HandleReturnLabel;
+            AutoPtr<IParcel> params;
+            CCallbackParcel::New((IParcel**)&params);
+            params->WriteInt32(nodePointer);
+            params->WriteString(label);
+            (((CWebView*)(mWebViewCore->mWebView.Get()))->mPrivateHandler)->SendMessage(CWebView::RETURN_LABEL,params);
+            //(((CWebView*)(mWebView.Get()))->mPrivateHandler)->PostCppCallback( (Handle32)((CWebView*)(mWebView.Get())), *(Handle32*)&pHandlerFunc, params, 0);
         }
+    }
+}
 
-        case EventHub::SCROLL_TEXT_INPUT:{
-            mWebViewCore -> NativeScrollFocusedTextInput( *((Float*)(/*msg ->obj*/0)), /*msg->arg1*/0);
-            break;
-        }
+//EventHub::UPDATE_FRAME_CACHE_IF_LOADING
+void WebViewCore::EventHub::WvcEhHandler::HandleUpdateFrameCacheIfLoading()
+{
+    mWebViewCore -> NativeUpdateFrameCacheIfLoading();
+}
 
-        case EventHub::LOAD_URL: {
-            GetUrlData* param = (GetUrlData*)(/*msg->obj*/NULL);
-            mWebViewCore -> LoadUrl(param->mUrl, param->mExtraHeaders);
-            break;
-        }
+//EventHub::SCROLL_TEXT_INPUT
+void WebViewCore::EventHub::WvcEhHandler::HandleScrollTextInput(
+    /* [in] */ Int32 arg1,
+    /* [in] */ Float obj)
+{
+    mWebViewCore -> NativeScrollFocusedTextInput( obj, arg1);
+}
 
-        case EventHub::POST_URL: {
-            PostUrlData* param = (PostUrlData*)(/*msg->obj*/NULL);
-            mWebViewCore -> mBrowserFrame->PostUrl(param->mUrl, *(param->mPostData));
-            break;
-        }
-        case EventHub::LOAD_DATA: {
-            BaseUrlData* loadParams = (BaseUrlData*)(/*msg->obj*/NULL);
-            String baseUrl = loadParams -> mBaseUrl;
-            if (baseUrl.GetLength() != 0) {
-                Int32 i = baseUrl.IndexOf(':');
-                if (i > 0) {
-                    /*
-                     * In 1.0, {@link
-                     * WebView#loadDataWithBaseURL} can access
-                     * local asset files as long as the data is
-                     * valid. In the new WebKit, the restriction
-                     * is tightened. To be compatible with 1.0,
-                     * we automatically add the scheme of the
-                     * baseUrl for local access as long as it is
-                     * not http(s)/ftp(s)/about/javascript
-                     */
-                    String scheme = baseUrl.Substring(0, i);
-                    if (!scheme.StartWith("http") &&
-                            !scheme.StartWith("ftp") &&
-                            !scheme.StartWith("about") &&
-                            !scheme.StartWith("javascript")) {
-                        mWebViewCore -> NativeRegisterURLSchemeAsLocal(scheme);
-                    }
-                }
-            }
-            (mWebViewCore -> mBrowserFrame) -> LoadData(baseUrl,
-                    loadParams -> mData,
-                    loadParams -> mMimeType,
-                    loadParams -> mEncoding,
-                    loadParams -> mHistoryUrl);
-            break;
-        }
-        case EventHub::STOP_LOADING: {
-            // If the WebCore has committed the load, but not
-            // finished the first layout yet, we need to set
-            // first layout done to trigger the interpreted side sync
-            // up with native side
-            if (((CBrowserFrame*)((mWebViewCore->mBrowserFrame).Get()))->Committed()
-                    && !((CBrowserFrame*)((mWebViewCore->mBrowserFrame).Get()))->FirstLayoutDone()) {
-                ((CBrowserFrame*)((mWebViewCore->mBrowserFrame).Get()))->DidFirstLayout();
-            }
-            // Do this after syncing up the layout state.
-            mWebViewCore -> StopLoading();
-            break;
-        }
+//EventHub::LOAD_URL
+void WebViewCore::EventHub::WvcEhHandler::HandleLoadUrl(
+    /* [in] */ GetUrlData* obj)
+{
+    GetUrlData* param = obj;
+    mWebViewCore -> LoadUrl(param->mUrl, param->mExtraHeaders);
+}
 
-        case EventHub::RELOAD: {
-            (mWebViewCore->mBrowserFrame)->Reload(FALSE);
-            break;
-        }
+//EventHub::POST_URL
+void WebViewCore::EventHub::WvcEhHandler::HandlePostUrl(
+    /* [in] */ PostUrlData* obj)
+{
+    PostUrlData* param = obj;
+    mWebViewCore -> mBrowserFrame->PostUrl(param->mUrl, *(param->mPostData));
+}
 
-        case EventHub::KEY_DOWN: {
-            mWebViewCore -> Key((CKeyEvent*)(/*msg->obj*/NULL), TRUE);
-            break;
-        }
-
-        case EventHub::KEY_UP: {
-            mWebViewCore -> Key((CKeyEvent*)(/*msg->obj*/NULL), FALSE);
-            break;
-        }
-
-        case EventHub::CLICK: {
-            mWebViewCore -> NativeClick(/*msg->arg1*/0, /*msg->arg2*/0);
-            break;
-        }
-
-        case EventHub::VIEW_SIZE_CHANGED: {
-            CWebView::ViewSizeData* data = (CWebView::ViewSizeData*)(/*msg->obj*/NULL);
-            mWebViewCore -> ViewSizeChanged(data->mWidth, data->mHeight,
-                    data->mTextWrapWidth, data->mScale,
-                    data->mAnchorX, data->mAnchorY,
-                    data->mIgnoreHeight);
-            break;
-        }
-
-        case EventHub::SET_SCROLL_OFFSET: {
-            // note: these are in document coordinates
-            // (inv-zoom)
-            CPoint* pt = (CPoint*)(/*msg->obj*/NULL);
-            mWebViewCore -> NativeSetScrollOffset(/*msg->arg1*/0, pt->mX, pt->mY);
-            break;
-        }
-
-        case EventHub::SET_GLOBAL_BOUNDS: {
-            AutoPtr<IRect> r = (IRect*)(/*msg->obj*/NULL);
-            Int32 left, top, width, height;
-            r->GetLeft(&left);
-            r->GetTop(&top);
-            r->GetWidth(&width);
-            r->GetHeight(&height);
-            mWebViewCore -> NativeSetGlobalBounds(left, top, width, height);
-            break;
-        }
-
-        case EventHub::GO_BACK_FORWARD: {
-            // If it is a standard load and the load is not
-            // committed yet, we interpret BACK as RELOAD
-            if (!((CBrowserFrame*)((mWebViewCore->mBrowserFrame).Get()))->Committed() 
-                && (/*msg->arg1*/0) == -1 
-                && (((CBrowserFrame*)((mWebViewCore->mBrowserFrame).Get()))->LoadType() == CBrowserFrame::FRAME_LOADTYPE_STANDARD)) {
-                (mWebViewCore->mBrowserFrame)->Reload(TRUE);
-            } else {
-                (mWebViewCore->mBrowserFrame)->GoBackOrForward(/*msg->arg1*/0);
-            }
-            break;
-        }
-
-        case EventHub::RESTORE_STATE: {
-            mWebViewCore->StopLoading();
-            mWebViewCore->_RestoreState(/*msg->arg1*/0);
-            break;
-        }
-
-        case EventHub::PAUSE_TIMERS: {
-            mEventHub->mSavedPriority = Process::GetThreadPriority(mEventHub->mTid);
-            Process::SetThreadPriority(mEventHub->mTid, Process::THREAD_PRIORITY_BACKGROUND);
-            mWebViewCore -> PauseTimers();
-            Boolean bSendEmptyMessage;
-            //(WebViewWorker::GetHandler()) -> SendEmptyMessage(WebViewWorker::MSG_PAUSE_CACHE_TRANSACTION,&bSendEmptyMessage);
-            break;
-        }
-        case EventHub::RESUME_TIMERS: {
-            Process::SetThreadPriority(mEventHub->mTid, mEventHub->mSavedPriority);
-            mWebViewCore->ResumeTimers();
-            Boolean bSendEmptyMessage;
-            //(WebViewWorker::GetHandler()) -> SendEmptyMessage(WebViewWorker::MSG_RESUME_CACHE_TRANSACTION,&bSendEmptyMessage);
-            break;
-        }
-
-        case EventHub::ON_PAUSE: {
-            mWebViewCore -> NativePause();
-            break;
-        }
-
-        case EventHub::ON_RESUME: {
-            mWebViewCore -> NativeResume();
-            break;
-        }
-
-        case EventHub::FREE_MEMORY: {
-            mWebViewCore -> ClearCache(false);
-            mWebViewCore -> NativeFreeMemory();
-            break;
-        }
-
-        case EventHub::SET_NETWORK_STATE:{
-            if ((CBrowserFrame::sJavaBridge).Get() == NULL) {
-                String strOut = String("No WebView has been created in this process!");
-                Utility::Logging::Logger::V(LOGTAG, strOut + String("\n") );
-                return E_ILLEGAL_STATE_EXCEPTION;
-            }
-            (CBrowserFrame::sJavaBridge)->SetNetworkOnLine(/*msg->arg1*/0 == 1);
-            break;
-        }
-
-        case EventHub::SET_NETWORK_TYPE: {
-            if ((CBrowserFrame::sJavaBridge).Get() == NULL) {
-                String strOut = String("No WebView has been created in this process!");
-                Utility::Logging::Logger::V(LOGTAG, strOut + String("\n") );
-                return E_ILLEGAL_STATE_EXCEPTION;
-            }
-            AutoPtr<IObjectStringMap> map = (IObjectStringMap*)(/*msg->obj*/NULL);
-            String* type = NULL;
-            String* subtype = NULL;
-            map->Get(String("type"), (IInterface**)&type);
-            map->Get(String("subtype"), (IInterface**)&subtype);
-            assert(type != NULL);
-            assert(subtype != NULL);
-            (CBrowserFrame::sJavaBridge)->SetNetworkType(*type, *subtype);
-            break;
-        }
-
-        case EventHub::CLEAR_CACHE: {
-            mWebViewCore -> ClearCache(/*msg.arg1 == 1*/FALSE);
-            break;
-        }
-
-        case EventHub::CLEAR_HISTORY: {
-            AutoPtr<IWebBackForwardList> list;
-            (mWebViewCore -> mCallbackProxy)->GetBackForwardList((IWebBackForwardList**)&list);
-            ((CWebBackForwardList*)(list.Get()))->Close(((CBrowserFrame*)((mWebViewCore->mBrowserFrame).Get()))->mNativeFrame);
-            break;
-        }
-
-        case EventHub::REPLACE_TEXT: {
-            ReplaceTextData* rep = (ReplaceTextData*)(/*msg->obj*/NULL);
-            mWebViewCore -> NativeReplaceTextfieldText(/*msg->arg1*/0, /*msg->arg2*/0, rep->mReplace, rep->mNewStart, rep->mNewEnd, rep->mTextGeneration);
-            break;
-        }
-
-        case EventHub::PASS_TO_JS: {
-            JSKeyData* jsData = (JSKeyData*)(/*msg->obj*/NULL);
-            AutoPtr<IKeyEvent> evt = jsData->mEvent;
-            Int32 keyCode, keyValue;
-            evt->GetKeyCode(&keyCode);
-            evt->GetKeyCode(&keyValue);
-            Int32 generation = /*msg.arg1*/0;                    
-            Boolean down, shiftPressed, altPressed, symPressed;
-            evt->IsDown(&down);
-            evt->IsShiftPressed(&shiftPressed);
-            evt->IsAltPressed(&altPressed);
-            evt->IsSymPressed(&symPressed);
-            mWebViewCore -> PassToJs(generation,
-                    jsData->mCurrentText,
-                    keyCode,
-                    keyValue,
-                    down,
-                    shiftPressed,
-                    altPressed,
-                    symPressed);
-            break;
-        }
-
-        case EventHub::SAVE_DOCUMENT_STATE: {
-            CursorData* cDat = (CursorData*)(/*msg->obj*/NULL);
-            mWebViewCore -> NativeSaveDocumentState(cDat->mFrame);
-            break;
-        }
-
-        case EventHub::CLEAR_SSL_PREF_TABLE: {
-            (Network::GetInstance(mWebViewCore->mContext))->ClearUserSslPrefTable();
-            break;
-        }
-
-        case EventHub::TOUCH_UP: {
-            TouchUpData* touchUpData = (TouchUpData*)(/*msg->obj*/NULL);
-            mWebViewCore -> NativeTouchUp(touchUpData->mMoveGeneration,
-                    touchUpData->mFrame, touchUpData->mNode,
-                    touchUpData->mX, touchUpData->mY);
-            break;
-        }
-
-        case EventHub::TOUCH_EVENT: {
-            TouchEventData* ted = (TouchEventData*)(/*msg->obj*/NULL);
+//EventHub::LOAD_DATA
+void WebViewCore::EventHub::WvcEhHandler::HandleLoadData(
+    /* [in] */ BaseUrlData* obj)
+{
+    BaseUrlData* loadParams = obj;
+    String baseUrl = loadParams->mBaseUrl;
+    if (baseUrl.GetLength() != 0) {
+        Int32 i = baseUrl.IndexOf(':');
+        if (i > 0) {
             /*
-            AutoPtr<IMessage> messageT;
-            messageT = CMessage::Obtain(
-                    (((CWebView*)(mWebViewCore->mWebView).Get()) -> mPrivateHandler).Get(),
-                    CWebView::PREVENT_TOUCH_ID,
-                    ted -> mAction,
-                    mWebViewCore -> NativeHandleTouchEvent(ted->mAction, ted->mX,
-                            ted->mY, ted->mMetaState) ? 1 : 0,
-                    ted -> mReprocess ? ted : NULL);
-            messageT -> SendToTarget();
-            */
-            break;
-        }
-
-        case EventHub::SET_ACTIVE: {
-            mWebViewCore -> NativeSetFocusControllerActive(/*msg->arg1 == 1*/FALSE);
-            break;
-        }
-
-        case EventHub::ADD_JS_INTERFACE:{
-            JSInterfaceData* jsData = (JSInterfaceData*)(/*msg->obj*/NULL);
-            (mWebViewCore->mBrowserFrame)->AddJavascriptInterface(jsData->mObject,
-                    jsData->mInterfaceName);
-            break;
-        }
-
-        case EventHub::REQUEST_EXT_REPRESENTATION: {
-//            (mWebViewCore->mBrowserFrame)->ExternalRepresentation((IMessage*)/*msg->obj*/NULL);
-            break;
-        }
-
-        case EventHub::REQUEST_DOC_AS_TEXT: {
-//            (mWebViewCore->mBrowserFrame) -> DocumentAsText((IMessage*)/*msg->obj*/NULL);
-            break;
-        }
-
-        case EventHub::SET_MOVE_FOCUS: {
-            CursorData* focusData = (CursorData*)(/*msg->obj*/NULL);
-            mWebViewCore-> NativeMoveFocus(focusData->mFrame, focusData->mNode);
-            break;
-        }
-
-        case EventHub::SET_MOVE_MOUSE: {
-            CursorData* cursorData = (CursorData*)(/*msg->obj*/NULL);
-            mWebViewCore-> NativeMoveMouse(cursorData->mFrame, cursorData->mX, cursorData->mY);
-            break;
-        }
-
-        case EventHub::SET_MOVE_MOUSE_IF_LATEST: {
-            CursorData* cData = (CursorData*)(/*msg->obj*/NULL);
-            mWebViewCore-> NativeMoveMouseIfLatest(cData->mMoveGeneration, cData->mFrame,
-                    cData->mX, cData->mY);
-            break;
-        }
-
-        case EventHub::REQUEST_CURSOR_HREF: {
-            //AutoPtr<IMessage> hrefMsg = (IMessage*)(/*msg->obj*/NULL);
-            AutoPtr<IBundle> bundleT;
-            //hrefMsg -> GetData((IBundle**)&bundleT);
-            bundleT -> PutString(String("url"),mWebViewCore->NativeRetrieveHref(/*msg->arg1*/0, /*msg->arg2*/0));
-            bundleT -> PutString(String("title"),mWebViewCore->NativeRetrieveAnchorText(/*msg->arg1*/0, /*msg->arg2*/0));
-            //hrefMsg -> SendToTarget();
-            break;
-        }
-
-        case EventHub::UPDATE_CACHE_AND_TEXT_ENTRY: {
-            mWebViewCore->NativeUpdateFrameCache();
-            // FIXME: this should provide a minimal rectangle
-            if ((mWebViewCore->mWebView).Get() != NULL) {
-                (mWebViewCore->mWebView)->PostInvalidate();
+             * In 1.0, {@link
+             * WebView#loadDataWithBaseURL} can access
+             * local asset files as long as the data is
+             * valid. In the new WebKit, the restriction
+             * is tightened. To be compatible with 1.0,
+             * we automatically add the scheme of the
+             * baseUrl for local access as long as it is
+             * not http(s)/ftp(s)/about/javascript
+             */
+            String scheme = baseUrl.Substring(0, i);
+            if (!scheme.StartWith("http") &&
+                    !scheme.StartWith("ftp") &&
+                    !scheme.StartWith("about") &&
+                    !scheme.StartWith("javascript")) {
+                mWebViewCore->NativeRegisterURLSchemeAsLocal(scheme);
             }
-            mWebViewCore->SendUpdateTextEntry();
-            break;
         }
+    }
+    (mWebViewCore->mBrowserFrame)->LoadData(baseUrl,
+            loadParams->mData,
+            loadParams->mMimeType,
+            loadParams->mEncoding,
+            loadParams->mHistoryUrl);
+}
 
-        case EventHub::DOC_HAS_IMAGES: {
-            AutoPtr<IMessage> imageResult = (IMessage*)(/*msg->obj*/NULL);
-            Boolean bDocumentHasImages = FALSE;
-            (mWebViewCore -> mBrowserFrame) -> DocumentHasImages(&bDocumentHasImages);
-            //imageResult->arg1 = bDocumentHasImages ? 1 : 0;
-            //imageResult -> SendToTarget();
-            break;
-        }
+//EventHub::STOP_LOADING
+void WebViewCore::EventHub::WvcEhHandler::HandleStopLoading()
+{
+    // If the WebCore has committed the load, but not
+    // finished the first layout yet, we need to set
+    // first layout done to trigger the interpreted side sync
+    // up with native side
+    if (((CBrowserFrame*)((mWebViewCore->mBrowserFrame).Get()))->Committed()
+            && !((CBrowserFrame*)((mWebViewCore->mBrowserFrame).Get()))->FirstLayoutDone()) {
+        ((CBrowserFrame*)((mWebViewCore->mBrowserFrame).Get()))->DidFirstLayout();
+    }
+    // Do this after syncing up the layout state.
+    mWebViewCore -> StopLoading();    
+}
 
-        case EventHub::DELETE_SELECTION: {
-            TextSelectionData* deleteSelectionData = (TextSelectionData*)(/*msg->obj*/NULL);
-            mWebViewCore -> NativeDeleteSelection(deleteSelectionData->mStart,
-                    deleteSelectionData->mEnd, /*msg->arg1*/0);
-            break;
-        }
+//EventHub::RELOAD
+void WebViewCore::EventHub::WvcEhHandler::HandleReload()
+{
+    (mWebViewCore->mBrowserFrame)->Reload(FALSE);
+}
 
-        case EventHub::SET_SELECTION: {
-            mWebViewCore -> NativeSetSelection(/*msg->arg1*/0, /*msg->arg2*/0);
-            break;
-        }
+//EventHub::KEY_DOWN
+void WebViewCore::EventHub::WvcEhHandler::HandleKeyDown(
+    /* [in] */ IKeyEvent* obj)
+{
+    mWebViewCore -> Key(obj, TRUE);
+}
 
-        case EventHub::LISTBOX_CHOICES: {
-            //AutoPtr<ISparseBooleanArray> choices = (ISparseBooleanArray*)(msg->obj);
-            Int32 choicesSize = /*msg->arg1*/0;
-            AutoFree < ArrayOf<Boolean> > choicesArray = ArrayOf<Boolean>::Alloc(choicesSize);
-            for (Int32 c = 0; c < choicesSize; c++) {
-                //choices -> Get(c,&(choicesArray[c]));
-            }
-            mWebViewCore -> NativeSendListBoxChoices(choicesArray, choicesSize);
-            break;
-        }
 
-        case EventHub::SINGLE_LISTBOX_CHOICE: {
-            mWebViewCore -> NativeSendListBoxChoice(/*msg->arg1*/0);
-            break;
-        }
+//EventHub::KEY_UP
+void WebViewCore::EventHub::WvcEhHandler::HandleKeyUp(
+    /* [in] */ IKeyEvent* obj)
+{
+    mWebViewCore->Key(obj, FALSE);
+}
 
-        case EventHub::SET_BACKGROUND_COLOR: {
-            mWebViewCore -> NativeSetBackgroundColor(/*msg->arg1*/0);
-            break;
-        }
+//EventHub::CLICK:
+void WebViewCore::EventHub::WvcEhHandler::HandleClick(
+    /* [in] */ Int32 arg1, 
+    /* [in] */ Int32 arg2)
+{
+    mWebViewCore -> NativeClick(arg1, arg2);
+}
 
-        case EventHub::DUMP_DOMTREE: {
-            mWebViewCore -> NativeDumpDomTree(/* (msg->arg1) == 1*/FALSE);
-            break;
-        }
+//EventHub::VIEW_SIZE_CHANGED
+void WebViewCore::EventHub::WvcEhHandler::HandleViewSizeChanged(
+    /* [in] */ /*CWebView::ViewSizeData* */Handle32 obj)
+{
+    CWebView::ViewSizeData* data = (CWebView::ViewSizeData*)obj;
+    mWebViewCore -> ViewSizeChanged(data->mWidth, data->mHeight,
+            data->mTextWrapWidth, data->mScale,
+            data->mAnchorX, data->mAnchorY,
+            data->mIgnoreHeight);
+}
 
-        case EventHub::DUMP_RENDERTREE: {
-            mWebViewCore -> NativeDumpRenderTree(/*(msg->arg1) == 1*/FALSE);
-            break;
-        }
+//EventHub::SET_SCROLL_OFFSET
+void WebViewCore::EventHub::WvcEhHandler::HandleSetScrollOffset(
+    /* [in] */ Int32 arg1, 
+    /* [in] */ CPoint* obj)
+{
+    // note: these are in document coordinates
+    // (inv-zoom)
+    CPoint* pt = obj;
+    mWebViewCore -> NativeSetScrollOffset(arg1, pt->mX, pt->mY);
+}
 
-        case EventHub::DUMP_NAVTREE: {
-            mWebViewCore -> NativeDumpNavTree();
-            break;
-        }
+//EventHub::SET_GLOBAL_BOUNDS
+void WebViewCore::EventHub::WvcEhHandler::HandleSetGlobalBounds(
+    /* [in] */ IRect* obj)
+{
+    AutoPtr<IRect> r = obj;
+    Int32 left, top, width, height;
+    r->GetLeft(&left);
+    r->GetTop(&top);
+    r->GetWidth(&width);
+    r->GetHeight(&height);
+    mWebViewCore -> NativeSetGlobalBounds(left, top, width, height);
+}
 
-        case EventHub::DUMP_V8COUNTERS: {
-            mWebViewCore -> NativeDumpV8Counters();
-            break;
-        }
+//EventHub::GO_BACK_FORWARD
+void WebViewCore::EventHub::WvcEhHandler::HandleGoBackForward(
+    /* [in] */ Int32 arg1)
+{
+    // If it is a standard load and the load is not
+    // committed yet, we interpret BACK as RELOAD
+    if (!((CBrowserFrame*)((mWebViewCore->mBrowserFrame).Get()))->Committed() 
+        && (arg1) == -1 
+        && (((CBrowserFrame*)((mWebViewCore->mBrowserFrame).Get()))->LoadType() == CBrowserFrame::FRAME_LOADTYPE_STANDARD)) {
+        (mWebViewCore->mBrowserFrame)->Reload(TRUE);
+    } else {
+        (mWebViewCore->mBrowserFrame)->GoBackOrForward(arg1);
+    }
+}
 
-        case EventHub::SET_JS_FLAGS: {
-            mWebViewCore -> NativeSetJsFlags((String)/*msg->obj*/NULL);
-            break;
-        }
+//EventHub::RESTORE_STATE
+void WebViewCore::EventHub::WvcEhHandler::HandleRestoreState(
+    /* [in] */ Int32 arg1)
+{
+    mWebViewCore->StopLoading();
+    mWebViewCore->_RestoreState(arg1);
+}
 
-        case EventHub::GEOLOCATION_PERMISSIONS_PROVIDE: {
-            GeolocationPermissionsData* data = (GeolocationPermissionsData*)(/*msg->obj*/NULL);
-            mWebViewCore -> NativeGeolocationPermissionsProvide(data->mOrigin,
-                    data->mAllow, data->mRemember);
-            break;
-        }
+//EventHub::PAUSE_TIMERS
+void WebViewCore::EventHub::WvcEhHandler::HandlePauseTimers()
+{    
+    mEventHub->mSavedPriority = Process::GetThreadPriority(mEventHub->mTid);
+    Process::SetThreadPriority(mEventHub->mTid, Process::THREAD_PRIORITY_BACKGROUND);
+    mWebViewCore -> PauseTimers();
+    //JAVA:  WebViewWorker.getHandler().sendEmptyMessage( WebViewWorker.MSG_PAUSE_CACHE_TRANSACTION);
+    AutoPtr<IParcel> params;
+    CCallbackParcel::New((IParcel**)&params);
+    //(WebViewWorker::GetHandler())->SendMessage(WebViewWorker::MSG_PAUSE_CACHE_TRANSACTION,params);    
+}
 
-        case EventHub::SYNC_SCROLL: {
-            mWebViewCore -> mWebkitScrollX = /*msg->arg1*/0;
-            mWebViewCore -> mWebkitScrollY = /*msg->arg2*/0;
-            break;
-        }
+//EventHub::RESUME_TIMERS
+void WebViewCore::EventHub::WvcEhHandler::HandleResumeTimers()
+{
+    Process::SetThreadPriority(mEventHub->mTid, mEventHub->mSavedPriority);
+    mWebViewCore->ResumeTimers();
+    //JAVA:  WebViewWorker.getHandler().sendEmptyMessage( WebViewWorker.MSG_RESUME_CACHE_TRANSACTION);
+    AutoPtr<IParcel> params;
+    CCallbackParcel::New((IParcel**)&params);
+    //(WebViewWorker::GetHandler()) -> SendMessage(WebViewWorker::MSG_RESUME_CACHE_TRANSACTION,params);
+}
 
-        case EventHub::SPLIT_PICTURE_SET: {
-            mWebViewCore -> NativeSplitContent();
-            mWebViewCore -> mSplitPictureIsScheduled = FALSE;
-            break;
-        }
+//EventHub::ON_PAUSE
+void WebViewCore::EventHub::WvcEhHandler::HandleOnPause()
+{
+    mWebViewCore -> NativePause();
+}
 
-        case EventHub::CLEAR_CONTENT: {
-            // Clear the view so that onDraw() will draw nothing
-            // but white background
-            // (See public method WebView.clearView)
-            mWebViewCore -> NativeClearContent();
-            break;
-        }
+//EventHub::ON_RESUME
+void WebViewCore::EventHub::WvcEhHandler::HandleOnResume()
+{
+    mWebViewCore -> NativeResume();
+}
 
-        case EventHub::MESSAGE_RELAY: {
-            AutoPtr<IMessage> messageT;
-            messageT = IMessage::Probe(/*msg->obj*/NULL);
-            if(messageT.Get() != NULL)
-            {
-                //messageT -> SendToTarget();
-            }
-            break;
-        }
+//EventHub::FREE_MEMORY
+void WebViewCore::EventHub::WvcEhHandler::HandleFreeMemory()
+{
+    mWebViewCore -> ClearCache(false);
+    mWebViewCore -> NativeFreeMemory();    
+}
 
-        case EventHub::POPULATE_VISITED_LINKS:
-            mWebViewCore -> NativeProvideVisitedHistory((ArrayOf<String>*)(/*msg->obj*/NULL));
-            break;
+//EventHub::SET_NETWORK_STATE
+void WebViewCore::EventHub::WvcEhHandler::HandleSetNetworkState(
+    /* [in] */ Int32 arg1)
+{
+    if ((CBrowserFrame::sJavaBridge).Get() == NULL) {
+        String strOut = String("No WebView has been created in this process!");
+        Utility::Logging::Logger::V(LOGTAG, strOut + String("\n") );
+        //return E_ILLEGAL_STATE_EXCEPTION;
+        return ;
+    }
+    (CBrowserFrame::sJavaBridge)->SetNetworkOnLine(arg1);
+}
 
-        case EventHub::VALID_NODE_BOUNDS: {
-            MotionUpData* motionUpData = (MotionUpData*)(/*msg->obj*/NULL);
-            Boolean bNativeValidNodeAndBounds;
-            bNativeValidNodeAndBounds = mWebViewCore -> NativeValidNodeAndBounds(
-                    motionUpData->mFrame, motionUpData->mNode,
-                    motionUpData->mBounds);
-            if (!bNativeValidNodeAndBounds) {
-                mWebViewCore -> NativeUpdateFrameCache();
-            }
+//EventHub::SET_NETWORK_TYPE
+void WebViewCore::EventHub::WvcEhHandler::HandleSetNetworkType(
+    /* [in] */ IObjectStringMap* obj)
+{
+    if ((CBrowserFrame::sJavaBridge).Get() == NULL) {
+        String strOut = String("No WebView has been created in this process!");
+        Utility::Logging::Logger::V(LOGTAG, strOut + String("\n") );
+        //return E_ILLEGAL_STATE_EXCEPTION;
+        return ;
+    }
+    AutoPtr<IObjectStringMap> map = obj;
+    String* type = NULL;
+    String* subtype = NULL;
+    map->Get(String("type"), (IInterface**)&type);
+    map->Get(String("subtype"), (IInterface**)&subtype);
+    assert(type != NULL);
+    assert(subtype != NULL);
+    (CBrowserFrame::sJavaBridge)->SetNetworkType(*type, *subtype);
+}
 
-            AutoPtr<IHandler> handlerT = ((CWebView*)((mWebViewCore->mWebView).Get())) -> mPrivateHandler;
-            AutoPtr<IMessage> message;
-            //handlerT -> ObtainMessage(CWebView::DO_MOTION_UP, motionUpData->mX, motionUpData->mY, (IMessage**)&message);
-            Boolean bSendMessageAtFrontOfQueue = FALSE;
-            //handlerT -> SendMessageAtFrontOfQueue(message,&bSendMessageAtFrontOfQueue);
-            break;
-        }
+//EventHub::CLEAR_CACHE
+void WebViewCore::EventHub::WvcEhHandler::HandleClearCache(
+    /* [in] */ Int32 arg1)
+{
+    mWebViewCore -> ClearCache(arg1);
+}
 
-        case EventHub::HIDE_FULLSCREEN: {
-            mWebViewCore -> NativeFullScreenPluginHidden(/*msg->arg1*/0);
-            break;
-        }
+//EventHub::CLEAR_HISTORY
+void WebViewCore::EventHub::WvcEhHandler::HandleClearHistory()
+{
+    AutoPtr<IWebBackForwardList> list;
+    (mWebViewCore -> mCallbackProxy)->GetBackForwardList((IWebBackForwardList**)&list);
+    ((CWebBackForwardList*)(list.Get()))->Close(((CBrowserFrame*)((mWebViewCore->mBrowserFrame).Get()))->mNativeFrame);
+}
 
-        case EventHub::ADD_PACKAGE_NAMES: {
-            if (CBrowserFrame::sJavaBridge == NULL) {
-                Utility::Logging::Logger::E(LOGTAG, String("No WebView has been created in this process!\n") );
-                return E_ILLEGAL_STATE_EXCEPTION;
-            }
-            (CBrowserFrame::sJavaBridge) -> AddPackageNames(
-                    (Set<String>*)(/*msg->obj*/NULL));
-            break;
-        }
+//EventHub::REPLACE_TEXT
+void WebViewCore::EventHub::WvcEhHandler::HandleReplaceText(
+    /* [in] */ Int32 arg1, 
+    /* [in] */ Int32 arg2, 
+    /* [in] */ ReplaceTextData* obj)
+{
+    ReplaceTextData* rep = (ReplaceTextData*)(obj);
+    mWebViewCore -> NativeReplaceTextfieldText(arg1, arg2, rep->mReplace, rep->mNewStart, rep->mNewEnd, rep->mTextGeneration);
+}
 
-        case EventHub::ADD_PACKAGE_NAME: {
-            if (CBrowserFrame::sJavaBridge == NULL) {
-                Utility::Logging::Logger::E(LOGTAG, String("No WebView has been created in this process!\n") );
-                return E_ILLEGAL_STATE_EXCEPTION;
-            }
-            (CBrowserFrame::sJavaBridge) -> AddPackageName(
-                    (String)(/*msg->obj*/NULL));
-            break;
-        }
+//EventHub::PASS_TO_JS
+void WebViewCore::EventHub::WvcEhHandler::HandlePassToJs(
+    /* [in] */ Int32 arg1, 
+    /* [in] */ JSKeyData* obj)
+{
+    JSKeyData* jsData = obj;
+    AutoPtr<IKeyEvent> evt = jsData->mEvent;
+    Int32 keyCode, keyValue;
+    evt->GetKeyCode(&keyCode);
+    evt->GetKeyCode(&keyValue);
+    Int32 generation = arg1;                    
+    Boolean down, shiftPressed, altPressed, symPressed;
+    evt->IsDown(&down);
+    evt->IsShiftPressed(&shiftPressed);
+    evt->IsAltPressed(&altPressed);
+    evt->IsSymPressed(&symPressed);
+    mWebViewCore -> PassToJs(generation,
+            jsData->mCurrentText,
+            keyCode,
+            keyValue,
+            down,
+            shiftPressed,
+            altPressed,
+            symPressed);    
+}
 
-        case EventHub::REMOVE_PACKAGE_NAME:
-            if (CBrowserFrame::sJavaBridge == NULL) {
-                Utility::Logging::Logger::E(LOGTAG, String("No WebView has been created in this process!\n") );
-                return E_ILLEGAL_STATE_EXCEPTION;
-            }
-            (CBrowserFrame::sJavaBridge) -> RemovePackageName(
-                    (String)(/*msg->obj*/NULL));
-            break;
-        }
-    return NOERROR;
+//EventHub::SAVE_DOCUMENT_STATE
+void WebViewCore::EventHub::WvcEhHandler::HandleSaveDocumentState(
+    /* [in] */ CursorData* obj)
+{
+    CursorData* cDat = obj;
+    mWebViewCore -> NativeSaveDocumentState(cDat->mFrame);
+}
+
+//EventHub::CLEAR_SSL_PREF_TABLE
+void WebViewCore::EventHub::WvcEhHandler::HandleClearSslPrefTable()
+{
+    (Network::GetInstance(mWebViewCore->mContext))->ClearUserSslPrefTable();
+}
+
+//EventHub::TOUCH_UP
+void WebViewCore::EventHub::WvcEhHandler::HandleTouchUp(
+    /* [in] */ TouchUpData* obj)
+{
+    TouchUpData* touchUpData = obj;
+    mWebViewCore -> NativeTouchUp(touchUpData->mMoveGeneration,
+            touchUpData->mFrame, touchUpData->mNode,
+            touchUpData->mX, touchUpData->mY);
+}
+
+//EventHub::TOUCH_EVENT
+void WebViewCore::EventHub::WvcEhHandler::HandleTouchEvent(
+    /* [in] */ TouchEventData* obj)
+{
+    TouchEventData* ted = obj;
+    //JAVA:  Message.obtain(mWebView.mPrivateHandler, WebView.PREVENT_TOUCH_ID, ted.mAction, nativeHandleTouchEvent(ted.mAction, ted.mX, ted.mY, ted.mMetaState) ? 1 : 0, ted.mReprocess ? ted : null).sendToTarget();
+    Boolean bNativeHandleTouchEvent = mWebViewCore -> NativeHandleTouchEvent(ted->mAction, ted->mX, ted->mY, ted->mMetaState);
+    Int32 arg2P = bNativeHandleTouchEvent ? 1 : 0 ;
+    TouchEventData* objP = ted -> mReprocess ? ted : NULL ;
+    AutoPtr<IParcel> params;
+    CCallbackParcel::New((IParcel**)&params);
+    params->WriteInt32(ted -> mAction);
+    params->WriteInt32(arg2P);
+    params->WriteStruct((Handle32)objP,sizeof(TouchEventData));   //WriteInterfacePtr WriteStructPtr
+    (((CWebView*)(mWebViewCore->mWebView).Get()) -> mPrivateHandler)->SendMessage(CWebView::PREVENT_TOUCH_ID, params);
+}
+
+//EventHub::SET_ACTIVE
+void WebViewCore::EventHub::WvcEhHandler::HandleSetActive(
+    /* [in] */ Int32 arg1)
+{
+    mWebViewCore -> NativeSetFocusControllerActive(arg1 == 1);
+}
+
+//EventHub::ADD_JS_INTERFACE
+void WebViewCore::EventHub::WvcEhHandler::HandleAddJsInterface(
+    /* [in] */ JSInterfaceData* obj)
+{
+    JSInterfaceData* jsData = obj;
+    (mWebViewCore->mBrowserFrame)->AddJavascriptInterface(jsData->mObject, jsData->mInterfaceName);    
+}
+
+//EventHub::REQUEST_EXT_REPRESENTATION
+void WebViewCore::EventHub::WvcEhHandler::HandleRequestExtRepresentation(
+    /* [in] */ IApartment* apartmentR,
+    /* [in] */ Int32 message,
+    /* [in] */ IParcel* params)
+{
+    //JAVA:  mBrowserFrame.externalRepresentation( (Message) msg.obj);
+    //(mWebViewCore->mBrowserFrame)->ExternalRepresentation(apartmentR,message,params);
+}
+
+//EventHub::REQUEST_DOC_AS_TEXT
+void WebViewCore::EventHub::WvcEhHandler::HandleRequestDocAsText(
+    /* [in] */ IApartment* apartmentR,
+    /* [in] */ Int32 message,
+    /* [in] */ IParcel* params)
+{
+    //JAVA:  mBrowserFrame.documentAsText((Message) msg.obj);
+    //(mWebViewCore->mBrowserFrame) -> DocumentAsText(apartmentR,message,params);
+}
+
+//EventHub::SET_MOVE_FOCUS
+void WebViewCore::EventHub::WvcEhHandler::HandleSetMoveFocus(
+    /* [in] */ CursorData* obj)
+{
+    CursorData* focusData = obj;
+    mWebViewCore-> NativeMoveFocus(focusData->mFrame, focusData->mNode);
+}
+
+//EventHub::SET_MOVE_MOUSE
+void WebViewCore::EventHub::WvcEhHandler::HandleSetMoveMouse(
+    /* [in] */ CursorData* obj)
+{
+    CursorData* cursorData = obj;
+    mWebViewCore-> NativeMoveMouse(cursorData->mFrame, cursorData->mX, cursorData->mY);
+}
+
+//EventHub::SET_MOVE_MOUSE_IF_LATEST
+void WebViewCore::EventHub::WvcEhHandler::HandleSetMoveMouseIfLatest(
+    /* [in] */ CursorData* obj)
+{
+    CursorData* cData = obj;
+    mWebViewCore-> NativeMoveMouseIfLatest(cData->mMoveGeneration, cData->mFrame,
+            cData->mX, cData->mY);    
+}
+
+//EventHub::REQUEST_CURSOR_HREF
+void WebViewCore::EventHub::WvcEhHandler::HandleRequestCursorHref(
+    /* [in] */ Int32 arg1,
+    /* [in] */ Int32 arg2,    
+    /* [in] */ IApartment* apartmentR,
+    /* [in] */ Int32 message,
+    /* [in] */ IParcel* params)
+{
+    //JAVA:  
+    //Message hrefMsg = (Message) msg.obj;
+    //hrefMsg.getData().putString("url", nativeRetrieveHref(msg.arg1, msg.arg2));
+    //hrefMsg.getData().putString("title", nativeRetrieveAnchorText(msg.arg1, msg.arg2));
+    //hrefMsg.sendToTarget();
+    AutoPtr<IBundle> bundleT;
+    CBundle::New( (IBundle**)&bundleT );
+    bundleT->PutString(String("url"),mWebViewCore->NativeRetrieveHref(arg1, arg2));
+    bundleT->PutString(String("title"),mWebViewCore->NativeRetrieveAnchorText(arg1, arg2));
+    params->WriteInterfacePtr(bundleT.Get());
+    apartmentR->SendMessage(message,params);
+}
+
+//EventHub::UPDATE_CACHE_AND_TEXT_ENTRY
+void WebViewCore::EventHub::WvcEhHandler::HandleUpdateCacheAndTextEntry()
+{
+    mWebViewCore->NativeUpdateFrameCache();
+    // FIXME: this should provide a minimal rectangle
+    if ((mWebViewCore->mWebView).Get() != NULL) {
+        (mWebViewCore->mWebView)->PostInvalidate();
+    }
+    mWebViewCore->SendUpdateTextEntry();
+}
+
+//EventHub::DOC_HAS_IMAGES
+void WebViewCore::EventHub::WvcEhHandler::HandleDocHasImages(
+    /* [in] */ IApartment* apartmentR,
+    /* [in] */ Int32 message,
+    /* [in] */ IParcel* params)
+{
+    //JAVA:  
+    //Message imageResult = (Message) msg.obj;
+    //imageResult.arg1 = mBrowserFrame.documentHasImages() ? 1 : 0;
+    //imageResult.sendToTarget();
+    Boolean bDocumentHasImages = FALSE;
+    (mWebViewCore -> mBrowserFrame) -> DocumentHasImages(&bDocumentHasImages);
+    params->WriteInt32(bDocumentHasImages ? 1 : 0);
+    apartmentR->SendMessage(message, params);
+}
+
+//EventHub::DELETE_SELECTION
+void WebViewCore::EventHub::WvcEhHandler::HandleDeleteSelection(
+    /* [in] */ Int32 arg1,
+    /* [in] */ TextSelectionData* obj)
+{
+    TextSelectionData* deleteSelectionData = obj;
+    mWebViewCore -> NativeDeleteSelection(deleteSelectionData->mStart,
+            deleteSelectionData->mEnd, arg1);
+}
+
+//EventHub::SET_SELECTION
+void WebViewCore::EventHub::WvcEhHandler::HandleSetSelection(
+    /* [in] */ Int32 arg1,
+    /* [in] */ Int32 arg2)
+{
+    mWebViewCore -> NativeSetSelection(arg1, arg2);
+}
+
+//EventHub::LISTBOX_CHOICES
+void WebViewCore::EventHub::WvcEhHandler::HandleListboxChoices(
+    /* [in] */ Int32 arg1//,
+    /* [in] */ /*ISparseBooleanArray* obj*/)
+{
+    //AutoPtr<ISparseBooleanArray> choices = obj;
+    Int32 choicesSize = arg1;
+    AutoFree < ArrayOf<Boolean> > choicesArray = ArrayOf<Boolean>::Alloc(choicesSize);
+    for (Int32 c = 0; c < choicesSize; c++) {
+        //choices -> Get(c,&(choicesArray[c]));
+    }
+    mWebViewCore -> NativeSendListBoxChoices(choicesArray, choicesSize);
+}
+
+//EventHub::SINGLE_LISTBOX_CHOICE
+void WebViewCore::EventHub::WvcEhHandler::HandleSingleListboxChoices(
+    /* [in] */ Int32 arg1)
+{
+    mWebViewCore -> NativeSendListBoxChoice(arg1);
+}
+
+//EventHub::SET_BACKGROUND_COLOR
+void WebViewCore::EventHub::WvcEhHandler::HandleSetBackgroundColor(
+    /* [in] */ Int32 arg1)
+{
+    mWebViewCore -> NativeSetBackgroundColor(arg1);
+}
+
+//EventHub::DUMP_DOMTREE
+void WebViewCore::EventHub::WvcEhHandler::HandleDumpDomTree(
+    /* [in] */ Int32 arg1)
+{
+    mWebViewCore -> NativeDumpDomTree(arg1== 1);
+}
+
+//EventHub::DUMP_RENDERTREE
+void WebViewCore::EventHub::WvcEhHandler::HandleDumpRenderTree(
+    /* [in] */ Int32 arg1)
+{
+    mWebViewCore -> NativeDumpRenderTree(arg1 == 1);
+}
+
+//EventHub::DUMP_NAVTREE
+void WebViewCore::EventHub::WvcEhHandler::HandleDumpNavTree()
+{
+    mWebViewCore -> NativeDumpNavTree();
+}
+
+//DUMP_V8COUNTERS
+void WebViewCore::EventHub::WvcEhHandler::HandleDumpV8Counters()
+{
+    mWebViewCore -> NativeDumpV8Counters();
+}
+
+//EventHub::SET_JS_FLAGS
+void WebViewCore::EventHub::WvcEhHandler::HandleSetJsFlags(
+    /* [in] */ String obj)
+{
+    mWebViewCore -> NativeSetJsFlags(obj);
+}
+
+//EventHub::GEOLOCATION_PERMISSIONS_PROVIDE
+void WebViewCore::EventHub::WvcEhHandler::HandleGeolocationPermissionsProvide(
+    /* [in] */ GeolocationPermissionsData* obj)
+{
+    GeolocationPermissionsData* data = obj;
+    mWebViewCore -> NativeGeolocationPermissionsProvide(data->mOrigin,
+            data->mAllow, data->mRemember);
+}
+
+//EventHub::SYNC_SCROLL
+void WebViewCore::EventHub::WvcEhHandler::HandleSyncScroll(
+    /* [in] */ Int32 arg1,
+    /* [in] */ Int32 arg2)
+{
+    mWebViewCore -> mWebkitScrollX = arg1;
+    mWebViewCore -> mWebkitScrollY = arg2;
+}
+
+//EventHub::SPLIT_PICTURE_SET
+void WebViewCore::EventHub::WvcEhHandler::HandleSplitPictureSet()
+{
+    mWebViewCore -> NativeSplitContent();
+    mWebViewCore -> mSplitPictureIsScheduled = FALSE;
+}
+
+//EventHub::CLEAR_CONTENT
+void WebViewCore::EventHub::WvcEhHandler::HandleClearContent()
+{
+    // Clear the view so that onDraw() will draw nothing
+    // but white background
+    // (See public method WebView.clearView)
+    mWebViewCore -> NativeClearContent();    
+}
+
+//EventHub::MESSAGE_RELAY
+void WebViewCore::EventHub::WvcEhHandler::HandleMessageRelay(
+    /* [in] */ IApartment* apartmentR,
+    /* [in] */ Int32 message,
+    /* [in] */ IParcel* params)
+{
+    //JAVA:  if (msg.obj instanceof Message) { ((Message) msg.obj).sendToTarget(); }
+    apartmentR->SendMessage(message, params);
+}
+
+//EventHub::POPULATE_VISITED_LINKS
+void WebViewCore::EventHub::WvcEhHandler::HandlePopulateVisitedLinks(
+    /* [in] */ ArrayOf<String>* obj)
+{
+    mWebViewCore -> NativeProvideVisitedHistory(obj);
+}
+
+//EventHub::VALID_NODE_BOUNDS
+void WebViewCore::EventHub::WvcEhHandler::HandleValidNodeBounds(
+    /* [in] */ MotionUpData* obj)
+{
+    MotionUpData* motionUpData = obj;
+    Boolean bNativeValidNodeAndBounds;
+    bNativeValidNodeAndBounds = mWebViewCore -> NativeValidNodeAndBounds(
+            motionUpData->mFrame, motionUpData->mNode,
+            motionUpData->mBounds);
+    if (!bNativeValidNodeAndBounds) {
+        mWebViewCore -> NativeUpdateFrameCache();
+    }
+
+    //Message message = mWebView.mPrivateHandler.obtainMessage(WebView.DO_MOTION_UP, motionUpData.mX, motionUpData.mY);
+    //mWebView.mPrivateHandler.sendMessageAtFrontOfQueue(message);
+
+    AutoPtr<IApartment> handlerT = ((CWebView*)((mWebViewCore->mWebView).Get())) -> mPrivateHandler;
+    void (STDCALL CWebView::PrivateHandler::*pHandlerFunc)();
+    //pHandlerFunc = &CWebView::PrivateHandler::HandleDoMotionUp;
+
+    AutoPtr<IParcel> params;
+    CCallbackParcel::New((IParcel**)&params);
+    params->WriteInt32(motionUpData->mX);
+    params->WriteInt32(motionUpData->mY);
+    handlerT -> PostCppCallbackAtFrontOfQueue((Handle32)(handlerT.Get()), *(Handle32*)&pHandlerFunc, params, 0);
+}
+
+//EventHub::HIDE_FULLSCREEN
+void WebViewCore::EventHub::WvcEhHandler::HandleHideFullScreen(
+    /* [in] */ Int32 arg1)
+{
+    mWebViewCore -> NativeFullScreenPluginHidden(arg1);
+}
+
+//EventHub::ADD_PACKAGE_NAMES
+void WebViewCore::EventHub::WvcEhHandler::HandleAddPackageNames(
+    /* [in] */ Set<String>* obj)
+{
+    if (CBrowserFrame::sJavaBridge == NULL) {
+        Utility::Logging::Logger::E(LOGTAG, String("No WebView has been created in this process!\n") );
+        //return E_ILLEGAL_STATE_EXCEPTION;
+        return ;
+    }
+    (CBrowserFrame::sJavaBridge) -> AddPackageNames( (Set<String>*)(obj) );
+}
+
+//EventHub::ADD_PACKAGE_NAME
+void WebViewCore::EventHub::WvcEhHandler::HandleAddPackageName(
+    /* [in] */ String obj)
+{
+    if (CBrowserFrame::sJavaBridge == NULL) {
+        Utility::Logging::Logger::E(LOGTAG, String("No WebView has been created in this process!\n") );
+        //return E_ILLEGAL_STATE_EXCEPTION;
+        return;
+    }
+    (CBrowserFrame::sJavaBridge) -> AddPackageName((String)(obj));
+}
+
+//EventHub::REMOVE_PACKAGE_NAME
+void WebViewCore::EventHub::WvcEhHandler::HandleRemovePackageName(
+    /* [in] */ String obj)
+{    
+    if (CBrowserFrame::sJavaBridge == NULL) {
+        Utility::Logging::Logger::E(LOGTAG, String("No WebView has been created in this process!\n") );
+        //return E_ILLEGAL_STATE_EXCEPTION;
+        return;
+    }
+    (CBrowserFrame::sJavaBridge) -> RemovePackageName( (String)(obj) );
 }
 
 /*****************************WebViewCore::EventHub*****************************/
@@ -731,17 +1982,21 @@ void WebViewCore::EventHub::TransferMessages()
 {
     mTid = Process::MyTid();
     mSavedPriority = Process::GetThreadPriority(mTid);
-    mHandler = (IHandler*)(new WvcEhHandler(mWebViewCore,this));
+    mHandler = (IApartment*)(new WvcEhHandler(mWebViewCore,this));
     // Take all queued messages and resend them to the new handler.
     //synchronized (this) 
     mutexThis.Lock();
     {
-        Int32 size = 0;
-//        mMessages->Size(&size);
-        for (Int32 i = 0; i < size; i++) {
-            Boolean bSendMessage = FALSE;
-//            mHandler -> SendMessage(mMessages->Get(i),&bSendMessage);
+        AutoPtr<Msg> msg;
+        List<AutoPtr<Msg> >::Iterator iterT;
+        List<AutoPtr<Msg> >::Iterator iterE;
+        iterT = mMessages -> Begin();
+        iterE = mMessages -> End();
+        for (;iterT != iterE; iterT ++) {
+            msg = *iterT;
+            mHandler->SendMessage(msg->message, (msg->params).Get());
         }
+        mMessages->Clear();        
         mMessages = NULL;
     }
     mutexThis.Unlock();
@@ -753,7 +2008,7 @@ void WebViewCore::EventHub::TransferMessages()
  * synchronized
  */
 void WebViewCore::EventHub::SendMessage(
-    /* [in] */ IMessage* msg)
+    /* [in] */ Msg* msg)
 {
     Core::Threading::Mutex::Autolock lock(mutexThis);
     if (mBlockMessages) {
@@ -763,32 +2018,32 @@ void WebViewCore::EventHub::SendMessage(
         mMessages->PushBack(msg);
     }
     else {
-        //mHandler->SendMessage(msg);
+        mHandler->SendMessage(msg->message, (msg->params).Get());
     }
 }
 
 /* synchronized */
 void WebViewCore::EventHub::RemoveMessages(
-    /* [in] */ Int32 what)
+    /* [in] */ Int32 message)
 {
     Core::Threading::Mutex::Autolock lock(mutexThis);
     if (mBlockMessages) {
         return;
     }
-    if (what == EventHub::WEBKIT_DRAW) {
+    if (message == EventHub::WEBKIT_DRAW) {
         mWebViewCore -> mDrawIsScheduled = FALSE;
     }
     if (mMessages != NULL) {
         Utility::Logging::Logger::W(LOGTAG, String("Not supported in this case.\n") );
     } 
     else {
-        //mHandler -> RemoveMessages(what);
+        mHandler->RemoveCppCallbacks((Handle32)(mHandler.Get()), ((EventHub::WvcEhHandler*)(mHandler.Get()))->GetFunc(message));
     }
 }
 
 /* synchronized */
 Boolean WebViewCore::EventHub::HasMessages(
-    /* [in] */ Int32 what)
+    /* [in] */ Int32 message)
 {
     Core::Threading::Mutex::Autolock lock(mutexThis);
     if (mBlockMessages) {
@@ -800,22 +2055,21 @@ Boolean WebViewCore::EventHub::HasMessages(
     } 
     else {
         Boolean bHasMessages;
-        //mHandler->HasMessages(what,&bHasMessages);
+        mHandler->HasCppCallbacks((Handle32)(mHandler.Get()), ((EventHub::WvcEhHandler*)(mHandler.Get()))->GetFunc(message), &bHasMessages);        
         return bHasMessages;
     }
 }
 
 /* synchronized */
 void WebViewCore::EventHub::SendMessageDelayed(
-    /* [in] */ IMessage* msg, 
+    /* [in] */ Msg* msg, 
     /* [in] */ Int64 delay)
 {
     Core::Threading::Mutex::Autolock lock(mutexThis);
     if (mBlockMessages) {
         return;
-    }
-    Boolean bSendMessageDelayed = FALSE;
-    //mHandler -> SendMessageDelayed(msg, delay, &bSendMessageDelayed);
+    }    
+    mHandler->PostCppCallbackDelayed((Handle32)(mHandler.Get()), ((EventHub::WvcEhHandler*)(mHandler.Get()))->GetFunc(msg->message), (msg->params).Get(), 0, delay);
 }
 
 /**
@@ -824,7 +2078,7 @@ void WebViewCore::EventHub::SendMessageDelayed(
  * synchronized
  */
 void WebViewCore::EventHub::SendMessageAtFrontOfQueue(
-    /* [in] */ IMessage* msg)
+    /* [in] */ Msg* msg)
 {
     Core::Threading::Mutex::Autolock lock(mutexThis);
     if (mBlockMessages) {
@@ -834,8 +2088,7 @@ void WebViewCore::EventHub::SendMessageAtFrontOfQueue(
         mMessages -> PushFront(msg);
     } 
     else {
-        Boolean bSendMessageAtFrontOfQueue;
-        //mHandler -> SendMessageAtFrontOfQueue(msg,&bSendMessageAtFrontOfQueue);
+        mHandler->PostCppCallbackAtFrontOfQueue((Handle32)(mHandler.Get()), ((EventHub::WvcEhHandler*)(mHandler.Get()))->GetFunc(msg->message), (msg->params).Get(), 0);
     }
 }
 
@@ -854,7 +2107,8 @@ void WebViewCore::EventHub::RemoveMessages()
         mMessages -> Clear();
     } 
     else {
-        //mHandler -> RemoveCallbacksAndMessages(NULL);
+        //mHandler.removeCallbacksAndMessages(null);
+        mHandler -> RemoveCppCallbacks((Handle32)(mHandler.Get()), NULL);
     }
 }
 
@@ -928,10 +2182,12 @@ WebViewCore::WebViewCore(
     geolocationPermissionsT = NULL; /*CGeolocationPermissions::GetInstance();*/
     geolocationPermissionsT -> CreateUIHandler();
     // Send a message to initialize the WebViewCore.
-    AutoPtr<IMessage> init;
-    //sWebCoreHandler -> ObtainMessage(WebCoreThread_INITIALIZE, (IInterface*)this);
-    Boolean bSendMessage = FALSE;
-    //sWebCoreHandler -> SendMessage(init.Get(),bSendMessage);
+    //JAVA:  Message init = sWebCoreHandler.obtainMessage(WebCoreThread.INITIALIZE, this);
+    //JAVA:  sWebCoreHandler.sendMessage(init);
+    AutoPtr<IParcel> params;
+    CCallbackParcel::New((IParcel**)&params);
+    params->WriteInterfacePtr((IInterface*)this);
+    sWebCoreHandler->SendMessage(WebCoreThread::INITIALIZE, params);
 }
 
 /* Initialize private data within the WebCore thread.
@@ -965,11 +2221,11 @@ void WebViewCore::Initialize()
     // Send a message back to WebView to tell it that we have set up the
     // WebCore thread.
     if (mWebView.Get() != NULL) {
-        /*
-        AutoPtr<IMessage> messageT;
-        messageT -> Obtain( (((CWebView*)(mWebView.Get())) -> mPrivateHandler).Get(), CWebView::WEBCORE_INITIALIZED_MSG_ID, mNativeClass, 0 );
-        messageT -> SendToTarget();
-        */
+        //Message.obtain(mWebView.mPrivateHandler, WebView.WEBCORE_INITIALIZED_MSG_ID, mNativeClass, 0).sendToTarget();
+        AutoPtr<IParcel> params;
+        CCallbackParcel::New((IParcel**)&params);
+        params->WriteInt32(mNativeClass);
+        (((CWebView*)(mWebView.Get()))->mPrivateHandler)->SendMessage(CWebView::WEBCORE_INITIALIZED_MSG_ID, params);
     }
 }
 
@@ -983,7 +2239,11 @@ void WebViewCore::InitializeSubwindow()
     // Go ahead and initialize the core components.
     Initialize();
     // Remove the INITIALIZE method so we don't try to initialize twice.
-    //sWebCoreHandler -> RemoveMessages(WebCoreThread::INITIALIZE, (Handle32)this);
+    //JAVA:  sWebCoreHandler.removeMessages(WebCoreThread.INITIALIZE, this);
+    AutoPtr<IParcel> params;
+    CCallbackParcel::New((IParcel**)&params);
+    params->WriteInterfacePtr((IInterface*)this);
+    sWebCoreHandler->RemoveCppCallbacks((Handle32)(sWebCoreHandler.Get()), ((WebCoreThread::WvcWctHandler*)(sWebCoreHandler.Get()))->GetFunc(WebCoreThread::INITIALIZE));
 }
 
 /* Get the BrowserFrame component. This is used for subwindow creation and
@@ -1238,6 +2498,7 @@ void WebViewCore::GeolocationPermissionsShowPrompt(
             // Marshall to WebCore thread.
             mWebViewCore -> SendMessage(EventHub::GEOLOCATION_PERMISSIONS_PROVIDE, (IInterface*)data);
             delete data;
+            return NOERROR;
         };
 
         WvcGeolocationPermissionsCallback(
@@ -1692,93 +2953,134 @@ void WebViewCore::StopLoading()
 //-------------------------------------------------------------------------
 
 void WebViewCore::SendMessage(
-	/* [in] */ IMessage* msg)
+    /* [in] */ /*IApartment* apartmentR,*/
+    /* [in] */ Int32 message,
+    /* [in] */ IParcel* params)
 {
-    mEventHub -> SendMessage(msg);
+    AutoPtr<EventHub::Msg> msg = new EventHub::Msg();
+    //msg->apartment = apartmentR;
+    msg->message = message;
+    msg->params = params; 
+    mEventHub->SendMessage(msg.Get());
 }
 
 void WebViewCore::SendMessage(
-	/* [in] */ Int32 what)
+	/* [in] */ Int32 message)
 {
-    AutoPtr<IMessage> messageT;
-    //messageT = CMessage::Obtain(NULL,what);
-    mEventHub -> SendMessage(messageT.Get());
+    AutoPtr<EventHub::Msg> msg = new EventHub::Msg();
+    msg->message = message;
+    AutoPtr<IParcel> params;
+    CCallbackParcel::New((IParcel**)&params);
+    msg->params = params; 
+    mEventHub -> SendMessage(msg.Get());
 }
 
 void WebViewCore::SendMessage(
-	/* [in] */ Int32 what, 
+	/* [in] */ Int32 message, 
 	/* [in] */ IInterface* obj)
 {
-    AutoPtr<IMessage> messageT;
-    //messageT = CMessage::Obtain(NULL,what,obj);
-    mEventHub -> SendMessage(messageT.Get());
+    AutoPtr<EventHub::Msg> msg = new EventHub::Msg();
+    msg->message = message;
+    AutoPtr<IParcel> params;
+    CCallbackParcel::New((IParcel**)&params);    
+    params->WriteInterfacePtr(obj);
+    msg->params = params; 
+    mEventHub -> SendMessage(msg.Get());
 }
 
 void WebViewCore::SendMessage(
-	/* [in] */ Int32 what, 
+	/* [in] */ Int32 message, 
 	/* [in] */ Int32 arg1)
 {
-    // just ignore the second argument (make it 0)
-    AutoPtr<IMessage> messageT;
-    //messageT = CMessage::Obtain(NULL,what,arg1);
-    mEventHub -> SendMessage(messageT.Get());
+    AutoPtr<EventHub::Msg> msg = new EventHub::Msg();
+    msg->message = message;
+    AutoPtr<IParcel> params;
+    CCallbackParcel::New((IParcel**)&params);    
+    params->WriteInt32(arg1);
+    msg->params = params; 
+    mEventHub -> SendMessage(msg.Get());
 }
 
 void WebViewCore::SendMessage(
-	/* [in] */ Int32 what, 
+	/* [in] */ Int32 message, 
 	/* [in] */ Int32 arg1, 
 	/* [in] */ Int32 arg2)
 {
-    AutoPtr<IMessage> messageT;
-    //messageT = CMessage::Obtain(NULL,what,arg1,arg2);
-    mEventHub -> SendMessage(messageT.Get());
+    AutoPtr<EventHub::Msg> msg = new EventHub::Msg();
+    msg->message = message;
+    AutoPtr<IParcel> params;
+    CCallbackParcel::New((IParcel**)&params);    
+    params->WriteInt32(arg1);
+    params->WriteInt32(arg2);
+    msg->params = params; 
+    mEventHub -> SendMessage(msg.Get());
 }
 
 void WebViewCore::SendMessage(
-	/* [in] */ Int32 what, 
+	/* [in] */ Int32 message, 
 	/* [in] */ Int32 arg1, 
 	/* [in] */ IInterface* obj)
 {
-    // just ignore the second argument (make it 0)
-    AutoPtr<IMessage> messageT;
-    //messageT = CMessage::Obtain(NULL,what,arg1,0,obj);
-    mEventHub -> SendMessage(messageT.Get());
+    AutoPtr<EventHub::Msg> msg = new EventHub::Msg();
+    msg->message = message;
+    AutoPtr<IParcel> params;
+    CCallbackParcel::New((IParcel**)&params);    
+    params->WriteInt32(arg1);
+    params->WriteInterfacePtr(obj);
+    msg->params = params; 
+    mEventHub -> SendMessage(msg.Get());
 }
 
 void WebViewCore::SendMessage(
-	/* [in] */ Int32 what, 
+	/* [in] */ Int32 message, 
 	/* [in] */ Int32 arg1, 
 	/* [in] */ Int32 arg2, 
 	/* [in] */ IInterface* obj)
 {
-    AutoPtr<IMessage> messageT;
-    //messageT = CMessage::Obtain(NULL,what,arg1,arg2,obj);
-    mEventHub -> SendMessage(messageT.Get());
+    AutoPtr<EventHub::Msg> msg = new EventHub::Msg();
+    msg->message = message;
+    AutoPtr<IParcel> params;
+    CCallbackParcel::New((IParcel**)&params);    
+    params->WriteInt32(arg1);
+    params->WriteInt32(arg2);
+    params->WriteInterfacePtr(obj);
+    msg->params = params; 
+    mEventHub -> SendMessage(msg.Get());
 }
 
 void WebViewCore::SendMessageAtFrontOfQueue(
-	/* [in] */ Int32 what, 
+	/* [in] */ Int32 message, 
 	/* [in] */ IInterface* obj)
-{
-    AutoPtr<IMessage> messageT;
-    //messageT = CMessage::Obtain(NULL,what,obj);
-    mEventHub -> SendMessageAtFrontOfQueue(messageT.Get());
+{    
+    AutoPtr<EventHub::Msg> msg = new EventHub::Msg();
+    msg->message = message;
+    AutoPtr<IParcel> params;
+    CCallbackParcel::New((IParcel**)&params);    
+    params->WriteInterfacePtr(obj);
+    msg->params = params; 
+    mEventHub -> SendMessage(msg);
+    mEventHub -> SendMessageAtFrontOfQueue(msg.Get());
 }
 
 void WebViewCore::SendMessageDelayed(
-	/* [in] */ Int32 what, 
+	/* [in] */ Int32 message, 
 	/* [in] */ IInterface* obj, 
 	/* [in] */ Int64 delay)
-{
-    AutoPtr<IMessage> messageT;
-    //messageT = CMessage::Obtain(NULL,what,obj);
-    mEventHub -> SendMessageDelayed(messageT.Get(), delay);
+{    
+    AutoPtr<EventHub::Msg> msg = new EventHub::Msg();
+    msg->message = message;
+    AutoPtr<IParcel> params;
+    CCallbackParcel::New((IParcel**)&params);    
+    params->WriteInterfacePtr(obj);
+    msg->params = params; 
+    mEventHub -> SendMessage(msg);
+    mEventHub -> SendMessageDelayed(msg.Get(), delay);
 }
 
 void WebViewCore::RemoveMessages(
-	/* [in] */ Int32 what)
+	/* [in] */ Int32 message)
 {
-    mEventHub -> RemoveMessages(what);
+    mEventHub -> RemoveMessages(message);
 }
 
 void WebViewCore::RemoveMessages()
@@ -1802,16 +3104,16 @@ void WebViewCore::Destroy()
     Boolean hasResume = mEventHub -> HasMessages(EventHub::RESUME_TIMERS);
     Boolean hasPause = mEventHub -> HasMessages(EventHub::PAUSE_TIMERS);
     mEventHub -> RemoveMessages();
-    AutoPtr<IMessage> messageT;
-    //messageT = CMessage::Obtain(NULL, EventHub::DESTROY);
-    mEventHub -> SendMessageAtFrontOfQueue(messageT.Get());
+    AutoPtr<EventHub::Msg> msg = new EventHub::Msg();
+    msg->message = EventHub::DESTROY;
+    mEventHub -> SendMessageAtFrontOfQueue(msg.Get());
     if (hasPause) {
-        //messageT = CMessage::Obtain(NULL, EventHub::PAUSE_TIMERS);
-        mEventHub -> SendMessageAtFrontOfQueue(messageT.Get());
+        msg->message = EventHub::PAUSE_TIMERS;
+        mEventHub -> SendMessageAtFrontOfQueue(msg.Get());
     }
-    if (hasResume) {
-        //messageT = CMessage::Obtain(NULL, EventHub::RESUME_TIMERS);
-        mEventHub -> SendMessageAtFrontOfQueue(messageT.Get());
+    if (hasResume) {        
+        msg->message = EventHub::RESUME_TIMERS;
+        mEventHub -> SendMessageAtFrontOfQueue(msg.Get());
     }
     mEventHub -> BlockMessages();
 }
@@ -1880,9 +3182,10 @@ void WebViewCore::Key(
             Boolean bIsDown = FALSE;
             evt -> IsDown(&bIsDown);
             if (mWebView.Get() != NULL && bIsDown) {
-                AutoPtr<IMessage> messageT;
-                //messageT = CMessage::Obtain(((CWebView*)(mWebView.Get())->mPrivateHandler).Get(), CWebView::MOVE_OUT_OF_PLUGIN, keyCode);
-                //messageT -> SendToTarget();
+                AutoPtr<IParcel> params;
+                CCallbackParcel::New((IParcel**)&params);    
+                params->WriteInt32(keyCode);
+                (((CWebView*)(mWebView.Get()))->mPrivateHandler)->SendMessage(CWebView::MOVE_OUT_OF_PLUGIN,params);
             }
             return;
         }
@@ -1962,17 +3265,17 @@ void WebViewCore::ViewSizeChanged(
         }
         ContentDraw();
     }
-    AutoPtr<IMessage> messageT;
-    //messageT = CMessage::Obtain(NULL, EventHub::UPDATE_CACHE_AND_TEXT_ENTRY);
-    mEventHub -> SendMessage(messageT.Get());
+    AutoPtr<EventHub::Msg> msg = new EventHub::Msg();
+    msg->message = EventHub::UPDATE_CACHE_AND_TEXT_ENTRY;
+    mEventHub -> SendMessage(msg);
 }
 
 void WebViewCore::SendUpdateTextEntry()
 {
     if (mWebView.Get() != NULL) {
-        AutoPtr<IMessage> messageT;
-        //messageT = CMessage::Obtain( (((CWebView*)(mWebView.Get())) -> mPrivateHandler).Get(), CWebView::UPDATE_TEXT_ENTRY_MSG_ID);
-        //messageT -> SendToTarget();
+        AutoPtr<IParcel> params;
+        CCallbackParcel::New((IParcel**)&params);
+        (((CWebView*)(mWebView.Get())) -> mPrivateHandler)->SendMessage(CWebView::UPDATE_TEXT_ENTRY_MSG_ID, params);
     }
 }
 
@@ -2032,13 +3335,17 @@ void WebViewCore::WebkitDraw()
         if (DebugFlags::sWEB_VIEW_CORE) {
             Utility::Logging::Logger::V(LOGTAG, String("webkitDraw NEW_PICTURE_MSG_ID\n"));
         } 
-        AutoPtr<IMessage> messageT;
-        //messageT = CMessage::Obtain( (((CWebView*)(mWebView.Get()) ) -> mPrivateHandler).Get(), CWebView::NEW_PICTURE_MSG_ID, draw);
-        //messageT -> SendToTarget();
+        AutoPtr<IParcel> params;
+        CCallbackParcel::New((IParcel**)&params);
+        params->WriteInterfacePtr((IInterface*)draw);
+        (((CWebView*)(mWebView.Get()))->mPrivateHandler)->SendMessage(CWebView::NEW_PICTURE_MSG_ID,params);
         if (mWebkitScrollX != 0 || mWebkitScrollY != 0) {
             // as we have the new picture, try to sync the scroll position
-            //messageT = CMessage::Obtain( (((CWebView*)(mWebView.Get())) -> mPrivateHandler).Get(), CWebView::SYNC_SCROLL_TO_MSG_ID, mWebkitScrollX, mWebkitScrollY);
-            //messageT -> SendToTarget();
+            AutoPtr<IParcel> paramsI;
+            CCallbackParcel::New((IParcel**)&paramsI);
+            paramsI->WriteInt32(mWebkitScrollX);
+            paramsI->WriteInt32(mWebkitScrollY);
+            (((CWebView*)(mWebView.Get()))->mPrivateHandler)->SendMessage(CWebView::SYNC_SCROLL_TO_MSG_ID,paramsI);
             mWebkitScrollX = mWebkitScrollY = 0;
         } 
     }
@@ -2092,25 +3399,31 @@ AutoPtr<IPicture> WebViewCore::CopyContentPicture()
 void WebViewCore::ReducePriority()
 {
     // remove the pending REDUCE_PRIORITY and RESUME_PRIORITY messages
-    /*
-    sWebCoreHandler -> RemoveMessages(WebCoreThread::REDUCE_PRIORITY);
-    sWebCoreHandler -> RemoveMessages(WebCoreThread::RESUME_PRIORITY);
-    AutoPtr<IMessage> messageT;
-    sWebCoreHandler-> ObtainMessage(WebCoreThread::REDUCE_PRIORITY, (IMessage**)messageT);
-    sWebCoreHandler -> SendMessageAtFrontOfQueue(messageT.Get());
-    */
+    void (STDCALL WebCoreThread::WvcWctHandler::*pHandlerFunc)();
+    pHandlerFunc = &WebCoreThread::WvcWctHandler::HandleReducePriority;
+    sWebCoreHandler->RemoveCppCallbacks( (Handle32)(sWebCoreHandler.Get()), *(Handle32*)&pHandlerFunc);
+    pHandlerFunc = &WebCoreThread::WvcWctHandler::HandleResumePriority; 
+    sWebCoreHandler->RemoveCppCallbacks( (Handle32)(sWebCoreHandler.Get()), *(Handle32*)&pHandlerFunc);
+
+    pHandlerFunc = &WebCoreThread::WvcWctHandler::HandleReducePriority;
+    AutoPtr<IParcel> params;
+    CCallbackParcel::New((IParcel**)&params);
+    sWebCoreHandler->PostCppCallbackAtFrontOfQueue( (Handle32)(sWebCoreHandler.Get()), *(Handle32*)&pHandlerFunc, params, 0);
 }
 
 void WebViewCore::ResumePriority()
 {    
     // remove the pending REDUCE_PRIORITY and RESUME_PRIORITY messages
-    /*
-    sWebCoreHandler -> RemoveMessages(WebCoreThread::REDUCE_PRIORITY);
-    sWebCoreHandler -> RemoveMessages(WebCoreThread::RESUME_PRIORITY);
-    AutoPtr<IMessage> messageT;
-    sWebCoreHandler-> ObtainMessage(WebCoreThread::RESUME_PRIORITY, (IMessage**)messageT);
-    sWebCoreHandler -> SendMessageAtFrontOfQueue(messageT.Get());
-    */
+    void (STDCALL WebCoreThread::WvcWctHandler::*pHandlerFunc)();
+    pHandlerFunc = &WebCoreThread::WvcWctHandler::HandleReducePriority;
+    sWebCoreHandler->RemoveCppCallbacks( (Handle32)(sWebCoreHandler.Get()), *(Handle32*)&pHandlerFunc);
+    pHandlerFunc = &WebCoreThread::WvcWctHandler::HandleResumePriority; 
+    sWebCoreHandler->RemoveCppCallbacks( (Handle32)(sWebCoreHandler.Get()), *(Handle32*)&pHandlerFunc);
+
+    pHandlerFunc = &WebCoreThread::WvcWctHandler::HandleResumePriority;
+    AutoPtr<IParcel> params;
+    CCallbackParcel::New((IParcel**)&params);
+    sWebCoreHandler->PostCppCallbackAtFrontOfQueue( (Handle32)(sWebCoreHandler.Get()), *(Handle32*)&pHandlerFunc, params, 0);
 }
 
 void WebViewCore::PauseUpdatePicture(
@@ -2120,10 +3433,10 @@ void WebViewCore::PauseUpdatePicture(
     // called from UI thread while WEBKIT_DRAW is just pulled out of the
     // queue in WebCore thread to be executed. Then update won't be blocked.
     if (core != NULL) {
-        Core::Threading::Mutex::Autolock lock(core -> mutexThis);
-        core -> mDrawIsPaused = TRUE;
-        if (core -> mDrawIsScheduled) {
-            (core -> mEventHub) -> RemoveMessages(EventHub::WEBKIT_DRAW);
+        Core::Threading::Mutex::Autolock lock(core->mutexThis);
+        core->mDrawIsPaused = TRUE;
+        if (core->mDrawIsScheduled) {
+            (core->mEventHub)->RemoveMessages(EventHub::WEBKIT_DRAW);
         }
     }
 }
@@ -2132,11 +3445,11 @@ void WebViewCore::ResumeUpdatePicture(
 	/* [in] */ WebViewCore* core)
 {
     if (core != NULL) {
-        Core::Threading::Mutex::Autolock lock(core -> mutexThis);
-        core -> mDrawIsPaused = FALSE;
-        if (core -> mDrawIsScheduled) {
-            core -> mDrawIsScheduled = FALSE;
-            core -> ContentDraw();
+        Core::Threading::Mutex::Autolock lock(core->mutexThis);
+        core->mDrawIsPaused = FALSE;
+        if (core->mDrawIsScheduled) {
+            core->mDrawIsScheduled = FALSE;
+            core->ContentDraw();
         }
     }
 }
@@ -2182,9 +3495,12 @@ void WebViewCore::ContentDraw()
     if (mDrawIsPaused) {
         return;
     }
-    AutoPtr<IMessage> messageT;
-    //CMessage::Obtain(NULL, EventHub::WEBKIT_DRAW, (IMessage**)&messageT);
-    mEventHub -> SendMessage(messageT.Get());
+    AutoPtr<EventHub::Msg> msg = new EventHub::Msg();
+    msg->message = EventHub::WEBKIT_DRAW;
+    AutoPtr<IParcel> params;
+    CCallbackParcel::New((IParcel**)&params);
+    msg->params = params;
+    mEventHub->SendMessage(msg);
 }
 
 // called by JNI
@@ -2198,15 +3514,28 @@ CARAPI_(void) WebViewCore::ContentScrollBy(
         return;
     }
     if (mWebView.Get() != NULL) {
-        AutoPtr<IMessage> msg;
-        //msg = CMessage::Obtain( (((CWebView*)(mWebView.Get())) -> mPrivateHandler).Get(), CWebView::SCROLL_BY_MSG_ID, dx, dy, animate);
+        AutoPtr<IApartment> apartmentW;
+        apartmentW = (((CWebView*)(mWebView.Get()))->mPrivateHandler).Get();
+        Int32 messageW = CWebView::SCROLL_BY_MSG_ID;
+        AutoPtr<IParcel> paramsW;
+        CCallbackParcel::New((IParcel**)&paramsW);
+        paramsW->WriteInt32(dx);
+        paramsW->WriteInt32(dy);
+        paramsW->WriteBoolean(animate);
         if (mDrawIsScheduled) {
-            AutoPtr<IMessage> msg2;
-            //msg2 = CMessage::Obtain(NULL, EventHub::MESSAGE_RELAY, msg.Get());
-            mEventHub -> SendMessage(msg2.Get());
+            AutoPtr<IParcel> params;
+            CCallbackParcel::New((IParcel**)&params);
+            params->WriteInterfacePtr(apartmentW.Get());
+            params->WriteInt32(messageW);
+            params->WriteInterfacePtr(paramsW.Get());
+
+            AutoPtr<EventHub::Msg> msg = new EventHub::Msg();
+            msg->message = EventHub::MESSAGE_RELAY;
+            msg->params = params;
+            mEventHub->SendMessage(msg);
         } 
         else {
-            //msg -> SendToTarget();
+            apartmentW->SendMessage(messageW,paramsW);
         }
     }
 }
@@ -2227,15 +3556,27 @@ void WebViewCore::ContentScrollTo(
         return;
     }
     if ((mWebView.Get()) != NULL) {
-        AutoPtr<IMessage> msg;
-        //msg = CMessage::Obtain( (((CWebView*)(mWebView.Get())) -> mPrivateHandler).Get(), CWebView::SCROLL_TO_MSG_ID, x, y);
+        AutoPtr<IApartment> apartmentW;
+        apartmentW = (((CWebView*)(mWebView.Get()))->mPrivateHandler).Get();
+        Int32 messageW = CWebView::SCROLL_TO_MSG_ID;
+        AutoPtr<IParcel> paramsW;
+        CCallbackParcel::New((IParcel**)&paramsW);
+        paramsW->WriteInt32(x);
+        paramsW->WriteInt32(y);
         if (mDrawIsScheduled) {
-            AutoPtr<IMessage> msg2;
-            //msg2 = CMessage::Obtain(NULL, EventHub::MESSAGE_RELAY, msg.Get());
-            mEventHub -> SendMessage(msg2.Get());
+            AutoPtr<IParcel> params;
+            CCallbackParcel::New((IParcel**)&params);
+            params->WriteInterfacePtr(apartmentW.Get());
+            params->WriteInt32(messageW);
+            params->WriteInterfacePtr(paramsW.Get());
+
+            AutoPtr<EventHub::Msg> msg = new EventHub::Msg();
+            msg->message = EventHub::MESSAGE_RELAY;
+            msg->params = params;
+            mEventHub->SendMessage(msg);
         } 
         else {
-            //msg -> SendToTarget();
+            apartmentW->SendMessage(messageW,paramsW);
         }
     }
 }
@@ -2256,15 +3597,27 @@ void WebViewCore::ContentSpawnScrollTo(
         return;
     }
     if ( (mWebView.Get()) != NULL) {
-        AutoPtr<IMessage> msg;
-        //msg = CMessage::Obtain( (((CWebView*)(mWebView.Get())) -> mPrivateHandler).Get(), CWebView::SPAWN_SCROLL_TO_MSG_ID, x, y);
+        AutoPtr<IApartment> apartmentW;
+        apartmentW = (((CWebView*)(mWebView.Get()))->mPrivateHandler).Get();
+        Int32 messageW = CWebView::SPAWN_SCROLL_TO_MSG_ID;
+        AutoPtr<IParcel> paramsW;
+        CCallbackParcel::New((IParcel**)&paramsW);
+        paramsW->WriteInt32(x);
+        paramsW->WriteInt32(y);
         if (mDrawIsScheduled) {
-            AutoPtr<IMessage> msg2;
-            //msg2 = CMessage::Obtain(NULL, EventHub::MESSAGE_RELAY, msg.Get());
-            mEventHub -> SendMessage(msg2.Get());
+            AutoPtr<IParcel> params;
+            CCallbackParcel::New((IParcel**)&params);
+            params->WriteInterfacePtr(apartmentW.Get());
+            params->WriteInt32(messageW);
+            params->WriteInterfacePtr(paramsW.Get());
+
+            AutoPtr<EventHub::Msg> msg = new EventHub::Msg();
+            msg->message = EventHub::MESSAGE_RELAY;
+            msg->params = params;
+            mEventHub->SendMessage(msg);
         } 
         else {
-            //msg -> SendToTarget();
+            apartmentW->SendMessage(messageW,paramsW);
         }
     }
 }
@@ -2276,8 +3629,8 @@ void WebViewCore::SendNotifyProgressFinished()
     // as CacheManager can behave based on database transaction, we need to
     // call tick() to trigger endTransaction
     AutoPtr<WebViewWorker> webViewWorkerT = WebViewWorker::GetHandler();
-    //webViewWorkerT -> RemoveMessages(WebViewWorker::MSG_CACHE_TRANSACTION_TICKER);    //JAVA:  os/Handler.java
-    //webViewWorkerT -> SendEmptyMessage(WebViewWorker::MSG_CACHE_TRANSACTION_TICKER);
+    webViewWorkerT -> RemoveMessages(WebViewWorker::MSG_CACHE_TRANSACTION_TICKER);    //JAVA:  os/Handler.java
+    webViewWorkerT -> SendEmptyMessage(WebViewWorker::MSG_CACHE_TRANSACTION_TICKER);
     ContentDraw();
 }
 
@@ -2292,11 +3645,13 @@ void WebViewCore::SendViewInvalidate(
     /* [in] */ Int32 bottom)
 {
     if (mWebView.Get() != NULL) {
-        AutoPtr<IMessage> msg;
         AutoPtr<IRect> rect;
         CRect::New(left, top, right, bottom, (IRect**)&rect);
-        //msg = CMessage::Obtain((((CWebView*)(mWebView.Get())) -> mPrivateHandler).Get(), CWebView::INVAL_RECT_MSG_ID, rect.Get());
-        //msg -> SendToTarget();
+
+        AutoPtr<IParcel> params;
+        CCallbackParcel::New((IParcel**)&params);
+        params->WriteInterfacePtr(rect.Get());
+        (((CWebView*)(mWebView.Get())) -> mPrivateHandler)->SendMessage( CWebView::INVAL_RECT_MSG_ID, params);
     }
 }
 
@@ -2314,9 +3669,10 @@ void WebViewCore::SendImmediateRepaint()
 {
     if (mWebView.Get() != NULL && !mRepaintScheduled) {
         mRepaintScheduled = TRUE;
-        AutoPtr<IMessage> msg;
-        //msg = CMessage::obtain( (((CWebView*)(mWebView.Get())) -> mPrivateHandler).Get(), CWebView::IMMEDIATE_REPAINT_MSG_ID);
-        //msg -> SendToTarget();
+
+        AutoPtr<IParcel> params;
+        CCallbackParcel::New((IParcel**)&params);
+        (((CWebView*)(mWebView.Get())) -> mPrivateHandler)->SendMessage( CWebView::IMMEDIATE_REPAINT_MSG_ID, params);
     }
 }
 
@@ -2325,9 +3681,12 @@ void WebViewCore::SetRootLayer(
     /* [in] */ Int32 layer)
 {
     if (mWebView.Get() != NULL) {
+
+        AutoPtr<IParcel> params;
+        CCallbackParcel::New((IParcel**)&params);
+        params->WriteInt32(layer);
+        (((CWebView*)(mWebView.Get())) -> mPrivateHandler)->SendMessage( CWebView::SET_ROOT_LAYER_MSG_ID, params);
         AutoPtr<IMessage> msg;
-        //CMessage::Obtain( (((CWebView*)(mWebView.Get())) -> mPrivateHandler).Get(), CWebView::SET_ROOT_LAYER_MSG_ID,layer, 0);
-        //msg -> SendToTarget();
     }
 }
 
@@ -2443,11 +3802,12 @@ void WebViewCore::SetupViewport(
         restoreState -> mMobileSite = FALSE;
         // for non-mobile site, we don't need minPrefWidth, set it as 0
         restoreState -> mScrollX = 0;
-        /*
-        AutoPtr<IMessage> msg;
-        msg = CMessage::Obtain( (((CWebView*)(mWebView.Get())) -> mPrivateHandler).Get(), CWebView::UPDATE_ZOOM_RANGE, restoreState);
-        msg -> SendToTarget();
-        */
+
+        AutoPtr<IParcel> params;
+        CCallbackParcel::New((IParcel**)&params);
+        params->WriteStruct((Handle32)restoreState,sizeof(RestoreState));
+        (((CWebView*)(mWebView.Get()))->mPrivateHandler)->SendMessage(CWebView::UPDATE_ZOOM_RANGE, params);
+
         delete restoreState;
         return;
     }
@@ -2530,9 +3890,14 @@ void WebViewCore::SetupViewport(
         // in the queue, as mLastHeightSent has been updated here, we may
         // miss the requestLayout in WebView side after the new picture.
         mEventHub -> RemoveMessages(EventHub::VIEW_SIZE_CHANGED);
-        AutoPtr<IMessage> msg;
-        //msg = CMessage::Obtain(NULL, EventHub::VIEW_SIZE_CHANGED, data);
+        AutoPtr<EventHub::Msg> msg = new EventHub::Msg();
+        msg->message = EventHub::VIEW_SIZE_CHANGED;
+        AutoPtr<IParcel> params;
+        CCallbackParcel::New((IParcel**)&params);
+        params->WriteStruct((Handle32)data,sizeof(CWebView::ViewSizeData));
+        msg->params = params;
         mEventHub -> SendMessageAtFrontOfQueue(msg.Get());
+
         if(data != NULL)
         {
             delete data;
@@ -2576,9 +3941,13 @@ void WebViewCore::SetupViewport(
             data -> mAnchorX = data -> mAnchorY = 0;
             // send VIEW_SIZE_CHANGED to the front of the queue so that we
             // can avoid pushing the wrong picture to the WebView side.
-            mEventHub -> RemoveMessages(EventHub::VIEW_SIZE_CHANGED);
-            AutoPtr<IMessage> msg;
-            //msg = CMessage::Obtain(NULL, EventHub::VIEW_SIZE_CHANGED, data);
+            mEventHub -> RemoveMessages(EventHub::VIEW_SIZE_CHANGED);            
+            AutoPtr<EventHub::Msg> msg = new EventHub::Msg();
+            msg->message = EventHub::VIEW_SIZE_CHANGED;            
+            AutoPtr<IParcel> params;
+            CCallbackParcel::New((IParcel**)&params);
+            params->WriteStruct((Handle32)data,sizeof(CWebView::ViewSizeData));
+            msg->params = params;
             mEventHub -> SendMessageAtFrontOfQueue(msg.Get());
             delete data;
         }
@@ -2612,9 +3981,10 @@ void WebViewCore::NeedTouchEvents(
 	/* [in] */ Boolean need)
 {
     if (mWebView.Get() != NULL) {
-        AutoPtr<IMessage> msg;
-        //msg = CMessage::Obtain( (((CWebView*)(mWebView.Get())) -> mPrivateHandler).Get(),CWebView::WEBCORE_NEED_TOUCH_EVENTS, need ? 1 : 0, 0);
-        //msg -> SendToTarget();
+        AutoPtr<IParcel> params;
+        CCallbackParcel::New((IParcel**)&params);
+        params->WriteInt32(need ? 1 : 0);
+        (((CWebView*)(mWebView.Get()))->mPrivateHandler)->SendMessage(CWebView::WEBCORE_NEED_TOUCH_EVENTS, params);
     }
 }
 
@@ -2626,12 +3996,13 @@ CARAPI_(void) WebViewCore::UpdateTextfield(
 	/* [in] */ Int32 textGeneration)
 {
     if (mWebView.Get() != NULL) {
-        AutoPtr<IMessage> msg;
-        //msg = CMessage::Obtain((((CWebView*)(mWebView.Get())) -> mPrivateHandler).Get(), CWebView::UPDATE_TEXTFIELD_TEXT_MSG_ID, ptr, textGeneration, text);
-        AutoPtr<IBundle> bundleT;
-        //msg -> GetData((IBundle**)&bundleT);
-        bundleT -> PutBoolean(String("password"), changeToPassword);
-        //msg -> sendToTarget();
+        AutoPtr<IParcel> params;
+        CCallbackParcel::New((IParcel**)&params);
+        params->WriteInt32(ptr);
+        params->WriteInt32(textGeneration);
+        params->WriteString(String(text));
+        params->WriteBoolean(changeToPassword);
+        (((CWebView*)(mWebView.Get()))->mPrivateHandler)->SendMessage(CWebView::UPDATE_TEXTFIELD_TEXT_MSG_ID, params);
     }
 }
 
@@ -2643,10 +4014,13 @@ void WebViewCore::UpdateTextSelection(
 	/* [in] */ Int32 textGeneration)
 {
     if (mWebView.Get() != NULL) {
-        AutoPtr<IMessage> msg;
         TextSelectionData* textSelectionDataT = new TextSelectionData(start, end);
-        //msg = CMessage::Obtain((((CWebView*)(mWebView.Get())) -> mPrivateHandler).Get(), CWebView::UPDATE_TEXT_SELECTION_MSG_ID, pointer, textGeneration, textSelectionDataT);
-        //msg -> SendToTarget();
+        AutoPtr<IParcel> params;
+        CCallbackParcel::New((IParcel**)&params);
+        params->WriteInt32(pointer);
+        params->WriteInt32(textGeneration);
+        params->WriteStruct((Handle32)textSelectionDataT,sizeof(TextSelectionData));
+        (((CWebView*)(mWebView.Get()))->mPrivateHandler)->SendMessage(CWebView::UPDATE_TEXTFIELD_TEXT_MSG_ID, params);
         delete textSelectionDataT;
     }
 }
@@ -2657,9 +4031,9 @@ void WebViewCore::ClearTextEntry()
     if (mWebView.Get() == NULL) {
         return;
     }
-    AutoPtr<IMessage> msg;
-    //msg = CMessage::Obtain((((CWebView*)(mWebView.Get())) -> mPrivateHandler).Get(), CWebView::CLEAR_TEXT_ENTRY);
-    //msg -> SendToTarget();
+    AutoPtr<IParcel> params;
+    CCallbackParcel::New((IParcel**)&params);
+    (((CWebView*)(mWebView.Get())) -> mPrivateHandler)->SendMessage(CWebView::CLEAR_TEXT_ENTRY, params);
 }
 
 // called by JNI
@@ -2668,9 +4042,9 @@ void WebViewCore::SendFindAgain()
     if (mWebView.Get() == NULL) {
         return;
     }
-    AutoPtr<IMessage> msg;
-    //msg = CMessage::Obtain( (((CWebView*)(mWebView.Get())) -> mPrivateHandler).Get(), CWebView::FIND_AGAIN);
-    //msg -> SendToTarget();
+    AutoPtr<IParcel> params;
+    CCallbackParcel::New((IParcel**)&params);
+    (((CWebView*)(mWebView.Get())) -> mPrivateHandler)->SendMessage(CWebView::FIND_AGAIN, params);
 }
 
 /*native*/
@@ -2739,13 +4113,12 @@ void WebViewCore::RequestKeyboardWithSelection(
 {
     if (mWebView.Get() != NULL) {
         TextSelectionData* textSelectionDataT = new TextSelectionData(selStart, selEnd);
-        AutoPtr<IMessage> msg;
-        /*
-        msg = CMessage::Obtain( (((CWebView*)(mWebView.Get())) -> mPrivateHandler).Get(),
-                    CWebView::REQUEST_KEYBOARD_WITH_SELECTION_MSG_ID, pointer,
-                    textGeneration, textSelectionDataT);
-        msg -> SendToTarget();
-        */
+        AutoPtr<IParcel> params;
+        CCallbackParcel::New((IParcel**)&params);
+        params->WriteInt32(pointer);
+        params->WriteInt32(textGeneration);
+        params->WriteStruct((Handle32)textSelectionDataT,sizeof(TextSelectionData));
+        (((CWebView*)(mWebView.Get()))->mPrivateHandler)->SendMessage(CWebView::REQUEST_KEYBOARD_WITH_SELECTION_MSG_ID, params);
         delete textSelectionDataT;
     }
 }
@@ -2755,12 +4128,10 @@ void WebViewCore::RequestKeyboard(
 	/* [in] */ Boolean showKeyboard)
 {
     if (mWebView.Get() != NULL) {
-        AutoPtr<IMessage> msg;
-        /*
-        msg = CMessage::Obtain( (((CWebView*)(mWebView.Get())) -> mPrivateHandler).Get(),
-                    CWebView::REQUEST_KEYBOARD, showKeyboard ? 1 : 0, 0);
-        msg -> SendToTarget();
-        */
+        AutoPtr<IParcel> params;
+        CCallbackParcel::New((IParcel**)&params);
+        params->WriteInt32(showKeyboard ? 1 : 0);
+        (((CWebView*)(mWebView.Get()))->mPrivateHandler)->SendMessage(CWebView::REQUEST_KEYBOARD, params);
     }
 }
 
@@ -2814,15 +4185,11 @@ void WebViewCore::ShowFullScreenPlugin(
     if (mWebView.Get() == NULL) {
         return;
     }
-
-    /*
-    AutoPtr<IMessage> message;
-    message = ( ((CWebView*)(mWebView.Get())) -> mPrivateHandler ) -> ObtainMessage(CWebView::SHOW_FULLSCREEN);
-    CMessage* msg = (CMessage*)(message.Get());
-    msg -> obj = childView -> mView;
-    message -> arg1 = npp;
-    message -> SendToTarget();
-    */
+    AutoPtr<IParcel> params;
+    CCallbackParcel::New((IParcel**)&params);
+    params->WriteInt32(npp);
+    params->WriteInterfacePtr((IInterface*)(childView->mView));
+    (((CWebView*)(mWebView.Get()))->mPrivateHandler)->SendMessage(CWebView::SHOW_FULLSCREEN, params);
 }
 
 // called by JNI
@@ -2831,11 +4198,9 @@ void WebViewCore::HideFullScreenPlugin()
     if (mWebView.Get() == NULL) {
         return;
     }
-    /*
-    AutoPtr<IMessage> message;
-    message = ( ((CWebView*)(mWebView.Get())) -> mPrivateHandler ) -> ObtainMessage(CWebView::HIDE_FULLSCREEN);
-    message -> SendToTarget();
-    */
+    AutoPtr<IParcel> params;
+    CCallbackParcel::New((IParcel**)&params);
+    (((CWebView*)(mWebView.Get()))->mPrivateHandler)->SendMessage(CWebView::HIDE_FULLSCREEN, params);
 }
 
 // called by JNI.  PluginWidget functions for creating an embedded View for
@@ -2911,12 +4276,12 @@ void WebViewCore::ShowRect(
         data -> mXPercentInView = xPercentInView;
         data -> mYPercentInDoc = yPercentInDoc;
         data -> mYPercentInView = yPercentInView;
-        /*
-        AutoPtr<IMessage> msg;
-        msg = CMessage::Obtain((((CWebView*)(mWebView.Get())) -> mPrivateHandler).Get(), CWebView::SHOW_RECT_MSG_ID, data);
-        msg -> SendToTarget();
-        */
-    }    
+
+        AutoPtr<IParcel> params;
+        CCallbackParcel::New((IParcel**)&params);
+        params->WriteStruct((Handle32)data,sizeof(ShowRectData));
+        (((CWebView*)(mWebView.Get()))->mPrivateHandler)->SendMessage(CWebView::SHOW_RECT_MSG_ID, params);
+    }
 }
 
 // called by JNI
@@ -2931,11 +4296,11 @@ void WebViewCore::CenterFitRect(
     }
     AutoPtr<IRect> rect;
     CRect::New(x, y, x + width, y + height, (IRect**)&rect);
-    /*
-    AutoPtr<IMessage> messageT;
-    messageT = (((CWebView*)(mWebView.Get())) -> mPrivateHandler) -> ObtainMessage(CWebView::CENTER_FIT_RECT, rect);
-    messageT -> SendToTarget();
-    */
+
+    AutoPtr<IParcel> params;
+    CCallbackParcel::New((IParcel**)&params);
+    params->WriteInterfacePtr((IInterface*)(rect));
+    (((CWebView*)(mWebView.Get()))->mPrivateHandler)->SendMessage(CWebView::CENTER_FIT_RECT, params);
 }
 
 // called by JNI
@@ -2946,11 +4311,11 @@ void WebViewCore::SetScrollbarModes(
     if (mWebView.Get() == NULL) {
             return;
     }
-    /*
-    AutoPtr<IMessage> messageT;
-    messageT = (((CWebView*)(mWebView.Get())) -> mPrivateHandler) -> ObtainMessage(CWebView::SET_SCROLLBAR_MODES, hMode, vMode);
-    messageT -> SendToTarget();
-    */
+    AutoPtr<IParcel> params;
+    CCallbackParcel::New((IParcel**)&params);
+    params->WriteInt32(hMode);
+    params->WriteInt32(vMode);
+    (((CWebView*)(mWebView.Get()))->mPrivateHandler)->SendMessage(CWebView::SET_SCROLLBAR_MODES, params);
 }
 
 /*native*/

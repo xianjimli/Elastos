@@ -9,7 +9,7 @@ class WebSyncManager: public ElRefBase, public IRunnable
 {
     friend class SyncHandler;
 private:
-    class SyncHandler: public ElRefBase, public IHandler 
+    class SyncHandler: public ElRefBase,public IApartment
     {
     public:
         CARAPI_(PInterface) Probe(
@@ -23,13 +23,70 @@ private:
             /* [in] */ IInterface* Object,
             /* [out] */ InterfaceID* iID);
     public:
-        //@Override
-        CARAPI HandleMessage(
-            /* [in] */ IMessage* msg);
+        //IApartment
+        CARAPI Start(
+            /* [in] */ ApartmentAttr attr);
+
+        CARAPI Finish();
+
+        CARAPI PostCppCallback(
+            /* [in] */ Handle32 target,
+            /* [in] */ Handle32 func,
+            /* [in] */ IParcel* params,
+            /* [in] */ Int32 id);
+
+        CARAPI PostCppCallbackAtTime(
+            /* [in] */ Handle32 target,
+            /* [in] */ Handle32 func,
+            /* [in] */ IParcel* params,
+            /* [in] */ Int32 id,
+            /* [in] */ Millisecond64 uptimeMillis);
+
+        CARAPI PostCppCallbackDelayed(
+            /* [in] */ Handle32 target,
+            /* [in] */ Handle32 func,
+            /* [in] */ IParcel* params,
+            /* [in] */ Int32 id,
+            /* [in] */ Millisecond64 delayMillis);
+
+        CARAPI PostCppCallbackAtFrontOfQueue(
+            /* [in] */ Handle32 target,
+            /* [in] */ Handle32 func,
+            /* [in] */ IParcel* params,
+            /* [in] */ Int32 id);
+
+        CARAPI RemoveCppCallbacks(
+            /* [in] */ Handle32 target,
+            /* [in] */ Handle32 func);
+
+        CARAPI RemoveCppCallbacksEx(
+            /* [in] */ Handle32 target,
+            /* [in] */ Handle32 func,
+            /* [in] */ Int32 id);
+
+        CARAPI HasCppCallbacks(
+            /* [in] */ Handle32 target,
+            /* [in] */ Handle32 func,
+            /* [out] */ Boolean* result);
+
+        CARAPI HasCppCallbacksEx(
+            /* [in] */ Handle32 target,
+            /* [in] */ Handle32 func,
+            /* [in] */ Int32 id,
+            /* [out] */ Boolean* result);
+
+        CARAPI SendMessage(
+            /* [in] */ Int32 message,
+            /* [in] */ IParcel* params); 
+
+    public:
+        void HandleSyncMessage();
+        
         SyncHandler(
             /* [in] */ WebSyncManager* webSyncManager);
     private:
     	AutoPtr<WebSyncManager> mWebSyncManager;
+        AutoPtr<IApartment> mApartment;
     };
 
 public:
@@ -86,7 +143,7 @@ protected:
 
 protected:
     // handler of the sync thread
-    AutoPtr<IHandler> mHandler;
+    AutoPtr<IApartment> mHandler;
     // database for the persistent storage
     AutoPtr<IWebViewDatabase> mDataBase;
 
@@ -95,11 +152,11 @@ protected:
 
 private:
     // message code for sync message
-    static const Int32 SYNC_MESSAGE = 101;
+    static const Int32 SYNC_MESSAGE;// = 101;
     // time delay in millisec for a sync (now) message
-    static const Int32 SYNC_NOW_INTERVAL = 100; // 100 millisec
+    static const Int32 SYNC_NOW_INTERVAL;// = 100; // 100 millisec
     // time delay in millisec for a sync (later) message
-    static const Int32 SYNC_LATER_INTERVAL = 5 * 60 * 1000; // 5 minutes
+    static const Int32 SYNC_LATER_INTERVAL;// = 5 * 60 * 1000; // 5 minutes
 
     // thread for syncing
     AutoPtr<IThread> mSyncThread;

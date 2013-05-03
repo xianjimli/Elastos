@@ -57,28 +57,146 @@
     /**
      * Private class used for the background of a password textfield.
      */
-    class OutlineDrawable : public ElRefBase, public Drawable//, public IDrawable
+    class OutlineDrawable : public ElRefBase, public Drawable, public IDrawable
     {
     public:
-        virtual CARAPI_(PInterface) Probe(
-        /* [in] */ REIID riid);
+        CARAPI_(PInterface) Probe(
+            /* [in] */ REIID riid);
 
-        //public
-        virtual /*CARAPI_(void)*/CARAPI Draw(
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface* Object,
+            /* [out] */ InterfaceID* iID);
+    public:
+        //IDrawable
+        CARAPI Draw(
             /* [in] */ ICanvas* canvas);
 
-        // Always want it to be opaque.
-        //public
-        virtual CARAPI_(Int32) GetOpacity();
+        CARAPI SetBounds(
+            /* [in] */ Int32 left,
+            /* [in] */ Int32 top,
+            /* [in] */ Int32 right,
+            /* [in] */ Int32 bottom);
 
-        // These are needed because they are abstract in Drawable.
-        //public
-        virtual /*CARAPI_(void)*/CARAPI SetAlpha(
+        CARAPI SetBoundsEx(
+            /* [in] */ IRect* bounds);
+
+        CARAPI CopyBounds(
+            /* [in] */ IRect* bounds);
+
+        CARAPI CopyBoundsEx(
+            /* [out] */ IRect** rect);
+
+        CARAPI GetBounds(
+            /* [out] */ IRect** rect);
+
+        CARAPI SetChangingConfigurations(
+            /* [in] */ Int32 configs);
+
+        CARAPI GetChangingConfigurations(
+            /* [out] */ Int32* configs);
+
+        CARAPI SetDither(
+            /* [in] */ Boolean dither);
+
+        CARAPI SetFilterBitmap(
+            /* [in] */ Boolean filter);
+
+        CARAPI SetCallback(
+            /* [in] */ IDrawableCallback* cb);
+
+        CARAPI InvalidateSelf();
+
+        CARAPI ScheduleSelf(
+            /* [in] */ IRunnable* what,
+            /* [in] */ Int32 when);
+
+        CARAPI UnscheduleSelf(
+            /* [in] */ IRunnable* what);
+
+        CARAPI SetAlpha(
             /* [in] */ Int32 alpha);
 
-        //public
-        virtual /*CARAPI_(void)*/CARAPI SetColorFilter(
+        CARAPI SetColorFilter(
             /* [in] */ IColorFilter* cf);
+
+        CARAPI SetColorFilterEx(
+            /* [in] */ Int32 color,
+            /* [in] */ PorterDuffMode mode);
+
+        CARAPI ClearColorFilter();
+
+        CARAPI IsStateful(
+            /* [out] */ Boolean* isStateful);
+
+        CARAPI SetState(
+            /* [in] */ ArrayOf<Int32>* stateSet,
+            /* [out] */ Boolean* isStateful);
+
+        CARAPI GetState(
+            /* [out] */ ArrayOf<Int32>** stateSet);
+
+        CARAPI GetCurrent(
+            /* [out] */ IDrawable** drawable);
+
+        CARAPI SetLevel(
+            /* [in] */ Int32 level,
+            /* [out] */ Boolean* changed);
+
+        CARAPI GetLevel(
+            /* [out] */ Int32* curLevel);
+
+        CARAPI SetVisible(
+            /* [in] */ Boolean visible,
+            /* [in] */ Boolean restart,
+            /* [out] */ Boolean* isDifferent);
+
+        CARAPI IsVisible(
+            /* [out] */ Boolean* visible);
+
+        CARAPI GetOpacity(
+            /* [out] */ Int32* opacity);
+
+        CARAPI ResolveOpacity(
+            /* [in] */ Int32 op1,
+            /* [in] */ Int32 op2,
+            /* [out] */ Int32* opacity);
+
+        CARAPI GetTransparentRegion(
+            /* [out] */ IRegion** bounds);
+
+        CARAPI GetIntrinsicWidth(
+            /* [out] */ Int32* width);
+
+        CARAPI GetIntrinsicHeight(
+            /* [out] */ Int32* height);
+
+        CARAPI GetMinimumWidth(
+            /* [out] */ Int32* width);
+
+        CARAPI GetMinimumHeight(
+            /* [out] */ Int32* height);
+
+        CARAPI GetPadding(
+            /* [in] */ IRect* padding,
+            /* [out] */ Boolean* isPadding);
+
+        CARAPI Mutate(
+            /* [out] */ IDrawable** drawable);
+
+        CARAPI Inflate(
+            /* [in] */ IResources* r,
+            /* [in] */ IXmlPullParser* parser,
+            /* [in] */ IAttributeSet* attrs);
+
+        CARAPI GetConstantState(
+            /* [out] */ IDrawableConstantState** state);
+
+    public:
+        virtual CARAPI_(Int32) GetOpacity();
     };
 
     /**

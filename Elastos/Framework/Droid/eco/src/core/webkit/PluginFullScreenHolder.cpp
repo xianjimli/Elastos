@@ -9,7 +9,7 @@ PluginFullScreenHolder::PluginFullScreenHolder(
         /* [in] */ Int32 npp) : Dialog(NULL,0)
 {
     AutoPtr<IContext> tContext;
-    webView -> GetContext((IContext**)&tContext);
+    webView->GetContext((IContext**)&tContext);
     Dialog::Init(tContext.Get(),(Int32)( R::style::Theme_NoTitleBar_Fullscreen ));
     mWebView = webView;
     mNpp = npp;
@@ -25,20 +25,20 @@ ECode PluginFullScreenHolder::SetContentView(
     
     AutoPtr<IViewGroupLayoutParams> pViewGroupLayoutParams;
     CViewGroupLayoutParams::New(ViewGroupLayoutParams::MATCH_PARENT,ViewGroupLayoutParams::MATCH_PARENT,(IViewGroupLayoutParams**)&pViewGroupLayoutParams);
-    contentView -> SetLayoutParams( pViewGroupLayoutParams.Get() );
+    contentView->SetLayoutParams( pViewGroupLayoutParams.Get() );
 
     // fixed size is only used either during pinch zoom or surface is too
     // big. Make sure it is not fixed size before setting it to the full
     // screen content view. The SurfaceView will be set to the correct mode
     // by the ViewManager when it is re-attached to the WebView.
-    ISurfaceView * pISurfaceView = ISurfaceView::Probe(contentView);    
+    ISurfaceView* pISurfaceView = ISurfaceView::Probe(contentView);    
     if( pISurfaceView != NULL ) {
         Boolean bFixedSize;
-        pISurfaceView -> IsFixedSize(&bFixedSize);
+        pISurfaceView->IsFixedSize(&bFixedSize);
         if(bFixedSize) {
             AutoPtr<ISurfaceHolder> pHolder;
-            pISurfaceView -> GetHolder((ISurfaceHolder**)&pHolder);
-            pHolder -> SetSizeFromLayout();
+            pISurfaceView->GetHolder((ISurfaceHolder**)&pHolder);
+            pHolder->SetSizeFromLayout();
         }
     }
     Dialog::SetContentView(contentView);
@@ -48,12 +48,11 @@ ECode PluginFullScreenHolder::SetContentView(
 
 ECode PluginFullScreenHolder::OnBackPressed()
 {
-    /*
-    AutoPtr<IMessage> pMessage;
-    ( ( (CWebView *)mWebView ) -> mPrivateHandler ) -> ObtainMessage(CWebView::HIDE_FULLSCREEN,(IMessage**)&pMessage);
-    pMessage -> SendToTarget();
-    */
-    return NOERROR;
+    //JAVA:mWebView.mPrivateHandler.obtainMessage(WebView.HIDE_FULLSCREEN).sendToTarget();
+    AutoPtr<IParcel> params;
+    CCallbackParcel::New((IParcel**)&params);
+    //return ((CWebView::PrivateHandler*)((((CWebView*)(mWebView.Get()))->mPrivateHandler).Get()))->SendMessage(CWebView::HIDE_FULLSCREEN,params);
+    return E_NOT_IMPLEMENTED;
 }
 
 Boolean PluginFullScreenHolder::OnKeyDown(

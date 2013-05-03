@@ -11,6 +11,8 @@
 #include "webkit/CWebView.h"
 #include "webkit/DebugFlags.h"
 #include <Logger.h>
+#include "os/CApartment.h"
+#include <Logger.h>
 
 // User agent strings.
 const CString WebSettings::DESKTOP_USERAGENT =
@@ -32,10 +34,10 @@ PInterface WebSettings::WsEventHandler::WsEhHandler::Probe(
     /* [in] */ REIID riid)
 {
     if (riid == EIID_IInterface) {
-        return (IInterface*)(IHandler*)this;
+        return (IInterface*)(IApartment*)this;
     }
-    else if (riid == EIID_IHandler) {
-        return (IHandler*)this;
+    else if (riid == EIID_IApartment) {
+        return (IApartment*)this;
     }
     return NULL;
 }
@@ -59,8 +61,8 @@ ECode WebSettings::WsEventHandler::WsEhHandler::GetInterfaceID(
         return E_INVALID_ARGUMENT;
     }
 
-    if (Object == (IInterface*)(IHandler*)this) {
-        *iID = EIID_IHandler;
+    if (Object == (IInterface*)(IApartment*)this) {
+        *iID = EIID_IApartment;
     }
     else {
         return E_INVALID_ARGUMENT;
@@ -68,44 +70,162 @@ ECode WebSettings::WsEventHandler::WsEhHandler::GetInterfaceID(
     return NOERROR;
 }
 
+
+ECode WebSettings::WsEventHandler::WsEhHandler::Start(
+    /* [in] */ ApartmentAttr attr)
+{
+    assert(0);
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode WebSettings::WsEventHandler::WsEhHandler::Finish()
+{
+    assert(0);
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode WebSettings::WsEventHandler::WsEhHandler::PostCppCallback(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ IParcel* params,
+    /* [in] */ Int32 id)
+{
+    assert(mApartment != NULL);
+    return mApartment->PostCppCallback(target, func, params, id);
+}
+
+ECode WebSettings::WsEventHandler::WsEhHandler::PostCppCallbackAtTime(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ IParcel* params,
+    /* [in] */ Int32 id,
+    /* [in] */ Millisecond64 uptimeMillis)
+{
+    assert(mApartment != NULL);
+    return mApartment->PostCppCallbackAtTime(target, func, params, id, uptimeMillis);
+}
+
+ECode WebSettings::WsEventHandler::WsEhHandler::PostCppCallbackDelayed(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ IParcel* params,
+    /* [in] */ Int32 id,
+    /* [in] */ Millisecond64 delayMillis)
+{
+    assert(mApartment != NULL);
+    return mApartment->PostCppCallbackDelayed(target, func, params, id, delayMillis);
+}
+
+ECode WebSettings::WsEventHandler::WsEhHandler::PostCppCallbackAtFrontOfQueue(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ IParcel* params,
+    /* [in] */ Int32 id)
+{
+    assert(mApartment != NULL);
+    return mApartment->PostCppCallbackAtFrontOfQueue(target, func, params, id);
+}
+
+ECode WebSettings::WsEventHandler::WsEhHandler::RemoveCppCallbacks(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func)
+{
+    assert(mApartment != NULL);
+    return mApartment->RemoveCppCallbacks(target, func);
+}
+
+ECode WebSettings::WsEventHandler::WsEhHandler::RemoveCppCallbacksEx(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ Int32 id)
+{
+    assert(mApartment != NULL);
+    return mApartment->RemoveCppCallbacksEx(target, func, id);
+}
+
+ECode WebSettings::WsEventHandler::WsEhHandler::HasCppCallbacks(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [out] */ Boolean* result)
+{
+    assert(mApartment != NULL);
+    return mApartment->HasCppCallbacks(target, func, result);
+}
+
+ECode WebSettings::WsEventHandler::WsEhHandler::HasCppCallbacksEx(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ Int32 id,
+    /* [out] */ Boolean* result)
+{
+    assert(mApartment != NULL);
+    return mApartment->HasCppCallbacksEx(target, func, id, result);
+}
+
+ECode WebSettings::WsEventHandler::WsEhHandler::SendMessage(
+    /* [in] */ Int32 message,
+    /* [in] */ IParcel* params)
+{
+    if(message == WsEventHandler::SYNC)
+    {
+        void (STDCALL WebSettings::WsEventHandler::WsEhHandler::*pHandlerFunc)();
+        pHandlerFunc = &WebSettings::WsEventHandler::WsEhHandler::HandleSYNC;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);
+    }
+    if(message == WsEventHandler::PRIORITY)
+    {
+        void (STDCALL WebSettings::WsEventHandler::WsEhHandler::*pHandlerFunc)();
+        pHandlerFunc = &WebSettings::WsEventHandler::WsEhHandler::HandlePRIORITY;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);
+
+    }
+    if(message == WsEventHandler::SET_DOUBLE_TAP_TOAST_COUNT)
+    {
+        void (STDCALL WebSettings::WsEventHandler::WsEhHandler::*pHandlerFunc)();
+        pHandlerFunc = &WebSettings::WsEventHandler::WsEhHandler::HandleSetDoubleTapToastCount;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);
+    }
+    return E_ILLEGAL_ARGUMENT_EXCEPTION;
+}
+
+void WebSettings::WsEventHandler::WsEhHandler::HandleSYNC()
+{
+    if(TRUE){
+        Core::Threading::Mutex::Autolock lock(mWebSettings -> mMutex);
+        Int32 nativeFrameT = ( (CBrowserFrame*)((mWebSettings -> mBrowserFrame).Get()) ) -> mNativeFrame;
+        if (nativeFrameT != 0) {
+            mWebSettings -> NativeSync(nativeFrameT);
+        }
+        (mWebSettings -> mSyncPending) = FALSE;
+    }
+}
+
+void WebSettings::WsEventHandler::WsEhHandler::HandlePRIORITY()
+{
+    mEventHandler -> SetRenderPriority();
+}
+
+void WebSettings::WsEventHandler::WsEhHandler::HandleSetDoubleTapToastCount()
+{
+    /*
+    AutoPtr<ISharedPreferences> sharedPreferencesT;    //JAVA:    content/SharedPreferences(Interface)
+    mContext -> GetSharedPreferences(PREF_FILE,Context_MODE_PRIVATE,(ISharedPreferences**)&sharedPreferencesT);
+    AutoPtr<ISharedPreferencesEditor> editor;        //JAVA:    content/SharedPreferences(Interface)::Editor(Interface)
+    sharedPreferencesT -> Edit((ISharedPreferencesEditor**)&editor);
+    editor -> PutInt(DOUBLE_TAP_TOAST_COUNT, mDoubleTapToastCount);    //JAVA:    Editor putInt(String key,int value);
+    Boolean bCommit;
+    editor -> Commit(&bCommit);    //JAVA:    boolean commit();
+    */    
+}
+
 WebSettings::WsEventHandler::WsEhHandler::WsEhHandler(
     /* [in] */ WsEventHandler* eventHandler,
     /* [in] */ WebSettings* webSettings)
 {
+    assert(SUCCEEDED(CApartment::GetMainApartment((IApartment**)&mApartment))
+        && (mApartment != NULL));
     mEventHandler = eventHandler;
     mWebSettings = webSettings;
-}
-void WebSettings::WsEventHandler::WsEhHandler::HandleMessage(
-    /* [in] */IMessage* msg)
-{
-    switch (/*msg -> what*/0) {
-        case (WsEventHandler::SYNC):
-            if(TRUE){
-                Core::Threading::Mutex::Autolock lock(mWebSettings -> mMutex);
-                Int32 nativeFrameT = ( (CBrowserFrame*)((mWebSettings -> mBrowserFrame).Get()) ) -> mNativeFrame;
-                if (nativeFrameT != 0) {
-                    mWebSettings -> NativeSync(nativeFrameT);
-                }
-                (mWebSettings -> mSyncPending) = FALSE;
-            }
-            break;
-        case (WsEventHandler::PRIORITY):{
-            mEventHandler -> SetRenderPriority();
-            break;
-        }
-        case (WsEventHandler::SET_DOUBLE_TAP_TOAST_COUNT): {
-            /*
-            AutoPtr<ISharedPreferences> sharedPreferencesT;    //JAVA:    content/SharedPreferences(Interface)
-            mContext -> GetSharedPreferences(PREF_FILE,Context_MODE_PRIVATE,(ISharedPreferences**)&sharedPreferencesT);
-            AutoPtr<ISharedPreferencesEditor> editor;        //JAVA:    content/SharedPreferences(Interface)::Editor(Interface)
-            sharedPreferencesT -> Edit((ISharedPreferencesEditor**)&editor);
-            editor -> PutInt(DOUBLE_TAP_TOAST_COUNT, mDoubleTapToastCount);    //JAVA:    Editor putInt(String key,int value);
-            Boolean bCommit;
-            editor -> Commit(&bCommit);    //JAVA:    boolean commit();
-            */
-            break;
-        }
-    }
 }
 
 /*****************************WebSettings::EventHandler*****************************/
@@ -144,12 +264,12 @@ void WebSettings::WsEventHandler::SetRenderPriority()
  * Send a message to the private queue or handler.
  */
 Boolean WebSettings::WsEventHandler::SendMessage(
-    /* [in] */ IMessage* msg)
+    /* [in] */ Int32 message,
+    /* [in] */ IParcel* params)
 {
     Core::Threading::Mutex::Autolock lock(mMutexWsEhThis);
     if(mHandler != NULL) {
-        //Boolean bSdMsg;
-        //mHandler -> SendMessage(msg,&bSdMsg);
+        mHandler -> SendMessage(message,params);
         return TRUE;
     }
     else {
@@ -524,6 +644,7 @@ void WebSettings::SetTextSize(
     Core::Threading::Mutex::Autolock lock(mMutex);
     if (CWebView::mLogEvent && mTextSize != t ) {
         //JAVA:    EventLog.WriteEvent(EventLogTags::BROWSER_TEXT_SIZE_CHANGE,mTextSize.value, t.value);
+        Utility::Logging::Logger::I(String("BROWSER_TEXT_SIZE_CHANGE"), String("From value('")+String::FromInt32(mTextSize->value)+String("') to value('")+String::FromInt32(t->value)+String("')\n"));
     }
     mTextSize = t;
     PostSync();
@@ -1423,7 +1544,7 @@ String WebSettings::GetPluginsPath()
 {
     Mutex::Autolock lock(mMutex);
 
-    return (String)"";
+    return String("");
 }
 
 /**
@@ -1598,9 +1719,10 @@ void WebSettings::SetRenderPriority(
 
     if (mRenderPriority != priority) {
         mRenderPriority = priority;
-        AutoPtr<IMessage> messageT;
-        //CMessage::Obtain(NULL, WsEventHandler::PRIORITY,(IMessage**)&messageT);
-        mEventHandler -> SendMessage(messageT.Get());
+
+        AutoPtr<IParcel> params;
+        CCallbackParcel::New((IParcel**)&params);
+        mEventHandler -> SendMessage(WsEventHandler::PRIORITY, params);
     }
 }
 
@@ -1657,9 +1779,9 @@ void WebSettings::SetDoubleTapToastCount(
         mDoubleTapToastCount = count;
         // write the settings in the non-UI thread
         //JAVA:    mEventHandler.sendMessage(Message.obtain(null, EventHandler.SET_DOUBLE_TAP_TOAST_COUNT));
-        AutoPtr<IMessage> messageT;
-        //CMessage::Obtain(NULL, WsEventHandler::SET_DOUBLE_TAP_TOAST_COUNT,(IMessage**)&messageT);
-        mEventHandler -> SendMessage(messageT.Get());
+        AutoPtr<IParcel> params;
+        CCallbackParcel::New((IParcel**)&params);
+        mEventHandler -> SendMessage(WsEventHandler::SET_DOUBLE_TAP_TOAST_COUNT, params);
     }
 }
 
@@ -1718,9 +1840,9 @@ CARAPI_(void) WebSettings::PostSync()
 
     if (!mSyncPending) {
     	//JAVA:    mSyncPending = mEventHandler.sendMessage(Message.obtain(null, EventHandler.SYNC));
-    	AutoPtr<IMessage> messageT;
-    	//CMessage::Obtain(NULL, WsEventHandler::SYNC,(IMessage**)&messageT);
-    	mSyncPending = mEventHandler -> SendMessage(messageT.Get());
+    	AutoPtr<IParcel> params;
+        CCallbackParcel::New((IParcel**)&params);
+        mSyncPending = mEventHandler -> SendMessage(WsEventHandler::SYNC, params);
     }
 }
 

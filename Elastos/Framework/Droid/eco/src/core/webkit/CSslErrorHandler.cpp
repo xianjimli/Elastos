@@ -5,32 +5,32 @@
 #include "os/CBundle.h"
 #include "webkit/DebugFlags.h"
 #include "webkit/CBrowserFrame.h"
+#include "os/CApartment.h"
 
 #include <Logger.h>
 
 const CString CSslErrorHandler::LOGTAG = "network";
 const Int32 CSslErrorHandler::HANDLE_RESPONSE = 100;
 
-ECode CSslErrorHandler::HandleMessage(
-    /* [in] */ IMessage * msg)
+void CSslErrorHandler::HandleResponse(
+    /* [in] */ Int32 arg1,
+    /* [in] */ LoadListener* obj)
 {
-    switch(/*msg -> mWhat*/NULL)  {
-        case HANDLE_RESPONSE:
-            AutoPtr< LoadListener > loader = (LoadListener *) (/*msg -> mObj*/NULL);
-            if(TRUE) {
-                Core::Threading::Mutex::Autolock lock(_m_syncLock);
+    AutoPtr< LoadListener > loader = obj;
+    if(TRUE) {
+        Core::Threading::Mutex::Autolock lock(_m_syncLock);
 
-                HandleSslErrorResponse(loader.Get(), loader -> SslError(), (/*msg -> mArg1*/1) == 1);
-                mLoaderQueue -> Remove(loader);
-                FastProcessQueuedSslErrors();
-            }
-        break;
+        HandleSslErrorResponse(loader.Get(), loader -> SslError(), arg1 == 1);
+        mLoaderQueue -> Remove(loader);
+        FastProcessQueuedSslErrors();
     }
-    return NOERROR;
 }
 
 ECode CSslErrorHandler::constructor()
 {
+    assert(SUCCEEDED(CApartment::GetMainApartment((IApartment**)&mApartment))
+        && (mApartment != NULL));
+
     mLoaderQueue = new List< AutoPtr< LoadListener > >;
     AutoPtr<IBundle> pBundle;
     ECode ec = CBundle::New( (IBundle**)&pBundle );
@@ -49,6 +49,8 @@ ECode CSslErrorHandler::constructor(
         /* [in] */ ISslErrorHandler * origin, 
         /* [in] */ LoadListener * listener)
 {
+    assert(SUCCEEDED(CApartment::GetMainApartment((IApartment**)&mApartment))
+        && (mApartment != NULL));
     mOriginHandler = origin;
     mLoadListener = listener;
     return NOERROR;
@@ -229,28 +231,30 @@ ECode CSslErrorHandler::InitPara(
 
 ECode CSslErrorHandler::Proceed()
 {
-    /*
-    AutoPtr<IHandler> pHandler;
-    pHandler = IHandler::Probe(mOriginHandler);    
-    AutoPtr<IMessage> pMessage;
-    pHandler -> ObtainMessage(HANDLE_RESPONSE, 1, 0, mLoadListener.Get(), (IMessage**)&pMessage);
-    Boolean bSendMessage = FALSE;
-    pHandler -> SendMessage(pMessage.Get(),&bSendMessage);
-    */
-    return NOERROR;
+    //JAVA:mOriginHandler.sendMessage(mOriginHandler.obtainMessage(HANDLE_RESPONSE, 1, 0, mLoadListener));
+    void (STDCALL CSslErrorHandler::*pHandlerFunc)(Int32,LoadListener*);
+    pHandlerFunc = &CSslErrorHandler::HandleResponse;
+
+    AutoPtr<IParcel> params;
+    CCallbackParcel::New((IParcel**)&params);
+    params->WriteInt32(1);
+    params->WriteInterfacePtr((IInterface*)(mLoadListener.Get()));
+
+    return mOriginHandler->PostCppCallback( (Handle32)(mOriginHandler.Get()), *(Handle32*)&pHandlerFunc, params, 0);
 }
 
 ECode CSslErrorHandler::Cancel()
 {
-    /*
-    AutoPtr<IHandler> pHandler;
-    pHandler = IHandler::Probe(mOriginHandler);    
-    AutoPtr<IMessage> pMessage;
-    pHandler -> ObtainMessage(HANDLE_RESPONSE, 0, 0, mLoadListener.Get(), (IMessage**)&pMessage);
-    Boolean bSendMessage = FALSE;
-    pHandler -> SendMessage(pMessage.Get(),&bSendMessage);
-    */
-    return NOERROR;
+    //JAVA:mOriginHandler.sendMessage(mOriginHandler.obtainMessage(HANDLE_RESPONSE, 0, 0, mLoadListener));
+    void (STDCALL CSslErrorHandler::*pHandlerFunc)(Int32,LoadListener*);
+    pHandlerFunc = &CSslErrorHandler::HandleResponse;
+
+    AutoPtr<IParcel> params;
+    CCallbackParcel::New((IParcel**)&params);
+    params->WriteInt32(0);
+    params->WriteInterfacePtr((IInterface*)(mLoadListener.Get()));
+
+    return mOriginHandler->PostCppCallback( (Handle32)(mOriginHandler.Get()), *(Handle32*)&pHandlerFunc, params, 0);
 }
 
 ECode CSslErrorHandler::HandleSslErrorResponse(
@@ -307,3 +311,106 @@ ECode CSslErrorHandler::HandleSslErrorResponse(
     return NOERROR;
 }
 
+
+ECode CSslErrorHandler::Start(
+    /* [in] */ ApartmentAttr attr)
+{
+    assert(0);
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CSslErrorHandler::Finish()
+{
+    assert(0);
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CSslErrorHandler::PostCppCallback(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ IParcel* params,
+    /* [in] */ Int32 id)
+{
+    assert(mApartment != NULL);
+    return mApartment->PostCppCallback(target, func, params, id);
+}
+
+ECode CSslErrorHandler::PostCppCallbackAtTime(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ IParcel* params,
+    /* [in] */ Int32 id,
+    /* [in] */ Millisecond64 uptimeMillis)
+{
+    assert(mApartment != NULL);
+    return mApartment->PostCppCallbackAtTime(target, func, params, id, uptimeMillis);
+}
+
+ECode CSslErrorHandler::PostCppCallbackDelayed(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ IParcel* params,
+    /* [in] */ Int32 id,
+    /* [in] */ Millisecond64 delayMillis)
+{
+    assert(mApartment != NULL);
+    return mApartment->PostCppCallbackDelayed(target, func, params, id, delayMillis);
+}
+
+ECode CSslErrorHandler::PostCppCallbackAtFrontOfQueue(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ IParcel* params,
+    /* [in] */ Int32 id)
+{
+    assert(mApartment != NULL);
+    return mApartment->PostCppCallbackAtFrontOfQueue(target, func, params, id);
+}
+
+ECode CSslErrorHandler::RemoveCppCallbacks(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func)
+{
+    assert(mApartment != NULL);
+    return mApartment->RemoveCppCallbacks(target, func);
+}
+
+ECode CSslErrorHandler::RemoveCppCallbacksEx(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ Int32 id)
+{
+    assert(mApartment != NULL);
+    return mApartment->RemoveCppCallbacksEx(target, func, id);
+}
+
+ECode CSslErrorHandler::HasCppCallbacks(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [out] */ Boolean* result)
+{
+    assert(mApartment != NULL);
+    return mApartment->HasCppCallbacks(target, func, result);
+}
+
+ECode CSslErrorHandler::HasCppCallbacksEx(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ Int32 id,
+    /* [out] */ Boolean* result)
+{
+    assert(mApartment != NULL);
+    return mApartment->HasCppCallbacksEx(target, func, id, result);
+}
+
+ECode CSslErrorHandler::SendMessage(
+    /* [in] */ Int32 message,
+    /* [in] */ IParcel* params)
+{
+    if (message == HANDLE_RESPONSE) {
+        void (STDCALL CSslErrorHandler::*pHandlerFunc)(Int32,LoadListener*);
+        pHandlerFunc = &CSslErrorHandler::HandleResponse;
+        return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);
+    }
+    return E_ILLEGAL_ARGUMENT_EXCEPTION;
+}
