@@ -65,3 +65,4 @@ SOURCES += WebViewCore.cpp
 SOURCES += WebViewWorker.cpp
 SOURCES += WebSettings.cpp
 SOURCES += WebTextView.cpp
+SOURCES += HTML5VideoViewProxy.cpp

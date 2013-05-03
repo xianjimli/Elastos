@@ -20,9 +20,11 @@ CARAPI_(void) JsPromptResult::Confirm(
 
 /*package*/ 
 CARAPI_(void) JsPromptResult::GetStringResult(
-	/* [out] */ String& strOut)
+	/* [out] */ String* strOut)
 {
-	strOut = mStringResult;
+	if (strOut) {
+		*strOut = mStringResult;
+	}
 }
 
 //@Override

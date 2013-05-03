@@ -7,7 +7,6 @@ module
     interface IWebBackForwardListClient;
     interface IKeyEvent;
     interface IBitmap;
-    interface IMessage;
     interface IHttpAuthHandler;
     interface ISslErrorHandler;
     interface ISslError;
@@ -96,8 +95,12 @@ module
         // Because this method is public and because CallbackProxy is mistakenly
         // party of the public classes, we cannot remove this method.
         OnTooManyRedirects(
-           [in] IMessage* cancelMsg, 
-           [in] IMessage* continueMsg);
+           [in] IApartment* cancelHandle, 
+           [in] Int32 cancelMessage,
+           [in] IParcel* cancelParams,
+           [in] IApartment* continueHandle,
+           [in] Int32 continueMessage,
+           [in] IParcel* continueParams);
 
         OnReceivedError(
            [in] Int32 errorCode, 
@@ -105,8 +108,12 @@ module
            [in] String failingUrl);
 
         OnFormResubmission(
-           [in] IMessage* dontResend,
-           [in] IMessage* resend);
+           [in] IApartment* resendHandle,
+           [in] Int32 resendMessage,
+           [in] IParcel* resendParams,
+           [in] IApartment* dontResendHandle,
+           [in] Int32 dontResendMessage,
+           [in] IParcel* dontResendParams);
 
         /**
          * Called by the WebCore side
@@ -176,7 +183,9 @@ module
            [in] String schemePlusHost, 
            [in] String username,
            [in] String password, 
-           [in] IMessage* resumeMsg,
+           [in] IApartment* resumeMsg,
+           [in] Int32 Message,
+           [in] IParcel* params,
            [out] Boolean* flag);
 
         OnReceivedHttpAuthCredentials(

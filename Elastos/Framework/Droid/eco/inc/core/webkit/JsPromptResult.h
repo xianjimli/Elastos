@@ -28,7 +28,7 @@ public:
 
     /*package*/ 
 	virtual CARAPI_(void) GetStringResult(
-        /* [in] */ String& strOut);
+        /* [in] */ String* strOut);
 
     //@Override
     /*package*/ 

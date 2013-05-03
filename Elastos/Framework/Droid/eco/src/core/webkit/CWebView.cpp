@@ -3697,7 +3697,9 @@ CARAPI_(Boolean) CWebView::OnSavePassword(
     /* [in] */ const String& schemePlusHost,
     /* [in] */ const String& username,
     /* [in] */ const String& password,
-    /* [in] */ const IMessage* resumeMsg)
+    /* [in] */ IApartment* resumeMsgHandle,
+    /* [in] */ Int32 resumeMsgId,
+    /* [in] */ IParcel* resumeMsgParams)
 {}
 
 /*

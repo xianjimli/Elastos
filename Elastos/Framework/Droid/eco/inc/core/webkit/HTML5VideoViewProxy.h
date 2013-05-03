@@ -1,6 +1,8 @@
 #ifndef __HTML5VIDEOVIEWPROXY_H__
 #define __HTML5VIDEOVIEWPROXY_H__
 
+#include "ext/frameworkext.h"
+
 class MediaPlayer;
 class WebViewCore;
 
@@ -55,7 +57,7 @@ public:
      * @param  time is the position in the video stream.
      */
 	virtual CARAPI_(void) Seek(
-		/* [in] */ int time);
+		/* [in] */ Int32 time);
 
     /**
      * Pause the playback.

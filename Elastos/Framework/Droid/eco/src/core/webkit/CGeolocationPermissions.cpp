@@ -103,7 +103,6 @@ CARAPI_(void) CGeolocationPermissions::NativeAllow(
 CARAPI_(void) CGeolocationPermissions::NativeClearAll()
 {}
 
-
 /*****************************GeolocationPermissionsCallback*****************************/
 PInterface GeolocationPermissionsCallback::Probe(
     /* [in] */ REIID riid)

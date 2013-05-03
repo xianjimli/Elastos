@@ -4,11 +4,16 @@
 
 #include <elastos/Mutex.h>
 
+
 #include "_CCallbackProxy.h"
 #include "IValueCallback.h"
 #include "net/Uri.h"
 #include "content/CIntent.h"
 #include "WebBackForwardListClient.h"
+#include "JsResult.h"
+#include "JsPromptResult.h"
+
+#include <elastos/HashMap.h>
 
 using namespace Core;
 using namespace Core::Threading;
@@ -57,8 +62,12 @@ public:
         /* [in] */ const String& url);
 
     CARAPI OnTooManyRedirects(
-        /* [in] */ IMessage* cancelMsg,
-        /* [in] */ IMessage* continueMsg);
+        /* [in] */ IApartment* cancelHandle,
+        /* [in] */ Int32 cancelMessage,
+        /* [in] */ IParcel* cancelParams,
+        /* [in] */ IApartment* continueHandle,
+        /* [in] */ Int32 continueMessage,
+        /* [in] */ IParcel* continueParams);
 
     CARAPI OnReceivedError(
         /* [in] */ Int32 errorCode,
@@ -66,8 +75,12 @@ public:
         /* [in] */ const String& failingUrl);
 
     CARAPI OnFormResubmission(
-        /* [in] */ IMessage* dontResend,
-        /* [in] */ IMessage* resend);
+        /* [in] */ IApartment* resendHandle,
+        /* [in] */ Int32 resendMessage,
+        /* [in] */ IParcel* resendParams,
+        /* [in] */ IApartment* dontResendHandle,
+        /* [in] */ Int32 dontResendMessage,
+        /* [in] */ IParcel* dontResendParams);
 
     CARAPI ShouldOverrideUrlLoading(
         /* [in] */ const String& url,
@@ -111,7 +124,9 @@ public:
         /* [in] */ const String& schemePlusHost,
         /* [in] */ const String& username,
         /* [in] */ const String& password,
-        /* [in] */ IMessage* resumeMsg,
+        /* [in] */ IApartment* resumeMsg,
+        /* [in] */ Int32 resumeMsgID,
+        /* [in] */ IParcel* resumeMsgParams,
         /* [out] */ Boolean* flag);
 
     CARAPI OnReceivedHttpAuthCredentials(
@@ -331,22 +346,23 @@ private:
 private:
     // Result transportation object for returning results across thread
     // boundaries.
+    template <typename E>
     class ResultTransport
     {
     public:
         ResultTransport(
-            /* [in] */ IInterface* defaultResult);
+            /* [in] */ E* defaultResult);
 
         /*synchronized*/
         CARAPI_(void) SetResult(
-            /* [in] */ const IInterface* result);
+            /* [in] */ E* result);
 
         /*synchronized*/
-        CARAPI_(AutoPtr<IInterface>) GetResult() const;
+        CARAPI_(E*) GetResult();// const;
 
     private:
         // Private result object
-        AutoPtr<IInterface> mResult;
+        E mResult;
 
         mutable Mutex mLock;
     };
@@ -355,7 +371,7 @@ private:
     {   
     public:     
         CARAPI_(void) OnReceiveValue(
-            /* [in] */ const IUri* value);
+            /* [in] */ IUri* value);
 
         CARAPI_(AutoPtr<IUri>) GetResult() const;
 
@@ -402,6 +418,137 @@ private:
         /* [in] */ Int32 reasonCode,
         /* [in] */ String& description,
         /* [in] */ String& failUrl);
+
+    CARAPI HandleResendPostData(
+        /* [in] */ IApartment* resendHandle,
+        /* [in] */ Int32 resendMessage,
+        /* [in] */ IParcel* resendParams,
+        /* [in] */ IApartment* dontResendHandle,
+        /* [in] */ Int32 dontResendMessage,
+        /* [in] */ IParcel* dontResendParams);
+
+    CARAPI HandleOverrideUrl(
+        /* [in] */ String& url,
+        /* [in] */ Handle32 result);
+
+    CARAPI HandleAuthRequest(
+        /* [in] */ IHttpAuthHandler* handler,
+        /* [in] */ String& host,
+        /* [in] */ String& realm);
+
+    CARAPI HandleSslError(
+        /* [in] */ Handle32 map,
+        /* [in] */ ISslErrorHandler* handler,
+        /* [in] */ ISslError* error);
+
+    CARAPI HandleProgress();
+
+    CARAPI HandleUpdateVisited(
+        /* [in] */ String& obj,
+        /* [in] */ Int32 arg);
+
+    CARAPI HandleLoadResource(
+        /* [in] */ String& obj);
+
+    CARAPI HandleDownloadFile(
+        /* [in] */ String& url,
+        /* [in] */ String& userAgent,
+        /* [in] */ String& mimetype,
+        /* [in] */ Int64 contentLength,
+        /* [in] */ String& contentDisposition);
+
+    CARAPI HandleCreateWindow(
+        /* [in] */ Int32 arg1,
+        /* [in] */ Int32 arg2,
+        /* [in] */ Int32 msgId,
+        /* [in] */ IParcel* msgParams);
+
+    CARAPI HandleRequestFocus();
+
+    CARAPI HandleCloseWindow(
+        /* [in] */ IWebView* webView);
+
+    CARAPI HandleSavePassword(
+        /* [in] */ String& host,
+        /* [in] */ String& username,
+        /* [in] */ String& password,
+        /* [in] */ IApartment* msgHandle,
+        /* [in] */ Int32 msgId,
+        /* [in] */ IParcel* msgParams);
+
+    CARAPI HandleAsyncKeyEvents(
+        /* [in] */ IKeyEvent* keyEvent);
+
+    CARAPI HandleExceededDatabaseQuota(
+        /* [in] */ HashMap<String, IInterface*>* map);
+
+    CARAPI HandleReachedAppcacheMaxsize(
+        /* [in] */ HashMap<String, IInterface*>* map);
+
+    CARAPI HandleGeolocationPermissionsShowPrompt(
+        /* [in] */ HashMap<String, IInterface*>* map);
+
+    CARAPI HandleGeolocationPermissionsHidePrompt();
+
+    CARAPI HandleJsAlert(
+        /* [in] */ JsResult* res,
+        /* [in] */ String& message,
+        /* [in] */ String& url);
+
+    CARAPI HandleJsConfirm(
+        /* [in] */ JsResult* res,
+        /* [in] */ String& message,
+        /* [in] */ String& url);
+
+    CARAPI HandleJsPrompt(
+        /* [in] */ JsPromptResult* res,
+        /* [in] */ String& message,
+        /* [in] */ String& defaultVal,
+        /* [in] */ String& url);
+
+    CARAPI HandleJsUnload(
+        /* [in] */ JsResult* res,
+        /* [in] */ String& message,
+        /* [in] */ String& url);
+
+    CARAPI HandleJsTimeout(
+        /* [in] */ JsResult* res);
+
+    CARAPI HandleReceivedCertificate(
+        /* [in] */ ISslCertificate* ssl);
+
+    CARAPI HandleNotify();
+
+    CARAPI HandleScaleChanged(
+        /* [in] */ Float oldScale,
+        /* [in] */ Float newScale);
+
+    CARAPI HandleSwitchOutHistory();
+
+    CARAPI HandleAddMessageToConsole(
+        /* [in] */ String& message,
+        /* [in] */ String& sourceID,
+        /* [in] */ Int32 lineNumber,
+        /* [in] */ Int32 msgLevel);
+
+    CARAPI HandleGetVisitedHistory(
+        /* [in] */ IValueCallback* callback);
+
+    CARAPI HandleOpenFileChooser(
+        /* [in] */ UploadFile* uploadFile);
+
+    CARAPI HandleAddHistoryItem(
+        /* [in] */ WebHistoryItem* item);
+
+    CARAPI HandleHistoryIndexChanged(
+        /* [in] */ WebHistoryItem* item,
+        /* [in] */ Int32 index);
+
+    CARAPI HandleAuthCredentials(
+        /* [in] */ String& host,
+        /* [in] */ String& realm,
+        /* [in] */ String& username,
+        /* [in] */ String& password);
 
 private:
 
