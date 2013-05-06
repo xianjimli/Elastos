@@ -24,13 +24,43 @@ LocationProviderProxy::LocationProviderProxy(
             (IServiceConnection*)mServiceConnection, Context_BIND_AUTO_CREATE, &result));
 }
 
+PInterface LocationProviderProxy::Probe(
+    /* [in]  */ REIID riid)
+{
+    if (riid == EIID_IInterface) {
+        return (PInterface)(ILocationProviderInterface*)this;
+    }
+    else if (riid == EIID_ILocationProviderInterface) {
+        return (ILocationProviderInterface*)this;
+    }
+
+    return NULL;
+}
+
+UInt32 LocationProviderProxy::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 LocationProviderProxy::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode LocationProviderProxy::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
 /**
  * When unbundled NetworkLocationService package is updated, we
  * need to unbind from the old version and re-bind to the new one.
  */
 void LocationProviderProxy::Reconnect()
 {
-    Mutex::Autolock lock(mMutex);
+    Mutex::Autolock lock(&mLock);
     mContext->UnbindService((IServiceConnection*)mServiceConnection);
     mServiceConnection = new Connection(this);
     Boolean result;
@@ -131,7 +161,7 @@ DummyLocationProvider* LocationProviderProxy::Connection::GetCachedAttributes()
 
 ECode LocationProviderProxy::Connection::Run()
 {
-    Mutex::Autolock lock(mLPProxy->mMutex);
+    Mutex::Autolock lock(&mLPProxy->mLock);
 
     if (mLPProxy->mServiceConnection.Get() != this) {
         // This ServiceConnection no longer the one we want to bind to.
@@ -200,190 +230,220 @@ ECode LocationProviderProxy::Connection::Run()
     return NOERROR;
 }
 
-
-String LocationProviderProxy::GetName()
+ECode LocationProviderProxy::GetName(
+    /* [out] */ String* name)
 {
-    return mName;
+    VALIDATE_NOT_NULL(name);
+
+    *name = mName;
+    return NOERROR;
 }
 
 DummyLocationProvider* LocationProviderProxy::GetCachedAttributes()
 {
-    Mutex::Autolock lock(mMutex);
+    Mutex::Autolock lock(&mLock);
 
     return mServiceConnection->GetCachedAttributes();
 }
 
-Boolean LocationProviderProxy::RequiresNetwork()
+ECode LocationProviderProxy::RequiresNetwork(
+    /* [out] */ Boolean* required)
 {
+    VALIDATE_NOT_NULL(required);
+
     DummyLocationProvider* cachedAttributes = GetCachedAttributes();
     if (cachedAttributes != NULL) {
-        Boolean result;
-        cachedAttributes->RequiresNetwork(&result);
-        return result;
+        return cachedAttributes->RequiresNetwork(required);
     }
     else {
-        return FALSE;
+        *required = FALSE;
+        return NOERROR;
     }
 }
 
-Boolean LocationProviderProxy::RequiresSatellite()
+ECode LocationProviderProxy::RequiresSatellite(
+    /* [out] */ Boolean* required)
 {
+    VALIDATE_NOT_NULL(required);
+
     DummyLocationProvider* cachedAttributes = GetCachedAttributes();
     if (cachedAttributes != NULL) {
-        Boolean result;
-        cachedAttributes->RequiresSatellite(&result);
-        return result;
+        return cachedAttributes->RequiresSatellite(required);
     }
     else {
-        return FALSE;
+        *required = FALSE;
+        return NOERROR;
     }
 }
 
-Boolean LocationProviderProxy::RequiresCell()
+ECode LocationProviderProxy::RequiresCell(
+    /* [out] */ Boolean* required)
 {
+    VALIDATE_NOT_NULL(required);
+
     DummyLocationProvider* cachedAttributes = GetCachedAttributes();
     if (cachedAttributes != NULL) {
-        Boolean result;
-        cachedAttributes->RequiresCell(&result);
-        return result;
+        return cachedAttributes->RequiresCell(required);
     }
     else {
-        return FALSE;
+        *required = FALSE;
+        return NOERROR;
     }
 }
 
-Boolean LocationProviderProxy::HasMonetaryCost()
+ECode LocationProviderProxy::HasMonetaryCost(
+    /* [out] */ Boolean* result)
 {
+    VALIDATE_NOT_NULL(result);
+
     DummyLocationProvider* cachedAttributes = GetCachedAttributes();
     if (cachedAttributes != NULL) {
-        Boolean result;
-        cachedAttributes->HasMonetaryCost(&result);
-        return result;
+        return cachedAttributes->HasMonetaryCost(result);
     }
     else {
-        return FALSE;
+        *result = FALSE;
+        return NOERROR;
     }
 }
 
-Boolean LocationProviderProxy::SupportsAltitude()
+ECode LocationProviderProxy::SupportsAltitude(
+    /* [out] */ Boolean* supported)
 {
+    VALIDATE_NOT_NULL(supported);
+
     DummyLocationProvider* cachedAttributes = GetCachedAttributes();
     if (cachedAttributes != NULL) {
-        Boolean result;
-        cachedAttributes->SupportsAltitude(&result);
-        return result;
+        return cachedAttributes->SupportsAltitude(supported);
     }
     else {
-        return FALSE;
+        *supported = FALSE;
+        return NOERROR;
     }
 }
 
-Boolean LocationProviderProxy::SupportsSpeed()
+ECode LocationProviderProxy::SupportsSpeed(
+    /* [out] */ Boolean* supported)
 {
+    VALIDATE_NOT_NULL(supported);
+
     DummyLocationProvider* cachedAttributes = GetCachedAttributes();
     if (cachedAttributes != NULL) {
-        Boolean result;
-        cachedAttributes->SupportsSpeed(&result);
-        return result;
+        return cachedAttributes->SupportsSpeed(supported);
     }
     else {
-        return FALSE;
+        *supported = FALSE;
+        return NOERROR;
     }
 }
 
-Boolean LocationProviderProxy::SupportsBearing()
+ECode LocationProviderProxy::SupportsBearing(
+    /* [out] */ Boolean* supported)
 {
+    VALIDATE_NOT_NULL(supported);
+
     DummyLocationProvider* cachedAttributes = GetCachedAttributes();
     if (cachedAttributes != NULL) {
-        Boolean result;
-        cachedAttributes->SupportsBearing(&result);
-        return result;
+        return cachedAttributes->SupportsBearing(supported);
     }
     else {
-        return FALSE;
+        *supported = FALSE;
+        return NOERROR;
     }
 }
 
-Int32 LocationProviderProxy::GetPowerRequirement()
+ECode LocationProviderProxy::GetPowerRequirement(
+    /* [out] */ Int32* requirement)
 {
+    VALIDATE_NOT_NULL(requirement);
+
     DummyLocationProvider* cachedAttributes = GetCachedAttributes();
     if (cachedAttributes != NULL) {
-        Int32 requirement;
-        cachedAttributes->GetPowerRequirement(&requirement);
-        return requirement;
+        return cachedAttributes->GetPowerRequirement(requirement);
     }
     else {
-        return -1;
+        *requirement = -1;
+        return NOERROR;
     }
 }
 
-Int32 LocationProviderProxy::GetAccuracy()
+ECode LocationProviderProxy::GetAccuracy(
+    /* [out] */ Int32* accuracy)
 {
+    VALIDATE_NOT_NULL(accuracy);
+
     DummyLocationProvider* cachedAttributes = GetCachedAttributes();
     if (cachedAttributes != NULL) {
-        Int32 accuracy;
-        cachedAttributes->GetAccuracy(&accuracy);
-        return accuracy;
+        return cachedAttributes->GetAccuracy(accuracy);
     }
     else {
-        return -1;
+        *accuracy = -1;
+        return NOERROR;
     }
 }
 
-Boolean LocationProviderProxy::MeetsCriteria(
-    /* [in] */ ICriteria* criteria)
+ECode LocationProviderProxy::MeetsCriteria(
+    /* [in] */ ICriteria* criteria,
+    /* [out] */ Boolean* result)
 {
+    VALIDATE_NOT_NULL(result);
+
     {
-        Mutex::Autolock lock(mMutex);
+        Mutex::Autolock lock(&mLock);
 
         AutoPtr<ILocationProvider> provider = mServiceConnection->GetProvider();
         if (provider != NULL) {
 //            try {
-            Boolean result;
-            provider->MeetsCriteria(criteria, &result);
-            return result;
+            return provider->MeetsCriteria(criteria, result);
 //            } catch (RemoteException e) {
 //            }
         }
     }
 
     // default implementation if we lost connection to the provider
-    Int32 accuracy;
+    Int32 accuracy, thisAcc;
     criteria->GetAccuracy(&accuracy);
+    GetAccuracy(&thisAcc);
     if ((accuracy != Criteria_NO_REQUIREMENT) &&
-        (accuracy < GetAccuracy())) {
-        return FALSE;
+        (accuracy < thisAcc)) {
+        *result = FALSE;
+        return NOERROR;
     }
 
-    Int32 criteriaPower;
+    Int32 criteriaPower, thisPow;
     criteria->GetPowerRequirement(&criteriaPower);
+    GetPowerRequirement(&thisPow);
     if ((criteriaPower != Criteria_NO_REQUIREMENT) &&
-        (criteriaPower < GetPowerRequirement())) {
-        return FALSE;
+        (criteriaPower < thisPow)) {
+        *result = FALSE;
+        return NOERROR;
     }
 
-    Boolean result;
-    criteria->IsAltitudeRequired(&result);
-    if (result && !SupportsAltitude()) {
-        return FALSE;
+    Boolean _result;
+    criteria->IsAltitudeRequired(&_result);
+    if (_result && (SupportsAltitude(&_result), !_result)) {
+        *result = FALSE;
+        return NOERROR;
     }
 
-    criteria->IsSpeedRequired(&result);
-    if (result && !SupportsSpeed()) {
-        return FALSE;
+    criteria->IsSpeedRequired(&_result);
+    if (_result && (SupportsSpeed(&_result), !_result)) {
+        *result = FALSE;
+        return NOERROR;
     }
 
-    criteria->IsBearingRequired(&result);
-    if (result && !SupportsBearing()) {
-        return FALSE;
+    criteria->IsBearingRequired(&_result);
+    if (_result && (SupportsBearing(&_result), !_result)) {
+        *result = FALSE;
+        return NOERROR;
     }
 
-    return TRUE;
+    *result = TRUE;
+    return NOERROR;
 }
 
-void LocationProviderProxy::Enable()
+ECode LocationProviderProxy::Enable()
 {
-    Mutex::Autolock lock(mMutex);
+    Mutex::Autolock lock(&mLock);
 
     mEnabled = TRUE;
     AutoPtr<ILocationProvider> provider = mServiceConnection->GetProvider();
@@ -393,11 +453,12 @@ void LocationProviderProxy::Enable()
 //        } catch (RemoteException e) {
 //        }
     }
+    return NOERROR;
 }
 
-void LocationProviderProxy::Disable()
+ECode LocationProviderProxy::Disable()
 {
-    Mutex::Autolock lock(mMutex);
+    Mutex::Autolock lock(&mLock);
 
     mEnabled = FALSE;
     AutoPtr<ILocationProvider> provider = mServiceConnection->GetProvider();
@@ -407,85 +468,95 @@ void LocationProviderProxy::Disable()
 //        } catch (RemoteException e) {
 //        }
     }
+    return NOERROR;
 }
 
-Boolean LocationProviderProxy::IsEnabled()
+ECode LocationProviderProxy::IsEnabled(
+    /* [out] */ Boolean* isEnabled)
 {
-    Mutex::Autolock lock(mMutex);
-    return mEnabled;
+    VALIDATE_NOT_NULL(isEnabled);
+
+    Mutex::Autolock lock(&mLock);
+
+    *isEnabled = mEnabled;
+    return NOERROR;
 }
 
-Int32 LocationProviderProxy::GetStatus(
-    /* [in] */ IBundle* extras)
+ECode LocationProviderProxy::GetStatus(
+    /* [in] */ IBundle* extras,
+    /* [out] */ Int32* status)
 {
+    VALIDATE_NOT_NULL(status);
+
     AutoPtr<ILocationProvider> provider;
     {
-        Mutex::Autolock lock(mMutex);
+        Mutex::Autolock lock(&mLock);
         provider = mServiceConnection->GetProvider();
     }
 
     if (provider != NULL) {
 //        try {
-        Int32 status;
-        AutoPtr<IBundle> temp;
-        provider->GetStatus((IBundle**)&temp, &status);
-        extras->PutAll(temp);
-        return status;
+        // return provider->GetStatus(extras, status);
 //        } catch (RemoteException e) {
 //        }
     }
-    return 0;
+    *status = 0;
+    return NOERROR;
 }
 
-Int64 LocationProviderProxy::GetStatusUpdateTime()
+ECode LocationProviderProxy::GetStatusUpdateTime(
+    /* [out] */ Int64* time)
 {
+    VALIDATE_NOT_NULL(time);
+
     AutoPtr<ILocationProvider> provider;
     {
-        Mutex::Autolock lock(mMutex);
+        Mutex::Autolock lock(&mLock);
         provider = mServiceConnection->GetProvider();
     }
 
     if (provider != NULL) {
 //        try {
-        Int64 updateTime;
-        provider->GetStatusUpdateTime(&updateTime);
-        return updateTime;
+        return provider->GetStatusUpdateTime(time);
 //        } catch (RemoteException e) {
 //        }
     }
-    return 0;
+    *time = 0;
+    return NOERROR;
 }
 
-String LocationProviderProxy::GetInternalState()
+ECode LocationProviderProxy::GetInternalState(
+    /* [out] */ String* state)
 {
+    VALIDATE_NOT_NULL(state);
+
     AutoPtr<ILocationProvider> provider;
     {
-        Mutex::Autolock lock(mMutex);
+        Mutex::Autolock lock(&mLock);
         provider = mServiceConnection->GetProvider();
     }
 
     if (provider != NULL) {
 //        try {
-        String internalState;
-        provider->GetInternalState(&internalState);
-        return internalState;
+        return provider->GetInternalState(state);
 //        } catch (RemoteException e) {
 //        }
     }
 
-    return String(NULL);
+    *state = NULL;
+    return NOERROR;
 }
 
 Boolean LocationProviderProxy::IsLocationTracking()
 {
-    Mutex::Autolock lock(mMutex);
+    Mutex::Autolock lock(&mLock);
     return mLocationTracking;
 }
 
-void LocationProviderProxy::EnableLocationTracking(
+ECode LocationProviderProxy::EnableLocationTracking(
     /* [in] */ Boolean enable)
 {
-    Mutex::Autolock lock(mMutex);
+    Mutex::Autolock lock(&mLock);
 
     mLocationTracking = enable;
     if (!enable) {
@@ -499,18 +570,23 @@ void LocationProviderProxy::EnableLocationTracking(
 //        } catch (RemoteException e) {
 //        }
     }
+    return NOERROR;
 }
 
-Boolean LocationProviderProxy::RequestSingleShotFix()
+ECode LocationProviderProxy::RequestSingleShotFix(
+    /* [out] */ Boolean* result)
 {
-    return FALSE;
+    VALIDATE_NOT_NULL(result);
+
+    *result = FALSE;
+    return NOERROR;
 }
 
-void LocationProviderProxy::SetMinTime(
+ECode LocationProviderProxy::SetMinTime(
     /* [in] */ Int64 minTime,
     /* [in] */ IWorkSource* ws)
 {
-    Mutex::Autolock lock(mMutex);
+    Mutex::Autolock lock(&mLock);
     mMinTime = minTime;
     mMinTimeSource->Set(ws);
     AutoPtr<ILocationProvider> provider= mServiceConnection->GetProvider();
@@ -520,13 +596,14 @@ void LocationProviderProxy::SetMinTime(
 //        } catch (RemoteException e) {
 //        }
     }
+    return NOERROR;
 }
 
-void LocationProviderProxy::UpdateNetworkState(
+ECode LocationProviderProxy::UpdateNetworkState(
     /* [in] */ Int32 state,
     /* [in] */ INetworkInfo* info)
 {
-    Mutex::Autolock lock(mMutex);
+    Mutex::Autolock lock(&mLock);
     mNetworkState = state;
     mNetworkInfo = info;
     AutoPtr<ILocationProvider> provider = mServiceConnection->GetProvider();
@@ -536,12 +613,13 @@ void LocationProviderProxy::UpdateNetworkState(
 //        } catch (RemoteException e) {
 //        }
     }
+    return NOERROR;
 }
 
-void LocationProviderProxy::UpdateLocation(
+ECode LocationProviderProxy::UpdateLocation(
     /* [in] */ ILocation* location)
 {
-    Mutex::Autolock lock(mMutex);
+    Mutex::Autolock lock(&mLock);
 
     AutoPtr<ILocationProvider> provider = mServiceConnection->GetProvider();
     if (provider != NULL) {
@@ -550,34 +628,36 @@ void LocationProviderProxy::UpdateLocation(
 //        } catch (RemoteException e) {
 //        }
     }
+    return NOERROR;
 }
 
-Boolean LocationProviderProxy::SendExtraCommand(
-    /* [in] */ String command,
+ECode LocationProviderProxy::SendExtraCommand(
+    /* [in] */ const String& command,
     /* [in] */ IBundle* extras,
-    /* [out] */ IBundle** outExtras)
+    /* [out] */ IBundle** outExtras,
+    /* [out] */ Boolean* result)
 {
+    VALIDATE_NOT_NULL(result);
+
     {
-        Mutex::Autolock lock(mMutex);
+        Mutex::Autolock lock(&mLock);
 
         AutoPtr<ILocationProvider> provider = mServiceConnection->GetProvider();
         if (provider != NULL) {
 //            try {
-            Boolean result;
-            provider->SendExtraCommand(command, extras, outExtras, &result);
-            return result;
+            return provider->SendExtraCommand(command, extras, outExtras, result);
 //            } catch (RemoteException e) {
 //            }
         }
     }
-
-    return FALSE;
+    *result = FALSE;
+    return NOERROR;
 }
 
-void LocationProviderProxy::AddListener(
+ECode LocationProviderProxy::AddListener(
     /* [in] */ Int32 uid)
 {
-    Mutex::Autolock lock(mMutex);
+    Mutex::Autolock lock(&mLock);
 
     AutoPtr<ILocationProvider> provider = mServiceConnection->GetProvider();
     if (provider != NULL) {
@@ -586,12 +666,13 @@ void LocationProviderProxy::AddListener(
 //        } catch (RemoteException e) {
 //        }
     }
+    return NOERROR;
 }
 
-void LocationProviderProxy::RemoveListener(
+ECode LocationProviderProxy::RemoveListener(
     /* [in] */ Int32 uid)
 {
-    Mutex::Autolock lock(mMutex);
+    Mutex::Autolock lock(&mLock);
 
     AutoPtr<ILocationProvider> provider = mServiceConnection->GetProvider();
     if (provider != NULL) {
@@ -600,4 +681,5 @@ void LocationProviderProxy::RemoveListener(
 //        } catch (RemoteException e) {
 //        }
     }
+    return NOERROR;
 }

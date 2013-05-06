@@ -18,9 +18,8 @@ ECode CAccessibilityServiceConnection::constructor(
     mId = CAccessibilityManagerService::sIdCounter++;
     mComponentName = componentName;
 
-    AutoPtr<IIntent> temp;
-    ASSERT_SUCCEEDED(CIntent::New((IIntent**)&temp));
-    temp->SetComponentEx(mComponentName, (IIntent**)&mIntent);
+    ASSERT_SUCCEEDED(CIntent::New((IIntent**)&mIntent));
+    mIntent->SetComponent(mComponentName);
     mIntent->PutInt32Extra(String(Intent_EXTRA_CLIENT_LABEL), 0x0104036f
             /*com.android.internal.R.string.accessibility_binding_label*/);
     AutoPtr<IPendingIntentHelper> helper;

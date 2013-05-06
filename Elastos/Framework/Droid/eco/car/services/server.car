@@ -56,6 +56,13 @@ module
         interface ILightsManager;
     }
 
+    class CProximityListener {
+        constructor(
+            [in] Handle32 host);
+
+        interface ILocationListener;
+    }
+
     class CLocationManagerService {
         constructor(
             [in] IContext* ctx);

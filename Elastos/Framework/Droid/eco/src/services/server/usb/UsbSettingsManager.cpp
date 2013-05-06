@@ -640,7 +640,7 @@ ECode UsbSettingsManager::RequestPermissionDialog(
     }
 
     Int64 identity = Binder::ClearCallingIdentity();
-    intent->SetClassName(String("com.android.systemui"), String("com.android.systemui.usb.UsbPermissionActivity"));
+    intent->SetClassNameEx(String("com.android.systemui"), String("com.android.systemui.usb.UsbPermissionActivity"));
     intent->AddFlags(Intent_FLAG_ACTIVITY_NEW_TASK);
     intent->PutParcelableExtra(String(Intent_EXTRA_INTENT), (IParcelable*)pi);
     intent->PutStringExtra(String("package"), packageName);

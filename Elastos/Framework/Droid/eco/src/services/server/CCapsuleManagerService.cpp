@@ -10051,7 +10051,7 @@ void CCapsuleManagerService::SendCapsuleBroadcast(
         }
         CIntent::New(action, uri, (IIntent**)&intent);
         if (extras != NULL) {
-            intent->PutExtras(extras);
+            intent->PutExtrasEx(extras);
         }
         intent->AddFlags(Intent_FLAG_RECEIVER_REGISTERED_ONLY_BEFORE_BOOT);
         Int32 res = 0;

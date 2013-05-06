@@ -5,14 +5,14 @@
 #include "server/location/LocationProviderInterface.h"
 #include <elastos/AutoPtr.h>
 
-class MockProvider : public LocationProviderInterface
+class MockProvider : public ILocationProviderInterface
 {
 private:
     static const CString TAG;
 
 public:
     MockProvider(
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [in] */ ILocationManager* locationManager,
         /* [in] */ Boolean requiresNetwork,
         /* [in] */ Boolean requiresSatellite,
@@ -24,79 +24,107 @@ public:
         /* [in] */ Int32 powerRequirement,
         /* [in] */ Int32 accuracy);
 
-    CARAPI_(String) GetName();
+    CARAPI_(PInterface) Probe(
+        /* [in]  */ REIID riid);
 
-    CARAPI_(void) Disable();
+    CARAPI_(UInt32) AddRef();
 
-    CARAPI_(void) Enable();
+    CARAPI_(UInt32) Release();
 
-    CARAPI_(Boolean) IsEnabled();
+    CARAPI GetInterfaceID(
+        /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
 
-    CARAPI_(Int32) GetStatus(
-        /* [in] */ IBundle* extras);
+    CARAPI GetName(
+        /* [out] */ String* name);
 
-    CARAPI_(Int64) GetStatusUpdateTime();
+    CARAPI Disable();
 
-    CARAPI_(Int32) GetAccuracy();
+    CARAPI Enable();
 
-    CARAPI_(Int32) GetPowerRequirement();
+    CARAPI IsEnabled(
+        /* [out] */ Boolean* isEnabled);
 
-    CARAPI_(Boolean) HasMonetaryCost();
+    CARAPI GetStatus(
+        /* [in] */ IBundle* extras,
+        /* [out] */ Int32* status);
 
-    CARAPI_(Boolean) RequiresCell();
+    CARAPI GetStatusUpdateTime(
+        /* [out] */ Int64* time);
 
-    CARAPI_(Boolean) RequiresNetwork();
+    CARAPI GetAccuracy(
+        /* [out] */ Int32* accuracy);
 
-    CARAPI_(Boolean) RequiresSatellite();
+    CARAPI GetPowerRequirement(
+        /* [out] */ Int32* requirement);
 
-    CARAPI_(Boolean) SupportsAltitude();
+    CARAPI HasMonetaryCost(
+        /* [out] */ Boolean* result);
 
-    CARAPI_(Boolean) SupportsBearing();
+    CARAPI RequiresCell(
+        /* [out] */ Boolean* required);
 
-    CARAPI_(Boolean) SupportsSpeed();
+    CARAPI RequiresNetwork(
+        /* [out] */ Boolean* required);
 
-    CARAPI_(Boolean) MeetsCriteria(
-        /* [in] */ ICriteria* criteria);
+    CARAPI RequiresSatellite(
+        /* [out] */ Boolean* required);
 
-    CARAPI_(void) SetLocation(
+    CARAPI SupportsAltitude(
+        /* [out] */ Boolean* supported);
+
+    CARAPI SupportsBearing(
+        /* [out] */ Boolean* supported);
+
+    CARAPI SupportsSpeed(
+        /* [out] */ Boolean* supported);
+
+    CARAPI MeetsCriteria(
+        /* [in] */ ICriteria* criteria,
+        /* [out] */ Boolean* result);
+
+    CARAPI SetLocation(
         /* [in] */ ILocation* l);
 
-    CARAPI_(void) ClearLocation();
+    CARAPI ClearLocation();
 
-    CARAPI_(void) SetStatus(
+    CARAPI SetStatus(
         /* [in] */ Int32 status,
         /* [in] */ IBundle* extras,
         /* [in] */ Int64 updateTime);
 
-    CARAPI_(void) ClearStatus();
+    CARAPI ClearStatus();
 
-    CARAPI_(String) GetInternalState();
+    CARAPI GetInternalState(
+        /* [out] */ String* state);
 
-    CARAPI_(void) EnableLocationTracking(
+    CARAPI EnableLocationTracking(
         /* [in] */ Boolean enable);
 
-    CARAPI_(Boolean) RequestSingleShotFix();
+    CARAPI RequestSingleShotFix(
+        /* [out] */ Boolean* result);
 
-    CARAPI_(void) SetMinTime(
+    CARAPI SetMinTime(
         /* [in] */ Int64 minTime,
         /* [in] */ IWorkSource* ws);
 
-    CARAPI_(void) UpdateNetworkState(
+    CARAPI UpdateNetworkState(
         /* [in] */ Int32 state,
         /* [in] */ INetworkInfo* info);
 
-    CARAPI_(void) UpdateLocation(
+    CARAPI UpdateLocation(
         /* [in] */ ILocation* location);
 
-    CARAPI_(Boolean) SendExtraCommand(
-        /* [in] */ String command,
+    CARAPI SendExtraCommand(
+        /* [in] */ const String& command,
         /* [in] */ IBundle* extras,
-        /* [out] */ IBundle** outExtras);
+        /* [out] */ IBundle** outExtras,
+        /* [out] */ Boolean* result);
 
-    CARAPI_(void) AddListener(
+    CARAPI AddListener(
         /* [in] */ Int32 uid);
 
-    CARAPI_(void) RemoveListener(
+    CARAPI RemoveListener(
         /* [in] */ Int32 uid);
 
 private:

@@ -5,86 +5,95 @@
 #include "ext/frameworkext.h"
 #include <elastos/ElRefBase.h>
 
-extern "C" const InterfaceID EIID_LocationProviderInterface;
+extern "C" const InterfaceID EIID_ILocationProviderInterface;
 
-interface LocationProviderInterface : public ElRefBase, public IInterface
+interface ILocationProviderInterface : public IInterface
 {
 public:
-    CARAPI_(PInterface) Probe(
-        /* [in]  */ REIID riid);
+    static CARAPI_(ILocationProviderInterface*) Probe(PInterface pObj)
+    {
+        return (ILocationProviderInterface*)pObj->Probe(EIID_ILocationProviderInterface);
+    }
 
-    CARAPI_(UInt32) AddRef();
+    virtual CARAPI GetName(
+        /* [out] */ String* name) = 0;
 
-    CARAPI_(UInt32) Release();
+    virtual CARAPI RequiresNetwork(
+        /* [out] */ Boolean* required) = 0;
 
-    CARAPI GetInterfaceID(
-        /* [in] */ IInterface *pObject,
-        /* [out] */ InterfaceID *pIID);
+    virtual CARAPI RequiresSatellite(
+        /* [out] */ Boolean* required) = 0;
 
-    virtual ~LocationProviderInterface() = 0;
+    virtual CARAPI RequiresCell(
+        /* [out] */ Boolean* required) = 0;
 
-    virtual CARAPI_(String) GetName() = 0;
+    virtual CARAPI HasMonetaryCost(
+        /* [out] */ Boolean* result) = 0;
 
-    virtual CARAPI_(Boolean) RequiresNetwork() = 0;
+    virtual CARAPI SupportsAltitude(
+        /* [out] */ Boolean* supported) = 0;
 
-    virtual CARAPI_(Boolean) RequiresSatellite() = 0;
+    virtual CARAPI SupportsSpeed(
+        /* [out] */ Boolean* supported) = 0;
 
-    virtual CARAPI_(Boolean) RequiresCell() = 0;
+    virtual CARAPI SupportsBearing(
+        /* [out] */ Boolean* supported) = 0;
 
-    virtual CARAPI_(Boolean) HasMonetaryCost() = 0;
+    virtual CARAPI GetPowerRequirement(
+        /* [out] */ Int32* requirement) = 0;
 
-    virtual CARAPI_(Boolean) SupportsAltitude() = 0;
+    virtual CARAPI MeetsCriteria(
+        /* [in] */ ICriteria* criteria,
+        /* [out] */ Boolean* result) = 0;
 
-    virtual CARAPI_(Boolean) SupportsSpeed() = 0;
+    virtual CARAPI GetAccuracy(
+        /* [out] */ Int32* accuracy) = 0;
 
-    virtual CARAPI_(Boolean) SupportsBearing() = 0;
+    virtual CARAPI IsEnabled(
+        /* [out] */ Boolean* isEnabled) = 0;
 
-    virtual CARAPI_(Int32) GetPowerRequirement() = 0;
+    virtual CARAPI Enable() = 0;
 
-    virtual CARAPI_(Boolean) MeetsCriteria(
-        /* [in] */ ICriteria* criteria) = 0;
+    virtual CARAPI Disable() = 0;
 
-    virtual CARAPI_(Int32) GetAccuracy() = 0;
+    virtual CARAPI GetStatus(
+        /* [in] */ IBundle* extras,
+        /* [out] */ Int32* status) = 0;
 
-    virtual CARAPI_(Boolean) IsEnabled() = 0;
+    virtual CARAPI GetStatusUpdateTime(
+        /* [out] */ Int64* time) = 0;
 
-    virtual CARAPI_(void) Enable() = 0;
-
-    virtual CARAPI_(void) Disable() = 0;
-
-    virtual CARAPI_(Int32) GetStatus(
-        /* [in] */ IBundle* extras) = 0;
-
-    virtual CARAPI_(Int64) GetStatusUpdateTime() = 0;
-
-    virtual CARAPI_(void) EnableLocationTracking(
+    virtual CARAPI EnableLocationTracking(
         /* [in] */ Boolean enable) = 0;
 
     /* returns false if single shot is not supported */
-    virtual CARAPI_(Boolean) RequestSingleShotFix() = 0;
+    virtual CARAPI RequestSingleShotFix(
+        /* [out] */ Boolean* result) = 0;
 
-    virtual CARAPI_(String) GetInternalState() = 0;
+    virtual CARAPI GetInternalState(
+        /* [out] */ String* state) = 0;
 
-    virtual CARAPI_(void) SetMinTime(
+    virtual CARAPI SetMinTime(
         /* [in] */ Int64 minTime,
         /* [in] */ IWorkSource* ws) = 0;
 
-    virtual CARAPI_(void) UpdateNetworkState(
+    virtual CARAPI UpdateNetworkState(
         /* [in] */ Int32 state,
         /* [in] */ INetworkInfo* info) = 0;
 
-    virtual CARAPI_(void) UpdateLocation(
+    virtual CARAPI UpdateLocation(
         /* [in] */ ILocation* location) = 0;
 
-    virtual CARAPI_(Boolean) SendExtraCommand(
-        /* [in] */ String command,
+    virtual CARAPI SendExtraCommand(
+        /* [in] */ const String& command,
         /* [in] */ IBundle* extras,
-        /* [out] */ IBundle** outExtras) = 0;
+        /* [out] */ IBundle** outExtras,
+        /* [out] */ Boolean* result) = 0;
 
-    virtual CARAPI_(void) AddListener(
+    virtual CARAPI AddListener(
         /* [in] */ Int32 uid) = 0;
 
-    virtual CARAPI_(void) RemoveListener(
+    virtual CARAPI RemoveListener(
         /* [in] */ Int32 uid) = 0;
 };
 

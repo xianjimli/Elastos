@@ -185,7 +185,7 @@ public:
      * @return list of Strings containing names of the providers
      */
     CARAPI GetAllProviders(
-        /* [out, callee] */ ArrayOf<String>** allProviders);
+        /* [out] */ IObjectContainer** allProviders);
 
     /**
      * Returns a list of the names of location providers.  Only providers that
@@ -197,7 +197,7 @@ public:
      */
     CARAPI GetProviders(
         /* [in] */ Boolean enabledOnly,
-        /* [out, callee] */ ArrayOf<String>** providers);
+        /* [out] */ IObjectContainer** providers);
 
     /**
      * Returns the information associated with the location provider of the
@@ -227,7 +227,7 @@ public:
     CARAPI GetProvidersEx(
         /* [in] */ ICriteria* criteria,
         /* [in] */ Boolean enabledOnly,
-        /* [out, callee] */ ArrayOf<String>** providers);
+        /* [out] */ IObjectContainer** providers);
 
     /**
      * Returns the name of the provider that best meets the given criteria. Only providers

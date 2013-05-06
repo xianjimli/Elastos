@@ -50,6 +50,7 @@ SOURCES += SystemServer.cpp
 SOURCES += CLightsService.cpp
 SOURCES += CStatusBarManagerService.cpp
 SOURCES += CNotificationManagerService.cpp
+SOURCES += CProximityListener.cpp
 SOURCES += CLocationManagerService.cpp
 SOURCES += CInputMethodManagerService.cpp
 SOURCES += CInputMethodManagerServiceMethodCallback.cpp

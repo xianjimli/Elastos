@@ -4,7 +4,7 @@
 
 
 CLauncherActivity::ActivityAdapter::ActivityAdapter(
-    /* [in] */ ILauncherActivityIconResizer* resizer, 
+    /* [in] */ ILauncherActivityIconResizer* resizer,
     /* [in] */ ILauncherActivity* lActivity)
 {
     mLauncherActivity = (CLauncherActivity*)lActivity;
@@ -34,9 +34,9 @@ AutoPtr<IIntent> CLauncherActivity::ActivityAdapter::IntentForPosition(
     CIntent::New(mLauncherActivity->mIntent, (IIntent**)&newintent);
     AutoPtr<ILauncherActivityListItem> lItem = (*mActivitiesList)[position];
     CLauncherActivityListItem* item = (CLauncherActivityListItem*)(ILauncherActivityListItem*)lItem;
-    newintent->SetClassName(item->mCapsuleName, item->mClassName);
+    newintent->SetClassNameEx(item->mCapsuleName, item->mClassName);
     if (item->mExtras != NULL) {
-        newintent->PutExtras(item->mExtras);
+        newintent->PutExtrasEx(item->mExtras);
     }
     return newintent;
 }
@@ -275,25 +275,25 @@ ECode CLauncherActivity::OnCreate(
     /* [in] */ IBundle* icicle)
 {
     Activity::OnCreate(icicle);
-        
+
     GetCapsuleManager((ILocalCapsuleManager**)&mCapsuleManager);
 
     Boolean result;
     RequestWindowFeature(Window_FEATURE_INDETERMINATE_PROGRESS, &result);
     SetProgressBarIndeterminateVisibility(TRUE);
     OnSetContentView();
- 
+
     CLauncherActivityIconResizer::New(this, (ILauncherActivityIconResizer**)&mIconResizer);
-        
+
     CIntent::New(GetTargetIntent(), (IIntent**)&mIntent);
     mIntent->SetComponent(NULL);
     mAdapter = new _ActivityAdapter(mIconResizer, this);
-        
+
     SetListAdapter(mAdapter);
     AutoPtr<IListView> listView;
     GetListView((IListView**)&listView);
     listView->SetTextFilterEnabled(TRUE);
-        
+
     SetProgressBarIndeterminateVisibility(FALSE);
     return NOERROR;
 }
@@ -340,7 +340,7 @@ AutoPtr<IObjectContainer> CLauncherActivity::OnQueryCapsuleManager(
     /* [in] */ IIntent* queryIntent)
 {
     AutoPtr<IObjectContainer> container;
-    mCapsuleManager->QueryIntentActivities(queryIntent, 
+    mCapsuleManager->QueryIntentActivities(queryIntent,
             /* no flags */ 0, (IObjectContainer**)&container);
     return container;
 }
@@ -362,7 +362,7 @@ ECode CLauncherActivity::MakeListItems(
         AutoPtr<IResolveInfo> resolveInfo;
         enumerator->Current((IInterface**)&resolveInfo);
         AutoPtr<ILauncherActivityListItem> listItem;
-        CLauncherActivityListItem::New(mCapsuleManager, resolveInfo, NULL, 
+        CLauncherActivityListItem::New(mCapsuleManager, resolveInfo, NULL,
                 (ILauncherActivityListItem**)&listItem);
         result->Add(listItem);
     }

@@ -182,7 +182,7 @@ CLocationManager::CLocationManager()
 }
 
 ECode CLocationManager::GetAllProviders(
-    /* [out, callee] */ ArrayOf<String>** allProviders)
+    /* [out] */ IObjectContainer** allProviders)
 {
 //    if (FALSE) {
 //        Log.d(TAG, "getAllProviders");
@@ -203,7 +203,7 @@ ECode CLocationManager::GetAllProviders(
 
 ECode CLocationManager::GetProviders(
     /* [in] */ Boolean enabledOnly,
-    /* [out, callee] */ ArrayOf<String>** providers)
+    /* [out] */ IObjectContainer** providers)
 {
 //    try {
     VALIDATE_NOT_NULL(providers);
@@ -253,7 +253,7 @@ ECode CLocationManager::GetProvider(
 ECode CLocationManager::GetProvidersEx(
     /* [in] */ ICriteria* criteria,
     /* [in] */ Boolean enabledOnly,
-    /* [out, callee] */ ArrayOf<String>** providers)
+    /* [out] */ IObjectContainer** providers)
 {
     VALIDATE_NOT_NULL(providers);
 

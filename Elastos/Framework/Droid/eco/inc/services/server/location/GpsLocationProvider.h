@@ -13,7 +13,7 @@
 
 using namespace Elastos::Core::Threading;
 
-class GpsLocationProvider : public LocationProviderInterface
+class GpsLocationProvider : public ElRefBase, public ILocationProviderInterface
 {
 private:
     static const CString TAG;// = "GpsLocationProvider";
@@ -242,72 +242,100 @@ public:
 
     ~GpsLocationProvider();
 
+    CARAPI_(PInterface) Probe(
+        /* [in]  */ REIID riid);
+
+    CARAPI_(UInt32) AddRef();
+
+    CARAPI_(UInt32) Release();
+
+    CARAPI GetInterfaceID(
+        /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
     CARAPI_(AutoPtr<IGpsStatusProvider>) GetGpsStatusProvider();
 
     static CARAPI_(Boolean) IsSupported();
 
-    CARAPI_(String) GetName();
+    CARAPI GetName(
+        /* [out] */ String* name);
 
-    CARAPI_(Boolean) RequiresNetwork();
+    CARAPI RequiresNetwork(
+        /* [out] */ Boolean* required);
 
-    CARAPI_(void) UpdateNetworkState(
+    CARAPI UpdateNetworkState(
         /* [in] */ Int32 state,
         /* [in] */ INetworkInfo* info);
 
-    CARAPI_(void) UpdateLocation(
+    CARAPI UpdateLocation(
         /* [in] */ ILocation* location);
 
-    CARAPI_(Boolean) RequiresSatellite();
+    CARAPI RequiresSatellite(
+        /* [out] */ Boolean* required);
 
-    CARAPI_(Boolean) RequiresCell();
+    CARAPI RequiresCell(
+        /* [out] */ Boolean* required);
 
-    CARAPI_(Boolean) HasMonetaryCost();
+    CARAPI HasMonetaryCost(
+        /* [out] */ Boolean* result);
 
-    CARAPI_(Boolean) SupportsAltitude();
+    CARAPI SupportsAltitude(
+        /* [out] */ Boolean* supported);
 
-    CARAPI_(Boolean) SupportsSpeed();
+    CARAPI SupportsSpeed(
+        /* [out] */ Boolean* supported);
 
-    CARAPI_(Boolean) SupportsBearing();
+    CARAPI SupportsBearing(
+        /* [out] */ Boolean* supported);
 
-    CARAPI_(Int32) GetPowerRequirement();
+    CARAPI GetPowerRequirement(
+        /* [out] */ Int32* requirement);
 
-    CARAPI_(Boolean) MeetsCriteria(
-        /* [in] */ ICriteria* criteria);
+    CARAPI MeetsCriteria(
+        /* [in] */ ICriteria* criteria,
+        /* [out] */ Boolean* result);
 
-    CARAPI_(Int32) GetAccuracy();
+    CARAPI GetAccuracy(
+        /* [out] */ Int32* accuracy);
 
-    CARAPI_(Boolean) IsEnabled();
+    CARAPI IsEnabled(
+        /* [out] */ Boolean* isEnabled);
 
-    CARAPI_(void) Enable();
+    CARAPI Enable();
 
-    CARAPI_(void) Disable();
+    CARAPI Disable();
 
-    CARAPI_(Int32) GetStatus(
-        /* [in] */ IBundle* extras);
+    CARAPI GetStatus(
+        /* [in] */ IBundle* extras,
+        /* [out] */ Int32* status);
 
-    CARAPI_(Int64) GetStatusUpdateTime();
+    CARAPI GetStatusUpdateTime(
+        /* [out] */ Int64* time);
 
-    CARAPI_(void) EnableLocationTracking(
+    CARAPI EnableLocationTracking(
         /* [in] */ Boolean enable);
 
-    CARAPI_(Boolean) RequestSingleShotFix();
+    CARAPI RequestSingleShotFix(
+        /* [out] */ Boolean* result);
 
-    CARAPI_(String) GetInternalState();
+    CARAPI GetInternalState(
+        /* [out] */ String* state);
 
-    CARAPI_(void) SetMinTime(
+    CARAPI SetMinTime(
         /* [in] */ Int64 minTime,
         /* [in] */ IWorkSource* ws);
 
-    CARAPI_(void) AddListener(
+    CARAPI AddListener(
         /* [in] */ Int32 uid);
 
-    CARAPI_(void) RemoveListener(
+    CARAPI RemoveListener(
         /* [in] */ Int32 uid);
 
-    CARAPI_(Boolean) SendExtraCommand(
-        /* [in] */ String command,
+    CARAPI SendExtraCommand(
+        /* [in] */ const String& command,
         /* [in] */ IBundle* extras,
-        /* [out] */ IBundle** outExtras);
+        /* [out] */ IBundle** outExtras,
+        /* [out] */ Boolean* result);
 
     CARAPI_(NetInitiatedListener*) GetNetInitiatedListener();
 

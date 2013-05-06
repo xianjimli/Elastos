@@ -1461,7 +1461,7 @@ ECode CAccountManager::GetAuthTokenByTypeAndFeaturesTask::GetAccountsCallback::R
                 AutoPtr<IIntent> intent;
                 CIntent::New((IIntent**)&intent);
                 intent->SetClassNameEx(String("elastos"),
-                        String("elastos.accounts.ChooseAccountActivity"), NULL);
+                        String("elastos.accounts.ChooseAccountActivity"));
                 intent->PutInt32Extra(
                         String(AccountManager_KEY_ACCOUNTS), (Int32)accounts.Get());
                 AutoPtr<IAccountManagerResponse> response;

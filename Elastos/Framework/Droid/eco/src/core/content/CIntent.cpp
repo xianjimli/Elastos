@@ -77,12 +77,12 @@ ECode CIntent::constructor(
     }
 
     if (o->mCategories != NULL) {
-        mCategories = new Set<String>();
+        mCategories = new HashSet<String>();
         if (!mCategories) {
             return E_OUT_OF_MEMORY;
         }
 
-        Set<String>::Iterator it;
+        HashSet<String>::Iterator it;
         for (it = o->mCategories->Begin(); it != o->mCategories->End(); ++it) {
             String s = *it;
             mCategories->Insert(s);
@@ -120,11 +120,11 @@ ECode CIntent::constructor(
 
 
     if (o->mCategories != NULL) {
-        mCategories = new Set<String>();
+        mCategories = new HashSet<String>();
         if (!mCategories) {
             return E_OUT_OF_MEMORY;
         }
-        Set<String>::Iterator it;
+        HashSet<String>::Iterator it;
         for (it = o->mCategories->Begin(); it != o->mCategories->End(); ++it) {
             String s = *it;
             mCategories->Insert(s);
@@ -193,7 +193,7 @@ ECode CIntent::GetDataString(
         return E_NOT_IMPLEMENTED;
     }
     else {
-        dataString->SetTo(NULL);
+        *dataString = NULL;
         return NOERROR;
     }
 }
@@ -206,7 +206,7 @@ ECode CIntent::GetScheme(
         return mData->GetScheme(scheme);
     }
     else {
-        scheme->SetTo(NULL);
+        *scheme = NULL;
         return NOERROR;
     }
 }
@@ -253,7 +253,7 @@ ECode CIntent::ResolveTypeEx(
         }
     }
 
-    type->SetTo(NULL);
+    *type = NULL;
 
     return NOERROR;
 }
@@ -281,7 +281,7 @@ ECode CIntent::HasCategory(
 
     *result = FALSE;
     if (mCategories != NULL) {
-        Set<String>::Iterator it;
+        HashSet<String>::Iterator it;
         for (it = mCategories->Begin(); it != mCategories->End(); ++it) {
             if (!(*it).Compare(category)) {
                 *result = TRUE;
@@ -305,7 +305,7 @@ ECode CIntent::GetCategories(
             return E_OUT_OF_MEMORY;
         }
 
-        Set<String>::Iterator it;
+        HashSet<String>::Iterator it;
         Int32 idx = 0;
         for (it = mCategories->Begin(); it != mCategories->End(); ++it, ++idx) {
             (**categories)[idx] = *it;
@@ -372,7 +372,7 @@ ECode CIntent::HasFileDescriptors(
 // @Deprecated
 // public Object getExtra(String name);
 
-ECode CIntent::GetBooleanExtraEx(
+ECode CIntent::GetBooleanExtra(
     /* [in] */ const String& name,
     /* [in] */ Boolean defaultValue,
     /* [out] */ Boolean* value)
@@ -388,7 +388,7 @@ ECode CIntent::GetBooleanExtraEx(
     }
 }
 
-ECode CIntent::GetByteExtraEx(
+ECode CIntent::GetByteExtra(
     /* [in] */ const String& name,
     /* [in] */ Byte defaultValue,
     /* [out] */ Byte* value)
@@ -404,7 +404,7 @@ ECode CIntent::GetByteExtraEx(
     }
 }
 
-ECode CIntent::GetInt16ExtraEx(
+ECode CIntent::GetInt16Extra(
     /* [in] */ const String& name,
     /* [in] */ Int16 defaultValue,
     /* [out] */ Int16* value)
@@ -420,7 +420,7 @@ ECode CIntent::GetInt16ExtraEx(
     }
 }
 
-ECode CIntent::GetCharExtraEx(
+ECode CIntent::GetCharExtra(
     /* [in] */ const String& name,
     /* [in] */ Char32 defaultValue,
     /* [out] */ Char32* value)
@@ -436,7 +436,7 @@ ECode CIntent::GetCharExtraEx(
     }
 }
 
-ECode CIntent::GetInt32ExtraEx(
+ECode CIntent::GetInt32Extra(
     /* [in] */ const String& name,
     /* [in] */ Int32 defaultValue,
     /* [out] */ Int32* value)
@@ -452,7 +452,7 @@ ECode CIntent::GetInt32ExtraEx(
     }
 }
 
-ECode CIntent::GetInt64ExtraEx(
+ECode CIntent::GetInt64Extra(
     /* [in] */ const String& name,
     /* [in] */ Int64 defaultValue,
     /* [out] */ Int64* value)
@@ -468,7 +468,7 @@ ECode CIntent::GetInt64ExtraEx(
     }
 }
 
-ECode CIntent::GetFloatExtraEx(
+ECode CIntent::GetFloatExtra(
     /* [in] */ const String& name,
     /* [in] */ Float defaultValue,
     /* [out] */ Float* value)
@@ -484,7 +484,7 @@ ECode CIntent::GetFloatExtraEx(
     }
 }
 
-ECode CIntent::GetDoubleExtraEx(
+ECode CIntent::GetDoubleExtra(
     /* [in] */ const String& name,
     /* [in] */ Double defaultValue,
     /* [out] */ Double* value)
@@ -510,7 +510,7 @@ ECode CIntent::GetStringExtra(
         return mExtras->GetString(name, value);
     }
     else {
-        value->SetTo(NULL);
+        *value = NULL;
         return NOERROR;
     }
 }
@@ -961,84 +961,48 @@ ECode CIntent::ResolveActivityInfo(
 #endif
 }
 
-ECode CIntent::SetActionEx(
-    /* [in] */ const String& action,
-    /* [out] */ IIntent** result)
+ECode CIntent::SetAction(
+    /* [in] */ const String& action)
 {
     mAction = action;
-
-    if (result) {
-        *result = this;
-        this->AddRef();
-    }
-
     return NOERROR;
 }
 
-ECode CIntent::SetDataEx(
-    /* [in] */ IUri* data,
-    /* [out] */ IIntent** result)
+ECode CIntent::SetData(
+    /* [in] */ IUri* data)
 {
     mData = data;
-    mType.SetTo(NULL);
-
-    if (result) {
-        *result = this;
-        this->AddRef();
-    }
-
+    mType = NULL;
     return NOERROR;
 }
 
-ECode CIntent::SetTypeEx(
-  /* [in] */ const String& type,
-  /* [out] */ IIntent** result)
+ECode CIntent::SetType(
+  /* [in] */ const String& type)
 {
     mData = NULL;
     mType = type;
-
-    if (result) {
-        *result = this;
-        this->AddRef();
-    }
-
     return NOERROR;
 }
 
-ECode CIntent::SetDataAndTypeEx(
+ECode CIntent::SetDataAndType(
     /* [in] */ IUri* data,
-    /* [in] */ const String& type,
-    /* [out] */ IIntent** result)
+    /* [in] */ const String& type)
 {
     mData = data;
     mType = type;
-
-    if (result) {
-        *result = this;
-        this->AddRef();
-    }
-
     return NOERROR;
 }
 
-ECode CIntent::AddCategoryEx(
-    /* [in] */ const String& category,
-    /* [out] */ IIntent** result)
+ECode CIntent::AddCategory(
+    /* [in] */ const String& category)
 {
     if (mCategories == NULL) {
-        mCategories = new Set<String>();
+        mCategories = new HashSet<String>();
         if (!mCategories) {
-            return E_OUT_OF_MEMORY;
+            return E_OUT_OF_MEMORY_ERROR;
         }
     }
-
     mCategories->Insert(category);
-
-    if (result) {
-        *result = this;
-        this->AddRef();
-    }
-
     return NOERROR;
 }
 
@@ -1046,322 +1010,192 @@ ECode CIntent::RemoveCategory(
     /* [in] */ const String& category)
 {
     if (mCategories != NULL) {
-        Set<String>::Iterator it = mCategories->Find(category);
+        HashSet<String>::Iterator it = mCategories->Find(category);
         if (it == mCategories->End()) {
             return NOERROR;
         }
-
-        mCategories->Erase(category);
-        if (mCategories->GetSize() == 0) {
+        mCategories->Erase(it);
+        if (mCategories->Begin() == mCategories->End()) {
             delete mCategories;
             mCategories = NULL;
         }
     }
-
     return NOERROR;
 }
 
-ECode CIntent::PutBooleanExtraEx(
+ECode CIntent::PutBooleanExtra(
     /* [in] */ const String& name,
-    /* [in] */ Boolean value,
-    /* [out] */ IIntent** result)
+    /* [in] */ Boolean value)
 {
     if (mExtras == NULL) {
         FAIL_RETURN(CBundle::New((IBundle**)&mExtras));
     }
-
     mExtras->PutBoolean(name, value);
-
-    if (result) {
-        *result = this;
-        this->AddRef();
-    }
-
     return NOERROR;
 }
 
-ECode CIntent::PutByteExtraEx(
+ECode CIntent::PutByteExtra(
     /* [in] */ const String& name,
-    /* [in] */ Byte value,
-    /* [out] */ IIntent** result)
+    /* [in] */ Byte value)
 {
     if (mExtras == NULL) {
         FAIL_RETURN(CBundle::New((IBundle**)&mExtras));
     }
-
     mExtras->PutByte(name, value);
-
-    if (result) {
-        *result = this;
-        this->AddRef();
-    }
-
     return NOERROR;
 }
 
-ECode CIntent::PutCharExtraEx(
+ECode CIntent::PutCharExtra(
     /* [in] */ const String& name,
-    /* [in] */ Char32 value,
-    /* [out] */ IIntent** result)
+    /* [in] */ Char32 value)
 {
     if (mExtras == NULL) {
         FAIL_RETURN(CBundle::New((IBundle**)&mExtras));
     }
-
     mExtras->PutChar(name, value);
-
-    if (result) {
-        *result = this;
-        this->AddRef();
-    }
-
     return NOERROR;
 }
 
-ECode CIntent::PutInt16ExtraEx(
+ECode CIntent::PutInt16Extra(
     /* [in] */ const String& name,
-    /* [in] */ Int16 value,
-    /* [out] */ IIntent** result)
+    /* [in] */ Int16 value)
 {
     if (mExtras == NULL) {
         FAIL_RETURN(CBundle::New((IBundle**)&mExtras));
     }
-
     mExtras->PutInt16(name, value);
-
-    if (result) {
-        *result = this;
-        this->AddRef();
-    }
-
     return NOERROR;
 }
 
-ECode CIntent::PutInt32ExtraEx(
+ECode CIntent::PutInt32Extra(
     /* [in] */ const String& name,
-    /* [in] */ Int32 value,
-    /* [out] */ IIntent** result)
+    /* [in] */ Int32 value)
 {
     if (mExtras == NULL) {
         FAIL_RETURN(CBundle::New((IBundle**)&mExtras));
     }
-
     mExtras->PutInt32(name, value);
-
-    if (result) {
-        *result = this;
-        this->AddRef();
-    }
-
     return NOERROR;
 }
 
-ECode CIntent::PutInt64ExtraEx(
+ECode CIntent::PutInt64Extra(
     /* [in] */ const String& name,
-    /* [in] */ Int64 value,
-    /* [out] */ IIntent** result)
+    /* [in] */ Int64 value)
 {
     if (mExtras == NULL) {
         FAIL_RETURN(CBundle::New((IBundle**)&mExtras));
     }
-
     mExtras->PutInt64(name, value);
-
-    if (result) {
-        *result = this;
-        this->AddRef();
-    }
-
     return NOERROR;
 }
 
-ECode CIntent::PutFloatExtraEx(
+ECode CIntent::PutFloatExtra(
     /* [in] */ const String& name,
-    /* [in] */ Float value,
-    /* [out] */ IIntent** result)
+    /* [in] */ Float value)
 {
     if (mExtras == NULL) {
         FAIL_RETURN(CBundle::New((IBundle**)&mExtras));
     }
-
     mExtras->PutFloat(name, value);
-
-    if (result) {
-        *result = this;
-        this->AddRef();
-    }
-
     return NOERROR;
 }
 
-ECode CIntent::PutDoubleExtraEx(
+ECode CIntent::PutDoubleExtra(
     /* [in] */ const String& name,
-    /* [in] */ Double value,
-    /* [out] */ IIntent** result)
+    /* [in] */ Double value)
 {
     if (mExtras == NULL) {
         FAIL_RETURN(CBundle::New((IBundle**)&mExtras));
     }
-
     mExtras->PutDouble(name, value);
-
-    if (result) {
-        *result = this;
-        this->AddRef();
-    }
-
     return NOERROR;
 }
 
-ECode CIntent::PutStringExtraEx(
+ECode CIntent::PutStringExtra(
     /* [in] */ const String& name,
-    /* [in] */ const String& value,
-    /* [out] */ IIntent** result)
+    /* [in] */ const String& value)
 {
     if (mExtras == NULL) {
         FAIL_RETURN(CBundle::New((IBundle**)&mExtras));
     }
-
     mExtras->PutString(name, value);
-
-    if (result) {
-        *result = this;
-        this->AddRef();
-    }
-
     return NOERROR;
 }
 
 ECode CIntent::PutCharSequenceExtra(
     /* [in] */ const String& name,
-    /* [in] */ ICharSequence* value,
-    /* [out] */ IIntent** result)
+    /* [in] */ ICharSequence* value)
 {
     if (mExtras == NULL) {
         FAIL_RETURN(CBundle::New((IBundle**)&mExtras));
     }
-
     mExtras->PutCharSequence(name, value);
-
-    if (result) {
-        *result = this;
-        this->AddRef();
-    }
-
     return NOERROR;
 }
 
-ECode CIntent::PutParcelableExtraEx(
+ECode CIntent::PutParcelableExtra(
     /* [in] */ const String& name,
-    /* [in] */ IParcelable* value,
-    /* [out] */ IIntent** result)
+    /* [in] */ IParcelable* value)
 {
     if (mExtras == NULL) {
         FAIL_RETURN(CBundle::New((IBundle**)&mExtras));
     }
-
     mExtras->PutParcelable(name, value);
-
-    if (result) {
-        *result = this;
-        this->AddRef();
-    }
-
     return NOERROR;
 }
 
 ECode CIntent::PutParcelableArrayExtra(
     /* [in] */ const String& name,
-    /* [in] */ ArrayOf<IParcelable*>* value,
-    /* [out] */ IIntent** result)
+    /* [in] */ ArrayOf<IParcelable*>* value)
 {
     if (mExtras == NULL) {
         FAIL_RETURN(CBundle::New((IBundle**)&mExtras));
     }
-
     mExtras->PutParcelableArray(name, value);
-
-    if (result) {
-        *result = this;
-        this->AddRef();
-    }
-
     return NOERROR;
 }
 
 ECode CIntent::PutParcelableArrayListExtra(
     /* [in] */ const String& name,
-    /* [in] */ IObjectContainer* value,
-    /* [out] */ IIntent** result)
+    /* [in] */ IObjectContainer* value)
 {
     if (mExtras == NULL) {
         FAIL_RETURN(CBundle::New((IBundle**)&mExtras));
     }
-
     mExtras->PutParcelableArrayList(name, value);
-
-    if (result) {
-        *result = this;
-        this->AddRef();
-    }
-
     return NOERROR;
 }
 
 ECode CIntent::PutIntegerArrayListExtra(
     /* [in] */ const String& name,
-    /* [in] */ IObjectContainer* value,
-    /* [out] */ IIntent** result)
+    /* [in] */ IObjectContainer* value)
 {
     if (mExtras == NULL) {
         FAIL_RETURN(CBundle::New((IBundle**)&mExtras));
     }
-
     mExtras->PutIntegerArrayList(name, value);
-
-    if (result) {
-        *result = this;
-        this->AddRef();
-    }
-
     return NOERROR;
 }
 
 ECode CIntent::PutStringArrayListExtra(
     /* [in] */ const String& name,
-    /* [in] */ IObjectContainer* value,
-    /* [out] */ IIntent** result)
+    /* [in] */ IObjectContainer* value)
 {
     if (mExtras == NULL) {
         FAIL_RETURN(CBundle::New((IBundle**)&mExtras));
     }
-
     mExtras->PutStringArrayList(name, value);
-
-    if (result) {
-        *result = this;
-        this->AddRef();
-    }
-
     return NOERROR;
 }
 
 ECode CIntent::PutCharSequenceArrayListExtra(
     /* [in] */ const String& name,
-    /* [in] */ IObjectContainer* value,
-    /* [out] */ IIntent** result)
+    /* [in] */ IObjectContainer* value)
 {
     if (mExtras == NULL) {
         FAIL_RETURN(CBundle::New((IBundle**)&mExtras));
     }
-
     mExtras->PutCharSequenceArrayList(name, value);
-
-    if (result) {
-        *result = this;
-        this->AddRef();
-    }
-
     return NOERROR;
 }
 
@@ -1373,210 +1207,122 @@ ECode CIntent::PutCharSequenceArrayListExtra(
 
 ECode CIntent::PutBooleanArrayExtra(
     /* [in] */ const String& name,
-    /* [in] */ ArrayOf<Boolean>* value,
-    /* [out] */ IIntent** result)
+    /* [in] */ ArrayOf<Boolean>* value)
 {
     if (mExtras == NULL) {
         FAIL_RETURN(CBundle::New((IBundle**)&mExtras));
     }
-
     mExtras->PutBooleanArray(name, value);
-
-    if (result) {
-        *result = this;
-        this->AddRef();
-    }
-
     return NOERROR;
 }
 
 ECode CIntent::PutByteArrayExtra(
     /* [in] */ const String& name,
-    /* [in] */ ArrayOf<Byte>* value,
-    /* [out] */ IIntent** result)
+    /* [in] */ ArrayOf<Byte>* value)
 {
     if (mExtras == NULL) {
         FAIL_RETURN(CBundle::New((IBundle**)&mExtras));
     }
-
     mExtras->PutByteArray(name, value);
-
-    if (result) {
-        *result = this;
-        this->AddRef();
-    }
-
     return NOERROR;
 }
 
 ECode CIntent::PutInt16ArrayExtra(
     /* [in] */ const String& name,
-    /* [in] */ ArrayOf<Int16>* value,
-    /* [out] */ IIntent** result)
+    /* [in] */ ArrayOf<Int16>* value)
 {
     if (mExtras == NULL) {
         FAIL_RETURN(CBundle::New((IBundle**)&mExtras));
     }
-
     mExtras->PutInt16Array(name, value);
-
-    if (result) {
-        *result = this;
-        this->AddRef();
-    }
-
     return NOERROR;
 }
 
 ECode CIntent::PutCharArrayExtra(
     /* [in] */ const String& name,
-    /* [in] */ ArrayOf<Char32>* value,
-    /* [out] */ IIntent** result)
+    /* [in] */ ArrayOf<Char32>* value)
 {
     if (mExtras == NULL) {
         FAIL_RETURN(CBundle::New((IBundle**)&mExtras));
     }
-
     mExtras->PutCharArray(name, value);
-
-    if (result) {
-        *result = this;
-        this->AddRef();
-    }
-
     return NOERROR;
 }
 
 ECode CIntent::PutInt32ArrayExtra(
     /* [in] */ const String& name,
-    /* [in] */ ArrayOf<Int32>* value,
-    /* [out] */ IIntent** result)
+    /* [in] */ ArrayOf<Int32>* value)
 {
     if (mExtras == NULL) {
         FAIL_RETURN(CBundle::New((IBundle**)&mExtras));
     }
-
     mExtras->PutInt32Array(name, value);
-
-    if (result) {
-        *result = this;
-        this->AddRef();
-    }
-
     return NOERROR;
 }
 
 ECode CIntent::PutInt64ArrayExtra(
     /* [in] */ const String& name,
-    /* [in] */ ArrayOf<Int64>* value,
-    /* [out] */ IIntent** result)
+    /* [in] */ ArrayOf<Int64>* value)
 {
     if (mExtras == NULL) {
         FAIL_RETURN(CBundle::New((IBundle**)&mExtras));
     }
-
     mExtras->PutInt64Array(name, value);
-
-    if (result) {
-        *result = this;
-        this->AddRef();
-    }
-
     return NOERROR;
 }
 
 ECode CIntent::PutFloatArrayExtra(
     /* [in] */ const String& name,
-    /* [in] */ ArrayOf<Float>* value,
-    /* [out] */ IIntent** result)
+    /* [in] */ ArrayOf<Float>* value)
 {
     if (mExtras == NULL) {
         FAIL_RETURN(CBundle::New((IBundle**)&mExtras));
     }
-
     mExtras->PutFloatArray(name, value);
-
-    if (result) {
-        *result = this;
-        this->AddRef();
-    }
-
     return NOERROR;
 }
 
 ECode CIntent::PutDoubleArrayExtra(
     /* [in] */ const String& name,
-    /* [in] */ ArrayOf<Double>* value,
-    /* [out] */ IIntent** result)
+    /* [in] */ ArrayOf<Double>* value)
 {
     if (mExtras == NULL) {
         FAIL_RETURN(CBundle::New((IBundle**)&mExtras));
     }
-
     mExtras->PutDoubleArray(name, value);
-
-    if (result) {
-        *result = this;
-        this->AddRef();
-    }
-
     return NOERROR;
 }
 
 ECode CIntent::PutStringArrayExtra(
     /* [in] */ const String& name,
-    /* [in] */ ArrayOf<String>* value,
-    /* [out] */ IIntent** result)
+    /* [in] */ ArrayOf<String>* value)
 {
     if (mExtras == NULL) {
         FAIL_RETURN(CBundle::New((IBundle**)&mExtras));
     }
-
     mExtras->PutStringArray(name, value);
-
-    if (result) {
-        *result = this;
-        this->AddRef();
-    }
-
     return NOERROR;
 }
 
 ECode CIntent::PutCharSequenceArrayExtra(
     /* [in] */ const String& name,
-    /* [in] */ ArrayOf<ICharSequence*>* value,
-    /* [out] */ IIntent** result)
+    /* [in] */ ArrayOf<ICharSequence*>* value)
 {
     if (mExtras == NULL) {
         FAIL_RETURN(CBundle::New((IBundle**)&mExtras));
     }
-
     mExtras->PutCharSequenceArray(name, value);
-
-    if (result) {
-        *result = this;
-        this->AddRef();
-    }
-
     return NOERROR;
 }
 
 ECode CIntent::PutBundleExtra(
     /* [in] */ const String& name,
-    /* [in] */ IBundle* value,
-    /* [out] */ IIntent** result)
+    /* [in] */ IBundle* value)
 {
     if (mExtras == NULL) {
         FAIL_RETURN(CBundle::New((IBundle**)&mExtras));
     }
-
     mExtras->PutBundle(name, value);
-
-    if (result) {
-        *result = this;
-        this->AddRef();
-    }
-
     return NOERROR;
 }
 
@@ -1601,14 +1347,12 @@ ECode CIntent::PutBundleExtra(
 // @Deprecated
 // public Intent putExtra(String name, IBinder value);
 
-ECode CIntent::PutExtras2(
-    /* [in] */ IIntent* src,
-    /* [out] */ IIntent** result)
+ECode CIntent::PutExtras(
+    /* [in] */ IIntent* src)
 {
     VALIDATE_NOT_NULL(src);
 
     CIntent* intent = (CIntent*)src;
-
     if (intent->mExtras != NULL) {
         if (mExtras == NULL) {
             FAIL_RETURN(CBundle::New(intent->mExtras, (IBundle**)&mExtras));
@@ -1617,36 +1361,21 @@ ECode CIntent::PutExtras2(
             mExtras->PutAll(intent->mExtras);
         }
     }
-
-    if (result) {
-        *result = this;
-        this->AddRef();
-    }
-
     return NOERROR;
 }
 
 ECode CIntent::PutExtrasEx(
-    /* [in] */ IBundle* extras,
-    /* [out] */ IIntent** result)
+    /* [in] */ IBundle* extras)
 {
     if (mExtras == NULL) {
         FAIL_RETURN(CBundle::New((IBundle**)&mExtras));
     }
-
     mExtras->PutAll(extras);
-
-    if (result) {
-        *result = this;
-        this->AddRef();
-    }
-
     return NOERROR;
 }
 
-ECode CIntent::ReplaceExtrasEx(
-    /* [in] */ IIntent* src,
-    /* [out] */ IIntent** result)
+ECode CIntent::ReplaceExtras(
+    /* [in] */ IIntent* src)
 {
     VALIDATE_NOT_NULL(src);
 
@@ -1655,18 +1384,11 @@ ECode CIntent::ReplaceExtrasEx(
     if (intent->mExtras != NULL) {
         FAIL_RETURN(CBundle::New(intent->mExtras, (IBundle**)&mExtras));
     }
-
-    if (result) {
-        *result = this;
-        this->AddRef();
-    }
-
     return NOERROR;
 }
 
-ECode CIntent::ReplaceExtras2(
-    /* [in] */ IBundle* extras,
-    /* [out] */ IIntent** result)
+ECode CIntent::ReplaceExtrasEx(
+    /* [in] */ IBundle* extras)
 {
     VALIDATE_NOT_NULL(extras);
 
@@ -1674,12 +1396,6 @@ ECode CIntent::ReplaceExtras2(
     if (extras != NULL) {
         FAIL_RETURN(CBundle::New(extras, (IBundle**)&mExtras));
     }
-
-    if (result) {
-        *result = this;
-        this->AddRef();
-    }
-
     return NOERROR;
 }
 
@@ -1698,31 +1414,17 @@ ECode CIntent::RemoveExtra(
     return NOERROR;
 }
 
-ECode CIntent::SetFlagsEx(
-    /* [in] */ Int32 flags,
-    /* [out] */ IIntent** result)
+ECode CIntent::SetFlags(
+    /* [in] */ Int32 flags)
 {
     mFlags = flags;
-
-    if (result) {
-        *result = this;
-        this->AddRef();
-    }
-
     return NOERROR;
 }
 
-ECode CIntent::AddFlagsEx(
-    /* [in] */ Int32 flags,
-    /* [out] */ IIntent** result)
+ECode CIntent::AddFlags(
+    /* [in] */ Int32 flags)
 {
     mFlags |= flags;
-
-    if (result) {
-        *result = this;
-        this->AddRef();
-    }
-
     return NOERROR;
 }
 
@@ -1730,28 +1432,19 @@ ECode CIntent::SetCapsule(
     /* [in] */ const String& capsuleName)
 {
     mCapsule = capsuleName;
-
     return NOERROR;
 }
 
-ECode CIntent::SetComponentEx(
-    /* [in] */ IComponentName* component,
-    /* [out] */ IIntent** result)
+ECode CIntent::SetComponent(
+    /* [in] */ IComponentName* component)
 {
     mComponent = (CComponentName*)component;
-
-    if (result) {
-        *result = this;
-        this->AddRef();
-    }
-
     return NOERROR;
 }
 
-ECode CIntent::SetClassName2(
-    /* [in] */ IContext* packageContext,
-    /* [in] */ const String& className,
-    /* [out] */ IIntent** result)
+ECode CIntent::SetClassName(
+    /* [in] */ IContext* capsuleContext,
+    /* [in] */ const String& className)
 {
     // TODO: ALEX
     return E_NOT_IMPLEMENTED;
@@ -1763,32 +1456,16 @@ ECode CIntent::SetClassName2(
         packageContext,
         className,
         (IComponentName**)&mComponent));
-
-    if (result) {
-        *result = this;
-        this->AddRef();
-    }
-
     return NOERROR;
 #endif
 }
 
 ECode CIntent::SetClassNameEx(
-    /* [in] */ const String& packageName,
-    /* [in] */ const String& className,
-    /* [out] */ IIntent** result)
+    /* [in] */ const String& capsuleName,
+    /* [in] */ const String& className)
 {
-    FAIL_RETURN(CComponentName::New(
-        packageName,
-        className,
-        (IComponentName**)&mComponent));
-
-    if (result) {
-        *result = this;
-        this->AddRef();
-    }
-
-    return NOERROR;
+    return CComponentName::New(
+            capsuleName, className, (IComponentName**)&mComponent);
 }
 
 // TODO: ALEX
@@ -1936,7 +1613,7 @@ ECode CIntent::ToShortString(
 }
 
 /** @hide */
-ECode CIntent::ToShortString2(
+ECode CIntent::ToShortStringEx(
     /* [in] */ const String& b,
     /* [in] */ Boolean comp,
     /* [in] */ Boolean extras)
@@ -1974,201 +1651,6 @@ ECode CIntent::ToUri(
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
-}
-
-ECode CIntent::SetComponent(
-    /* [in] */ IComponentName* component)
-{
-    return SetComponentEx(component, NULL);
-}
-
-ECode CIntent::SetAction(
-    /* [in] */ const String& action)
-{
-    return SetActionEx(action, NULL);
-}
-
-ECode CIntent::SetData(
-    /* [in] */ IUri* data)
-{
-    return SetDataEx(data, NULL);
-}
-
-ECode CIntent::SetType(
-	/*[in]*/ const String& type)
-{
-	return SetTypeEx(type, NULL);
-}
-
-ECode CIntent::SetDataAndType(
-	/*[in]*/ IUri* data,
-	/*[in]*/ const String& type)
-{
-	return SetDataAndTypeEx(data, type, NULL);
-}
-
-ECode CIntent::SetFlags(
-    /* [in] */ Int32 flags)
-{
-    return SetFlagsEx(flags, NULL);
-}
-
-ECode CIntent::AddFlags(
-    /* [in] */ Int32 flags)
-{
-    return AddFlagsEx(flags, NULL);
-}
-
-ECode CIntent::AddCategory(
-    /* [in] */ const String& category)
-{
-    return AddCategoryEx(category, NULL);
-}
-
-ECode CIntent::PutBooleanExtra(
-    /* [in] */ const String& name,
-    /* [in] */ Boolean value)
-{
-    return PutBooleanExtraEx(name, value, NULL);
-}
-
-ECode CIntent::GetBooleanExtra(
-    /* [in] */ const String& name,
-    /* [out] */ Boolean *pValue)
-{
-    return GetBooleanExtraEx(name, FALSE, pValue);
-}
-
-ECode CIntent::PutByteExtra(
-    /* [in] */ const String& name,
-    /* [in] */ Byte value)
-{
-    return PutByteExtraEx(name, value, NULL);
-}
-
-ECode CIntent::GetByteExtra(
-    /* [in] */ const String& name,
-    /* [out] */ Byte * pValue)
-{
-    return GetByteExtraEx(name, 0, pValue);
-}
-
-ECode CIntent::PutCharExtra(
-    /* [in] */ const String& name,
-    /* [in] */ Char32 value)
-{
-    return PutCharExtraEx(name, value, NULL);
-}
-
-ECode CIntent::GetCharExtra(
-    /* [in] */ const String& name,
-    /* [out] */ Char32 * pValue)
-{
-    return GetCharExtraEx(name, (Char32)0, pValue);
-}
-
-ECode CIntent::PutInt16Extra(
-    /* [in] */ const String& name,
-    /* [in] */ Int16 value)
-{
-    return PutInt16ExtraEx(name, value, NULL);
-}
-
-ECode CIntent::GetInt16Extra(
-    /* [in] */ const String& name,
-    /* [out] */ Int16 * pValue)
-{
-    return GetInt16ExtraEx(name, 0, pValue);
-}
-
-ECode CIntent::PutInt32Extra(
-    /* [in] */ const String& name,
-    /* [in] */ Int32 value)
-{
-    return PutInt32ExtraEx(name, value, NULL);
-}
-
-ECode CIntent::GetInt32Extra(
-    /* [in] */ const String& name,
-    /* [out] */ Int32 *pValue)
-{
-    return GetInt32ExtraEx(name, 0, pValue);
-}
-
-ECode CIntent::PutInt64Extra(
-    /* [in] */ const String& name,
-    /* [in] */ Int64 value)
-{
-    return PutInt64ExtraEx(name, value, NULL);
-}
-
-ECode CIntent::GetInt64Extra(
-    /* [in] */ const String& name,
-    /* [out] */ Int64 * pValue)
-{
-    return GetInt64ExtraEx(name, 0, pValue);
-}
-
-ECode CIntent::PutFloatExtra(
-    /* [in] */ const String& name,
-    /* [in] */ Float value)
-{
-    return PutFloatExtraEx(name, value, NULL);
-}
-
-ECode CIntent::GetFloatExtra(
-    /* [in] */ const String& name,
-    /* [out] */ Float * pValue)
-{
-    return GetFloatExtraEx(name, 0.0f, pValue);
-}
-
-ECode CIntent::PutDoubleExtra(
-    /* [in] */ const String& name,
-    /* [in] */ Double value)
-{
-    return PutDoubleExtraEx(name, value, NULL);
-}
-
-ECode CIntent::GetDoubleExtra(
-    /* [in] */ const String& name,
-    /* [out] */ Double * pValue)
-{
-    return GetDoubleExtraEx(name, 0.0f, pValue);
-}
-
-ECode CIntent::PutStringExtra(
-    /* [in] */ const String& name,
-    /* [in] */ const String& value)
-{
-    return PutStringExtraEx(name, value, NULL);
-}
-
-ECode CIntent::PutExtras(
-    /* [in] */ IBundle * pExtras)
-{
-    return PutExtrasEx(pExtras, NULL);
-}
-
-ECode CIntent::PutParcelableExtra(
-    /* [in] */ const String& name,
-    /* [in] */ IParcelable* value)
-{
-    return PutParcelableExtraEx(name, value, NULL);
-}
-
-ECode CIntent::SetClassName(
-    /* [in] */ const String& capsuleName,
-    /* [in] */ const String& className)
-{
-    return CComponentName::NewByFriend(
-            capsuleName, className, (CComponentName**)&mComponent);
-}
-
-ECode CIntent::ReplaceExtras(
-    /* [in] */ IIntent* src)
-{
-    return ReplaceExtrasEx(src, NULL);
 }
 
 ECode CIntent::GetDescription(

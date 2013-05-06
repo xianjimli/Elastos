@@ -6,7 +6,7 @@
 #include "_CIntent.h"
 #include "content/CComponentName.h"
 #include <elastos/AutoPtr.h>
-#include <elastos/Set.h>
+#include <elastos/HashSet.h>
 
 CarClass(CIntent)
 {
@@ -246,7 +246,7 @@ public:
      *
      * @see #putExtra(String, boolean)
      */
-    CARAPI GetBooleanExtraEx(
+    CARAPI GetBooleanExtra(
         /* [in] */ const String& name,
         /* [in] */ Boolean defaultValue,
         /* [out] */ Boolean* value);
@@ -263,7 +263,7 @@ public:
      *
      * @see #putExtra(String, byte)
      */
-    CARAPI GetByteExtraEx(
+    CARAPI GetByteExtra(
         /* [in] */ const String& name,
         /* [in] */ Byte defaultValue,
         /* [out] */ Byte* value);
@@ -280,7 +280,7 @@ public:
      *
      * @see #putExtra(String, short)
      */
-    CARAPI GetInt16ExtraEx(
+    CARAPI GetInt16Extra(
         /* [in] */ const String& name,
         /* [in] */ Int16 defaultValue,
         /* [out] */ Int16* value);
@@ -297,7 +297,7 @@ public:
      *
      * @see #putExtra(String, char)
      */
-    CARAPI GetCharExtraEx(
+    CARAPI GetCharExtra(
         /* [in] */ const String& name,
         /* [in] */ Char32 defaultValue,
         /* [out] */ Char32* value);
@@ -314,7 +314,7 @@ public:
      *
      * @see #putExtra(String, int)
      */
-    CARAPI GetInt32ExtraEx(
+    CARAPI GetInt32Extra(
         /* [in] */ const String& name,
         /* [in] */ Int32 defaultValue,
         /* [out] */ Int32* value);
@@ -331,7 +331,7 @@ public:
      *
      * @see #putExtra(String, long)
      */
-    CARAPI GetInt64ExtraEx(
+    CARAPI GetInt64Extra(
         /* [in] */ const String& name,
         /* [in] */ Int64 defaultValue,
         /* [out] */ Int64* value);
@@ -348,7 +348,7 @@ public:
      *
      * @see #putExtra(String, float)
      */
-    CARAPI GetFloatExtraEx(
+    CARAPI GetFloatExtra(
         /* [in] */ const String& name,
         /* [in] */ Float defaultValue,
         /* [out] */ Float* value);
@@ -365,7 +365,7 @@ public:
      *
      * @see #putExtra(String, double)
      */
-    CARAPI GetDoubleExtraEx(
+    CARAPI GetDoubleExtra(
         /* [in] */ const String& name,
         /* [in] */ Double defaultValue,
         /* [out] */ Double* value);
@@ -823,9 +823,8 @@ public:
      *
      * @see #getAction
      */
-    CARAPI SetActionEx(
-        /* [in] */ const String& action,
-        /* [out] */ IIntent** result);
+    CARAPI SetAction(
+        /* [in] */ const String& action);
 
     /**
      * Set the data this intent is operating on.  This method automatically
@@ -846,9 +845,8 @@ public:
      * @see #setType
      * @see #setDataAndType
      */
-    CARAPI SetDataEx(
-        /* [in] */ IUri* data,
-        /* [out] */ IIntent** result);
+    CARAPI SetData(
+        /* [in] */ IUri* data);
 
     /**
      * Set an explicit MIME data type.  This is used to create intents that
@@ -871,9 +869,8 @@ public:
      * @see #setData
      * @see #setDataAndType
      */
-    CARAPI SetTypeEx(
-      /* [in] */ const String& type,
-      /* [out] */ IIntent** result);
+    CARAPI SetType(
+      /* [in] */ const String& type);
 
     /**
      * (Usually optional) Set the data for the intent along with an explicit
@@ -897,10 +894,9 @@ public:
      * @see #setData
      * @see #setType
      */
-    CARAPI SetDataAndTypeEx(
-	    /* [in] */ IUri* data,
-	    /* [in] */ const String& type,
-	    /* [out] */ IIntent** result);
+    CARAPI SetDataAndType(
+        /* [in] */ IUri* data,
+        /* [in] */ const String& type);
 
     /**
      * Add a new category to the intent.  Categories provide additional detail
@@ -918,9 +914,8 @@ public:
      * @see #hasCategory
      * @see #removeCategory
      */
-    CARAPI AddCategoryEx(
-        /* [in] */ const String& category,
-        /* [out] */ IIntent** result);
+    CARAPI AddCategory(
+        /* [in] */ const String& category);
 
     /**
      * Remove an category from an intent.
@@ -947,10 +942,9 @@ public:
      * @see #removeExtra
      * @see #getBooleanExtra(String, boolean)
      */
-    CARAPI PutBooleanExtraEx(
+    CARAPI PutBooleanExtra(
         /* [in] */ const String& name,
-        /* [in] */ Boolean value,
-        /* [out] */ IIntent** result);
+        /* [in] */ Boolean value);
 
     /**
      * Add extended data to the intent.  The name must include a package
@@ -967,10 +961,9 @@ public:
      * @see #removeExtra
      * @see #getByteExtra(String, byte)
      */
-    CARAPI PutByteExtraEx(
+    CARAPI PutByteExtra(
         /* [in] */ const String& name,
-        /* [in] */ Byte value,
-        /* [out] */ IIntent** result);
+        /* [in] */ Byte value);
 
     /**
      * Add extended data to the intent.  The name must include a package
@@ -987,10 +980,9 @@ public:
      * @see #removeExtra
      * @see #getCharExtra(String, char)
      */
-    CARAPI PutCharExtraEx(
+    CARAPI PutCharExtra(
         /* [in] */ const String& name,
-        /* [in] */ Char32 value,
-        /* [out] */ IIntent** result);
+        /* [in] */ Char32 value);
 
     /**
      * Add extended data to the intent.  The name must include a package
@@ -1007,10 +999,9 @@ public:
      * @see #removeExtra
      * @see #getShortExtra(String, short)
      */
-    CARAPI PutInt16ExtraEx(
+    CARAPI PutInt16Extra(
         /* [in] */ const String& name,
-        /* [in] */ Int16 value,
-        /* [out] */ IIntent** result);
+        /* [in] */ Int16 value);
 
     /**
      * Add extended data to the intent.  The name must include a package
@@ -1027,10 +1018,9 @@ public:
      * @see #removeExtra
      * @see #getIntExtra(String, int)
      */
-    CARAPI PutInt32ExtraEx(
+    CARAPI PutInt32Extra(
         /* [in] */ const String& name,
-        /* [in] */ Int32 value,
-        /* [out] */ IIntent** result);
+        /* [in] */ Int32 value);
 
     /**
      * Add extended data to the intent.  The name must include a package
@@ -1047,10 +1037,9 @@ public:
      * @see #removeExtra
      * @see #getLongExtra(String, long)
      */
-    CARAPI PutInt64ExtraEx(
+    CARAPI PutInt64Extra(
         /* [in] */ const String& name,
-        /* [in] */ Int64 value,
-        /* [out] */ IIntent** result);
+        /* [in] */ Int64 value);
 
     /**
      * Add extended data to the intent.  The name must include a package
@@ -1067,10 +1056,9 @@ public:
      * @see #removeExtra
      * @see #getFloatExtra(String, float)
      */
-    CARAPI PutFloatExtraEx(
+    CARAPI PutFloatExtra(
         /* [in] */ const String& name,
-        /* [in] */ Float value,
-        /* [out] */ IIntent** result);
+        /* [in] */ Float value);
 
     /**
      * Add extended data to the intent.  The name must include a package
@@ -1087,10 +1075,9 @@ public:
      * @see #removeExtra
      * @see #getDoubleExtra(String, double)
      */
-    CARAPI PutDoubleExtraEx(
+    CARAPI PutDoubleExtra(
         /* [in] */ const String& name,
-        /* [in] */ Double value,
-        /* [out] */ IIntent** result);
+        /* [in] */ Double value);
 
     /**
      * Add extended data to the intent.  The name must include a package
@@ -1107,10 +1094,9 @@ public:
      * @see #removeExtra
      * @see #getStringExtra(String)
      */
-    CARAPI PutStringExtraEx(
+    CARAPI PutStringExtra(
         /* [in] */ const String& name,
-        /* [in] */ const String& value,
-        /* [out] */ IIntent** result);
+        /* [in] */ const String& value);
 
     /**
      * Add extended data to the intent.  The name must include a package
@@ -1129,8 +1115,7 @@ public:
      */
     CARAPI PutCharSequenceExtra(
         /* [in] */ const String& name,
-        /* [in] */ ICharSequence* value,
-        /* [out] */ IIntent** result);
+        /* [in] */ ICharSequence* value);
 
     /**
      * Add extended data to the intent.  The name must include a package
@@ -1147,10 +1132,9 @@ public:
      * @see #removeExtra
      * @see #getParcelableExtra(String)
      */
-    CARAPI PutParcelableExtraEx(
+    CARAPI PutParcelableExtra(
         /* [in] */ const String& name,
-        /* [in] */ IParcelable* value,
-        /* [out] */ IIntent** result);
+        /* [in] */ IParcelable* value);
 
     /**
      * Add extended data to the intent.  The name must include a package
@@ -1169,8 +1153,7 @@ public:
      */
     CARAPI PutParcelableArrayExtra(
         /* [in] */ const String& name,
-        /* [in] */ ArrayOf<IParcelable*>* value,
-        /* [out] */ IIntent** result);
+        /* [in] */ ArrayOf<IParcelable*>* value);
 
     /**
      * Add extended data to the intent.  The name must include a package
@@ -1189,8 +1172,7 @@ public:
      */
     CARAPI PutParcelableArrayListExtra(
         /* [in] */ const String& name,
-        /* [in] */ IObjectContainer* value,
-        /* [out] */ IIntent** result);
+        /* [in] */ IObjectContainer* value);
 
     /**
      * Add extended data to the intent.  The name must include a package
@@ -1209,8 +1191,7 @@ public:
      */
     CARAPI PutIntegerArrayListExtra(
         /* [in] */ const String& name,
-        /* [in] */ IObjectContainer* value,
-        /* [out] */ IIntent** result);
+        /* [in] */ IObjectContainer* value);
 
     /**
      * Add extended data to the intent.  The name must include a package
@@ -1229,8 +1210,7 @@ public:
      */
     CARAPI PutStringArrayListExtra(
         /* [in] */ const String& name,
-        /* [in] */ IObjectContainer* value,
-        /* [out] */ IIntent** result);
+        /* [in] */ IObjectContainer* value);
 
     /**
      * Add extended data to the intent.  The name must include a package
@@ -1249,8 +1229,7 @@ public:
      */
     CARAPI PutCharSequenceArrayListExtra(
         /* [in] */ const String& name,
-        /* [in] */ IObjectContainer* value,
-        /* [out] */ IIntent** result);
+        /* [in] */ IObjectContainer* value);
 
     /**
      * Add extended data to the intent.  The name must include a package
@@ -1289,8 +1268,7 @@ public:
      */
     CARAPI PutBooleanArrayExtra(
         /* [in] */ const String& name,
-        /* [in] */ ArrayOf<Boolean>* value,
-        /* [out] */ IIntent** result);
+        /* [in] */ ArrayOf<Boolean>* value);
 
     /**
      * Add extended data to the intent.  The name must include a package
@@ -1309,8 +1287,7 @@ public:
      */
     CARAPI PutByteArrayExtra(
         /* [in] */ const String& name,
-        /* [in] */ ArrayOf<Byte>* value,
-        /* [out] */ IIntent** result);
+        /* [in] */ ArrayOf<Byte>* value);
 
     /**
      * Add extended data to the intent.  The name must include a package
@@ -1329,8 +1306,7 @@ public:
      */
     CARAPI PutInt16ArrayExtra(
         /* [in] */ const String& name,
-        /* [in] */ ArrayOf<Int16>* value,
-        /* [out] */ IIntent** result);
+        /* [in] */ ArrayOf<Int16>* value);
 
     /**
      * Add extended data to the intent.  The name must include a package
@@ -1349,8 +1325,7 @@ public:
      */
     CARAPI PutCharArrayExtra(
         /* [in] */ const String& name,
-        /* [in] */ ArrayOf<Char32>* value,
-        /* [out] */ IIntent** result);
+        /* [in] */ ArrayOf<Char32>* value);
 
     /**
      * Add extended data to the intent.  The name must include a package
@@ -1369,8 +1344,7 @@ public:
      */
     CARAPI PutInt32ArrayExtra(
         /* [in] */ const String& name,
-        /* [in] */ ArrayOf<Int32>* value,
-        /* [out] */ IIntent** result);
+        /* [in] */ ArrayOf<Int32>* value);
 
     /**
      * Add extended data to the intent.  The name must include a package
@@ -1389,8 +1363,7 @@ public:
      */
     CARAPI PutInt64ArrayExtra(
         /* [in] */ const String& name,
-        /* [in] */ ArrayOf<Int64>* value,
-        /* [out] */ IIntent** result);
+        /* [in] */ ArrayOf<Int64>* value);
 
     /**
      * Add extended data to the intent.  The name must include a package
@@ -1409,8 +1382,7 @@ public:
      */
     CARAPI PutFloatArrayExtra(
         /* [in] */ const String& name,
-        /* [in] */ ArrayOf<Float>* value,
-        /* [out] */ IIntent** result);
+        /* [in] */ ArrayOf<Float>* value);
 
     /**
      * Add extended data to the intent.  The name must include a package
@@ -1429,8 +1401,7 @@ public:
      */
     CARAPI PutDoubleArrayExtra(
         /* [in] */ const String& name,
-        /* [in] */ ArrayOf<Double>* value,
-        /* [out] */ IIntent** result);
+        /* [in] */ ArrayOf<Double>* value);
 
     /**
      * Add extended data to the intent.  The name must include a package
@@ -1449,8 +1420,7 @@ public:
      */
     CARAPI PutStringArrayExtra(
         /* [in] */ const String& name,
-        /* [in] */ ArrayOf<String>* value,
-        /* [out] */ IIntent** result);
+        /* [in] */ ArrayOf<String>* value);
 
     /**
      * Add extended data to the intent.  The name must include a package
@@ -1469,8 +1439,7 @@ public:
      */
     CARAPI PutCharSequenceArrayExtra(
         /* [in] */ const String& name,
-        /* [in] */ ArrayOf<ICharSequence*>* value,
-        /* [out] */ IIntent** result);
+        /* [in] */ ArrayOf<ICharSequence*>* value);
 
     /**
      * Add extended data to the intent.  The name must include a package
@@ -1489,8 +1458,7 @@ public:
      */
     CARAPI PutBundleExtra(
         /* [in] */ const String& name,
-        /* [in] */ IBundle* value,
-        /* [out] */ IIntent** result);
+        /* [in] */ IBundle* value);
 
     /**
      * Add extended data to the intent.  The name must include a package
@@ -1520,9 +1488,8 @@ public:
      *
      * @see #putExtra
      */
-    CARAPI PutExtras2(
-        /* [in] */ IIntent* src,
-        /* [out] */ IIntent** result);
+    CARAPI PutExtras(
+        /* [in] */ IIntent* src);
 
     /**
      * Add a set of extended data to the intent.  The keys must include a package
@@ -1535,8 +1502,7 @@ public:
      * @see #removeExtra
      */
     CARAPI PutExtrasEx(
-        /* [in] */ IBundle* extras,
-        /* [out] */ IIntent** result);
+        /* [in] */ IBundle* extras);
 
     /**
      * Completely replace the extras in the Intent with the extras in the
@@ -1545,9 +1511,8 @@ public:
      * @param src The exact extras contained in this Intent are copied
      * into the target intent, replacing any that were previously there.
      */
-    CARAPI ReplaceExtrasEx(
-        /* [in] */ IIntent* src,
-        /* [out] */ IIntent** result);
+    CARAPI ReplaceExtras(
+        /* [in] */ IIntent* src);
 
     /**
      * Completely replace the extras in the Intent with the given Bundle of
@@ -1556,9 +1521,8 @@ public:
      * @param extras The new set of extras in the Intent, or null to erase
      * all extras.
      */
-    CARAPI ReplaceExtras2(
-        /* [in] */ IBundle* extras,
-        /* [out] */ IIntent** result);
+    CARAPI ReplaceExtrasEx(
+        /* [in] */ IBundle* extras);
 
     /**
      * Remove extended data from the intent.
@@ -1607,9 +1571,8 @@ public:
      * @see #FLAG_ACTIVITY_SINGLE_TOP
      * @see #FLAG_RECEIVER_REGISTERED_ONLY
      */
-    CARAPI SetFlagsEx(
-        /* [in] */ Int32 flags,
-        /* [out] */ IIntent** result);
+    CARAPI SetFlags(
+        /* [in] */ Int32 flags);
 
     /**
      * Add additional flags to the intent (or with existing flags
@@ -1622,9 +1585,8 @@ public:
      *
      * @see #setFlags
      */
-    CARAPI AddFlagsEx(
-        /* [in] */ Int32 flags,
-        /* [out] */ IIntent** result);
+    CARAPI AddFlags(
+        /* [in] */ Int32 flags);
 
     /**
      * (Usually optional) Set an explicit application package name that limits
@@ -1668,9 +1630,8 @@ public:
      * @see #getComponent
      * @see #resolveActivity
      */
-    CARAPI SetComponentEx(
-        /* [in] */ IComponentName* component,
-        /* [out] */ IIntent** result);
+    CARAPI SetComponent(
+        /* [in] */ IComponentName* component);
 
     /**
      * Convenience for calling {@link #setComponent} with an
@@ -1687,10 +1648,9 @@ public:
      * @see #setComponent
      * @see #setClass
      */
-    CARAPI SetClassName2(
-        /* [in] */ IContext* packageContext,
-        /* [in] */ const String& className,
-        /* [out] */ IIntent** result);
+    CARAPI SetClassName(
+        /* [in] */ IContext* capsuleContext,
+        /* [in] */ const String& className);
 
     /**
      * Convenience for calling {@link #setComponent} with an
@@ -1708,9 +1668,8 @@ public:
      * @see #setClass
      */
     CARAPI SetClassNameEx(
-        /* [in] */ const String& packageName,
-        /* [in] */ const String& className,
-        /* [out] */ IIntent** result);
+        /* [in] */ const String& capsuleName,
+        /* [in] */ const String& className);
 
     /**
      * Convenience for calling {@link #setComponent(ComponentName)} with the
@@ -1820,7 +1779,7 @@ public:
         /* [out] */ String* result);
 
     /** @hide */
-    CARAPI ToShortString2(
+    CARAPI ToShortStringEx(
         /* [in] */ const String& b,
         /* [in] */ Boolean comp,
         /* [in] */ Boolean extras);
@@ -1851,120 +1810,6 @@ public:
     CARAPI ToUri(
         /* [in] */ Int32 flags,
         /* [out] */ String* result);
-
-    CARAPI SetComponent(
-        /* [in] */ IComponentName* component);
-
-    CARAPI SetAction(
-        /* [in] */ const String& action);
-
-    CARAPI SetData(
-        /* [in] */ IUri *pData);
-
-    CARAPI SetType(
-        /*[in]*/ const String& type);
-
-    CARAPI SetDataAndType(
-        /*[in]*/ IUri* data,
-        /*[in]*/ const String& type);
-
-    CARAPI SetFlags(
-        /* [in] */ Int32 flags);
-
-    CARAPI AddFlags(
-        /* [in] */ Int32 flags);
-
-    CARAPI SetClassName(
-        /* [in] */ const String& capsuleName,
-        /* [in] */ const String& className);
-
-    CARAPI AddCategory(
-        /* [in] */ const String& category);
-
-    CARAPI PutBooleanExtra(
-        /* [in] */ const String& name,
-        /* [out] */ Boolean value);
-
-    CARAPI GetBooleanExtra(
-        /* [in] */ const String& name,
-        /* [out] */ Boolean *pValue);
-
-    CARAPI PutByteExtra(
-        /* [in] */ const String& name,
-        /* [in] */ Byte value);
-
-    CARAPI GetByteExtra(
-        /* [in] */ const String& name,
-        /* [out] */ Byte * pValue);
-
-    CARAPI PutCharExtra(
-        /* [in] */ const String& name,
-        /* [in] */ Char32 value);
-
-    CARAPI GetCharExtra(
-        /* [in] */ const String& name,
-        /* [out] */ Char32 * pValue);
-
-    CARAPI PutInt16Extra(
-        /* [in] */ const String& name,
-        /* [in] */ Int16 value);
-
-    CARAPI GetInt16Extra(
-        /* [in] */ const String& name,
-        /* [out] */ Int16 * pValue);
-
-    CARAPI PutInt32Extra(
-        /* [in] */ const String& name,
-        /* [in] */ Int32 value);
-
-    CARAPI GetInt32Extra(
-        /* [in] */ const String& name,
-        /* [out] */ Int32 *pValue);
-
-    CARAPI PutInt64Extra(
-        /* [in] */ const String& name,
-        /* [in] */ Int64 value);
-
-    CARAPI GetInt64Extra(
-        /* [in] */ const String& name,
-        /* [out] */ Int64 * pValue);
-
-    CARAPI PutFloatExtra(
-        /* [in] */ const String& name,
-        /* [in] */ Float value);
-
-    CARAPI GetFloatExtra(
-        /* [in] */ const String& name,
-        /* [out] */ Float * pValue);
-
-    CARAPI PutDoubleExtra(
-        /* [in] */ const String& name,
-        /* [in] */ Double value);
-
-    CARAPI GetDoubleExtra(
-        /* [in] */ const String& name,
-        /* [out] */ Double * pValue);
-
-    CARAPI PutStringExtra(
-        /* [in] */ const String& name,
-        /* [in] */ const String& value);
-
-    CARAPI PutExtras(
-        /* [in] */ IBundle * pExtras);
-
-    CARAPI PutParcelableExtra(
-        /* [in] */ const String& name,
-        /* [in] */ IParcelable* value);
-
-    /**
-     * Completely replace the extras in the Intent with the extras in the
-     * given Intent.
-     *
-     * @param src The exact extras contained in this Intent are copied
-     * into the target intent, replacing any that were previously there.
-     */
-    CARAPI ReplaceExtras(
-        /* [in] */ IIntent* src);
 
     CARAPI GetDescription(
         /* [out] */ String* description);
@@ -2014,7 +1859,7 @@ private:
     String mCapsule;
     AutoPtr<CComponentName> mComponent;
     Int32 mFlags;
-    Set<String>* mCategories;
+    HashSet<String>* mCategories;
     AutoPtr<IBundle> mExtras;
     AutoPtr<IRect> mSourceBounds;
 };

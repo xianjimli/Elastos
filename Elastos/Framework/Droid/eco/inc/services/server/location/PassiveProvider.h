@@ -3,9 +3,10 @@
 #define __PASSIVEPROVIDER_H__
 
 #include "server/location/LocationProviderInterface.h"
+#include <elastos/ElRefBase.h>
 #include <elastos/AutoPtr.h>
 
-class PassiveProvider : public LocationProviderInterface
+class PassiveProvider : public ElRefBase, public ILocationProviderInterface
 {
 private:
     static const CString TAG;
@@ -14,67 +15,95 @@ public:
     PassiveProvider(
         /* [in] */ ILocationManager* locationManager);
 
-    CARAPI_(String) GetName();
+    CARAPI_(PInterface) Probe(
+        /* [in]  */ REIID riid);
 
-    CARAPI_(Boolean) RequiresNetwork();
+    CARAPI_(UInt32) AddRef();
 
-    CARAPI_(Boolean) RequiresSatellite();
+    CARAPI_(UInt32) Release();
 
-    CARAPI_(Boolean) RequiresCell();
+    CARAPI GetInterfaceID(
+        /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
 
-    CARAPI_(Boolean) HasMonetaryCost();
+    CARAPI GetName(
+        /* [out] */ String* name);
 
-    CARAPI_(Boolean) SupportsAltitude();
+    CARAPI RequiresNetwork(
+        /* [out] */ Boolean* required);
 
-    CARAPI_(Boolean) SupportsSpeed();
+    CARAPI RequiresSatellite(
+        /* [out] */ Boolean* required);
 
-    CARAPI_(Boolean) SupportsBearing();
+    CARAPI RequiresCell(
+        /* [out] */ Boolean* required);
 
-    CARAPI_(Int32) GetPowerRequirement();
+    CARAPI HasMonetaryCost(
+        /* [out] */ Boolean* result);
 
-    CARAPI_(Boolean) MeetsCriteria(
-        /* [in] */ ICriteria* criteria);
+    CARAPI SupportsAltitude(
+        /* [out] */ Boolean* supported);
 
-    CARAPI_(Int32) GetAccuracy();
+    CARAPI SupportsSpeed(
+        /* [out] */ Boolean* supported);
 
-    CARAPI_(Boolean) IsEnabled();
+    CARAPI SupportsBearing(
+        /* [out] */ Boolean* supported);
 
-    CARAPI_(void) Enable();
+    CARAPI GetPowerRequirement(
+        /* [out] */ Int32* requirement);
 
-    CARAPI_(void) Disable();
+    CARAPI MeetsCriteria(
+        /* [in] */ ICriteria* criteria,
+        /* [out] */ Boolean* result);
 
-    CARAPI_(Int32) GetStatus(
-        /* [in] */ IBundle* extras);
+    CARAPI GetAccuracy(
+        /* [out] */ Int32* accuracy);
 
-    CARAPI_(Int64) GetStatusUpdateTime();
+    CARAPI IsEnabled(
+        /* [out] */ Boolean* isEnabled);
 
-    CARAPI_(void) EnableLocationTracking(
+    CARAPI Enable();
+
+    CARAPI Disable();
+
+    CARAPI GetStatus(
+        /* [in] */ IBundle* extras,
+        /* [out] */ Int32* status);
+
+    CARAPI GetStatusUpdateTime(
+        /* [out] */ Int64* time);
+
+    CARAPI EnableLocationTracking(
         /* [in] */ Boolean enable);
 
-    CARAPI_(Boolean) RequestSingleShotFix();
+    CARAPI RequestSingleShotFix(
+        /* [out] */ Boolean* result);
 
-    CARAPI_(String) GetInternalState();
+    CARAPI GetInternalState(
+        /* [out] */ String* state);
 
-    CARAPI_(void) SetMinTime(
+    CARAPI SetMinTime(
         /* [in] */ Int64 minTime,
         /* [in] */ IWorkSource* ws);
 
-    CARAPI_(void) UpdateNetworkState(
+    CARAPI UpdateNetworkState(
         /* [in] */ Int32 state,
         /* [in] */ INetworkInfo* info);
 
-    CARAPI_(void) UpdateLocation(
+    CARAPI UpdateLocation(
         /* [in] */ ILocation* location);
 
-    CARAPI_(Boolean) SendExtraCommand(
-        /* [in] */ String command,
+    CARAPI SendExtraCommand(
+        /* [in] */ const String& command,
         /* [in] */ IBundle* extras,
-        /* [out] */ IBundle** outExtras);
+        /* [out] */ IBundle** outExtras,
+        /* [out] */ Boolean* result);
 
-    CARAPI_(void) AddListener(
+    CARAPI AddListener(
         /* [in] */ Int32 uid);
 
-    CARAPI_(void) RemoveListener(
+    CARAPI RemoveListener(
         /* [in] */ Int32 uid);
 
 private:

@@ -1693,6 +1693,7 @@ ECode CActivityManagerService::FinishSubActivity(
 
         Binder::RestoreCallingIdentity(origId);
     }
+    return NOERROR;
 }
 
 ECode CActivityManagerService::WillActivityBeVisible(
@@ -8713,7 +8714,7 @@ ECode CActivityManagerService::BindService(
         service->GetParcelableExtra(String(Intent_EXTRA_CLIENT_INTENT), (IParcelable**)&value);
         clientIntent = IPendingIntent::Probe(value);
         if (clientIntent != NULL) {
-            service->GetInt32Extra(String(Intent_EXTRA_CLIENT_LABEL), &clientLabel);
+            service->GetInt32Extra(String(Intent_EXTRA_CLIENT_LABEL), 0, &clientLabel);
             if (clientLabel != 0) {
                 // There are no useful extras in the intent, trash them.
                 // System code calling with this stuff just needs to know
@@ -9680,10 +9681,10 @@ ECode CActivityManagerService::BroadcastIntentLocked(
                     if (data != NULL &&
                             (data->GetSchemeSpecificPart(&ssp), !ssp.IsNull())) {
                         Boolean dontKillApp = FALSE;
-                        intent->GetBooleanExtra(String(Intent_EXTRA_DONT_KILL_APP), &dontKillApp);
+                        intent->GetBooleanExtra(String(Intent_EXTRA_DONT_KILL_APP), FALSE, &dontKillApp);
                         if (!dontKillApp) {
                             Int32 uid = -1;
-                            intent->GetInt32Extra(String(Intent_EXTRA_UID), &uid);
+                            intent->GetInt32Extra(String(Intent_EXTRA_UID), -1, &uid);
                             ForceStopCapsuleLocked(ssp, uid, FALSE, TRUE, TRUE);
                         }
                         if (!action.Compare(Intent_ACTION_CAPSULE_REMOVED)) {
@@ -10005,7 +10006,7 @@ ECode CActivityManagerService::BroadcastIntentLocked(
         }
         if (DEBUG_BROADCAST) {
             Int32 seq = -1;
-            r->mIntent->GetInt32Extra(String("seq"), &seq);
+            r->mIntent->GetInt32Extra(String("seq"), -1, &seq);
             String action;
             r->mIntent->GetAction(&action);
             Slogger::I(TAG, StringBuffer("Enqueueing broadcast ") + action + " seq=" + seq);
@@ -10445,7 +10446,7 @@ ECode CActivityManagerService::ProcessCurBroadcastLocked(
     String capsuleName, className;
     r->mCurComponent->GetCapsuleName(&capsuleName);
     r->mCurComponent->GetClassName(&className);
-    r->mIntent->SetClassName(capsuleName, className);
+    r->mIntent->SetClassNameEx(capsuleName, className);
 
     if (DEBUG_BROADCAST_LIGHT) {
         String compDes, brDes;
@@ -10567,7 +10568,7 @@ ECode CActivityManagerService::DeliverToRegisteredReceiverLocked(
         }
         if (DEBUG_BROADCAST_LIGHT) {
             Int32 seq = -1;
-            r->mIntent->GetInt32Extra(String("seq"), &seq);
+            r->mIntent->GetInt32Extra(String("seq"), -1, &seq);
             String bfDes, brDes;
             filter->GetDescription(&bfDes);
             r->GetDescription(&brDes);
@@ -10762,7 +10763,7 @@ ECode CActivityManagerService::ProcessNextBroadcast(
             if (r->mResultTo != NULL) {
                 if (DEBUG_BROADCAST) {
                     Int32 seq = -1;
-                    r->mIntent->GetInt32Extra(String("seq"), &seq);
+                    r->mIntent->GetInt32Extra(String("seq"), -1, &seq);
                     String action, appDes;
                     r->mIntent->GetAction(&action);
                     r->mCallerApp->GetDescription(&appDes);

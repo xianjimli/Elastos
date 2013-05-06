@@ -1,4 +1,5 @@
 
+#include "ext/frameworkdef.h"
 #include "server/location/GpsLocationProvider.h"
 #include "server/location/GpsXtraDownloader.h"
 // #include "content/CIntentFilter.h"
@@ -341,6 +342,36 @@ GpsLocationProvider::~GpsLocationProvider()
     ArrayOf<Int32>::Free(mSvMasks);
 }
 
+PInterface GpsLocationProvider::Probe(
+    /* [in]  */ REIID riid)
+{
+    if (riid == EIID_IInterface) {
+        return (PInterface)(ILocationProviderInterface*)this;
+    }
+    else if (riid == EIID_ILocationProviderInterface) {
+        return (ILocationProviderInterface*)this;
+    }
+
+    return NULL;
+}
+
+UInt32 GpsLocationProvider::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 GpsLocationProvider::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode GpsLocationProvider::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
 void* GpsLocationProvider::EntryRoutine(void *arg)
 {
     if (arg == NULL) {
@@ -371,23 +402,32 @@ void GpsLocationProvider::Initialize()
 //    mContext.registerReceiver(mBroadcastReciever, intentFilter);
 }
 
-String GpsLocationProvider::GetName()
+ECode GpsLocationProvider::GetName(
+    /* [out] */ String* name)
 {
-    return String(LocationManager_GPS_PROVIDER);
+    VALIDATE_NOT_NULL(name);
+
+    *name = LocationManager_GPS_PROVIDER;
+    return NOERROR;
 }
 
-Boolean GpsLocationProvider::RequiresNetwork()
+ECode GpsLocationProvider::RequiresNetwork(
+    /* [out] */ Boolean* required)
 {
-    return TRUE;
+    VALIDATE_NOT_NULL(required);
+
+    *required = TRUE;
+    return NOERROR;
 }
 
-void GpsLocationProvider::UpdateNetworkState(
+ECode GpsLocationProvider::UpdateNetworkState(
     /* [in] */ Int32 state,
     /* [in] */ INetworkInfo* info)
 {
     void (STDCALL GpsLocationProvider::*pHandlerFunc)(Int32, INetworkInfo*);
     pHandlerFunc = &GpsLocationProvider::HandleUpdateNetworkState;
     SendCallback(*(Handle32*)&pHandlerFunc, UPDATE_NETWORK_STATE, state, (IInterface*)info);
+    return NOERROR;
 }
 
 void GpsLocationProvider::HandleUpdateNetworkState(
@@ -516,12 +556,13 @@ void GpsLocationProvider::HandleDownloadXtraData()
     }
 }
 
-void GpsLocationProvider::UpdateLocation(
+ECode GpsLocationProvider::UpdateLocation(
     /* [in] */ ILocation* location)
 {
     void (STDCALL GpsLocationProvider::*pHandlerFunc)(ILocation*);
     pHandlerFunc = &GpsLocationProvider::HandleUpdateLocation;
     SendCallback(*(Handle32*)&pHandlerFunc, UPDATE_LOCATION, 0, (IInterface*)location);
+    return NOERROR;
 }
 
 void GpsLocationProvider::HandleUpdateLocation(
@@ -539,60 +580,97 @@ void GpsLocationProvider::HandleUpdateLocation(
     }
 }
 
-Boolean GpsLocationProvider::RequiresSatellite()
+ECode GpsLocationProvider::RequiresSatellite(
+    /* [out] */ Boolean* required)
 {
-    return TRUE;
+    VALIDATE_NOT_NULL(required);
+
+    *required = TRUE;
+    return NOERROR;
 }
 
-Boolean GpsLocationProvider::RequiresCell()
+ECode GpsLocationProvider::RequiresCell(
+    /* [out] */ Boolean* required)
 {
-    return FALSE;
+    VALIDATE_NOT_NULL(required);
+
+    *required = FALSE;
+    return NOERROR;
 }
 
-Boolean GpsLocationProvider::HasMonetaryCost()
+ECode GpsLocationProvider::HasMonetaryCost(
+    /* [out] */ Boolean* result)
 {
-    return FALSE;
+    VALIDATE_NOT_NULL(result);
+
+    *result = FALSE;
+    return NOERROR;
 }
 
-Boolean GpsLocationProvider::SupportsAltitude()
+ECode GpsLocationProvider::SupportsAltitude(
+    /* [out] */ Boolean* supported)
 {
-    return TRUE;
+    VALIDATE_NOT_NULL(supported);
+
+    *supported = TRUE;
+    return NOERROR;
 }
 
-Boolean GpsLocationProvider::SupportsSpeed()
+ECode GpsLocationProvider::SupportsSpeed(
+    /* [out] */ Boolean* supported)
 {
-    return TRUE;
+    VALIDATE_NOT_NULL(supported);
+
+    *supported = TRUE;
+    return NOERROR;
 }
 
-Boolean GpsLocationProvider::SupportsBearing()
+ECode GpsLocationProvider::SupportsBearing(
+    /* [out] */ Boolean* supported)
 {
-    return TRUE;
+    VALIDATE_NOT_NULL(supported);
+
+    *supported = TRUE;
+    return NOERROR;
 }
 
-Int32 GpsLocationProvider::GetPowerRequirement()
+ECode GpsLocationProvider::GetPowerRequirement(
+    /* [out] */ Int32* requirement)
 {
-    return Criteria_POWER_HIGH;
+    VALIDATE_NOT_NULL(requirement);
+
+    *requirement = Criteria_POWER_HIGH;
+    return NOERROR;
 }
 
-Boolean GpsLocationProvider::MeetsCriteria(
-    /* [in] */ ICriteria* criteria)
+ECode GpsLocationProvider::MeetsCriteria(
+    /* [in] */ ICriteria* criteria,
+    /* [out] */ Boolean* result)
 {
+    VALIDATE_NOT_NULL(result);
+
     Int32 requirement;
     criteria->GetPowerRequirement(&requirement);
-    return (requirement != Criteria_POWER_LOW);
+    *result = (requirement != Criteria_POWER_LOW);
+    return NOERROR;
 }
 
-Int32 GpsLocationProvider::GetAccuracy()
+ECode GpsLocationProvider::GetAccuracy(
+    /* [out] */ Int32* accuracy)
 {
-    return Criteria_ACCURACY_FINE;
+    VALIDATE_NOT_NULL(accuracy);
+
+    *accuracy = Criteria_ACCURACY_FINE;
+    return NOERROR;
 }
 
-void GpsLocationProvider::Enable()
+ECode GpsLocationProvider::Enable()
 {
     Mutex::Autolock lock(mHandlerLock);
     void (STDCALL GpsLocationProvider::*pHandlerFunc)();
     pHandlerFunc = &GpsLocationProvider::HandleEnable;
     SendCallback(*(Handle32*)&pHandlerFunc, ENABLE, 1, NULL);
+    return NOERROR;
 }
 
 void GpsLocationProvider::HandleEnable()
@@ -615,12 +693,13 @@ void GpsLocationProvider::HandleEnable()
     }
 }
 
-void GpsLocationProvider::Disable()
+ECode GpsLocationProvider::Disable()
 {
     Mutex::Autolock lock(mHandlerLock);
     void (STDCALL GpsLocationProvider::*pHandlerFunc)();
     pHandlerFunc = &GpsLocationProvider::HandleDisable;
     SendCallback(*(Handle32*)&pHandlerFunc, ENABLE, 0, NULL);
+    return NOERROR;
 }
 
 void GpsLocationProvider::HandleDisable()
@@ -635,18 +714,26 @@ void GpsLocationProvider::HandleDisable()
     Cleanup();
 }
 
-Boolean GpsLocationProvider::IsEnabled()
+ECode GpsLocationProvider::IsEnabled(
+    /* [out] */ Boolean* isEnabled)
 {
-    return mEnabled;
+    VALIDATE_NOT_NULL(isEnabled);
+
+    *isEnabled = mEnabled;
+    return NOERROR;
 }
 
-Int32 GpsLocationProvider::GetStatus(
-    /* [in] */ IBundle* extras)
+ECode GpsLocationProvider::GetStatus(
+    /* [in] */ IBundle* extras,
+    /* [out] */ Int32* status)
 {
+    VALIDATE_NOT_NULL(status);
+
     if (extras != NULL) {
         extras->PutInt32(String("satellites"), mSvCount);
     }
-    return mStatus;
+    *status = mStatus;
+    return NOERROR;
 }
 
 void GpsLocationProvider::UpdateStatus(
@@ -661,12 +748,16 @@ void GpsLocationProvider::UpdateStatus(
     }
 }
 
-Int64 GpsLocationProvider::GetStatusUpdateTime()
+ECode GpsLocationProvider::GetStatusUpdateTime(
+    /* [out] */ Int64* time)
 {
-    return mStatusUpdateTime;
+    VALIDATE_NOT_NULL(time);
+
+    *time = mStatusUpdateTime;
+    return NOERROR;
 }
 
-void GpsLocationProvider::EnableLocationTracking(
+ECode GpsLocationProvider::EnableLocationTracking(
     /* [in] */ Boolean enable)
 {
     // FIXME - should set a flag here to avoid race conditions with single shot request
@@ -674,6 +765,7 @@ void GpsLocationProvider::EnableLocationTracking(
     void (STDCALL GpsLocationProvider::*pHandlerFunc)(Boolean);
     pHandlerFunc = &GpsLocationProvider::HandleEnableLocationTracking;
     SendCallback(*(Handle32*)&pHandlerFunc, ENABLE_TRACKING, (enable ? 1 : 0), NULL);
+    return NOERROR;
 }
 
 void GpsLocationProvider::HandleEnableLocationTracking(
@@ -693,11 +785,15 @@ void GpsLocationProvider::HandleEnableLocationTracking(
     }
 }
 
-Boolean GpsLocationProvider::RequestSingleShotFix()
+ECode GpsLocationProvider::RequestSingleShotFix(
+    /* [out] */ Boolean* result)
 {
+    VALIDATE_NOT_NULL(result);
+
     if (mStarted) {
         // cannot do single shot if already navigating
-        return FALSE;
+        *result = FALSE;
+        return NOERROR;
     }
 
     {
@@ -709,7 +805,8 @@ Boolean GpsLocationProvider::RequestSingleShotFix()
         mHandler->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, NULL, 0);
     }
 
-    return TRUE;
+    *result = TRUE;
+    return NOERROR;
 }
 
 void GpsLocationProvider::HandleRequestSingleShot()
@@ -719,7 +816,7 @@ void GpsLocationProvider::HandleRequestSingleShot()
     StartNavigating(TRUE);
 }
 
-void GpsLocationProvider::SetMinTime(
+ECode GpsLocationProvider::SetMinTime(
     /* [in] */ Int64 minTime,
     /* [in] */ IWorkSource* ws)
 {
@@ -735,10 +832,14 @@ void GpsLocationProvider::SetMinTime(
             }
         }
     }
+    return NOERROR;
 }
 
-String GpsLocationProvider::GetInternalState()
+ECode GpsLocationProvider::GetInternalState(
+    /* [out] */ String* state)
 {
+    VALIDATE_NOT_NULL(state);
+
 //    jstring result = NULL;
 //    if (sGpsDebugInterface) {
 //        const size_t maxLength = 2047;
@@ -749,7 +850,8 @@ String GpsLocationProvider::GetInternalState()
 //        result = env->NewStringUTF(buffer);
 //    }
 //    return result;
-    return String(NULL);
+    *state = NULL;
+    return E_NOT_IMPLEMENTED;
 }
 
 GpsLocationProvider::Listener::Listener(
@@ -806,7 +908,7 @@ ECode GpsLocationProvider::Listener::BinderDied()
     return NOERROR;
 }
 
-void GpsLocationProvider::AddListener(
+ECode GpsLocationProvider::AddListener(
     /* [in] */ Int32 uid)
 {
 //    synchronized (mWakeLock) {
@@ -817,7 +919,7 @@ void GpsLocationProvider::AddListener(
     AutoPtr<IParcel> params;
     CCallbackParcel::New((IParcel**)&params);
     params->WriteInt32(uid);
-    mHandler->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);
+    return mHandler->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);
 //    }
 }
 
@@ -844,7 +946,7 @@ void GpsLocationProvider::HandleAddListener(
 //    }
 }
 
-void GpsLocationProvider::RemoveListener(
+ECode GpsLocationProvider::RemoveListener(
     /* [in] */ Int32 uid)
 {
 //    synchronized (mWakeLock) {
@@ -855,7 +957,7 @@ void GpsLocationProvider::RemoveListener(
     AutoPtr<IParcel> params;
     CCallbackParcel::New((IParcel**)&params);
     params->WriteInt32(uid);
-    mHandler->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);
+    return mHandler->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);
 //    }
 }
 
@@ -888,27 +990,30 @@ void GpsLocationProvider::HandleRemoveListener(
     }
 }
 
-Boolean GpsLocationProvider::SendExtraCommand(
-    /* [in] */ String command,
+ECode GpsLocationProvider::SendExtraCommand(
+    /* [in] */ const String& command,
     /* [in] */ IBundle* extras,
-    /* [out] */ IBundle** outExtras)
+    /* [out] */ IBundle** outExtras,
+    /* [out] */ Boolean* result)
 {
+    VALIDATE_NOT_NULL(result);
+
 //    Int64 identity = Binder.clearCallingIdentity();
-    Boolean result = FALSE;
+    *result = FALSE;
 
     if (command == String("delete_aiding_data")) {
-        result = DeleteAidingData(extras);
+        *result = DeleteAidingData(extras);
     }
     else if (command == String("force_time_injection")) {
         void (STDCALL GpsLocationProvider::*pHandlerFunc)();
         pHandlerFunc = &GpsLocationProvider::HandleInjectNtpTime;
         SendCallback(*(Handle32*)&pHandlerFunc, INJECT_NTP_TIME, 0, NULL);
-        result = TRUE;
+        *result = TRUE;
     }
     else if (command == String("force_xtra_injection")) {
         if (mSupportsXtra) {
             XtraDownloadRequest();
-            result = TRUE;
+            *result = TRUE;
         }
     }
     else {
@@ -916,7 +1021,7 @@ Boolean GpsLocationProvider::SendExtraCommand(
     }
 
 //    Binder.restoreCallingIdentity(identity);
-    return result;
+    return NOERROR;
 }
 
 Boolean GpsLocationProvider::DeleteAidingData(

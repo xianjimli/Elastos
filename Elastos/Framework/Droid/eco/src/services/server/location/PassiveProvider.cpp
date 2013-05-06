@@ -6,125 +6,223 @@ const CString PassiveProvider::TAG = "PassiveProvider";
 PassiveProvider::PassiveProvider(
     /* [in] */ ILocationManager* locationManager)
     : mLocationManager(locationManager)
+{}
+
+PInterface PassiveProvider::Probe(
+    /* [in]  */ REIID riid)
 {
+    if (riid == EIID_IInterface) {
+        return (PInterface)(ILocationProviderInterface*)this;
+    }
+    else if (riid == EIID_ILocationProviderInterface) {
+        return (ILocationProviderInterface*)this;
+    }
+
+    return NULL;
 }
 
-String PassiveProvider::GetName()
+UInt32 PassiveProvider::AddRef()
 {
-    return String(LocationManager_PASSIVE_PROVIDER);
+    return ElRefBase::AddRef();
 }
 
-Boolean PassiveProvider::RequiresNetwork()
+UInt32 PassiveProvider::Release()
 {
-    return FALSE;
+    return ElRefBase::Release();
 }
 
-Boolean PassiveProvider::RequiresSatellite()
+ECode PassiveProvider::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
 {
-    return FALSE;
+    return E_NOT_IMPLEMENTED;
 }
 
-Boolean PassiveProvider::RequiresCell()
+ECode PassiveProvider::GetName(
+    /* [out] */ String* name)
 {
-    return FALSE;
+    VALIDATE_NOT_NULL(name);
+
+    *name = LocationManager_PASSIVE_PROVIDER;
+    return NOERROR;
 }
 
-Boolean PassiveProvider::HasMonetaryCost()
+ECode PassiveProvider::RequiresNetwork(
+    /* [out] */ Boolean* required)
 {
-    return FALSE;
+    VALIDATE_NOT_NULL(required);
+
+    *required = FALSE;
+    return NOERROR;
 }
 
-Boolean PassiveProvider::SupportsAltitude()
+ECode PassiveProvider::RequiresSatellite(
+    /* [out] */ Boolean* required)
 {
-    return FALSE;
+    VALIDATE_NOT_NULL(required);
+
+    *required = FALSE;
+    return NOERROR;
 }
 
-Boolean PassiveProvider::SupportsSpeed()
+ECode PassiveProvider::RequiresCell(
+    /* [out] */ Boolean* required)
 {
-    return FALSE;
+    VALIDATE_NOT_NULL(required);
+
+    *required = FALSE;
+    return NOERROR;
 }
 
-Boolean PassiveProvider::SupportsBearing()
+ECode PassiveProvider::HasMonetaryCost(
+    /* [out] */ Boolean* result)
 {
-    return FALSE;
+    VALIDATE_NOT_NULL(result);
+
+    *result = FALSE;
+    return NOERROR;
 }
 
-Int32 PassiveProvider::GetPowerRequirement()
+ECode PassiveProvider::SupportsAltitude(
+    /* [out] */ Boolean* supported)
 {
-    return -1;
+    VALIDATE_NOT_NULL(supported);
+
+    *supported = FALSE;
+    return NOERROR;
 }
 
-Boolean PassiveProvider::MeetsCriteria(
-    /* [in] */ ICriteria* criteria)
+ECode PassiveProvider::SupportsSpeed(
+    /* [out] */ Boolean* supported)
 {
+    VALIDATE_NOT_NULL(supported);
+
+    *supported = FALSE;
+    return NOERROR;
+}
+
+ECode PassiveProvider::SupportsBearing(
+    /* [out] */ Boolean* supported)
+{
+    VALIDATE_NOT_NULL(supported);
+
+    *supported = FALSE;
+    return NOERROR;
+}
+
+ECode PassiveProvider::GetPowerRequirement(
+    /* [out] */ Int32* requirement)
+{
+    VALIDATE_NOT_NULL(requirement);
+
+    *requirement = -1;
+    return NOERROR;
+}
+
+ECode PassiveProvider::MeetsCriteria(
+    /* [in] */ ICriteria* criteria,
+    /* [out] */ Boolean* result)
+{
+    VALIDATE_NOT_NULL(result);
+
     // We do not want to match the special passive provider based on criteria.
-    return FALSE;
+    *result = FALSE;
+    return NOERROR;
 }
 
-Int32 PassiveProvider::GetAccuracy()
+ECode PassiveProvider::GetAccuracy(
+    /* [out] */ Int32* accuracy)
 {
-    return -1;
+    VALIDATE_NOT_NULL(accuracy);
+
+    *accuracy = -1;
+    return NOERROR;
 }
 
-Boolean PassiveProvider::IsEnabled()
+ECode PassiveProvider::IsEnabled(
+    /* [out] */ Boolean* isEnabled)
 {
-    return TRUE;
+    VALIDATE_NOT_NULL(isEnabled);
+
+    *isEnabled = TRUE;
+    return NOERROR;
 }
 
-void PassiveProvider::Enable()
+ECode PassiveProvider::Enable()
 {
+    return NOERROR;
 }
 
-void PassiveProvider::Disable()
+ECode PassiveProvider::Disable()
 {
+    return NOERROR;
 }
 
-Int32 PassiveProvider::GetStatus(
-    /* [in] */ IBundle* extras)
+ECode PassiveProvider::GetStatus(
+    /* [in] */ IBundle* extras,
+    /* [out] */ Int32* status)
 {
+    VALIDATE_NOT_NULL(status);
+
     if (mTracking) {
-        return LocationProvider_AVAILABLE;
+        *status = LocationProvider_AVAILABLE;
+        return NOERROR;
     }
     else {
-        return LocationProvider_TEMPORARILY_UNAVAILABLE;
+        *status = LocationProvider_TEMPORARILY_UNAVAILABLE;
+        return NOERROR;
     }
 }
 
-Int64 PassiveProvider::GetStatusUpdateTime()
+ECode PassiveProvider::GetStatusUpdateTime(
+    /* [out] */ Int64* time)
 {
-    return -1;
+    VALIDATE_NOT_NULL(time);
+
+    *time = -1;
+    return NOERROR;
 }
 
-void PassiveProvider::EnableLocationTracking(
+ECode PassiveProvider::EnableLocationTracking(
     /* [in] */ Boolean enable)
 {
     mTracking = enable;
+    return NOERROR;
 }
 
-Boolean PassiveProvider::RequestSingleShotFix()
+ECode PassiveProvider::RequestSingleShotFix(
+    /* [out] */ Boolean* result)
 {
-    return FALSE;
+    VALIDATE_NOT_NULL(result);
+
+    *result = FALSE;
+    return NOERROR;
 }
 
-String PassiveProvider::GetInternalState()
+ECode PassiveProvider::GetInternalState(
+    /* [out] */ String* state)
 {
-    return String(NULL);
+    VALIDATE_NOT_NULL(state);
+
+    *state = NULL;
+    return NOERROR;
 }
 
-void PassiveProvider::SetMinTime(
+ECode PassiveProvider::SetMinTime(
     /* [in] */ Int64 minTime,
     /* [in] */ IWorkSource* ws)
 {
+    return NOERROR;
 }
 
-void PassiveProvider::UpdateNetworkState(
+ECode PassiveProvider::UpdateNetworkState(
     /* [in] */ Int32 state,
     /* [in] */ INetworkInfo* info)
 {
-
+    return NOERROR;
 }
 
-void PassiveProvider::UpdateLocation(
+ECode PassiveProvider::UpdateLocation(
     /* [in] */ ILocation* location)
 {
     if (mTracking) {
@@ -135,22 +233,29 @@ void PassiveProvider::UpdateLocation(
 //            Log.e(TAG, "RemoteException calling reportLocation");
 //        }
     }
+    return NOERROR;
 }
 
-Boolean PassiveProvider::SendExtraCommand(
-    /* [in] */ String command,
+ECode PassiveProvider::SendExtraCommand(
+    /* [in] */ const String& command,
     /* [in] */ IBundle* extras,
-    /* [out] */ IBundle** outExtras)
+    /* [out] */ IBundle** outExtras,
+    /* [out] */ Boolean* result)
 {
-    return FALSE;
+    VALIDATE_NOT_NULL(result);
+
+    *result = FALSE;
+    return NOERROR;
 }
 
-void PassiveProvider::AddListener(
+ECode PassiveProvider::AddListener(
     /* [in] */ Int32 uid)
 {
+    return NOERROR;
 }
 
-void PassiveProvider::RemoveListener(
+ECode PassiveProvider::RemoveListener(
     /* [in] */ Int32 uid)
 {
+    return NOERROR;
 }

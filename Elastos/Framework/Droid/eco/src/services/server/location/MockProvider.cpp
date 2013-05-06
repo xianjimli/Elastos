@@ -1,10 +1,11 @@
 
+#include "ext/frameworkdef.h"
 #include "server/location/MockProvider.h"
 
 const CString MockProvider::TAG = "MockProvider";
 
 MockProvider::MockProvider(
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [in] */ ILocationManager* locationManager,
     /* [in] */ Boolean requiresNetwork,
     /* [in] */ Boolean requiresSatellite,
@@ -37,126 +38,189 @@ MockProvider::MockProvider(
     ASSERT_SUCCEEDED(CLocation::New(name, (ILocation**)&mLocation));
 }
 
-String MockProvider::GetName()
+ECode MockProvider::GetName(
+    /* [out] */ String* name)
 {
-    return mName;
+    VALIDATE_NOT_NULL(name);
+
+    *name = mName;
+    return NOERROR;
 }
 
-void MockProvider::Disable()
+ECode MockProvider::Disable()
 {
     mEnabled = FALSE;
+    return NOERROR;
 }
 
-void MockProvider::Enable()
+ECode MockProvider::Enable()
 {
     mEnabled = TRUE;
+    return NOERROR;
 }
 
-Boolean MockProvider::IsEnabled()
+ECode MockProvider::IsEnabled(
+    /* [out] */ Boolean* isEnabled)
 {
-    return mEnabled;
+    VALIDATE_NOT_NULL(isEnabled);
+
+    *isEnabled = mEnabled;
+    return NOERROR;
 }
 
-Int32 MockProvider::GetStatus(
-    /* [in] */ IBundle* extras)
+ECode MockProvider::GetStatus(
+    /* [in] */ IBundle* extras,
+    /* [out] */ Int32* status)
 {
+    VALIDATE_NOT_NULL(status);
+
     if (mHasStatus) {
         extras->Clear();
         extras->PutAll(mExtras);
-        return mStatus;
+        *status = mStatus;
+        return NOERROR;
     }
     else {
-        return LocationProvider_AVAILABLE;
+        *status = LocationProvider_AVAILABLE;
+        return NOERROR;
     }
 }
 
-Int64 MockProvider::GetStatusUpdateTime()
+ECode MockProvider::GetStatusUpdateTime(
+    /* [out] */ Int64* time)
 {
-    return mStatusUpdateTime;
+    VALIDATE_NOT_NULL(time);
+
+    *time = mStatusUpdateTime;
+    return NOERROR;
 }
 
-Int32 MockProvider::GetAccuracy()
+ECode MockProvider::GetAccuracy(
+    /* [out] */ Int32* accuracy)
 {
-    return mAccuracy;
+    VALIDATE_NOT_NULL(accuracy);
+
+    *accuracy = mAccuracy;
+    return NOERROR;
 }
 
-Int32 MockProvider::GetPowerRequirement()
+ECode MockProvider::GetPowerRequirement(
+    /* [out] */ Int32* requirement)
 {
-    return mPowerRequirement;
+    VALIDATE_NOT_NULL(requirement);
+
+    *requirement = mPowerRequirement;
+    return NOERROR;
 }
 
-Boolean MockProvider::HasMonetaryCost()
+ECode MockProvider::HasMonetaryCost(
+    /* [out] */ Boolean* result)
 {
-    return mHasMonetaryCost;
+    VALIDATE_NOT_NULL(result);
+
+    *result = mHasMonetaryCost;
+    return NOERROR;
 }
 
-Boolean MockProvider::RequiresCell()
+ECode MockProvider::RequiresCell(
+    /* [out] */ Boolean* supported)
 {
-    return mRequiresCell;
+    VALIDATE_NOT_NULL(supported);
+
+    *supported = mRequiresCell;
+    return NOERROR;
 }
 
-Boolean MockProvider::RequiresNetwork()
+ECode MockProvider::RequiresNetwork(
+    /* [out] */ Boolean* supported)
 {
-    return mRequiresNetwork;
+    VALIDATE_NOT_NULL(supported);
+
+    *supported = mRequiresNetwork;
+    return NOERROR;
 }
 
-Boolean MockProvider::RequiresSatellite()
+ECode MockProvider::RequiresSatellite(
+    /* [out] */ Boolean* supported)
 {
-    return mRequiresSatellite;
+    VALIDATE_NOT_NULL(supported);
+
+    *supported = mRequiresSatellite;
+    return NOERROR;
 }
 
-Boolean MockProvider::SupportsAltitude()
+ECode MockProvider::SupportsAltitude(
+    /* [out] */ Boolean* supported)
 {
-    return mSupportsAltitude;
+    VALIDATE_NOT_NULL(supported);
+
+    *supported = mSupportsAltitude;
+    return NOERROR;
 }
 
-Boolean MockProvider::SupportsBearing()
+ECode MockProvider::SupportsBearing(
+    /* [out] */ Boolean* supported)
 {
-    return mSupportsBearing;
+    VALIDATE_NOT_NULL(supported);
+
+    *supported = mSupportsBearing;
+    return NOERROR;
 }
 
-Boolean MockProvider::SupportsSpeed()
+ECode MockProvider::SupportsSpeed(
+    /* [out] */ Boolean* supported)
 {
-    return mSupportsSpeed;
+    VALIDATE_NOT_NULL(supported);
+
+    *supported = mSupportsSpeed;
+    return NOERROR;
 }
 
-Boolean MockProvider::MeetsCriteria(
-    /* [in] */ ICriteria* criteria)
+ECode MockProvider::MeetsCriteria(
+    /* [in] */ ICriteria* criteria,
+    /* [out] */ Boolean* result)
 {
+    VALIDATE_NOT_NULL(result);
+
     Int32 accuracy;
     criteria->GetAccuracy(&accuracy);
     if ((accuracy != Criteria_NO_REQUIREMENT) &&
         (accuracy < mAccuracy)) {
-        return FALSE;
+        *result = FALSE;
+        return NOERROR;
     }
 
     Int32 criteriaPower;
     criteria->GetPowerRequirement(&criteriaPower);
     if ((criteriaPower != Criteria_NO_REQUIREMENT) &&
         (criteriaPower < mPowerRequirement)) {
-        return FALSE;
+        *result = FALSE;
+        return NOERROR;
     }
 
-    Boolean result;
-    criteria->IsAltitudeRequired(&result);
-    if (result && !mSupportsAltitude) {
-        return FALSE;
+    Boolean _result;
+    criteria->IsAltitudeRequired(&_result);
+    if (_result && !mSupportsAltitude) {
+        *result = FALSE;
+        return NOERROR;
     }
 
-    criteria->IsSpeedRequired(&result);
-    if (result && !mSupportsSpeed) {
-        return FALSE;
+    criteria->IsSpeedRequired(&_result);
+    if (_result && !mSupportsSpeed) {
+        *result = FALSE;
+        return NOERROR;
     }
 
-    criteria->IsBearingRequired(&result);
-    if (result && !mSupportsBearing) {
-        return FALSE;
+    criteria->IsBearingRequired(&_result);
+    if (_result && !mSupportsBearing) {
+        *result = FALSE;
+        return NOERROR;
     }
-
-    return TRUE;
+    *result = TRUE;
+    return NOERROR;
 }
 
-void MockProvider::SetLocation(
+ECode MockProvider::SetLocation(
     /* [in] */ ILocation* l)
 {
     mLocation->Set(l);
@@ -169,14 +233,16 @@ void MockProvider::SetLocation(
 //    } catch (RemoteException e) {
 //        Log.e(TAG, "RemoteException calling reportLocation");
 //    }
+    return ec;
 }
 
-void MockProvider::ClearLocation()
+ECode MockProvider::ClearLocation()
 {
     mHasLocation = FALSE;
+    return NOERROR;
 }
 
-void MockProvider::SetStatus(
+ECode MockProvider::SetStatus(
     /* [in] */ Int32 status,
     /* [in] */ IBundle* extras,
     /* [in] */ Int64 updateTime)
@@ -188,60 +254,80 @@ void MockProvider::SetStatus(
         mExtras->PutAll(extras);
     }
     mHasStatus = TRUE;
+    return NOERROR;
 }
 
-void MockProvider::ClearStatus()
+ECode MockProvider::ClearStatus()
 {
     mHasStatus = FALSE;
     mStatusUpdateTime = 0;
+    return NOERROR;
 }
 
-String MockProvider::GetInternalState()
+ECode MockProvider::GetInternalState(
+    /* [out] */ String* state)
 {
-    return String(NULL);
+    VALIDATE_NOT_NULL(state);
+
+    *state = NULL;
+    return NOERROR;
 }
 
-void MockProvider::EnableLocationTracking(
+ECode MockProvider::EnableLocationTracking(
     /* [in] */ Boolean enable)
 {
+    return NOERROR;
 }
 
-Boolean MockProvider::RequestSingleShotFix()
+ECode MockProvider::RequestSingleShotFix(
+    /* [out] */ Boolean* result)
 {
-    return FALSE;
+    VALIDATE_NOT_NULL(result);
+
+    *result = FALSE;
+    return NOERROR;
 }
 
-void MockProvider::SetMinTime(
+ECode MockProvider::SetMinTime(
     /* [in] */ Int64 minTime,
     /* [in] */ IWorkSource* ws)
 {
+    return NOERROR;
 }
 
-void MockProvider::UpdateNetworkState(
+ECode MockProvider::UpdateNetworkState(
     /* [in] */ Int32 state,
     /* [in] */ INetworkInfo* info)
 {
+    return NOERROR;
 }
 
-void MockProvider::UpdateLocation(
+ECode MockProvider::UpdateLocation(
     /* [in] */ ILocation* location)
 {
+    return NOERROR;
 }
 
-Boolean MockProvider::SendExtraCommand(
-    /* [in] */ String command,
+ECode MockProvider::SendExtraCommand(
+    /* [in] */ const String& command,
     /* [in] */ IBundle* extras,
-    /* [out] */ IBundle** outExtras)
+    /* [out] */ IBundle** outExtras,
+    /* [out] */ Boolean* result)
 {
-    return FALSE;
+    VALIDATE_NOT_NULL(result);
+
+    *result = FALSE;
+    return NOERROR;
 }
 
-void MockProvider::AddListener(
+ECode MockProvider::AddListener(
     /* [in] */ Int32 uid)
 {
+    return NOERROR;
 }
 
-void MockProvider::RemoveListener(
+ECode MockProvider::RemoveListener(
     /* [in] */ Int32 uid)
 {
+    return NOERROR;
 }

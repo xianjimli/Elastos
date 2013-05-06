@@ -6,7 +6,7 @@
 #include <elastos/AutoPtr.h>
 #include <elastos/ElRefBase.h>
 
-class GeocoderProxy
+class GeocoderProxy : public ElRefBase
 {
 private:
     class Connection : public ElRefBase, IServiceConnection
@@ -35,14 +35,14 @@ public:
     GeocoderProxy(
         /* [in] */ IContext* context,
         /* [in] */ String serviceName);
-    
+
     CARAPI_(String) GetFromLocation(
     	/* [in] */ Double latitude,
     	/* [in] */ Double longitude,
     	/* [in] */ Int32 maxResults,
     	/* [in] */ IGeocoderParams* params,
     	/* [in] */ IObjectContainer** addrs);
-    
+
     CARAPI_(String) GetFromLocationName(
     	/* [in] */ String locationName,
     	/* [in] */ Double lowerLeftLatitude,

@@ -21,7 +21,7 @@ InnerReceiver::PerformReceive(
 {
     if (CApplicationApartment::DEBUG_BROADCAST) {
         Int32 seq = -1;
-        intent->GetInt32Extra(String("seq"), &seq);
+        intent->GetInt32Extra(String("seq"), -1, &seq);
         String action;
         intent->GetAction(&action);
         Slogger::I(CApplicationApartment::TAG,
@@ -72,7 +72,7 @@ ECode LoadedCap::ReceiverDispatcher::PerformReceive(
 {
     if (CApplicationApartment::DEBUG_BROADCAST) {
         Int32 seq = -1;
-        intent->GetInt32Extra(String("seq"), &seq);
+        intent->GetInt32Extra(String("seq"), -1, &seq);
         String action;
         intent->GetAction(&action);
         Slogger::I(CApplicationApartment::TAG,
@@ -118,7 +118,7 @@ ECode LoadedCap::ReceiverDispatcher::HandleReceive(
 {
     if (CApplicationApartment::DEBUG_BROADCAST) {
         Int32 seq = -1;
-        args->mCurIntent->GetInt32Extra(String("seq"), &seq);
+        args->mCurIntent->GetInt32Extra(String("seq"), -1, &seq);
         String action;
         args->mCurIntent->GetAction(&action);
         Slogger::I(CApplicationApartment::TAG,

@@ -2188,10 +2188,14 @@ AutoPtr<IInterface> CBundle::ReadValue(
         return obj;
     }
     case VAL_CHARSEQUENCE: {
-        String v = String(p->readCString());
-        AutoPtr<ICharSequence> obj;
-        CParcelableStringWrapper::New(v, (ICharSequence**)&obj);
-        return obj;
+        Int32 tag = p->readInt32();
+        if (tag == MSH_NOT_NULL) {
+            String v(p->readCString());
+            AutoPtr<ICharSequence> obj;
+            CParcelableStringWrapper::New(v, (ICharSequence**)&obj);
+            return obj;
+        }
+        return NULL;
     }
     // case VAL_LIST:
     //     return readArrayList(loader);
