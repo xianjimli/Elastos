@@ -1569,7 +1569,7 @@ ECode CActivityManagerService::FinishActivity(
 
 ECode CActivityManagerService::FinishHeavyWeightApp()
 {
-    if (CheckCallingPermission(String("android.permission.FORCE_STOP_CAPSULES") /*android.Manifest.permission.FORCE_STOP_CAPSULES*/)
+    if (CheckCallingPermission("android.permission.FORCE_STOP_CAPSULES" /*android.Manifest.permission.FORCE_STOP_CAPSULES*/)
            != CapsuleManager_PERMISSION_GRANTED) {
         Slogger::W(TAG, StringBuffer("Permission Denial: finishHeavyWeightApp() from pid=")
                + Binder::GetCallingPid()
@@ -1609,7 +1609,7 @@ ECode CActivityManagerService::CrashApplication(
     /* [in] */ CString capsuleName,
     /* [in] */ CString message)
 {
-    if (CheckCallingPermission(String("android.permission.FORCE_STOP_CAPSULES") /*android.Manifest.permission.FORCE_STOP_CAPSULES*/)
+    if (CheckCallingPermission("android.permission.FORCE_STOP_CAPSULES" /*android.Manifest.permission.FORCE_STOP_CAPSULES*/)
            != CapsuleManager_PERMISSION_GRANTED) {
         Slogger::W(TAG, StringBuffer("Permission Denial: crashApplication() from pid=")
             + Binder::GetCallingPid()
@@ -2204,9 +2204,9 @@ ECode CActivityManagerService::ClearApplicationUserData(
 ECode CActivityManagerService::KillBackgroundProcesses(
     /* [in] */ const String& capsuleName)
 {
-    if (CheckCallingPermission(String("android.permission.KILL_BACKGROUND_PROCESSES") /*android.Manifest.permission.KILL_BACKGROUND_PROCESSES*/)
+    if (CheckCallingPermission("android.permission.KILL_BACKGROUND_PROCESSES" /*android.Manifest.permission.KILL_BACKGROUND_PROCESSES*/)
             != CapsuleManager_PERMISSION_GRANTED &&
-            CheckCallingPermission(String("android.permission.RESTART_CAPSULES") /*android.Manifest.permission.RESTART_CAPSULES*/)
+            CheckCallingPermission("android.permission.RESTART_CAPSULES" /*android.Manifest.permission.RESTART_CAPSULES*/)
                 != CapsuleManager_PERMISSION_GRANTED) {
         Slogger::W(TAG, StringBuffer("Permission Denial: killBackgroundProcesses() from pid=")
                + Binder::GetCallingPid()
@@ -2241,7 +2241,7 @@ ECode CActivityManagerService::KillBackgroundProcesses(
 ECode CActivityManagerService::ForceStopCapsule(
     /* [in] */ const String& capsuleName)
 {
-    if (CheckCallingPermission(String("android.permission.FORCE_STOP_CAPSULES") /*android.Manifest.permission.FORCE_STOP_CAPSULES*/)
+    if (CheckCallingPermission("android.permission.FORCE_STOP_CAPSULES" /*android.Manifest.permission.FORCE_STOP_CAPSULES*/)
            != CapsuleManager_PERMISSION_GRANTED) {
         Slogger::W(TAG, StringBuffer("Permission Denial: forceStopPackage() from pid=")
                + Binder::GetCallingPid()
@@ -3314,10 +3314,10 @@ ECode CActivityManagerService::GetCapsuleForIntentSender(
 ECode CActivityManagerService::SetProcessLimit(
     /* [in] */ Int32 max)
 {
-//    enforceCallingPermission(android.Manifest.permission.SET_PROCESS_LIMIT,
-//            "setProcessLimit()");
-//    mProcessLimit = max;
-    return E_NOT_IMPLEMENTED;
+    ECode ec = EnforceCallingPermission("android.Manifest.permission.SET_PROCESS_LIMIT",
+            "setProcessLimit()");
+    mProcessLimit = max;
+    return ec;
 }
 
 ECode CActivityManagerService::GetProcessLimit(
@@ -3354,8 +3354,8 @@ ECode CActivityManagerService::SetProcessForeground(
     /* [in] */ Int32 pid,
     /* [in] */ Boolean isForeground)
 {
-//    enforceCallingPermission(android.Manifest.permission.SET_PROCESS_LIMIT,
-//            "setProcessForeground()");
+    EnforceCallingPermission("android.Manifest.permission.SET_PROCESS_LIMIT",
+            "setProcessForeground()");
 //    synchronized(this) {
 //        boolean changed = false;
 //
@@ -3407,7 +3407,7 @@ ECode CActivityManagerService::SetProcessForeground(
  * This can be called with or without the global lock held.
  */
 Int32 CActivityManagerService::CheckComponentPermission(
-    /* [in] */ const String& permission,
+    /* [in] */ CString permission,
     /* [in] */ Int32 pid,
     /* [in] */ Int32 uid,
     /* [in] */ Int32 reqUid)
@@ -3459,7 +3459,7 @@ Int32 CActivityManagerService::CheckComponentPermission(
  * This can be called with or without the global lock held.
  */
 ECode CActivityManagerService::CheckPermission(
-    /* [in] */ const String& permission,
+    /* [in] */ CString permission,
     /* [in] */ Int32 pid,
     /* [in] */ Int32 uid,
     /* [out] */ Int32* result)
@@ -3478,7 +3478,7 @@ ECode CActivityManagerService::CheckPermission(
  * This can be called with or without the global lock held.
  */
 Int32 CActivityManagerService::CheckCallingPermission(
-    /* [in] */ const String& permission)
+    /* [in] */ CString permission)
 {
     Int32 result;
     CheckPermission(permission,
@@ -3492,8 +3492,8 @@ Int32 CActivityManagerService::CheckCallingPermission(
  * This can be called with or without the global lock held.
  */
 ECode CActivityManagerService::EnforceCallingPermission(
-    /* [in] */ const String& permission,
-    /* [in] */ const char* func)
+    /* [in] */ CString permission,
+    /* [in] */ CString func)
 {
     if (CheckCallingPermission(permission)
             == CapsuleManager_PERMISSION_GRANTED) {
@@ -3523,95 +3523,108 @@ Boolean CActivityManagerService::CheckHoldingPermissionsLocked(
                 + uriDes + " uid=" + uid);
     }
 //    try {
-        // Is the component private from the target uid?
-        Boolean piExported;
-        pi->IsExported(&piExported);
-        AutoPtr<IApplicationInfo> piAppInfo;
-        pi->GetApplicationInfo((IApplicationInfo**)&piAppInfo);
-        Int32 piUid;
-        piAppInfo->GetUid(&piUid);
+    // Is the component private from the target uid?
+    Boolean piExported;
+    pi->IsExported(&piExported);
+    AutoPtr<IApplicationInfo> piAppInfo;
+    pi->GetApplicationInfo((IApplicationInfo**)&piAppInfo);
+    Int32 piUid;
+    piAppInfo->GetUid(&piUid);
 
-        Boolean prv = !piExported && piUid != uid;
+    Boolean prv = !piExported && piUid != uid;
 
-        // Acceptable if the there is no read permission needed from the
-        // target or the target is holding the read permission.
-        if (!readPerm) {
-            String piReadPermission;
-            pi->GetReadPermission(&piReadPermission);
-            if (!prv && piReadPermission.IsNull()) {
-                readPerm = TRUE;
-            }
-
-            Int32 perm;
-            assert(SUCCEEDED(pm->CheckUidPermission(piReadPermission, uid, &perm)));
-            if (perm == CapsuleManager_PERMISSION_GRANTED) {
-                readPerm = TRUE;
-            }
+    // Acceptable if the there is no read permission needed from the
+    // target or the target is holding the read permission.
+    if (!readPerm) {
+        String piReadPermission;
+        pi->GetReadPermission(&piReadPermission);
+        if (!prv && piReadPermission.IsNull()) {
+            readPerm = TRUE;
         }
 
-        // Acceptable if the there is no write permission needed from the
-        // target or the target is holding the read permission.
-        if (!writePerm) {
-            String piWritePermission;
-            pi->GetWritePermission(&piWritePermission);
-            if (!prv && piWritePermission.IsNull()) {
-                writePerm = TRUE;
-            }
+        Int32 perm;
+        assert(SUCCEEDED(pm->CheckUidPermission(piReadPermission, uid, &perm)));
+        if (perm == CapsuleManager_PERMISSION_GRANTED) {
+            readPerm = TRUE;
+        }
+    }
 
-            Int32 perm;
-            assert(SUCCEEDED(pm->CheckUidPermission(piWritePermission, uid, &perm)));
-            if (perm == CapsuleManager_PERMISSION_GRANTED) {
-                writePerm = TRUE;
-            }
+    // Acceptable if the there is no write permission needed from the
+    // target or the target is holding the read permission.
+    if (!writePerm) {
+        String piWritePermission;
+        pi->GetWritePermission(&piWritePermission);
+        if (!prv && piWritePermission.IsNull()) {
+            writePerm = TRUE;
         }
 
-        // Acceptable if there is a path permission matching the URI that
-        // the target holds the permission on.
-        AutoPtr<IObjectContainer> pps;
-        pi->GetPathPermissions((IObjectContainer**)&pps);
-        if (pps != NULL && (!readPerm || !writePerm)) {
-            String path;
-            uri->GetPath(&path);
-//            List<AutoPtr<CPathPermission> >::ReverseIterator rit = pps->RBegin();
-//            for (; rit != pps->REnd() && (!readPerm || !writePerm); ++rit) {
-//                AutoPtr<CPathPermission> pp = *rit;
-//                if (!readPerm) {
-//                    Int32 perm;
-//                    String pprperm = pp->GetReadPermission();
-//                    assert(SUCCEEDED(pm->CheckUidPermission(pprperm, uid, &perm)));
-//
-//                    if (DEBUG_URI_PERMISSION) {
-//                        Slogger::V(TAG, StringBuffer("Checking read perm for ")
-//                            + pprperm + " for " + pp->GetPath()
-//                            + ": match=" + pp->Match(path)
-//                            + " check=" + perm);
-//                    }
-//                    if (!pprperm.IsNull() && pp->Match(path) &&
-//                            (perm == CapsuleManager_PERMISSION_GRANTED)) {
-//                        readPerm = TRUE;
-//                    }
-//                }
-//                if (!writePerm) {
-//                    Int32 perm;
-//                    String ppwperm = pp->GetWritePermission();
-//                    assert(SUCCEEDED(pm->CheckUidPermission(ppwperm, uid, &perm)));
-//
-//                    if (DEBUG_URI_PERMISSION) {
-//                        Slogger::V(TAG, StringBuffer("Checking write perm ")
-//                            + ppwperm + " for " + pp->GetPath()
-//                            + ": match=" + pp->Match(path)
-//                            + " check=" + perm);
-//                    }
-//                    if (!ppwperm.IsNull() && pp->Match(path) &&
-//                            (perm == CapsuleManager_PERMISSION_GRANTED)) {
-//                        writePerm = TRUE;
-//                    }
-//                }
-//            }
+        Int32 perm;
+        assert(SUCCEEDED(pm->CheckUidPermission(piWritePermission, uid, &perm)));
+        if (perm == CapsuleManager_PERMISSION_GRANTED) {
+            writePerm = TRUE;
         }
-//    } catch (RemoteException e) {
-//        return false;
-//    }
+    }
+
+    // Acceptable if there is a path permission matching the URI that
+    // the target holds the permission on.
+    AutoPtr<IObjectContainer> pps;
+    pi->GetPathPermissions((IObjectContainer**)&pps);
+    if (pps != NULL && (!readPerm || !writePerm)) {
+        String path;
+        uri->GetPath(&path);
+        AutoPtr<IObjectEnumerator> en;
+        pps->GetObjectEnumerator((IObjectEnumerator**)&en);
+        Boolean hasNext = FALSE;
+        AutoPtr<IPathPermission> pp;
+        while (en->MoveNext(&hasNext), hasNext && (!readPerm || !writePerm)) {
+            en->Current((IInterface**)&pp);
+            if (!readPerm) {
+                Int32 perm;
+                String pprperm;
+                pp->GetReadPermission(&pprperm);
+                assert(SUCCEEDED(pm->CheckUidPermission(pprperm, uid, &perm)));
+
+                Boolean isMatch;
+                pp->Match(path, &isMatch);
+                if (DEBUG_URI_PERMISSION) {
+                    String pathLog;
+                    pp->GetPath(&pathLog);
+                    Slogger::V(TAG, StringBuffer("Checking read perm for ")
+                        + pprperm + " for " + pathLog
+                        + ": match=" + isMatch
+                        + " check=" + perm);
+                }
+                if (!pprperm.IsNull() && isMatch &&
+                        (perm == CapsuleManager_PERMISSION_GRANTED)) {
+                    readPerm = TRUE;
+                }
+            }
+            if (!writePerm) {
+                Int32 perm;
+                String ppwperm;
+                pp->GetWritePermission(&ppwperm);
+                assert(SUCCEEDED(pm->CheckUidPermission(ppwperm, uid, &perm)));
+
+                Boolean isMatch;
+                pp->Match(path, &isMatch);
+                if (DEBUG_URI_PERMISSION) {
+                    String pathLog;
+                    pp->GetPath(&pathLog);
+                    Slogger::V(TAG, StringBuffer("Checking write perm ")
+                        + ppwperm + " for " + pathLog
+                        + ": match=" + isMatch
+                        + " check=" + perm);
+                }
+                if (!ppwperm.IsNull() && isMatch &&
+                        (perm == CapsuleManager_PERMISSION_GRANTED)) {
+                    writePerm = TRUE;
+                }
+            }
+        }
+    }
+    // } catch (RemoteException e) {
+    //     return false;
+    // }
 
     return readPerm && writePerm;
 }
@@ -3712,7 +3725,7 @@ ECode CActivityManagerService::CheckGrantUriPermissionLocked(
     String name;
     uri->GetAuthority(&name);
     AutoPtr<IContentProviderInfo> pi;
-    ContentProviderRecord* cpr = mProvidersByName[name];
+    ContentProviderRecord* cpr = mProvidersByName.Find(name)->mSecond;
     if (cpr != NULL) {
         cpr->mHolder->GetContentProviderInfo((IContentProviderInfo**)&pi);
     }
@@ -3755,42 +3768,52 @@ ECode CActivityManagerService::CheckGrantUriPermissionLocked(
     }
 
     // Second...  is the provider allowing granting of URI permissions?
-//    if (!pi->mGrantUriPermissions) {
-//        String uriDes, piCName, piName;
-//        uri->GetDescription(&uriDes);
-//        pi->GetCapsuleName(&piCName);
-//        pi->GetName(&piName);
-//        Slogger::E(TAG, StringBuffer("Provider ") + piCName
-//                + "/" + piName
-//                + " does not allow granting of Uri permissions (uri "
-//                + uriDes + ")");
-//        return E_SECURITY_EXCEPTION;
-//    }
-//    if (pi->mUriPermissionPatterns != NULL) {
-//        Boolean allowed = FALSE;
-//        String path;
-//        uri->GetPath(&path);
-//        List<AutoPtr<CPatternMatcher> >::Iterator it = \
-//                pi->mUriPermissionPatterns->Begin();
-//        for (; it != pi->mUriPermissionPatterns->End(); ++it) {
-//            Boolean isMatch = FALSE;
-//            (*it)->Match(path, &isMatch);
-//            if (isMatch) {
-//                allowed = TRUE;
-//                break;
-//            }
-//        }
-//
-//        if (!allowed) {
-//            String uriDes;
-//            uri->GetDescription(&uriDes);
-//            Slogger::E(TAG, StringBuffer("Provider ") + pi->mCapsuleName
-//                    + "/" + pi->mName
-//                    + " does not allow granting of permission to path of Uri "
-//                    + uriDes);
-//            return E_SECURITY_EXCEPTION;
-//        }
-//    }
+    Boolean grant;
+    pi->GetGrantUriPermissions(&grant);
+    if (!grant) {
+        String uriDes, piCName, piName;
+        uri->GetDescription(&uriDes);
+        pi->GetCapsuleName(&piCName);
+        pi->GetName(&piName);
+        Slogger::E(TAG, StringBuffer("Provider ") + piCName
+               + "/" + piName
+               + " does not allow granting of Uri permissions (uri "
+               + uriDes + ")");
+        return E_SECURITY_EXCEPTION;
+    }
+
+    AutoPtr<IObjectContainer> patterns = NULL;
+    pi->GetUriPermissionPatterns((IObjectContainer**)&patterns);
+    if (patterns != NULL) {
+        Boolean allowed = FALSE;
+        String path;
+        uri->GetPath(&path);
+        AutoPtr<IObjectEnumerator> en;
+        patterns->GetObjectEnumerator((IObjectEnumerator**)&en);
+        Boolean isMatch = FALSE;
+        Boolean hasNext;
+        AutoPtr<IPatternMatcher> it;
+        while (en->MoveNext(&hasNext), hasNext) {
+            en->Current((IInterface**)&it);
+            it->Match(path, &isMatch);
+            if (isMatch) {
+                allowed = TRUE;
+                break;
+            }
+        }
+
+        if (!allowed) {
+            String uriDes, piCName, piName;
+            uri->GetDescription(&uriDes);
+            pi->GetCapsuleName(&piCName);
+            pi->GetName(&piName);
+            Slogger::E(TAG, StringBuffer("Provider ") + piCName
+                    + "/" + piName
+                    + " does not allow granting of permission to path of Uri "
+                    + uriDes);
+            return E_SECURITY_EXCEPTION;
+        }
+    }
 
     // Third...  does the caller itself have permission to access
     // this uri?
@@ -3991,7 +4014,7 @@ ECode CActivityManagerService::GrantUriPermission(
            // + " when granting permission to uri " + uri);
         return E_SECURITY_EXCEPTION;
     }
-    if (targetPkg == NULL) {
+    if (targetPkg.IsNull()) {
         // throw new IllegalArgumentException("null target");
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
@@ -4001,7 +4024,7 @@ ECode CActivityManagerService::GrantUriPermission(
     }
 
     Int32 uid;
-    r->mInfo.Get()->GetUid(&uid);
+    r->mInfo->GetUid(&uid);
     GrantUriPermissionLocked(uid, targetPkg, uri, modeFlags, NULL);
     return NOERROR;
 }
@@ -4019,7 +4042,7 @@ void CActivityManagerService::RemoveUriPermissionIfNeededLocked(
                     StringBuffer("Removing ") + perm->mUid + " permission to " + perm->mUri);
             }
             perms->Erase(perm->mUri);
-            if (perms->GetSize() == 0) {
+            if (perms->Begin() == perms->End()) {
                 mGrantedUriPermissions.Erase(perm->mUid);
             }
         }
@@ -4031,87 +4054,104 @@ void CActivityManagerService::RevokeUriPermissionLocked(
     /* [in] */ IUri* uri,
     /* [in] */ Int32 modeFlags)
 {
-//    modeFlags &= (Intent.FLAG_GRANT_READ_URI_PERMISSION
-//            | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-//    if (modeFlags == 0) {
-//        return;
-//    }
-//
-//    if (DEBUG_URI_PERMISSION) Slog.v(TAG,
-//            "Revoking all granted permissions to " + uri);
-//
-//    final IPackageManager pm = AppGlobals.getPackageManager();
-//
-//    final String authority = uri.getAuthority();
-//    ProviderInfo pi = null;
-//    ContentProviderRecord cpr = mProvidersByName.get(authority);
-//    if (cpr != null) {
-//        pi = cpr.info;
-//    } else {
-//        try {
-//            pi = pm.resolveContentProvider(authority,
-//                    PackageManager.GET_URI_PERMISSION_PATTERNS);
-//        } catch (RemoteException ex) {
-//        }
-//    }
-//    if (pi == null) {
-//        Slogger::W(TAG, "No content provider found for: " + authority);
-//        return;
-//    }
-//
-//    // Does the caller have this permission on the URI?
-//    if (!checkHoldingPermissionsLocked(pm, pi, uri, callingUid, modeFlags)) {
-//        // Right now, if you are not the original owner of the permission,
-//        // you are not allowed to revoke it.
-//        //if (!checkUriPermissionLocked(uri, callingUid, modeFlags)) {
-//            throw new SecurityException("Uid " + callingUid
-//                    + " does not have permission to uri " + uri);
-//        //}
-//    }
-//
-//    // Go through all of the permissions and remove any that match.
-//    final List<String> SEGMENTS = uri.getPathSegments();
-//    if (SEGMENTS != null) {
-//        final int NS = SEGMENTS.size();
-//        int N = mGrantedUriPermissions.size();
-//        for (int i=0; i<N; i++) {
-//            HashMap<Uri, UriPermission> perms
-//                    = mGrantedUriPermissions.valueAt(i);
-//            Iterator<UriPermission> it = perms.values().iterator();
-//        toploop:
-//            while (it.hasNext()) {
-//                UriPermission perm = it.next();
-//                Uri targetUri = perm.uri;
-//                if (!authority.equals(targetUri.getAuthority())) {
-//                    continue;
-//                }
-//                List<String> targetSegments = targetUri.getPathSegments();
-//                if (targetSegments == null) {
-//                    continue;
-//                }
-//                if (targetSegments.size() < NS) {
-//                    continue;
-//                }
-//                for (int j=0; j<NS; j++) {
-//                    if (!SEGMENTS.get(j).equals(targetSegments.get(j))) {
-//                        continue toploop;
-//                    }
-//                }
-//                if (DEBUG_URI_PERMISSION) Slog.v(TAG,
-//                        "Revoking " + perm.uid + " permission to " + perm.uri);
-//                perm.clearModes(modeFlags);
-//                if (perm.modeFlags == 0) {
-//                    it.remove();
-//                }
-//            }
-//            if (perms.size() == 0) {
-//                mGrantedUriPermissions.remove(
-//                        mGrantedUriPermissions.keyAt(i));
-//                N--;
-//                i--;
-//            }
-//        }
-//    }
+    modeFlags &= (Intent_FLAG_GRANT_READ_URI_PERMISSION
+           | Intent_FLAG_GRANT_WRITE_URI_PERMISSION);
+    if (modeFlags == 0) {
+       return;
+    }
+
+    if (DEBUG_URI_PERMISSION) {
+        String str;
+        uri->ToString(&str);
+        Slogger::V(TAG, "Revoking all granted permissions to " + str);
+    }
+
+    AutoPtr<ICapsuleManager> pm = GetCapsuleManager();
+    String authority;
+    uri->GetAuthority(&authority);
+    AutoPtr<IContentProviderInfo> pi;
+    ContentProviderRecord* cpr = mProvidersByName.Find(authority)->mSecond;
+    if (cpr != NULL) {
+        cpr->mHolder->GetContentProviderInfo((IContentProviderInfo**)&pi);
+    }
+    else {
+        // try {
+        pm->ResolveContentProvider(authority,
+            CapsuleManager_GET_URI_PERMISSION_PATTERNS, (IContentProviderInfo**)&pi);
+        // }
+        // catch (RemoteException ex) {
+        // }
+    }
+    if (pi == NULL) {
+        Slogger::W(TAG, "No content provider found for: " + authority);
+        return;
+    }
+
+    // Does the caller have this permission on the URI?
+    if (!CheckHoldingPermissionsLocked(pm, pi, uri, callingUid, modeFlags)) {
+       // Right now, if you are not the original owner of the permission,
+       // you are not allowed to revoke it.
+       //if (!checkUriPermissionLocked(uri, callingUid, modeFlags)) {
+        // throw new SecurityException("Uid " + callingUid
+        //         + " does not have permission to uri " + uri);
+        return;
+       //}
+    }
+
+    // Go through all of the permissions and remove any that match.
+    ArrayOf<String>* SEGMENTS;
+    uri->GetPathSegments(&SEGMENTS);
+    if (SEGMENTS != NULL) {
+        Int32 NS = SEGMENTS->GetLength();
+        Int32 N = mGrantedUriPermissions.GetSize();
+        for (Int32 i=0; i<N; i++) {
+            HashMap<IUri*, UriPermission*>* perms
+                   = mGrantedUriPermissions.Find(i)->mSecond;
+            HashMap<IUri*, UriPermission*>::Iterator it = perms->Begin();
+        toploop:
+            while (it != perms->End()) {
+                UriPermission* perm = it->mSecond;
+                IUri* targetUri = perm->mUri;
+                String targetAuthority;
+                targetUri->GetAuthority(&targetAuthority);
+                if (authority != targetAuthority) {
+                    it++;
+                    continue;
+                }
+                ArrayOf<String>* targetSegments;
+                targetUri->GetPathSegments(&targetSegments);
+                if (targetSegments->GetPayload() == NULL) {
+                    it++;
+                    continue;
+                }
+                if (targetSegments->GetLength() < NS) {
+                    it++;
+                    continue;
+                }
+                for (Int32 j=0; j<NS; j++) {
+                    if (SEGMENTS[j] != targetSegments[j]) {
+                        it++;
+                        goto toploop;
+                    }
+                }
+                if (DEBUG_URI_PERMISSION) {
+                    // Slogger::v(TAG,
+                    //     "Revoking " + perm.uid + " permission to " + perm.uri);
+                }
+                perm->ClearModes(modeFlags);
+                if (perm->mModeFlags == 0) {
+                    HashMap<IUri*, UriPermission*>::Iterator itBackUp = it;
+                    it++;
+                    perms->Erase(itBackUp);
+                }
+            }
+            if (perms->GetSize() == 0) {
+                mGrantedUriPermissions.Erase(i);
+                N--;
+                i--;
+            }
+        }
+    }
 }
 
 ECode CActivityManagerService::RevokeUriPermission(
@@ -4143,7 +4183,7 @@ ECode CActivityManagerService::RevokeUriPermission(
 
     String authority;
     uri->GetAuthority(&authority);
-    ContentProviderRecord* cpr = mProvidersByName[authority];
+    ContentProviderRecord* cpr = mProvidersByName.Find(authority)->mSecond;
     AutoPtr<IContentProviderInfo> pi;
     if (cpr != NULL) {
         cpr->mHolder->GetContentProviderInfo((IContentProviderInfo**)&pi);
@@ -4173,10 +4213,9 @@ ECode CActivityManagerService::NewUriPermissionOwner(
     /* [out] */ IBinder** token)
 {
     Mutex::Autolock lock(_m_syncLock);
-    UriPermissionOwner* owner = new UriPermissionOwner(this, (Handle32)&name);
+    AutoPtr<UriPermissionOwner> owner = new UriPermissionOwner(this, (Handle32)&name);
     *token = owner->GetExternalTokenLocked();
 
-    delete(owner);
     return NOERROR;
 }
 
@@ -4201,7 +4240,7 @@ ECode CActivityManagerService::GrantUriPermissionFromOwner(
             return E_SECURITY_EXCEPTION;
        }
     }
-    if (targetPkg == NULL) {
+    if (targetPkg.IsNull()) {
         // throw new IllegalArgumentException("null target");
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
@@ -4284,7 +4323,7 @@ ECode CActivityManagerService::GetTasks(
 //            TAG, "getTasks: max=" + maxNum + ", flags=" + flags
 //            + ", receiver=" + receiver);
 //
-        if (CheckCallingPermission(String("android.permission.GET_TASKS") /*android.Manifest.permission.GET_TASKS*/)
+        if (CheckCallingPermission("android.permission.GET_TASKS" /*android.Manifest.permission.GET_TASKS*/)
                != CapsuleManager_PERMISSION_GRANTED) {
            if (receiver != NULL) {
                // If the caller wants to wait for pending thumbnails,
@@ -4415,9 +4454,9 @@ ECode CActivityManagerService::GetRecentTasks(
     /* [in] */ Int32 flags,
     /* [out] */ IObjectContainer** tasks)
 {
-//    synchronized (this) {
-//        enforceCallingPermission(android.Manifest.permission.GET_TASKS,
-//                "getRecentTasks()");
+    Mutex::Autolock lock(_m_syncLock);
+    EnforceCallingPermission("android.Manifest.permission.GET_TASKS",
+        "getRecentTasks()");
 //
 //        IPackageManager pm = AppGlobals.getPackageManager();
 //
@@ -4461,7 +4500,6 @@ ECode CActivityManagerService::GetRecentTasks(
 //            }
 //        }
 //        return res;
-//    }
     return E_NOT_IMPLEMENTED;
 }
 
@@ -4512,9 +4550,9 @@ Int32 CActivityManagerService::FindAffinityTaskTopLocked(
 ECode CActivityManagerService::MoveTaskToFront(
     /* [in] */ Int32 task)
 {
-//    enforceCallingPermission(android.Manifest.permission.REORDER_TASKS,
-//            "moveTaskToFront()");
-//
+    EnforceCallingPermission("android.Manifest.permission.REORDER_TASKS",
+            "moveTaskToFront()");
+
 //    synchronized(this) {
 //        if (!checkAppSwitchAllowedLocked(Binder.getCallingPid(),
 //                Binder.getCallingUid(), "Task to front")) {
@@ -4547,8 +4585,8 @@ ECode CActivityManagerService::MoveTaskToFront(
 ECode CActivityManagerService::MoveTaskToBack(
     /* [in] */ Int32 task)
 {
-//    enforceCallingPermission(android.Manifest.permission.REORDER_TASKS,
-//            "moveTaskToBack()");
+    EnforceCallingPermission("android.Manifest.permission.REORDER_TASKS",
+            "moveTaskToBack()");
 //
 //    synchronized(this) {
 //        if (mMainStack.mResumedActivity != null
@@ -4597,8 +4635,8 @@ ECode CActivityManagerService::MoveActivityTaskToBack(
 ECode CActivityManagerService::MoveTaskBackwards(
     /* [in] */ Int32 task)
 {
-//    enforceCallingPermission(android.Manifest.permission.REORDER_TASKS,
-//            "moveTaskBackwards()");
+    EnforceCallingPermission("android.Manifest.permission.REORDER_TASKS",
+            "moveTaskBackwards()");
 //
 //    synchronized(this) {
 //        if (!checkAppSwitchAllowedLocked(Binder.getCallingPid(),
@@ -4836,24 +4874,34 @@ String CActivityManagerService::CheckContentProviderPermissionLocked(
         return String(NULL);
     }
 
-//    PathPermission[] pps = cpi.pathPermissions;
-//    List<AutoPtr<CPathPermission> >* pps = cpi->mPathPermissions;
-//    if (pps != NULL) {
-//        List<AutoPtr<CPathPermission> >::ReverseIterator rit = pps->RBegin();
-//        for (; rit != pps->REnd(); ++rit) {
-//            AutoPtr<CPathPermission> pp = *rit;
-//            if (CheckComponentPermission(pp->GetReadPermission(), callingPid, callingUid,
-//                    cpi->mExported ? -1 : cpi->mApplicationInfo->mUid)
-//                    == CapsuleManager_PERMISSION_GRANTED) {
-//                return String(NULL);
-//            }
-//            if (CheckComponentPermission(pp->GetWritePermission(), callingPid, callingUid,
-//                    cpi->mExported ? -1 : cpi->mApplicationInfo->mUid)
-//                    == CapsuleManager_PERMISSION_GRANTED) {
-//                return String(NULL);
-//            }
-//        }
-//    }
+    AutoPtr<IObjectContainer> pps;
+    cpi->GetPathPermissions((IObjectContainer**)&pps);
+    // List<AutoPtr<CPathPermission> >* pps = cpi->mPathPermissions;
+    if (pps != NULL) {
+        //List<AutoPtr<CPathPermission> >::ReverseIterator rit = pps->RBegin();
+        AutoPtr<IObjectEnumerator> en;
+        pps->GetObjectEnumerator((IObjectEnumerator**)&en);
+        Boolean hasNext = FALSE;
+        AutoPtr<IPathPermission> pp;
+        while (en->MoveNext(&hasNext), hasNext) {
+            en->Current((IInterface**)&pp);
+            String readPerm;
+            pp->GetReadPermission(&readPerm);
+            if (CheckComponentPermission(readPerm, callingPid, callingUid,
+                    cpiExported ? -1 : cpiUid)
+                    == CapsuleManager_PERMISSION_GRANTED) {
+                return String(NULL);
+            }
+
+            String writePerm;
+            pp->GetWritePermission(&writePerm);
+            if (CheckComponentPermission(writePerm, callingPid, callingUid,
+                    cpiExported ? -1 : cpiUid)
+                    == CapsuleManager_PERMISSION_GRANTED) {
+                return String(NULL);
+            }
+        }
+    }
 
     Map<Int32, HashMap<IUri*, UriPermission*>*>::Iterator it = \
             mGrantedUriPermissions.Find(callingUid);
@@ -5467,8 +5515,8 @@ ProcessRecord* CActivityManagerService::AddAppLocked(
 
 ECode CActivityManagerService::UnhandledBack()
 {
-//    enforceCallingPermission(android.Manifest.permission.FORCE_BACK,
-//            "unhandledBack()");
+    EnforceCallingPermission("android.Manifest.permission.FORCE_BACK",
+           "unhandledBack()");
 //
 //    synchronized(this) {
 //        int count = mMainStack.mHistory.size();
@@ -5544,7 +5592,7 @@ ECode CActivityManagerService::Shutdown(
     /* [in]*/ Int32 timeout,
     /* [out] */ Boolean* result)
 {
-    if (CheckCallingPermission(String("android.permission.SHUTDOWN") /*android.Manifest.permission.SHUTDOWN)*/)
+    if (CheckCallingPermission("android.permission.SHUTDOWN" /*android.Manifest.permission.SHUTDOWN)*/)
            != CapsuleManager_PERMISSION_GRANTED) {
         // throw new SecurityException("Requires permission "
         //         + android.Manifest.permission.SHUTDOWN);
@@ -5598,7 +5646,7 @@ ECode CActivityManagerService::WakingUp()
 
 ECode CActivityManagerService::StopAppSwitches()
 {
-    if (CheckCallingPermission(String("android.permission.STOP_APP_SWITCHES") /*android.Manifest.permission.STOP_APP_SWITCHES*/)
+    if (CheckCallingPermission("android.permission.STOP_APP_SWITCHES" /*android.Manifest.permission.STOP_APP_SWITCHES*/)
            != CapsuleManager_PERMISSION_GRANTED) {
         // throw new SecurityException("Requires permission "
         //         + android.Manifest.permission.STOP_APP_SWITCHES);
@@ -5618,7 +5666,7 @@ ECode CActivityManagerService::StopAppSwitches()
 
 ECode CActivityManagerService::ResumeAppSwitches()
 {
-    if (CheckCallingPermission(String("android.permission.STOP_APP_SWITCHES") /*android.Manifest.permission.STOP_APP_SWITCHES)*/)
+    if (CheckCallingPermission("android.permission.STOP_APP_SWITCHES" /*android.Manifest.permission.STOP_APP_SWITCHES)*/)
            != CapsuleManager_PERMISSION_GRANTED) {
         // throw new SecurityException("Requires permission "
         //        + android.Manifest.permission.STOP_APP_SWITCHES);
@@ -5644,7 +5692,7 @@ Boolean CActivityManagerService::CheckAppSwitchAllowedLocked(
     }
 
     Int32 perm = CheckComponentPermission(
-            String("elastos.permission.STOP_APP_SWITCHES"), /*android.Manifest.permission.STOP_APP_SWITCHES*/
+            "elastos.permission.STOP_APP_SWITCHES", /*android.Manifest.permission.STOP_APP_SWITCHES*/
             callingPid, callingUid, -1);
     if (perm == CapsuleManager_PERMISSION_GRANTED) {
         return TRUE;
@@ -5659,8 +5707,8 @@ ECode CActivityManagerService::SetDebugApp(
     /* [in] */ Boolean waitForDebugger,
     /* [in] */ Boolean persistent)
 {
-//    enforceCallingPermission(android.Manifest.permission.SET_DEBUG_APP,
-//            "setDebugApp()");
+    EnforceCallingPermission("android.Manifest.permission.SET_DEBUG_APP",
+           "setDebugApp()");
 //
 //    // Note that this is not really thread safe if there are multiple
 //    // callers into it at the same time, but that's not a situation we
@@ -5695,8 +5743,8 @@ ECode CActivityManagerService::SetDebugApp(
 ECode CActivityManagerService::SetAlwaysFinish(
     /* [in] */ Boolean enabled)
 {
-//    enforceCallingPermission(android.Manifest.permission.SET_ALWAYS_FINISH,
-//            "setAlwaysFinish()");
+    EnforceCallingPermission("android.Manifest.permission.SET_ALWAYS_FINISH",
+         "setAlwaysFinish()");
 //
 //    Settings.System.putInt(
 //            mContext.getContentResolver(),
@@ -5711,7 +5759,7 @@ ECode CActivityManagerService::SetAlwaysFinish(
 ECode CActivityManagerService::SetActivityController(
     /* [in] */ IActivityController* controller)
 {
-    EnforceCallingPermission(String("elastos.permission.SET_ACTIVITY_WATCHER"),/*android.Manifest.permission.SET_ACTIVITY_WATCHER,*/
+    EnforceCallingPermission("elastos.permission.SET_ACTIVITY_WATCHER",/*android.Manifest.permission.SET_ACTIVITY_WATCHER,*/
             "setActivityController()");
 
     Mutex::Autolock lock(_m_syncLock);
@@ -9273,7 +9321,7 @@ ECode CActivityManagerService::BindBackupAgent(
         /* [out] */ Boolean* result)
 {
 //    if (DEBUG_BACKUP) Slog.v(TAG, "startBackupAgent: app=" + app + " mode=" + backupMode);
-//    enforceCallingPermission("android.permission.BACKUP", "startBackupAgent");
+    EnforceCallingPermission("android.permission.BACKUP", "startBackupAgent");
 //
 //    synchronized(this) {
 //        // !!! TODO: currently no check here that we're already bound
@@ -9643,7 +9691,7 @@ ECode CActivityManagerService::BroadcastIntentLocked(
             || !action.Compare(Intent_ACTION_EXTERNAL_APPLICATIONS_UNAVAILABLE)
             || uidRemoved) {
         if (CheckComponentPermission(
-                String("elastos.permission.BROADCAST_CAPSULE_REMOVED")/*android.Manifest.permission.BROADCAST_CAPSULE_REMOVED*/,
+                "elastos.permission.BROADCAST_CAPSULE_REMOVED"/*android.Manifest.permission.BROADCAST_CAPSULE_REMOVED*/,
                 callingPid, callingUid, -1)
                 == CapsuleManager_PERMISSION_GRANTED) {
             if (uidRemoved) {
@@ -9749,7 +9797,7 @@ ECode CActivityManagerService::BroadcastIntentLocked(
     // Add to the sticky list if requested.
     if (sticky) {
 	Int32 permission;
-	CheckPermission(String("elastos.permission.BROADCAST_STICKY")/*android.Manifest.permission.BROADCAST_STICKY*/,
+	CheckPermission("elastos.permission.BROADCAST_STICKY"/*android.Manifest.permission.BROADCAST_STICKY*/,
                 callingPid, callingUid, &permission);
         if (permission != CapsuleManager_PERMISSION_GRANTED) {
             StringBuffer msg;
@@ -10155,7 +10203,7 @@ ECode CActivityManagerService::UnbroadcastIntent(
 //
 
     Mutex::Autolock lock(_m_syncLock);
-    if (CheckCallingPermission(String("android.permission.BROADCAST_STICKY") /*android.Manifest.permission.BROADCAST_STICKY)*/)
+    if (CheckCallingPermission("android.permission.BROADCAST_STICKY" /*android.Manifest.permission.BROADCAST_STICKY)*/)
             != CapsuleManager_PERMISSION_GRANTED) {
         Slogger::V(TAG, StringBuffer("Permission Denial: unbroadcastIntent() from pid=") + Binder::GetCallingPid()
             + ", uid=" + Binder::GetCallingUid() + " requires " + "android.permission.BROADCAST_STICKY");
@@ -11177,7 +11225,7 @@ ECode CActivityManagerService::GetConfiguration(
 ECode CActivityManagerService::UpdateConfiguration(
     /* [in] */ IConfiguration* values)
 {
-    EnforceCallingPermission(String("android.permission.CHANGE_CONFIGURATION"), /*android.Manifest.permission.CHANGE_CONFIGURATION,*/
+    EnforceCallingPermission("android.permission.CHANGE_CONFIGURATION", /*android.Manifest.permission.CHANGE_CONFIGURATION,*/
             "UpdateConfiguration()");
 //
 //    synchronized(this) {

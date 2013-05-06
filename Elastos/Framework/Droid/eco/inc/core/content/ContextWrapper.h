@@ -102,7 +102,7 @@ public:
         /* [out] */ IContext** ctx);
 
     CARAPI CheckCallingPermission(
-        /* [in] */ const String& permission,
+        /* [in] */ CString permission,
         /* [out] */ Int32* value);
 
     CARAPI EnforceCallingOrSelfPermission(
@@ -133,8 +133,8 @@ public:
 
     CARAPI CheckUriPermission(
         /* [in] */ IUri * uri,
-        /* [in] */ const String& readPermission,
-        /* [in] */ const String& writePermission,
+        /* [in] */ CString readPermission,
+        /* [in] */ CString writePermission,
         /* [in] */ Int32 pid,
         /* [in] */ Int32 uid,
         /* [in] */ Int32 modeFlags,

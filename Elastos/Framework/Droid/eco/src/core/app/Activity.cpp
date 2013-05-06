@@ -178,8 +178,8 @@ ECode Activity::CheckPermission(
 
 ECode Activity::CheckUriPermission(
     /* [in] */ IUri * uri,
-    /* [in] */ const String& readPermission,
-    /* [in] */ const String& writePermission,
+    /* [in] */ CString readPermission,
+    /* [in] */ CString writePermission,
     /* [in] */ Int32 pid,
     /* [in] */ Int32 uid,
     /* [in] */ Int32 modeFlags,
@@ -200,7 +200,7 @@ ECode Activity::CheckUriPermissionEx(
 }
 
 ECode Activity::CheckCallingPermission(
-    /* [in] */ const String& permission,
+    /* [in] */ CString permission,
     /* [out] */ Int32* value)
 {
     return mBase->CheckCallingPermission(permission, value);

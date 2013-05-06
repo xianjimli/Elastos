@@ -6454,8 +6454,8 @@ ECode CCapsuleManagerService::HasSystemFeature(
 
 
 ECode CCapsuleManagerService::CheckPermission(
-    /* [in] */ const String& permName,
-    /* [in] */ const String& capName,
+    /* [in] */ CString permName,
+    /* [in] */ CString capName,
     /* [out] */ Int32* perm)
 {
     VALIDATE_STRING_NOT_NULL(permName);
@@ -6465,21 +6465,21 @@ ECode CCapsuleManagerService::CheckPermission(
     Mutex::Autolock lock(mCapsulesLock);
 
     CapsuleParser::Capsule* c = NULL;
-    HashMap<String, CapsuleParser::Capsule*>::Iterator it = mCapsules.Find(capName);
+    HashMap<String, CapsuleParser::Capsule*>::Iterator it = mCapsules.Find(String(capName));
     if (it != mCapsules.End()) {
         c = it->mSecond;
     }
     if (c != NULL && c->mExtras != NULL) {
         CapsuleSetting* cs = (CapsuleSetting*)c->mExtras->Probe(EIID_CapsuleSetting);
         if (cs->mSharedUser != NULL) {
-            if (cs->mSharedUser->mGrantedPermissions.Find(permName)
+            if (cs->mSharedUser->mGrantedPermissions.Find(String(permName))
                  != cs->mSharedUser->mGrantedPermissions.End()) {
                 *perm = CapsuleManager_PERMISSION_GRANTED;
                 return NOERROR;
             }
         }
         else {
-            if (cs->mGrantedPermissions.Find(permName)
+            if (cs->mGrantedPermissions.Find(String(permName))
                 != cs->mGrantedPermissions.End()) {
                 *perm = CapsuleManager_PERMISSION_GRANTED;
                 return NOERROR;
@@ -6491,7 +6491,7 @@ ECode CCapsuleManagerService::CheckPermission(
 }
 
 ECode CCapsuleManagerService::CheckUidPermission(
-    /* [in] */ const String& permName,
+    /* [in] */ CString permName,
     /* [in] */ Int32 uid,
     /* [out] */ Int32* perm)
 {
@@ -6502,7 +6502,7 @@ ECode CCapsuleManagerService::CheckUidPermission(
     //todo: check;
     GrantedPermissions* gp = (GrantedPermissions*)mSettings->GetUserIdLP(uid).Get();
     if (gp != NULL) {
-        if (gp->mGrantedPermissions.Find(permName) != gp->mGrantedPermissions.End()) {
+        if (gp->mGrantedPermissions.Find(String(permName)) != gp->mGrantedPermissions.End()) {
             *perm = CapsuleManager_PERMISSION_GRANTED;
             return NOERROR;
         }
@@ -6513,7 +6513,7 @@ ECode CCapsuleManagerService::CheckUidPermission(
         if (it != mSystemPermissions.End()) {
             perms = it->mSecond;
         }
-        if (perms != NULL && perms->Find(permName) != perms->End()) {
+        if (perms != NULL && perms->Find(String(permName)) != perms->End()) {
             *perm = CapsuleManager_PERMISSION_GRANTED;
             return NOERROR;
         }
@@ -12074,7 +12074,7 @@ ECode CCapsuleManagerService::SetEnabledSetting(
     const Int32 uid = -1 /*Binder::GetCallingUid()*/;
     Int32 permission = 0;
     mContext->CheckCallingPermission(
-        String("") /*android.Manifest.permission.CHANGE_COMPONENT_ENABLED_STATE*/,
+        "" /*android.Manifest.permission.CHANGE_COMPONENT_ENABLED_STATE*/,
         &permission);
     const Boolean allowedByPermission = (permission == CapsuleManager_PERMISSION_GRANTED);
     Boolean sendNow = FALSE;

@@ -25,6 +25,9 @@ module
         SetWritePermission(
             [in] String permission);
 
+        GetGrantUriPermissions(
+            [out] Boolean* grant);
+
         SetGrantUriPermissions(
             [in] Boolean grant);
 

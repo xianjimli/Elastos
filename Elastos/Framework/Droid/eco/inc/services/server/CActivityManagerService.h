@@ -1059,23 +1059,23 @@ private:
         /* [in] */ /*ForegroundToken token*/);
 
     CARAPI_(Int32) CheckComponentPermission(
-        /* [in] */ const String& permission,
+        /* [in] */ CString permission,
         /* [in] */ Int32 pid,
         /* [in] */ Int32 uid,
         /* [in] */ Int32 reqUid);
 
     CARAPI CheckPermission(
-        /* [in] */ const String& permission,
+        /* [in] */ CString permission,
         /* [in] */ Int32 pid,
         /* [in] */ Int32 uid,
         /* [out] */ Int32* result);
 
     CARAPI_(Int32) CheckCallingPermission(
-        /* [in] */ const String& permission);
+        /* [in] */ CString permission);
 
     CARAPI EnforceCallingPermission(
-        /* [in] */ const String& permission,
-        /* [in] */ const char* func);
+        /* [in] */ CString permission,
+        /* [in] */ CString func);
 
     CARAPI_(Boolean) CheckHoldingPermissionsLocked(
         /* [in] */ ICapsuleManager* pm,

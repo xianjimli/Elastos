@@ -275,7 +275,7 @@ ECode CSoftKeyboard::CreateCapsuleContext(
 }
 
 ECode CSoftKeyboard::CheckCallingPermission(
-    /* [in] */ const String& permission,
+    /* [in] */ CString permission,
     /* [out] */ Int32* value)
 {
     VALIDATE_NOT_NULL(value);
@@ -315,8 +315,8 @@ ECode CSoftKeyboard::CheckPermission(
 
 ECode CSoftKeyboard::CheckUriPermission(
 	/* [in] */ IUri * uri,
-	/* [in] */ const String& readPermission,
-	/* [in] */ const String& writePermission,
+	/* [in] */ CString readPermission,
+	/* [in] */ CString writePermission,
 	/* [in] */ Int32 pid,
 	/* [in] */ Int32 uid,
 	/* [in] */ Int32 modeFlags,

@@ -138,6 +138,9 @@ public:
     CARAPI SetWritePermission(
         /* [in] */ const String& permission);
 
+    CARAPI GetGrantUriPermissions(
+        /* [out] */ Boolean* grant);
+
     CARAPI SetGrantUriPermissions(
         /* [in] */ Boolean grant);
 

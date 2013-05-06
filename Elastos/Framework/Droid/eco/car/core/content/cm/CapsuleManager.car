@@ -650,8 +650,8 @@ module
          * @see #PERMISSION_DENIED
          */
         CheckPermission(
-            [in] String permName,
-            [in] String capName,
+            [in] CString permName,
+            [in] CString capName,
             [out] Int32* perm);
 
         /**

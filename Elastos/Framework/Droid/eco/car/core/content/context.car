@@ -806,7 +806,7 @@ module
          * @see #checkCallingOrSelfPermission
          */
         CheckCallingPermission(
-            [in] String permission,
+            [in] CString permission,
             [out] Int32* value);
 
         /**
@@ -872,8 +872,8 @@ module
          */
         CheckUriPermission(
             [in] IUri* uri,
-            [in] String readPermission,
-            [in] String writePermission,
+            [in] CString readPermission,
+            [in] CString writePermission,
             [in] Int32 pid,
             [in] Int32 uid,
             [in] Int32 modeFlags,

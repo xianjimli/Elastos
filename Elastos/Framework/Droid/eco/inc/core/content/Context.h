@@ -521,7 +521,7 @@ public:
         /* [out] */ IContext** ctx) = 0;
 
     virtual CARAPI CheckCallingPermission(
-        /* [in] */ const String& permission,
+        /* [in] */ CString permission,
         /* [out] */ Int32* value) = 0;
 
     virtual CARAPI EnforceCallingOrSelfPermission(
