@@ -41,14 +41,87 @@ CReflectionAction::~CReflectionAction()
 }
 
 ECode CReflectionAction::Apply(
-    /* [in] */ IView * pRoot)
+    /* [in] */ IView* root)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    AutoPtr<IView> view;
+    FAIL_RETURN(root->FindViewById(mViewId, (IView**)&view));
+
+    PInterface intf = view->Probe(EIID_IInterface);
+    AutoPtr<IInterfaceInfo> interfaceInfo;
+    FAIL_RETURN(CObject::ReflectInterfaceInfo(
+        intf, (IInterfaceInfo**)&interfaceInfo));
+
+    AutoPtr<IMethodInfo> methodInfo;
+    FAIL_RETURN(interfaceInfo->GetMethodInfo(
+        mMethodName, (IMethodInfo**)&methodInfo));
+
+    AutoPtr<IArgumentList> argumentList;
+    FAIL_RETURN(methodInfo->CreateArgumentList((IArgumentList**)&argumentList));
+
+    switch (mType) {
+        case CReflectionAction::T_BOOLEAN:
+            FAIL_RETURN(argumentList->SetInputArgumentOfBoolean(0, mValue.mBoolean));
+            break;
+        case CReflectionAction::T_BYTE:
+            FAIL_RETURN(argumentList->SetInputArgumentOfByte(0, mValue.mByte));
+            break;
+        case CReflectionAction::T_SHORT:
+            FAIL_RETURN(argumentList->SetInputArgumentOfInt16(0, mValue.mInt16));
+            break;
+        case CReflectionAction::T_INT:
+            FAIL_RETURN(argumentList->SetInputArgumentOfInt32(0, mValue.mInt32));
+            break;
+        case CReflectionAction::T_LONG:
+            FAIL_RETURN(argumentList->SetInputArgumentOfInt64(0, mValue.mInt64));
+            break;
+        case CReflectionAction::T_FLOAT:
+            FAIL_RETURN(argumentList->SetInputArgumentOfFloat(0, mValue.mFloat));
+            break;
+        case CReflectionAction::T_DOUBLE:
+            FAIL_RETURN(argumentList->SetInputArgumentOfDouble(0, mValue.mDouble));
+            break;
+        case CReflectionAction::T_CHAR:
+            FAIL_RETURN(argumentList->SetInputArgumentOfChar16(0, mValue.mChar16));
+            break;
+        case CReflectionAction::T_STRING: {
+            String temp;
+            FAIL_RETURN(mValue.mString->ToString(&temp));
+            FAIL_RETURN(argumentList->SetInputArgumentOfString(0, temp));
+            break;
+        }
+        case CReflectionAction::T_CHAR_SEQUENCE: {
+            PInterface intf1 = mValue.mCharSequence->Probe(EIID_IInterface);
+            FAIL_RETURN(argumentList->SetInputArgumentOfObjectPtr(0, intf1));
+            break;
+        }
+        case CReflectionAction::T_URI: {
+            PInterface intf1 = mValue.mUri->Probe(EIID_IInterface);
+            FAIL_RETURN(argumentList->SetInputArgumentOfObjectPtr(0, intf1));
+            break;
+        }
+        case CReflectionAction::T_BITMAP: {
+            PInterface intf1 = mValue.mBitmap->Probe(EIID_IInterface);
+            FAIL_RETURN(argumentList->SetInputArgumentOfObjectPtr(0, intf1));
+            break;
+        }
+        case CReflectionAction::T_BUNDLE: {
+            PInterface intf1 = mValue.mBundle->Probe(EIID_IInterface);
+            FAIL_RETURN(argumentList->SetInputArgumentOfObjectPtr(0, intf1));
+            break;
+        }
+        default:
+            break;
+    }
+
+    if (FAILED(methodInfo->Invoke(intf, argumentList))) {
+        return E_ACTION_EXCEPTION;
+    }
+
+    return NOERROR;
 }
 
 ECode CReflectionAction::ReadFromParcel(
-    /* [in] */ IParcel * pSource)
+    /* [in] */ IParcel* source)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
