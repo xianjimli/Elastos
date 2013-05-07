@@ -119,7 +119,9 @@ public:
             /* [in] */ const ArrayOf<IContentValues*> & initialValues,
             /* [out] */ Int32* number);
 
-        // public ContentProviderResult[] applyBatch(ArrayList<ContentProviderOperation> operations);
+        virtual CARAPI ApplyBatch(
+            /* [in] */ IObjectContainer* operations,
+            /* [out, callee] */ ArrayOf<IContentProviderResult*>** providerResults);
 
         virtual CARAPI Delete(
             /* [in] */ IUri* uri,
@@ -232,7 +234,9 @@ public:
     virtual CARAPI GetIContentProvider(
         /* [out] */ IContentProvider** provider);
 
-    // public ContentProviderResult[] applyBatch(ArrayList<ContentProviderOperation> operations)
+    virtual CARAPI ApplyBatch(
+        /* [in] */ IObjectContainer* operations,
+        /* [out, callee] */ ArrayOf<IContentProviderResult*>** providerResults);
 
     virtual CARAPI Call(
         /* [in] */ String method,

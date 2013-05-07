@@ -75,13 +75,12 @@ public:
 
         CARAPI BulkInsert(
             /* [in] */ IUri* uri,
-            /* [in] */ const ArrayOf<IContentValues*>& initialValues,
+            /* [in] */ const ArrayOf<IContentValues*>& values,
             /* [out] */ Int32* number);
 
-        // public ContentProviderResult[] applyBatch(ArrayList<ContentProviderOperation> operations);
         CARAPI ApplyBatch(
             /* [in] */ IObjectContainer* operations,
-            /* [out, callee] */ ArrayOf<IContentProviderResult*>** providerResult);
+            /* [out, callee] */ ArrayOf<IContentProviderResult*>** providerResults);
 
         CARAPI Delete(
             /* [in] */ IUri* uri,
@@ -173,8 +172,31 @@ public:
         /* [out] */ Boolean* result);
 
     CARAPI AsBinder(
-        /* [out] */ IBinder** binder);   
+        /* [out] */ IBinder** binder); 
 
+    virtual CARAPI BulkQuery(
+        /* [in] */ IUri* uri,
+        /* [in] */ const ArrayOf<String> & projection,
+        /* [in] */ const String& selection,
+        /* [in] */ const ArrayOf<String> & selectionArgs,
+        /* [in] */ const String& sortOrder,
+        /* [in] */ IContentObserver* observer,
+        /* [in] */ ICursorWindow* window,
+        /* [out] */ IBulkCursor** bulkCursor);
+
+    virtual CARAPI Delete(
+        /* [in] */ IUri* uri,
+        /* [in] */ const String& selection,
+        /* [in] */ const ArrayOf<String> & selectionArgs,
+        /* [out] */ Int32* number);
+
+    virtual CARAPI Update(
+        /* [in] */ IUri* uri,
+        /* [in] */ IContentValues* values,
+        /* [in] */ const String& selection,
+        /* [in] */ const ArrayOf<String> & selectionArgs,
+        /* [out] */ Int32* number);
+        
 private:
     static CString TAG;
 };
