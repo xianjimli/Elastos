@@ -25,3 +25,4 @@ DIRS += accessibilityservice
 DIRS += appwidget
 DIRS += accounts
 DIRS += media
+DIRS += privacy

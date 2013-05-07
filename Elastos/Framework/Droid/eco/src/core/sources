@@ -94,6 +94,7 @@ LIBRARIES += accessibilityservice/accessibilityservice.lib
 LIBRARIES += appwidget/appwidget.lib
 LIBRARIES += accounts/accounts.lib
 LIBRARIES += media/media.lib
+LIBRARIES += privacy/privacy.lib
 
 LIBRARIES += $(XDK_USER_LIB)/Elastos.Utility.Logging.lib
 ifeq "$(XDK_TARGET_PLATFORM)" "win32"
