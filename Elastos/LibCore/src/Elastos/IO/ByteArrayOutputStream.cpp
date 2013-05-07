@@ -37,7 +37,8 @@ ECode ByteArrayOutputStream::Close()
 ECode ByteArrayOutputStream::ToString(
     /* [out] */ String* str)
 {
-    return E_NOT_IMPLEMENTED;
+    *str = String((const char*)mBuf->GetPayload(), mCount);
+    return NOERROR;
 }
 
 ECode ByteArrayOutputStream::ToStringEx(
