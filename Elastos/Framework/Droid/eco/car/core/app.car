@@ -44,7 +44,23 @@ module
     }
 
     class CDefaultInstrumentation {
+        constructor();
+
         interface IInstrumentation;
+    }
+
+    class CActivityMonitor {
+        constructor(
+            [in] IIntentFilter* which,
+            [in] IActivityResult* result,
+            [in] Boolean block);
+
+        constructor(
+            [in] String cls,
+            [in] IActivityResult* result,
+            [in] Boolean block);
+
+        interface IActivityMonitor;
     }
 
     class CInnerConnection {

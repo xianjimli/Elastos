@@ -78,4 +78,28 @@ module
             [in] Int32 requestCode,
             [out] IActivityResult** result);
     }
+
+    interface IActivityMonitor {
+        GetFilter(
+            [out] IIntentFilter** filter);
+
+        GetResult(
+            [out] IActivityResult** result);
+
+        IsBlocking(
+            [out] Boolean* result);
+
+        GetHits(
+            [out] Int32* time);
+
+        GetLastActivity(
+            [out] IActivity** activity);
+
+        WaitForActivity(
+            [out] IActivity** activity);
+
+        WaitForActivityWithTimeout(
+            [in] Int64 timeOut,
+            [out] IActivity** activity);
+    }
 }

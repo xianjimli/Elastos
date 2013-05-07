@@ -3,10 +3,29 @@
 #define __CDEFAULTINSTRUMENTATION_H__
 
 #include "_CDefaultInstrumentation.h"
+#include "ext/frameworkext.h"
+#include "os/NativeMessageQueue.h"
+#include <elastos/Mutex.h>
+#include <elastos/List.h>
+#include <elastos/AutoPtr.h>
 
 CarClass(CDefaultInstrumentation)
 {
+private:
+    class ActivityWaiter
+    {
+    public:
+        ActivityWaiter(
+            /* [in] */ IIntent* intent);
+
+    public:
+        AutoPtr<IIntent> mIntent;
+        AutoPtr<IActivity> mActivity;
+    };
+
 public:
+    CARAPI constructor();
+
     CARAPI NewApplication(
         /* [in] */ const String& moduleName,
         /* [in] */ const String& className,
@@ -73,6 +92,10 @@ public:
         /* [in] */ IIntent* intent);
 
 private:
+    NativeMessageQueue* mMessageQueue;
+    List<ActivityWaiter*>* mWaitingActivities;
+    List<AutoPtr<IActivityMonitor> >* mActivityMonitors;
+    Mutex mSync;
 
 };
 

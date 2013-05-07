@@ -18,6 +18,7 @@ SOURCES += Instrumentation.cpp
 SOURCES += CApplicationApartment.cpp
 SOURCES += CContextImpl.cpp
 SOURCES += CApplicationContentResolver.cpp
+SOURCES += CActivityMonitor.cpp
 SOURCES += CDefaultInstrumentation.cpp
 #SOURCES += CServiceApartment.cpp
 #SOURCES += CServiceResolver.cpp
