@@ -1,0 +1,3 @@
+
+EXPORT_HEADERS += CPrivacySettings.h
+EXPORT_HEADERS += CPrivacySettingsManager.h
