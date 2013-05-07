@@ -1,4 +1,5 @@
 #include "content/CSyncManager.h"
+#include "os/CBundle.h"
 
 Int64 CSyncManager::LOCAL_SYNC_DELAY;
 Int64 CSyncManager::MAX_TIME_PER_SYNC;
@@ -41,31 +42,164 @@ CSyncManager::~CSyncManager()
 ECode CSyncManager::GetSyncQueue(
 /* [out] */ISyncQueue** syncQueue)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    *syncQueue = (ISyncQueue*)mSyncQueue;
+    return NOERROR;
 }
 
 ECode CSyncManager::GetSyncStorageEngine(
 /* [out] */ISyncStorageEngine** engine)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    *engine = (ISyncStorageEngine*)mSyncStorageEngine;
+    return NOERROR;
 }
 
 ECode CSyncManager::ScheduleSync(
 /* [in] */IAccount* requestedAccount,
-/* [in] */const String& requestedAuthority,
+/* [in] */String* requestedAuthority,
 /* [in] */IBundle* extras,
 /* [in] */Int64 delay,
 /* [in] */Boolean onlyThoseWithUnkownSyncableState)
 {
-    // TODO: Add your code here
+    Boolean isLoggable = Logger::IsLoggable(CSyncManager::TAG, Logger::VERBOSE);
+
+
+    Boolean allowBackgroundData = FALSE;
+    GetConnectivityManager()->GetBackgroundDataSetting(&allowBackgroundData);
+
+    Boolean backgroundDataUsageAllowed = !mBootCompleted || allowBackgroundData;
+
+    if (extras == NULL) {
+        CBundle::New((IBundle**)&extras);
+    }
+
+    Boolean expedited = FALSE;
+    extras->GetBooleanEx(String(ContentResolver_SYNC_EXTRAS_EXPEDITED), FALSE, &expedited);
+
+    if (expedited) {
+        delay = -1; // this means schedule at the front of the queue
+    }
+
+    ArrayOf<IAccount*>* accounts;
+
+    if (requestedAccount != NULL) {
+//        accounts = new Account[]{requestedAccount};
+        accounts = ArrayOf<IAccount*>::Alloc(1);
+        (*accounts)[0] = requestedAccount;
+    } else {
+        // if the accounts aren't configured yet then we can't support an account-less
+        // sync request
+        accounts = mAccounts;
+
+        if (accounts->GetLength() == 0) {
+            if (isLoggable) {
+                Logger::V(CSyncManager::TAG, String("scheduleSync: no accounts configured, dropping"));
+            }
+
+            return NOERROR;
+        }
+    }
+
+    /*final */ Boolean uploadOnly = FALSE;
+    extras->GetBooleanEx(String(ContentResolver_SYNC_EXTRAS_UPLOAD), FALSE, &uploadOnly);
+
+    /*final*/ Boolean manualSync= FALSE;
+    extras->GetBooleanEx(String(ContentResolver_SYNC_EXTRAS_MANUAL), FALSE, &manualSync);
+
+    if (manualSync) {
+        extras->PutBoolean(String(ContentResolver_SYNC_EXTRAS_IGNORE_BACKOFF), TRUE);
+        extras->PutBoolean(String(ContentResolver_SYNC_EXTRAS_IGNORE_SETTINGS), TRUE);
+    }
+
+    /*final*/ Boolean ignoreSettings;
+    extras->GetBooleanEx(String(ContentResolver_SYNC_EXTRAS_IGNORE_SETTINGS), FALSE, &ignoreSettings);
+
+    Int32 source = 0;
+
+    if (uploadOnly) {
+//        source = SyncStorageEngine::SOURCE_LOCAL;
+    } else if (manualSync) {
+//        source = SyncStorageEngine::SOURCE_USER;
+    } else if (requestedAuthority == NULL) {
+//        source = SyncStorageEngine::SOURCE_POLL;
+    } else {
+        // this isn't strictly server, since arbitrary callers can (and do) request
+        // a non-forced two-way sync on a specific url
+//        source = SyncStorageEngine::SOURCE_SERVER;
+    }
+
+    // Compile a list of authorities that have sync adapters.
+    // For each authority sync each account that matches a sync adapter.
+
+
+//    /*final*/ HashSet<String> syncableAuthorities; // = new HashSet<String>();
+
+    /*
+    for (RegisteredServicesCache.ServiceInfo<SyncAdapterType> syncAdapter :
+            mSyncAdapters->getAllServices()) {
+        syncableAuthorities.Insert(syncAdapter.type.authority);
+    }
+
+    // if the url was specified then replace the list of authorities with just this authority
+    // or clear it if this authority isn't syncable
+    if (requestedAuthority != NULL) {
+        Boolean hasSyncAdapter = syncableAuthorities.contains(requestedAuthority);
+        syncableAuthorities.clear();
+        if (hasSyncAdapter) syncableAuthorities.add(requestedAuthority);
+    }
+
+    final boolean masterSyncAutomatically = mSyncStorageEngine.getMasterSyncAutomatically();
+
+    for (String authority : syncableAuthorities) {
+        for (Account account : accounts) {
+            int isSyncable = mSyncStorageEngine.getIsSyncable(account, authority);
+            if (isSyncable == 0) {
+                continue;
+            }
+            if (onlyThoseWithUnkownSyncableState && isSyncable >= 0) {
+                continue;
+            }
+            final RegisteredServicesCache.ServiceInfo<SyncAdapterType> syncAdapterInfo =
+                    mSyncAdapters.getServiceInfo(
+                            SyncAdapterType.newKey(authority, account.type));
+            if (syncAdapterInfo != null) {
+                if (!syncAdapterInfo.type.supportsUploading() && uploadOnly) {
+                    continue;
+                }
+
+                // always allow if the isSyncable state is unknown
+                boolean syncAllowed =
+                        (isSyncable < 0)
+                        || ignoreSettings
+                        || (backgroundDataUsageAllowed && masterSyncAutomatically
+                            && mSyncStorageEngine.getSyncAutomatically(account, authority));
+                if (!syncAllowed) {
+                    if (isLoggable) {
+                        Log.d(TAG, "scheduleSync: sync of " + account + ", " + authority
+                                + " is not allowed, dropping request");
+                    }
+                    continue;
+                }
+
+                if (isLoggable) {
+                    Log.v(TAG, "scheduleSync:"
+                            + " delay " + delay
+                            + ", source " + source
+                            + ", account " + account
+                            + ", authority " + authority
+                            + ", extras " + extras);
+                }
+                scheduleSyncOperation(
+                        new SyncOperation(account, source, authority, extras, delay));
+            }
+        }
+    }*/
+
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CSyncManager::ScheduleLocalSync(
-/* [in] */IAccount* account,
-/* [in] */const String& authority)
+/* [in] */ IAccount* account,
+/* [in] */ String* authority)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -79,8 +213,8 @@ ECode CSyncManager::GetSyncAdapterTypes(
 }
 
 ECode CSyncManager::CancelActiveSync(
-/* [in] */IAccount* account,
-/* [in] */const String& authority)
+/* [in] */ IAccount* account,
+/* [in] */ String* authority)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -94,8 +228,8 @@ ECode CSyncManager::ScheduleSyncOperation(
 }
 
 ECode CSyncManager::ClearScheduledSyncOperations(
-/* [in] */IAccount* account,
-/* [in] */const String& authority)
+/* [in] */ IAccount* account,
+/* [in] */ String* authority)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
@@ -162,12 +296,24 @@ void CSyncManager::InitStaticMembers()
     mIsStaticMemberInitialized = TRUE;
 }
 
+AutoPtr<IConnectivityManager> CSyncManager::GetConnectivityManager()
+{
+    // TODO: Add your code here
+
+    return NULL;
+}
+
+void CSyncManager::SendCheckAlarmsMessage()
+{
+    // TODO: Add your code here
+}
+
 /**************************************************************************************
  * implement class CSyncManager::InitializerServiceConnection below
  **************************************************************************************/
 CSyncManager::InitializerServiceConnection::InitializerServiceConnection(
 /* [in] */ IAccount* account,
-/* [in] */ String authority,
+/* [in] */ String* authority,
 /* [in] */ IContext* context,
 /* [in] */ IHandler* handler):
     mAccount(account),
@@ -231,7 +377,7 @@ ECode CSyncManager::InitializerServiceConnection::OnServiceConnected(
         if (!mInitialized) {
             mInitialized = TRUE;
             if (Logger::IsLoggable(CSyncManager::TAG, Logger::VERBOSE)) {
-                Logger::V(CSyncManager::TAG, String("calling initialize: ")/*+ mAccount->ToString()*/ + String(", authority ") + mAuthority);
+                Logger::V(CSyncManager::TAG, String("calling initialize: ")/*+ mAccount->ToString()*/ + String(", authority ") + (mAuthority != NULL ? *mAuthority : String("NULL")));
             }
 //            ISyncAdapter.Stub.asInterface(service).initialize(mAccount, mAuthority);
         }
@@ -438,4 +584,135 @@ UInt32 CSyncManager::ServiceConnectionData::AddRef()
 UInt32 CSyncManager::ServiceConnectionData::Release()
 {
     return ElRefBase::Release();
+}
+
+/**************************************************************************************
+ * implement class CSyncManager::StorageIntentReceiver below
+ **************************************************************************************/
+CSyncManager::StorageIntentReceiver::StorageIntentReceiver(
+    /* [in] */ CSyncManager* manager) :
+    mSyncmanager(manager)
+{
+
+}
+
+CSyncManager::StorageIntentReceiver::~StorageIntentReceiver()
+{
+
+}
+
+ECode CSyncManager::StorageIntentReceiver::OnReceiver(
+    /* [in] */ IContext* context,
+    /* [in] */ IIntent* intent)
+{
+    String action;
+    intent->GetAction(&action);
+
+    Boolean isLoggable = Logger::IsLoggable(CSyncManager::TAG, Logger::VERBOSE);
+
+    if (String(Intent_ACTION_DEVICE_STORAGE_LOW).Equals(action)) {
+        if (isLoggable) {
+            Logger::V(CSyncManager::TAG, "Internal storage is low.");
+        }
+
+        mSyncmanager->mStorageIsLow = TRUE;
+        mSyncmanager->CancelActiveSync(NULL /* any account */, NULL /* any authority */);
+    } else if (String(Intent_ACTION_DEVICE_STORAGE_OK).Equals(action)) {
+        if (isLoggable) {
+            Logger::V(CSyncManager::TAG, "Internal storage is ok.");
+        }
+
+        mSyncmanager->mStorageIsLow = FALSE;
+        mSyncmanager->SendCheckAlarmsMessage();
+    }
+
+    return NOERROR;
+}
+
+/**************************************************************************************
+ * implement class CSyncManager::BootCompletedReceiver below
+ **************************************************************************************/
+CSyncManager::BootCompletedReceiver::BootCompletedReceiver(
+    /* [in] */ CSyncManager* manager) :
+    mSyncmanager(manager)
+{
+
+}
+
+CSyncManager::BootCompletedReceiver::~BootCompletedReceiver()
+{
+
+}
+
+ECode CSyncManager::BootCompletedReceiver::OnReceiver(
+    /* [in] */ IContext* context,
+    /* [in] */ IIntent* intent)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+/**************************************************************************************
+ * implement class CSyncManager::BackgroundDataSettingChangedReceiver below
+ **************************************************************************************/
+CSyncManager::BackgroundDataSettingChangedReceiver::BackgroundDataSettingChangedReceiver(
+    /* [in] */ CSyncManager* manager) :
+    mSyncmanager(manager)
+{
+
+}
+
+CSyncManager::BackgroundDataSettingChangedReceiver::~BackgroundDataSettingChangedReceiver()
+{
+
+}
+
+ECode CSyncManager::BackgroundDataSettingChangedReceiver::OnReceiver(
+    /* [in] */ IContext* context,
+    /* [in] */ IIntent* intent)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+/**************************************************************************************
+ * implement class CSyncManager::ConnectivityIntentReceiver below
+ **************************************************************************************/
+CSyncManager::ConnectivityIntentReceiver::ConnectivityIntentReceiver(
+    /* [in] */ CSyncManager* manager) :
+    mSyncmanager(manager)
+{
+
+}
+
+CSyncManager::ConnectivityIntentReceiver::~ConnectivityIntentReceiver()
+{
+
+}
+
+ECode CSyncManager::ConnectivityIntentReceiver::OnReceiver(
+    /* [in] */ IContext* context,
+    /* [in] */ IIntent* intent)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+/**************************************************************************************
+ * implement class CSyncManager::ShutdownIntentReceiver below
+ **************************************************************************************/
+CSyncManager::ShutdownIntentReceiver::ShutdownIntentReceiver(
+    /* [in] */ CSyncManager* manager) :
+    mSyncmanager(manager)
+{
+
+}
+
+CSyncManager::ShutdownIntentReceiver::~ShutdownIntentReceiver()
+{
+
+}
+
+ECode CSyncManager::ShutdownIntentReceiver::OnReceiver(
+    /* [in] */ IContext* context,
+    /* [in] */ IIntent* intent)
+{
+    return E_NOT_IMPLEMENTED;
 }

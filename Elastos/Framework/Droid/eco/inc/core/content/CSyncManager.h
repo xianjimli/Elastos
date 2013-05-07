@@ -8,6 +8,7 @@
 #include <elastos/AutoPtr.h>
 #include <elastos/ElRefBase.h>
 
+#include "BroadcastReceiver.h"
 #include "os/SystemProperties.h"
 #include "os/SystemClock.h"
 
@@ -35,28 +36,28 @@ public:
 
     CARAPI ScheduleSync(
         /* [in] */ IAccount* requestedAccount,
-        /* [in] */ const String& requestedAuthority,
+        /* [in] */ String* requestedAuthority,
         /* [in] */ IBundle* extras,
         /* [in] */ Int64 delay,
         /* [in] */ Boolean onlyThoseWithUnkownSyncableState);
 
     CARAPI ScheduleLocalSync(
         /* [in] */ IAccount* account,
-        /* [in] */ const String& authority);
+        /* [in] */ String* authority);
 
     CARAPI GetSyncAdapterTypes(
         /* [out, callee] */ ArrayOf<ISyncAdapterType *>** syncAdapterTypes);
 
     CARAPI CancelActiveSync(
         /* [in] */ IAccount* account,
-        /* [in] */ const String& authority);
+        /* [in] */ String* authority);
 
     CARAPI ScheduleSyncOperation(
         /* [in] */ ISyncOperation* syncOperation);
 
     CARAPI ClearScheduledSyncOperations(
         /* [in] */ IAccount* account,
-        /* [in] */ const String& authority);
+        /* [in] */ String* authority);
 
     CARAPI OnAccountsUpdated(
         /* [in] */ IObjectContainer* accounts);
@@ -67,6 +68,10 @@ public:
 
 public:
     AutoPtr<ISyncQueue> mSyncQueue;
+
+private:
+    AutoPtr<IConnectivityManager> GetConnectivityManager();
+    void SendCheckAlarmsMessage();
 
 private:
 
@@ -112,7 +117,7 @@ private:
 
     AutoPtr<IContext> mContext;
 
-    volatile ArrayOf<IAccount*>* mAccounts; // = INITIAL_ACCOUNTS_ARRAY;
+    /*volatile*/ ArrayOf<IAccount*>* mAccounts; // = INITIAL_ACCOUNTS_ARRAY;
 
 //    volatile PowerManager.WakeLock mSyncWakeLock;
 //    volatile PowerManager.WakeLock mHandleAlarmWakeLock;
@@ -161,7 +166,7 @@ private:
     public:
         InitializerServiceConnection(
             /* [in] */ IAccount* account,
-            /* [in] */ String authority,
+            /* [in] */ String* authority,
             /* [in] */ IContext* context,
             /* [in] */ IHandler* handler);
 
@@ -189,8 +194,9 @@ private:
 
     private:
         const AutoPtr<IAccount> mAccount;
-        const String mAuthority;
+        String* const mAuthority;
         const AutoPtr<IHandler> mHandler;
+
         /*volatile*/ AutoPtr<IContext> mContext;
         volatile Boolean mInitialized;
     };
@@ -226,6 +232,82 @@ private:
 
     };
 
+private:
+    class StorageIntentReceiver : public BroadcastReceiver
+    {
+    public:
+        // Need a parent class reference, so we add a constructor
+        StorageIntentReceiver(CSyncManager* manager);
+        ~StorageIntentReceiver();
+
+    protected:
+        CARAPI OnReceiver(
+            /* [in] */ IContext* context,
+            /* [in] */ IIntent* intent);
+
+    private:
+        AutoPtr<CSyncManager> mSyncmanager;
+    };
+
+    class BootCompletedReceiver : public BroadcastReceiver
+    {
+    public:
+        BootCompletedReceiver(CSyncManager* manager);
+        ~BootCompletedReceiver();
+
+    protected:
+        CARAPI OnReceiver(
+            /* [in] */ IContext* context,
+            /* [in] */ IIntent* intent);
+
+    private:
+        AutoPtr<CSyncManager> mSyncmanager;
+    };
+
+    class BackgroundDataSettingChangedReceiver : public BroadcastReceiver
+    {
+    public:
+        BackgroundDataSettingChangedReceiver(CSyncManager* manager);
+        ~BackgroundDataSettingChangedReceiver();
+
+    protected:
+        CARAPI OnReceiver(
+            /* [in] */ IContext* context,
+            /* [in] */ IIntent* intent);
+
+    private:
+        AutoPtr<CSyncManager> mSyncmanager;
+    };
+
+    class ConnectivityIntentReceiver : public BroadcastReceiver
+    {
+    public:
+        ConnectivityIntentReceiver(CSyncManager* manager);
+        ~ConnectivityIntentReceiver();
+
+    protected:
+        CARAPI OnReceiver(
+            /* [in] */ IContext* context,
+            /* [in] */ IIntent* intent);
+
+    private:
+        AutoPtr<CSyncManager> mSyncmanager;
+    };
+
+    class ShutdownIntentReceiver : public BroadcastReceiver
+    {
+    public:
+        ShutdownIntentReceiver(CSyncManager* manager);
+        ~ShutdownIntentReceiver();
+
+    protected:
+        CARAPI OnReceiver(
+            /* [in] */ IContext* context,
+            /* [in] */ IIntent* intent);
+
+    private:
+        AutoPtr<CSyncManager> mSyncmanager;
+    };
 
 public:
     class SyncAlarmIntentReceiver : public ElRefBase, public IBroadcastReceiver
