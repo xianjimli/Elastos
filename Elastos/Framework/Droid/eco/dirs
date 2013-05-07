@@ -6,4 +6,5 @@ DIRS += inc/core/net
 DIRS += inc/core/inputmethodservice
 DIRS += inc/core/utils
 DIRS += inc/core/provider
+DIRS += inc/core/privacy
 DIRS += src

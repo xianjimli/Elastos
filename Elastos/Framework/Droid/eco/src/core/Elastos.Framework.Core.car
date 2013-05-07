@@ -36,4 +36,5 @@ module
     merge("../../car/core/appwidget.car");
     merge("../../car/core/accounts.car");
     merge("../../car/core/media.car");
+    merge("../../car/core/privacy.car");
 }
