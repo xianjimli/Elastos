@@ -1,0 +1,23 @@
+
+module
+{
+    merge("privacy/PrivacySettings.car");
+    merge("privacy/PrivacySettingsManager.car");
+        
+    class CPrivacySettings {
+        interface IPrivacySettings;
+        
+        constructor(
+            [in]  Int32 _id, 
+            [in]  String packageName,
+            [in]  Int32 uid);
+    }
+    
+    class CPrivacySettingsManager {
+        interface IPrivacySettingsManager;
+
+        constructor(
+            [in] IContext* context,
+            [in] IPrivacySettingsManager* service);
+    }
+}

@@ -1,0 +1,61 @@
+
+module
+{
+    /**
+     * Real value, provided by the unmodified Android framework.
+     */
+    const PrivacySettings_REAL = 0;
+  
+    /**
+     * Empty or unavailable, depending on setting type. For String settings, it is
+     * setter method caller's responsibility to make sure that the corresponding 
+     * setting field will contain an empty String.
+     */
+    const PrivacySettings_EMPTY = 1;
+    
+    /**
+     * Custom specified output, appropriate for relevant setting. For String settings, 
+     * it is setter method caller's responsibility to make sure that the corresponding 
+     * setting field will contain a custom String.
+     */
+    const PrivacySettings_CUSTOM = 2;
+
+    /**
+     * Random output, appropriate for relevant setting. When this option is set, the
+     * corresponding getter methods will generate appropriate random values automatically.
+     * 
+     * Device ID: a random string consisting of 15 numeric digits preceded by a "+"
+     * Line1Number: a random string consisting of 13 numeric digits
+     */
+    const PrivacySettings_RANDOM = 3;
+
+    const PrivacySettings_SETTING_NOTIFY_OFF    = 0;
+    const PrivacySettings_SETTING_NOTIFY_ON     = 1;
+    
+    /**
+     * constants for identification of data types transmitted in the notification intent
+     */
+    const PrivacySettings_DATA_DEVICE_ID = "deviceID";
+    const PrivacySettings_DATA_LINE_1_NUMBER = "line1Number";
+    const PrivacySettings_DATA_LOCATION_GPS = "locationGPS";
+    const PrivacySettings_DATA_LOCATION_NETWORK = "locationNetwork";
+    const PrivacySettings_DATA_NETWORK_INFO_CURRENT = "networkInfoCurrent";
+    const PrivacySettings_DATA_NETWORK_INFO_SIM = "networkInfoSIM";
+    const PrivacySettings_DATA_SIM_SERIAL = "simSerial";
+    const PrivacySettings_DATA_SUBSCRIBER_ID = "subscriberID";
+    const PrivacySettings_DATA_ACCOUNTS_LIST = "accountsList";
+    const PrivacySettings_DATA_AUTH_TOKENS = "authTokens";
+    const PrivacySettings_DATA_OUTGOING_CALL = "outgoingCall";
+    const PrivacySettings_DATA_INCOMING_CALL = "incomingCall";
+    const PrivacySettings_DATA_CONTACTS = "contacts";
+    const PrivacySettings_DATA_CALENDAR = "calendar";
+    const PrivacySettings_DATA_MMS = "mms";
+    const PrivacySettings_DATA_SMS = "sms";
+    const PrivacySettings_DATA_MMS_SMS = "mmsSms";
+    const PrivacySettings_DATA_CALL_LOG = "callLog";
+    const PrivacySettings_DATA_BOOKMARKS = "bookmarks";
+    const PrivacySettings_DATA_SYSTEM_LOGS = "systemLogs";
+    const PrivacySettings_DATA_INTENT_BOOT_COMPLETED = "intentBootCompleted";
+    
+    interface IPrivacySettings {}
+}

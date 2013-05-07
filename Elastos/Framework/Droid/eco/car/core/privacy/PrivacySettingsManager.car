@@ -1,0 +1,40 @@
+
+module
+{
+    interface IPrivacySettings;
+    
+    interface IPrivacySettingsManager {
+      
+        GetSettings(
+            [in]  String packageName, 
+            [in]  Int32  uid,
+            [out] IPrivacySettings** privactySettings);
+            
+        SaveSettings(
+            [in]  IPrivacySettings* settings,
+            [out] Boolean* result);
+
+        DeleteSettings(
+            [in]  String packageName, 
+            [in]  Int32  uid,
+            [out] Boolean* result);
+            
+        Notification(
+            [in]  String packageName, 
+            [in]  Int32  uid, 
+            [in]  Byte   accessMode, 
+            [in]  String dataType, 
+            [in]  String output);
+            
+        RegisterObservers();
+
+        AddObserver(
+            [in]  String packageName);
+            
+        PurgeSettings(
+            [out] Boolean* result);
+            
+        GetVersion(
+            [out] Double* result);
+    }
+}
