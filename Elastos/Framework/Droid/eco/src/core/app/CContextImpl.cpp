@@ -486,8 +486,8 @@ ECode CContextImpl::ApplicationCapsuleManager::HasSystemFeature(
 }
 
 ECode CContextImpl::ApplicationCapsuleManager::CheckPermission(
-    /* [in] */ const String& permName,
-    /* [in] */ const String& capName,
+    /* [in] */ CString permName,
+    /* [in] */ CString capName,
     /* [out] */ Int32* perm)
 {
     // try {
@@ -2412,7 +2412,7 @@ ECode CContextImpl::CreateCapsuleContext(
 }
 
 ECode CContextImpl::CheckCallingPermission(
-    /* [in] */ const String& permission,
+    /* [in] */ CString permission,
     /* [out] */ Int32* value)
 {
     if (permission.IsNull()) {
@@ -2486,7 +2486,7 @@ ECode CContextImpl::CheckPermission(
     // try {
     AutoPtr<IActivityManager> activityManager;
     FAIL_RETURN(ActivityManagerNative::GetDefault((IActivityManager**)&activityManager));
-    return activityManager->CheckPermission(String(permission), pid, uid, result);
+    return activityManager->CheckPermission(permission, pid, uid, result);
     // } catch (RemoteException e) {
     //     return CapsuleManager_PERMISSION_DENIED;
     // }
@@ -2494,8 +2494,8 @@ ECode CContextImpl::CheckPermission(
 
 ECode CContextImpl::CheckUriPermission(
     /* [in] */ IUri* uri,
-    /* [in] */ const String& readPermission,
-    /* [in] */ const String& writePermission,
+    /* [in] */ CString readPermission,
+    /* [in] */ CString writePermission,
     /* [in] */ Int32 pid,
     /* [in] */ Int32 uid,
     /* [in] */ Int32 modeFlags,
@@ -2507,7 +2507,7 @@ ECode CContextImpl::CheckUriPermission(
     //             + " pid=" + pid + " uid=" + uid + " mode" + modeFlags);
     // }
     if ((modeFlags & Intent_FLAG_GRANT_READ_URI_PERMISSION) != 0) {
-        if (readPermission == NULL
+        if (readPermission.IsNull()
                 || CheckPermission(readPermission, pid, uid, result)
                 == CapsuleManager_PERMISSION_GRANTED) {
             *result = CapsuleManager_PERMISSION_GRANTED;
@@ -2515,7 +2515,7 @@ ECode CContextImpl::CheckUriPermission(
         }
     }
     if ((modeFlags & Intent_FLAG_GRANT_WRITE_URI_PERMISSION) != 0) {
-        if (writePermission == NULL
+        if (writePermission.IsNull()
                 || CheckPermission(writePermission, pid, uid, result)
                 == CapsuleManager_PERMISSION_GRANTED) {
             *result = CapsuleManager_PERMISSION_GRANTED;

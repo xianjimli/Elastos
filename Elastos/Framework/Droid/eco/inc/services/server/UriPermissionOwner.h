@@ -8,10 +8,10 @@
 
 class UriPermission;
 
-class UriPermissionOwner
+class UriPermissionOwner : public ElRefBase
 {
 public:
-    class ExternalToken : public Binder, public IBinder , public ElRefBase
+    class ExternalToken : public ElRefBase, public IBinder
     {
     public:
         ExternalToken(
@@ -70,7 +70,7 @@ public:
 
 public:
     AutoPtr<CActivityManagerService> mService;
-    AutoPtr<IObject> mOwner;
+    AutoPtr<IInterface> mOwner;
     AutoPtr<IBinder> mExternalToken;
     Set<UriPermission*>* mReadUriPermissions; // special access to reading uris.
     Set<UriPermission*>* mWriteUriPermissions; // special access to writing uris.

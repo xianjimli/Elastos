@@ -334,7 +334,7 @@ module
             [in] Boolean isForeground);
 
         CheckPermission(
-            [in] String permission,
+            [in] CString permission,
             [in] Int32 pid,
             [in] Int32 uid,
             [out] Int32* result);

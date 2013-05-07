@@ -227,8 +227,8 @@ public:
             /* [out] */ Boolean* result);
 
         CARAPI CheckPermission(
-            /* [in] */ const String& permName,
-            /* [in] */ const String& capName,
+            /* [in] */ CString permName,
+            /* [in] */ CString capName,
             /* [out] */ Int32* perm);
 
         CARAPI AddPermission(
@@ -662,7 +662,7 @@ public:
         /* [out] */ IContext** context);
 
     CARAPI CheckCallingPermission(
-        /* [in] */ const String& permission,
+        /* [in] */ CString permission,
         /* [out] */ Int32* value);
 
     CARAPI EnforceCallingOrSelfPermission(
@@ -677,8 +677,8 @@ public:
 
     CARAPI CheckUriPermission(
         /* [in] */ IUri* uri,
-        /* [in] */ const String& readPermission,
-        /* [in] */ const String& writePermission,
+        /* [in] */ CString readPermission,
+        /* [in] */ CString writePermission,
         /* [in] */ Int32 pid,
         /* [in] */ Int32 uid,
         /* [in] */ Int32 modeFlags,

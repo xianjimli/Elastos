@@ -5,7 +5,7 @@ UriPermissionOwner::UriPermissionOwner(
     /* [in] */ CActivityManagerService* service,
     /* [in] */ Handle32 owner)
     : mService(service)
-    , mOwner((IObject*)owner)
+    , mOwner((IInterface*)owner)
     , mReadUriPermissions(NULL)
     , mWriteUriPermissions(NULL)
 {

@@ -59,7 +59,7 @@ public:
 
 private:
     static CARAPI_(Int32) CheckCallingPermission(
-        /* [in] */ const String& permission);
+        /* [in] */ CString permission);
 
 private:
     AutoPtr<ViewRoot> mViewRoot;

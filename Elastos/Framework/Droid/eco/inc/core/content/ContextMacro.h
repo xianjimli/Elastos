@@ -120,7 +120,7 @@
         /* [out] */ IContext** context);                                    \
                                                                             \
     CARAPI CheckCallingPermission(                                          \
-        /* [in] */ const String& permission,                                \
+        /* [in] */ CString permission,                                      \
         /* [out] */ Int32* value);                                          \
                                                                             \
     CARAPI EnforceCallingOrSelfPermission(                                  \
@@ -148,8 +148,8 @@
                                                                             \
     CARAPI CheckUriPermission(                                              \
         /* [in] */ IUri * uri,                                              \
-        /* [in] */ const String& readPermission,                            \
-        /* [in] */ const String& writePermission,                           \
+        /* [in] */ CString readPermission,                                  \
+        /* [in] */ CString writePermission,                                 \
         /* [in] */ Int32 pid,                                               \
         /* [in] */ Int32 uid,                                               \
         /* [in] */ Int32 modeFlags,                                         \
@@ -373,7 +373,7 @@ ECode className::CreateCapsuleContext(                                      \
 }                                                                           \
                                                                             \
 ECode className::CheckCallingPermission(                                    \
-    /* [in] */ const String& permission,                                    \
+    /* [in] */ CString permission,                                    \
     /* [out] */ Int32* value)                                               \
 {                                                                           \
     return superClass::CheckCallingPermission(permission, value);           \
@@ -419,8 +419,8 @@ ECode className::CheckPermission(                                           \
                                                                             \
 ECode className::CheckUriPermission(                                        \
     /* [in] */ IUri * uri,                                                  \
-    /* [in] */ const String& readPermission,                                \
-    /* [in] */ const String& writePermission,                               \
+    /* [in] */ CString readPermission,                                \
+    /* [in] */ CString writePermission,                               \
     /* [in] */ Int32 pid,                                                   \
     /* [in] */ Int32 uid,                                                   \
     /* [in] */ Int32 modeFlags,                                             \

@@ -1160,8 +1160,8 @@ public:
         /* [in] */ const List<AutoPtr<CActivityRecord> > & tokens);
 
     CARAPI_(Boolean) CheckCallingPermission(
-        /* [in] */ const String& permission,
-        /* [in] */ const String& func);
+        /* [in] */ CString permission,
+        /* [in] */ CString func);
 
     CARAPI_(AppWindowToken*) FindAppWindowToken(
         /* [in] */ IBinder* token);

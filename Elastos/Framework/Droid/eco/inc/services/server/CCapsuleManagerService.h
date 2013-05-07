@@ -1495,12 +1495,12 @@ public:
         /* [out] */ Boolean* result);
 
     CARAPI CheckPermission(
-        /* [in] */ const String& permName,
-        /* [in] */ const String& capName,
+        /* [in] */ CString permName,
+        /* [in] */ CString capName,
         /* [out] */ Int32* perm);
 
     CARAPI CheckUidPermission(
-        /* [in] */ const String& permName,
+        /* [in] */ CString permName,
         /* [in] */ Int32 uid,
         /* [out] */ Int32* perm);
 

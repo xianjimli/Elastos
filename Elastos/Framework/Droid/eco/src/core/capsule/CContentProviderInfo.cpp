@@ -320,6 +320,13 @@ ECode CContentProviderInfo::SetWritePermission(
     return NOERROR;
 }
 
+ECode CContentProviderInfo::GetGrantUriPermissions(
+    /* [out] */ Boolean* grant)
+{
+    *grant = mGrantUriPermissions;
+    return NOERROR;
+}
+
 ECode CContentProviderInfo::SetGrantUriPermissions(
     /* [in] */ Boolean grant)
 {
