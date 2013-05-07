@@ -2,6 +2,10 @@
 #define __HTML5VIDEOVIEWPROXY_H__
 
 #include "ext/frameworkext.h"
+#include "media/media/CMediaPlayer.h"
+
+#include <elastos/AutoPtr.h>
+#include <elastos/Map.h>
 
 class MediaPlayer;
 class WebViewCore;
@@ -9,7 +13,10 @@ class WebViewCore;
 /**
  * <p>Proxy for HTML5 video views.
  */
-class HTML5VideoViewProxy// : public Handler
+class HTML5VideoViewProxy : public IApartment,
+                            public IMediaPlayerOnPreparedListener,
+                            public IMediaPlayerOnCompletionListener,
+                            public IMediaPlayerOnErrorListener
                          //   public MediaPlayer.OnPreparedListener,
                          //   public MediaPlayer.OnCompletionListener,
                          //   public MediaPlayer.OnErrorListener 
@@ -18,18 +25,19 @@ class HTML5VideoViewProxy// : public Handler
 public:
     // A bunch event listeners for our VideoView
     // MediaPlayer.OnPreparedListener
-	virtual CARAPI_(void) OnPrepared(
-		/* [in] */ MediaPlayer* mp);
+	CARAPI OnPrepared(
+		/* [in] */ IMediaPlayer* mp);
 
     // MediaPlayer.OnCompletionListener;
-	virtual CARAPI_(void) OnCompletion(
-		/* [in] */ MediaPlayer* mp);
+	CARAPI OnCompletion(
+		/* [in] */ IMediaPlayer* mp);
 
     // MediaPlayer.OnErrorListener
-	virtual CARAPI_(Boolean) OnError(
-		/* [in] */ MediaPlayer* mp, 
+	CARAPI OnError(
+		/* [in] */ IMediaPlayer* mp, 
 		/* [in] */ Int32 what, 
-		/* [in] */ Int32 extra);
+		/* [in] */ Int32 extra,
+		/* [out] */ Boolean* result);
 
 	virtual CARAPI_(void) DispatchOnEnded();
 
@@ -37,12 +45,7 @@ public:
 
 	virtual CARAPI_(void) OnTimeupdate();
 
-    // Handler for the messages from WebCore or Timer thread to the UI thread.
-    //@Override
-	virtual CARAPI_(void) HandleMessage(
-		/* [in] */ IMessage* msg);
-
-	virtual CARAPI_(IContext*) GetContext();
+	virtual CARAPI_(AutoPtr<IContext>) GetContext();
 
     // The public methods below are all called from WebKit only.
     /**
@@ -87,7 +90,75 @@ public:
 		/* [in] */ Int32 nativePtr);
 
     /* package */ 
-	virtual CARAPI_(IWebView*) GetWebView();
+	virtual CARAPI_(AutoPtr<IWebView>) GetWebView();
+
+public:
+
+	CARAPI_(PInterface) Probe(
+        /* [in] */ REIID riid);
+
+    CARAPI_(UInt32) AddRef();
+
+    CARAPI_(UInt32) Release();
+
+    CARAPI GetInterfaceID(
+        /* [in] */ IInterface *pObject,
+        /* [out] */ InterfaceID *pIID);
+
+    CARAPI Start(
+        /* [in] */ ApartmentAttr attr);
+
+    CARAPI Finish();
+
+    CARAPI PostCppCallback(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [in] */ IParcel* params,
+        /* [in] */ Int32 id);
+
+    CARAPI PostCppCallbackAtTime(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [in] */ IParcel* params,
+        /* [in] */ Int32 id,
+        /* [in] */ Millisecond64 uptimeMillis);
+
+    CARAPI PostCppCallbackDelayed(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [in] */ IParcel* params,
+        /* [in] */ Int32 id,
+        /* [in] */ Millisecond64 delayMillis);
+
+    CARAPI PostCppCallbackAtFrontOfQueue(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [in] */ IParcel* params,
+        /* [in] */ Int32 id);
+
+    CARAPI RemoveCppCallbacks(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func);
+
+    CARAPI RemoveCppCallbacksEx(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [in] */ Int32 id);
+
+    CARAPI HasCppCallbacks(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [out] */ Boolean* result);
+
+    CARAPI HasCppCallbacksEx(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [in] */ Int32 id,
+        /* [out] */ Boolean* result);
+
+    CARAPI SendMessage(
+        /* [in] */ Int32 message,
+        /* [in] */ IParcel* params);
 
 public:
 	// The C++ MediaPlayerPrivateAndroid object.
@@ -133,7 +204,7 @@ private:
 			/* [in] */ IHeaders* headers);
 
 		virtual CARAPI_(void) Data(
-			/* [in] */ Byte data[], 
+			/* [in] */ ArrayOf<Byte>* data, 
 			/* [in] */ Int32 len);
 
 		virtual CARAPI_(void) EndData();
@@ -164,17 +235,19 @@ private:
         // The poster URL
 		CString mUrl;
         // The proxy we're doing this for.
-		const HTML5VideoViewProxy* mProxy;
+		/*const*/ HTML5VideoViewProxy* mProxy;
         // The poster bytes. We only touch this on the network thread.
-//		ByteArrayOutputStream mPosterBytes;
+		AutoPtr<IByteArrayOutputStream> mPosterBytes;
         // The request handle. We only touch this on the WebCore thread.
 //		RequestHandle mRequestHandle;
         // The response status code.
 		Int32 mStatusCode;
         // The response headers.
-		IHeaders* mHeaders;
+		AutoPtr<IHeaders> mHeaders;
+        
         // The handler to handle messages on the WebCore thread.
-		IHandler* mHandler;
+		//IHandler* mHandler;
+		AutoPtr<IApartment> mHandler;
     };
 
 	class VideoPlayer 
@@ -204,14 +277,14 @@ private:
 
 	private:
         // The proxy that is currently playing (if any).
-		static HTML5VideoViewProxy mCurrentProxy;
+		static HTML5VideoViewProxy* mCurrentProxy;
         // The VideoView instance. This is a singleton for now, at least until
         // http://b/issue?id=1973663 is fixed.
-//		static VideoView mVideoView;
+		static AutoPtr<IVideoView> mVideoView;
         // The progress view.
-		static IView* mProgressView;
+		static AutoPtr<IView> mProgressView;
         // The container for the progress view and video view
-		static IFrameLayout* mLayout;
+		static AutoPtr<IFrameLayout> mLayout;
         // The timer for timeupate events.
         // See http://www.whatwg.org/specs/web-apps/current-work/#event-media-timeupdate
 //		static Timer mTimer;
@@ -232,8 +305,38 @@ private:
         // The spec says the timer should fire every 250 ms or less.
 		static const Int32 TIMEUPDATE_PERIOD = 250;  // ms
 
-		static const IWebChromeClientCustomViewCallback* mCallback;
+		static /*const*/ IWebChromeClientCustomViewCallback* mCallback;
     };
+
+private:
+	CARAPI SendMessage(
+        /* [in] */ Handle32 pvFunc,
+        /* [in] */ IParcel* params);
+
+    CARAPI SendMessageAtTime(
+        /* [in] */ Handle32 pvFunc,
+        /* [in] */ IParcel* params,
+        /* [in] */ Millisecond64 uptimeMillis);
+
+    CARAPI RemoveMessage(
+        /* [in] */ Handle32 func);
+
+    CARAPI HandleEnded(
+		/* [in] */ Int32 arg);
+
+	CARAPI HandleERROR();
+
+	CARAPI HandleTimeUpdate();
+
+	CARAPI HandlePlay(
+		/* [in] */ String& url);
+
+	CARAPI HandleSeek(
+		/* [in] */ Int32 time);
+
+	CARAPI HandlePause();
+
+	CARAPI HandleLoadDefaultPoster();
 
 private:
 
@@ -265,6 +368,32 @@ private:
 		/* [in] */ Int32 nativePointer);
 
 private:
+	CARAPI WebCoreHandlerSendMessage(
+        /* [in] */ Handle32 pvFunc,
+        /* [in] */ IParcel* params);
+
+    CARAPI WebCoreHandlerSendMessageAtTime(
+        /* [in] */ Handle32 pvFunc,
+        /* [in] */ IParcel* params,
+        /* [in] */ Millisecond64 uptimeMillis);
+
+    CARAPI WebCoreHandlerRemoveMessage(
+        /* [in] */ Handle32 func);
+
+    CARAPI HandlePrepared(
+    	/* [in] */ Map<String, Int32>* map);
+
+    CARAPI WebCoreHandleEnded();
+
+    CARAPI HandlePaused();
+
+    CARAPI HandlePosterFetched(
+		/* [in] */ IBitmap* poster);
+
+	CARAPI WebCoreHandleTimeUpdate(
+		/* [in] */ Int32 arg);
+
+private:
 	// Logging tag.
     static const CString LOGTAG;// = "HTML5VideoViewProxy";
 
@@ -288,17 +417,23 @@ private:
 
 private:
     // The handler for WebCore thread messages;
-	IHandler* mWebCoreHandler;
+	//IHandler* mWebCoreHandler;
+	AutoPtr<IApartment> mWebCoreHandler;
+
     // The WebView instance that created this view.
-	IWebView* mWebView;
+	AutoPtr<IWebView> mWebView;
+
     // The poster image to be shown when the video is not playing.
     // This ref prevents the bitmap from being GC'ed.
-	IBitmap* mPoster;
+	AutoPtr<IBitmap> mPoster;
+
     // The poster downloader.
-//	PosterDownloader mPosterDownloader;
+	PosterDownloader* mPosterDownloader;
     // The seek position.
 	Int32 mSeekPosition;
     // A helper class to control the playback. This executes on the UI thread!
+
+    AutoPtr<IApartment> mApartment;
 };
 
 #endif //__HTML5VIDEOVIEWPROXY_H__
