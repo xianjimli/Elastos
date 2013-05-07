@@ -1,6 +1,11 @@
 
 #include "content/CContentProviderResult.h"
 #include "ext/frameworkext.h"
+#include "net/CStringUri.h"
+#include "net/COpaqueUri.h"
+#include "net/CHierarchicalUri.h"
+#include "net/CPart.h"
+#include "net/CPathPart.h"
 
 CContentProviderResult::CContentProviderResult()
 {}
@@ -60,13 +65,15 @@ ECode CContentProviderResult::ReadFromParcel(
 ECode CContentProviderResult::WriteToParcel(
     /* [in] */ IParcel* dest)
 {
+    VALIDATE_NOT_NULL(dest);
+
     if (NULL == mUri) {
         dest->WriteInt32(1);
         dest->WriteInt32(mCount);
     } else {
         dest->WriteInt32(2);
-        //TODO
-        //uri.writeToParcel(dest, 0);
+        AutoPtr<IParcelable> parcelable = (IParcelable*) mUri->Probe(EIID_IParcelable);
+        FAIL_RETURN(parcelable->WriteToParcel(dest));
     }
 
     return NOERROR;
@@ -92,16 +99,41 @@ ECode CContentProviderResult::constructor(
 ECode CContentProviderResult::constructor(
     /* [in] */ IParcel* source)
 {
-    Int32 type;
-    source->ReadInt32(&type);
+    VALIDATE_NOT_NULL(source);
+    Int32 tmpType;
+    source->ReadInt32(&tmpType);
 
-    if (1 == type) {
+    if (1 == tmpType) {
         source->ReadInt32(&mCount);
         mUri = NULL;
     } else {
         mCount = 0;
-        //TODO
-        //uri = Uri.CREATOR.createFromParcel(source);
+        Int32 type;
+        FAIL_RETURN(source->ReadInt32(&type));
+        String str1;
+        
+        if (1 == type) {
+            FAIL_RETURN(source->ReadString(&str1));
+            FAIL_RETURN(CStringUri::New(str1, (IUri**)&mUri));
+        } else if (2 == type) {
+            FAIL_RETURN(source->ReadString(&str1));
+            AutoPtr<IPart> part1;
+            FAIL_RETURN(Part::ReadFrom(source, (IPart**)&part1));
+            AutoPtr<IPart> part2;
+            FAIL_RETURN(Part::ReadFrom(source, (IPart**)&part2));
+            FAIL_RETURN(COpaqueUri::New(str1, part1, part2, (IUri**)&mUri));
+        } else if (3 == type) {
+            FAIL_RETURN(source->ReadString(&str1));
+            AutoPtr<IPart> part1;
+            FAIL_RETURN(Part::ReadFrom(source, (IPart**)&part1));
+            AutoPtr<IPathPart> pathPart1;
+            FAIL_RETURN(PathPart::ReadFrom(source, (IPathPart**)&pathPart1));
+            AutoPtr<IPart> part2;
+            FAIL_RETURN(Part::ReadFrom(source, (IPart**)&part2));
+            AutoPtr<IPart> part3;
+            FAIL_RETURN(Part::ReadFrom(source, (IPart**)&part3));
+            FAIL_RETURN(CHierarchicalUri::New(str1, part1, pathPart1, part2, part3, (IUri**)&mUri));
+        }
     }
 
     return NOERROR;

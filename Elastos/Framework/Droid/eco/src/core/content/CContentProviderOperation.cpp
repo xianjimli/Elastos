@@ -4,6 +4,11 @@
 #include "content/ContentUris.h"
 #include "content/CContentValues.h"
 #include "ext/frameworkdef.h"
+#include "net/CStringUri.h"
+#include "net/COpaqueUri.h"
+#include "net/CHierarchicalUri.h"
+#include "net/CPart.h"
+#include "net/CPathPart.h"
 #include "text/TextUtils.h"
 #include <Logger.h>
 
@@ -344,13 +349,20 @@ ECode CContentProviderOperation::ReadFromParcel(
 ECode CContentProviderOperation::WriteToParcel(
     /* [in] */ IParcel* dest)
 {
+    VALIDATE_NOT_NULL(dest);
     dest->WriteInt32(mType);
-    //TODO
-    //Uri.writeToParcel(dest, mUri); 
+
+    if (NULL != mUri) {
+        AutoPtr<IParcelable> parcelable = (IParcelable*) mUri->Probe(EIID_IParcelable);
+        FAIL_RETURN(parcelable->WriteToParcel(dest));
+    } else {
+        dest->WriteInt32(0);
+    }
 
     if (NULL != mValues) {
         dest->WriteInt32(1);
-        //mValues.writeToParcel(dest, 0);
+        AutoPtr<IParcelable> valueParcelable = (IParcelable*) mValues->Probe(EIID_IParcelable);
+        FAIL_RETURN(valueParcelable->WriteToParcel(dest));
     } else {
         dest->WriteInt32(0);
     }
@@ -378,7 +390,8 @@ ECode CContentProviderOperation::WriteToParcel(
 
     if (NULL != mValuesBackReferences) {
         dest->WriteInt32(1);
-        //mValuesBackReferences.writeToParcel(dest, 0);
+        AutoPtr<IParcelable> valueRefParcelable = (IParcelable*) mValuesBackReferences->Probe(EIID_IParcelable);
+        FAIL_RETURN(valueRefParcelable->WriteToParcel(dest));
     } else {
         dest->WriteInt32(0);
     }
@@ -441,8 +454,33 @@ ECode CContentProviderOperation::constructor(
     VALIDATE_NOT_NULL(source);
     Int32 tmpInt;
     source->ReadInt32(&mType);
+    Int32 type;
+    FAIL_RETURN(source->ReadInt32(&type));
+    String str1;
+    
+    if (1 == type) {
+        FAIL_RETURN(source->ReadString(&str1));
+        FAIL_RETURN(CStringUri::New(str1, (IUri**)&mUri));
+    } else if (2 == type) {
+        FAIL_RETURN(source->ReadString(&str1));
+        AutoPtr<IPart> part1;
+        FAIL_RETURN(Part::ReadFrom(source, (IPart**)&part1));
+        AutoPtr<IPart> part2;
+        FAIL_RETURN(Part::ReadFrom(source, (IPart**)&part2));
+        FAIL_RETURN(COpaqueUri::New(str1, part1, part2, (IUri**)&mUri));
+    } else if (3 == type) {
+        FAIL_RETURN(source->ReadString(&str1));
+        AutoPtr<IPart> part1;
+        FAIL_RETURN(Part::ReadFrom(source, (IPart**)&part1));
+        AutoPtr<IPathPart> pathPart1;
+        FAIL_RETURN(PathPart::ReadFrom(source, (IPathPart**)&pathPart1));
+        AutoPtr<IPart> part2;
+        FAIL_RETURN(Part::ReadFrom(source, (IPart**)&part2));
+        AutoPtr<IPart> part3;
+        FAIL_RETURN(Part::ReadFrom(source, (IPart**)&part3));
+        FAIL_RETURN(CHierarchicalUri::New(str1, part1, pathPart1, part2, part3, (IUri**)&mUri));
+    }
     //TODO
-    //mUri = Uri.CREATOR.createFromParcel(source);
     //mValues = (source->ReadInt32(&tmpInt),tmpInt) != 0 ? ContentValues.CREATOR.createFromParcel(source) : NULL;
     if ((source->ReadInt32(&tmpInt), tmpInt) != 0) {
         source->ReadString(&mSelection);

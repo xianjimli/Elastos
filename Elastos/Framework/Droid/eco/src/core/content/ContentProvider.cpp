@@ -11,7 +11,6 @@
 #endif
 //#include "os/Binder.h"
 
-
 ContentProvider::ContentProvider()
 {
 }
@@ -350,19 +349,36 @@ ECode ContentProvider::Transport::BulkInsert(
     return mContentProvider->BulkInsert(uri, initialValues, number);
 }
 
-// public ContentProviderResult[] applyBatch(ArrayList<ContentProviderOperation> operations)
-//         throws OperationApplicationException {
-//     for (ContentProviderOperation operation : operations) {
-//         if (operation.isReadOperation()) {
-//             enforceReadPermission(operation.getUri());
-//         }
+ECode ContentProvider::Transport::ApplyBatch(
+    /* [in] */ IObjectContainer* operations,
+    /* [out, callee] */ ArrayOf<IContentProviderResult*>** providerResults)
+{
+    Boolean hasNext;
+    Boolean isRead;
+    Boolean isWrite;
+    AutoPtr<IUri> uri;
+    AutoPtr<IContentProviderOperation> operation;
+    AutoPtr<IObjectEnumerator> ObjEnumerator;
 
-//         if (operation.isWriteOperation()) {
-//             enforceWritePermission(operation.getUri());
-//         }
-//     }
-//     return ContentProvider.this.applyBatch(operations);
-// }
+    operations->GetObjectEnumerator((IObjectEnumerator**) &ObjEnumerator);
+
+    while ((ObjEnumerator->MoveNext(&hasNext), hasNext)) {
+        ObjEnumerator->Current((IInterface**) &operation);
+        operation->IsReadOperation(&isRead);
+        operation->IsWriteOperation(&isWrite);
+        operation->GetUri((IUri**) &uri);
+
+        if (isRead) {
+            EnforceReadPermission(uri);
+        }
+
+        if (isWrite) {
+            EnforceWritePermission(uri);
+        }
+    }
+
+    return mContentProvider->ApplyBatch(operations, providerResults);
+}
 
 ECode ContentProvider::Transport::Delete(
     /* [in] */ IUri* uri,
@@ -1098,15 +1114,27 @@ ECode ContentProvider::GetIContentProvider(
  * @throws OperationApplicationException thrown if any operation fails.
  * @see ContentProviderOperation#apply
  */
-// public ContentProviderResult[] applyBatch(ArrayList<ContentProviderOperation> operations)
-//         throws OperationApplicationException {
-//     final int numOperations = operations.size();
-//     final ContentProviderResult[] results = new ContentProviderResult[numOperations];
-//     for (int i = 0; i < numOperations; i++) {
-//         results[i] = operations.get(i).apply(this, results, i);
-//     }
-//     return results;
-// }
+ ECode ContentProvider::ApplyBatch(
+    /* [in] */ IObjectContainer* operations,
+    /* [out, callee] */ ArrayOf<IContentProviderResult*>** providerResults)
+ {
+    Boolean hasNext;
+    Int32 i = 0;
+    AutoPtr<IContentProvider> provider;
+    AutoPtr<IContentProviderOperation> operation;
+    AutoPtr<IObjectEnumerator> ObjEnumerator;
+
+    GetIContentProvider((IContentProvider**) &provider);
+    operations->GetObjectEnumerator((IObjectEnumerator**) &ObjEnumerator);
+
+    while ((ObjEnumerator->MoveNext(&hasNext), hasNext)) {
+        ObjEnumerator->Current((IInterface**) &operation);
+        operation->Apply(provider, *providerResults, i, &(**providerResults)[i]);
+        i++;
+    }
+
+    return NOERROR;
+ }
 
 /**
  * @hide -- until interface has proven itself
