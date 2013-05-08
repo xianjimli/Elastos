@@ -416,22 +416,25 @@ ECode CBitmapFactory::DecodeByteArrayEx(
 }
 
 ECode CBitmapFactory::DecodeStream(
-    /* [in] */ IInputStream* is,
+    /* [in] */ IInputStream* _is,
     /* [in] */ IRect* outPadding,
     /* [in] */ IBitmapFactoryOptions* opts,
     /* [out] */ IBitmap** bitmap)
 {
+    VALIDATE_NOT_NULL(bitmap);
     // we don't throw in this case, thus allowing the caller to only check
     // the cache, and not force the image to be decoded.
-    VALIDATE_NOT_NULL(is);
-    VALIDATE_NOT_NULL(bitmap);
+    if (_is == NULL) {
+        *bitmap = NULL;
+        return NOERROR;
+    }
 
     // we need mark/reset to work properly
-
+    AutoPtr<IInputStream> is = _is;
     Boolean supported = FALSE;
     is->IsMarkSupported(&supported);
     if (!supported) {
-//	        is = new BufferedInputStream(is, 16 * 1024);
+        FAIL_RETURN(CBufferedInputStream::New(_is, 16 * 1024, (IBufferedInputStream**)&is));
     }
 
     // so we can call reset() if a given codec gives up after reading up to
