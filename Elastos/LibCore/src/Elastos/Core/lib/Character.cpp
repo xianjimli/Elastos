@@ -4,7 +4,6 @@
 #include "elastos/Character.h"
 #include <elastos/Math.h>
 
-
 namespace Elastos {
 namespace Core {
 const UInt32 Character::MIN_HIGH_SURROGATE = 0xD800;
@@ -612,7 +611,7 @@ ECode Character::GetCharCount(
 {
     VALIDATE_NOT_NULL(number);
 
-    if (seq.IsNull() == NULL) {
+    if (seq.IsNull()) {
         return E_NULL_POINTER_EXCEPTION;
     }
     Int32 len = seq.GetLength();
