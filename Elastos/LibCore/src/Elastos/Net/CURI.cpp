@@ -6,7 +6,6 @@
 #include "CURL.h"
 #include <StringBuffer.h>
 #include <elastos/Character.h>
-#include <stdio.h>
 
 const String CURI::UNRESERVED = String("_-!.~\'()*");
 const String CURI::PUNCTUATION = String(",;:$&+=");
@@ -213,12 +212,9 @@ ECode CURI::ParseURI(
 
     // Fragment
     index = temp.IndexOf('#');
-    printf("%s, %d\n", __FILE__, __LINE__);
-    printf("uri %s\n", (const char*)temp);
     if (index != -1) {
         // remove the fragment from the end
         mFragment = temp.Substring(index + 1);
-        printf("the mFragment is %s\n", (const char *)mFragment);
         FAIL_RETURN(ValidateFragment(uri, mFragment, index + 1));
         temp = temp.Substring(0, index);
     }
@@ -268,8 +264,6 @@ ECode CURI::ParseURI(
         // Authority and Path
         if (temp.StartWith("//")) {
             index = temp.IndexOf('/', 2);
-            printf("the index is %d\n", index);
-            printf("the temp is %s\n", (const char *)temp);
             if (index != -1) {
                 mAuthority = temp.Substring(2, index);
                 mPath = temp.Substring(index + 2);
@@ -966,7 +960,6 @@ ECode CURI::GetAuthority(
     /* [out] */ String* authority)
 {
     VALIDATE_NOT_NULL(authority);
-    printf("%s, %d\n", __FILE__, __LINE__);
     return Decode(mAuthority, authority);
 }
 
@@ -1154,6 +1147,7 @@ String CURI::Normalize(
     if (pathLength > 0 && path.GetChar(0) != '/') {
         size++;
     }
+
     while ((index = path.IndexOf('/', index + 1)) != -1) {
         if (index + 1 < pathLength && path.GetChar(index + 1) != '/') {
             size++;
@@ -1168,7 +1162,7 @@ String CURI::Normalize(
     Int32 index2;
     index = (pathLength > 0 && path.GetChar(0) == '/') ? 1 : 0;
     while ((index2 = path.IndexOf('/', index + 1)) != -1) {
-        (*segList)[current++] = path.Substring(index, index2);
+        (*segList)[current++] = path.Substring(index, index2 - index);
         index = index2 + 1;
     }
 
@@ -1206,7 +1200,7 @@ String CURI::Normalize(
     }
 
     for (Int32 i = 0; i < segList->GetLength(); i++) {
-        if (include[i]) {
+        if ((*include)[i]) {
             newPath += (*segList)[i];
             newPath += "/";
         }
@@ -1234,6 +1228,7 @@ String CURI::Normalize(
     for (Int32 i = 0; i < segList->GetLength(); ++i) {
         (*segList)[i] = NULL;
     }
+
     ArrayOf<String>::Free(segList);
     ArrayOf<Boolean>::Free(include);
     return result;
@@ -1335,6 +1330,7 @@ ECode CURI::Relativize(
     result->SetSchemeSpecificPart();
     *uri = (IURI*)result.Get();
     (*uri)->AddRef();
+
     return NOERROR;
 }
 
@@ -1456,22 +1452,15 @@ ECode CURI::Decode(
     /* [in] */ const String& s,
     /* [out] */ String* decodedS)
 {
-    printf("%s, %d\n", __FILE__, __LINE__);
     if (s.IsNull()) {
-        printf("%s, %d\n", __FILE__, __LINE__);
         *decodedS = s;
         return NOERROR;
     }
-    printf("%s, %d\n", __FILE__, __LINE__);
 //    try {
-    printf("%s, %d\n", __FILE__, __LINE__);
     ECode ec = URIEncoderDecoder::Decode(s, decodedS);
-    printf("%s, %d\n", __FILE__, __LINE__);
-    printf("s is %s decodes is %s\n", (const char*)s, (const char*)decodedS);
     if (ec == E_UNSUPPORTED_ENCODING_EXCEPTION) {
         ec = E_RUNTIME_EXCEPTION;
     }
-    printf("%s, %d\n", __FILE__, __LINE__);
     return ec;
 //    } catch (UnsupportedEncodingException e) {
 //        throw new RuntimeException(e.toString());

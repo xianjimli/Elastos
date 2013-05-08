@@ -219,7 +219,7 @@ void StringBuffer::SetLength(Int32 length)
 // No cache value is stored.
 UInt32 StringBuffer::GetCharCount() const
 {
-    Int32 number;
+    Int32 number = 0;
     Character::GetCharCount(CString(mString), 0, mLength, &number);
     return number;
 }
@@ -251,8 +251,19 @@ void StringBuffer::SetChar(Int32 index, Char32 ch)
 
 void StringBuffer::DeleteChar(Int32 index)
 {
+    //gao.jianfeng modify temply-----20130507---
     //Todo: not implemented;
-    assert(0);
+    Int32 i = 0;
+    char *temp = new char[mLength-1];
+    for (i = 0; i <= mLength; i++) {
+        if (i < index) temp[i] = mString[i];
+        if (i > index) temp[i-1] = mString[i];
+    }
+
+    //printf("temp is %s\n", temp);
+    delete [] mString;
+    mString = temp;
+    return;
 }
 
 } // Utility

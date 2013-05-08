@@ -127,22 +127,15 @@ ECode URIEncoderDecoder::Decode(
     /* [in] */ const String& s,
     /* [out] */ String* decodedS)
 {
-    printf("1******************************\n");
     VALIDATE_NOT_NULL(decodedS);
-    printf("2******************************\n");
     StringBuffer result;
-    printf("%s, %d\n", __FILE__, __LINE__);
     AutoPtr<IByteArrayOutputStream> out;
-    printf("%s, %d\n", __FILE__, __LINE__);
     FAIL_RETURN(CByteArrayOutputStream::New((IByteArrayOutputStream**)&out));
-    printf("%s, %d\n", __FILE__, __LINE__);
+
     Int32 count = s.GetCharCount();
-    printf("the count is %d\n", count);
     for (Int32 i = 0; i < s.GetCharCount();) {
-        printf("%s, %d\n", __FILE__, __LINE__);
         Char32 c = s.GetChar(i);
         if (c == '%') {
-            printf("%s, %d\n", __FILE__, __LINE__);
             out->Reset();
             do {
                 if (i + 2 >= s.GetCharCount()) {
@@ -151,34 +144,27 @@ ECode URIEncoderDecoder::Decode(
                 }
                 Int32 d1 = Character::ToDigit(s.GetChar(i + 1), 16);
                 Int32 d2 = Character::ToDigit(s.GetChar(i + 2), 16);
-                printf("d1, d2 is %c, %c\n", s.GetChar(i + 1), s.GetChar(i + 2));
-                printf("d1, d2 is %d, %d\n", d1, d2);
                 if (d1 == -1 || d2 == -1) {
 //                    throw new IllegalArgumentException("Invalid % sequence " +
 //                            s.substring(i, i + 3) + " at " + i);
-                    printf("%s, %d\n", __FILE__, __LINE__);
                     return E_ILLEGAL_ARGUMENT_EXCEPTION;
                 }
-                printf("the (d1 << 4) + d2) %d\n ", ((d1 << 4) + d2));
+
                 out->Write((Byte) ((d1 << 4) + d2));
                 i += 3;
             } while (i < s.GetCharCount() && s.GetChar(i) == '%');
-            printf("******************************\n");
+
             String s;
             out->ToString(&s);
-            ArrayOf<Byte> *array;
-            out->ToByteArray(&array);
+//            ArrayOf<Byte> *array;
+//            out->ToByteArray(&array);
             result += s;
-            printf("result s is %s \n", (const char *) s);
-            printf("result is %s \n", (const char *) result);
-            printf("result is %c %d\n", (*array)[0], (*array)[0]);
             continue;
         }
         result += c;
         i++;
     }
-    printf("%s, %d\n", __FILE__, __LINE__);
+
     *decodedS = result;
-    printf("%s, %d\n", __FILE__, __LINE__);
     return NOERROR;
 }

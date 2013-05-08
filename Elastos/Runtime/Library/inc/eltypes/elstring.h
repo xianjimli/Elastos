@@ -448,7 +448,13 @@ inline Int32 String::IndexOf(Char32 ch, Int32 start, StringCase stringCase) cons
 {
     if ((start != 0) && (start < 0 || (UInt32)start > GetLength())) return -1;
 
-    return _String_IndexOf_Char(mString + start, ch, stringCase);
+    Int32 index = _String_IndexOf_Char(mString + start, ch, stringCase);
+    if (index == -1) {
+        return index;
+    }
+    else {
+        return index + start;
+    }
 }
 
 inline Int32 String::IndexOf(const String& str, Int32 start, StringCase stringCase) const
