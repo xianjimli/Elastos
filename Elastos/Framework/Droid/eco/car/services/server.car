@@ -8,6 +8,7 @@ module
     merge("server/BatteryService.car");
     merge("server/ConnectivityService.car");
     merge("server/NetStatService.car");
+    merge("server/PrivacySettingsManagerService.car");    
 
     class CWindowSession {
         constructor(
@@ -168,6 +169,7 @@ module
 
         interface IClipboard;
     }
+<<<<<<< HEAD
 
     class CNetStatService {
         constructor(
@@ -176,4 +178,13 @@ module
         interface INetStatService;
     }
 
+=======
+    
+    class CPrivacySettingsManagerService {
+        constructor (
+            [in] IContext* context);
+            
+        interface IPrivacySettingsManagerService;
+    }
+>>>>>>> Modified PrivacySettingsManagerService setup file
 }
