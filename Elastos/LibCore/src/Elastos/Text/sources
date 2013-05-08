@@ -18,6 +18,7 @@ SOURCES += Format.cpp
 SOURCES += CParsePosition.cpp
 SOURCES += CFieldPosition.cpp
 SOURCES += DateFormat.cpp
+SOURCES += CDateFormatHelper.cpp
 SOURCES += NumberFormat.cpp
 SOURCES += CNumberFormatHelper.cpp
 SOURCES += DecimalFormat.cpp

@@ -347,4 +347,8 @@ module
     singleton class CDateFormatSymbolsHelper {
         interface IDateFormatSymbolsHelper;
     }
+
+    singleton class CDateFormatHelper {
+        interface IDateFormatHelper;
+    }
 }

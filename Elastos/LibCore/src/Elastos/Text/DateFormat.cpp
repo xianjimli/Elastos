@@ -171,14 +171,6 @@ ECode DateFormat::FormatDate(
     return FormatDateEx(date, String(NULL), field, value);
 }
 
-ECode DateFormat::GetAvailableLocales(
-    /* [out, callee] */ ArrayOf<ILocale*>** locales)
-{
-    AutoPtr<IICUHelper> ICUHelper;
-    FAIL_RETURN(CICUHelper::AcquireSingleton((IICUHelper**)&ICUHelper));
-    return ICUHelper->GetAvailableDateFormatLocales(locales);
-}
-
 ECode DateFormat::GetCalendar(
     /* [out] */ ICalendar** calendar)
 {
@@ -187,111 +179,12 @@ ECode DateFormat::GetCalendar(
     return NOERROR;
 }
 
-ECode DateFormat::GetDateInstance(
-    /* [out] */ IDateFormat** instance)
-{
-    return GetDateInstance(IDateFormat_DEFAULT, instance);
-}
-
-ECode DateFormat::GetDateInstance(
-    /* [in] */ Int32 style,
-    /* [out] */ IDateFormat** instance)
-{
-    FAIL_RETURN(CheckDateStyle(style));
-    AutoPtr<ILocaleHelper> localeHelper;
-    FAIL_RETURN(CLocaleHelper::AcquireSingleton((ILocaleHelper**)&localeHelper));
-    AutoPtr<ILocale> locale;
-    FAIL_RETURN(localeHelper->GetDefault((ILocale**)&locale));
-    return GetDateInstance(style, locale, instance);
-}
-
-ECode DateFormat::GetDateInstance(
-    /* [in] */ Int32 style,
-    /* [in] */ ILocale* locale,
-    /* [out] */ IDateFormat** instance)
-{
-    assert(0);
-    FAIL_RETURN(CheckDateStyle(style));
-    //return new SimpleDateFormat(LocaleData.get(locale).getDateFormat(style), locale);
-    return E_NOT_IMPLEMENTED;
-}
-
-ECode DateFormat::GetDateTimeInstance(
-    /* [out] */ IDateFormat** instance)
-{
-    return GetDateTimeInstance(IDateFormat_DEFAULT, IDateFormat_DEFAULT, instance);
-}
-
-ECode DateFormat::GetDateTimeInstance(
-    /* [in] */ Int32 dateStyle,
-    /* [in] */ Int32 timeStyle,
-    /* [out] */ IDateFormat** instance)
-{
-    FAIL_RETURN(CheckTimeStyle(timeStyle));
-    FAIL_RETURN(CheckDateStyle(dateStyle));
-    AutoPtr<ILocaleHelper> localeHelper;
-    FAIL_RETURN(CLocaleHelper::AcquireSingleton((ILocaleHelper**)&localeHelper));
-    AutoPtr<ILocale> locale;
-    localeHelper->GetDefault((ILocale**)&locale);
-    return GetDateTimeInstance(dateStyle, timeStyle, locale, instance);
-}
-
-ECode DateFormat::GetDateTimeInstance(
-    /* [in] */ Int32 dateStyle,
-    /* [in] */ Int32 timeStyle,
-    /* [in] */ ILocale* locale,
-    /* [out] */ IDateFormat** instance)
-{
-    assert(0);
-    FAIL_RETURN(CheckTimeStyle(timeStyle));
-    FAIL_RETURN(CheckDateStyle(dateStyle));
-    //LocaleData localeData = LocaleData.get(locale);
-    //String pattern = localeData.getDateFormat(dateStyle) + " " + localeData.getTimeFormat(timeStyle);
-    //return new SimpleDateFormat(pattern, locale);
-    return E_NOT_IMPLEMENTED;
-}
-
-ECode DateFormat::GetInstance(
-    /* [out] */ IDateFormat** instance)
-{
-    return GetDateTimeInstance(IDateFormat_SHORT, IDateFormat_SHORT, instance);
-}
-
 ECode DateFormat::GetNumberFormat(
     /* [out] */ INumberFormat** numberFormat)
 {
     *numberFormat = mNumberFormat;
     if (*numberFormat != NULL) (*numberFormat)->AddRef();
     return NOERROR;
-}
-
-ECode DateFormat::GetTimeInstance(
-    /* [out] */ IDateFormat** instance)
-{
-    return GetTimeInstance(IDateFormat_DEFAULT, instance);
-}
-
-ECode DateFormat::GetTimeInstance(
-    /* [in] */ Int32 style,
-    /* [out] */ IDateFormat** instance)
-{
-    FAIL_RETURN(CheckTimeStyle(style));
-    AutoPtr<ILocaleHelper> localeHelper;
-    FAIL_RETURN(CLocaleHelper::AcquireSingleton((ILocaleHelper**)&localeHelper));
-    AutoPtr<ILocale> locale;
-    FAIL_RETURN(localeHelper->GetDefault((ILocale**)&locale));
-    return GetTimeInstance(style, locale, instance);
-}
-
-ECode DateFormat::GetTimeInstance(
-    /* [in] */ Int32 style,
-    /* [in] */ ILocale* locale,
-    /* [out] */ IDateFormat** instance)
-{
-    assert(0);
-    FAIL_RETURN(CheckTimeStyle(style));
-    //return new SimpleDateFormat(LocaleData.get(locale).getTimeFormat(style), locale);
-    return E_NOT_IMPLEMENTED;
 }
 
 ECode DateFormat::GetTimeZone(
@@ -355,32 +248,4 @@ ECode DateFormat::SetTimeZone(
     /* [in] */ ITimeZone* timezone)
 {
     return mCalendar->SetTimeZone(timezone);
-}
-
-ECode DateFormat::CheckDateStyle(
-    /* [in] */ Int32 style)
-{
-    if (!(style == IDateFormat_SHORT
-            || style == IDateFormat_MEDIUM
-            || style == IDateFormat_LONG
-            || style == IDateFormat_FULL
-            || style == IDateFormat_DEFAULT)) {
-        //throw new IllegalArgumentException("Illegal date style " + style);
-        return E_ILLEGAL_ARGUMENT_EXCEPTION;
-    }
-    return NOERROR;
-}
-
-ECode DateFormat::CheckTimeStyle(
-    /* [in] */ Int32 style)
-{
-    if (!(style == IDateFormat_SHORT
-            || style == IDateFormat_MEDIUM
-            || style == IDateFormat_LONG
-            || style == IDateFormat_FULL
-            || style == IDateFormat_DEFAULT)) {
-        //throw new IllegalArgumentException("Illegal time style " + style);
-        return E_ILLEGAL_ARGUMENT_EXCEPTION;
-    }
-    return NOERROR;
 }

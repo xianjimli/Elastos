@@ -1,5 +1,6 @@
 #include "MessageFormat.h"
 #include "CMessageFormatField.h"
+#include "CDateFormatHelper.h"
 
 
 static AutoPtr<IMessageFormatField> sInit(const String& name) {
@@ -196,7 +197,9 @@ ECode MessageFormat::FormatImpl(
             if (arg->Probe(EIID_INumber) != NULL) {
                 NumberFormat::GetInstance((INumberFormat**)&format);
             } else if (arg->Probe(EIID_IDate) != NULL) {
-                DateFormat::GetInstance((IDateFormat**)&format);
+                AutoPtr<IDateFormatHelper> dfh;
+                CDateFormatHelper::AcquireSingleton((IDateFormatHelper**)&dfh);
+                dfh->GetInstance((IDateFormat**)&format);
             } else {
                 *buffer += arg;
                 HandleArgumentField(begin, buffer->GetLength(),
@@ -534,13 +537,15 @@ ECode MessageFormat::ParseVariable(
     ch = (Char32)(string.GetChar(index - 1));
 
     AutoPtr<IDateFormat> v1, v2;
+    AutoPtr<IDateFormatHelper> dfh;
+    CDateFormatHelper::AcquireSingleton((IDateFormatHelper**)&dfh);
     switch (type) {
         case 0: // time
         case 1: // date
             if (ch == '}') {
-                DateFormat::GetDateInstance(
+                dfh->GetDateInstanceEx2(
                         IDateFormat_DEFAULT, (ILocale*)mLocale, (IDateFormat**)&v1);
-                DateFormat::GetTimeInstance(
+                dfh->GetTimeInstanceEx2(
                         IDateFormat_DEFAULT, (ILocale*)mLocale, (IDateFormat**)&v2);
                 *value = (type == 1) ? (IFormat*)v1 : (IFormat*)v2;
                 return NOERROR;
@@ -574,9 +579,9 @@ ECode MessageFormat::ParseVariable(
                     dateStyle = IDateFormat_SHORT;
                     break;
             }
-            DateFormat::GetDateInstance(
+            dfh->GetDateInstanceEx2(
                     dateStyle, (ILocale*)mLocale, (IDateFormat**)&v1);
-            DateFormat::GetTimeInstance(
+            dfh->GetTimeInstanceEx2(
                     dateStyle, (ILocale*)mLocale, (IDateFormat**)&v2);
             *value = (type == 1) ? (IFormat*)v1 : (IFormat*)v2;
             return NOERROR;
@@ -746,22 +751,24 @@ ECode MessageFormat::DecodeSimpleDateFormat(
 {
     VALIDATE_NOT_NULL(value);
     IDateFormat* df = reinterpret_cast<IDateFormat*>(format->Probe(EIID_IDateFormat));
+    AutoPtr<IDateFormatHelper> dfh;
+    CDateFormatHelper::AcquireSingleton((IDateFormatHelper**)&dfh);
     AutoPtr<IDateFormat> dft;
-    DateFormat::GetTimeInstance(IDateFormat_DEFAULT, mLocale, (IDateFormat**)&dft);
+    dfh->GetTimeInstanceEx2(IDateFormat_DEFAULT, mLocale, (IDateFormat**)&dft);
     AutoPtr<IDateFormat> dfd;
-    DateFormat::GetDateInstance(IDateFormat_DEFAULT, mLocale, (IDateFormat**)&dfd);
+    dfh->GetDateInstanceEx2(IDateFormat_DEFAULT, mLocale, (IDateFormat**)&dfd);
     AutoPtr<IDateFormat> dft2;
-    DateFormat::GetTimeInstance(IDateFormat_SHORT, mLocale, (IDateFormat**)&dft2);
+    dfh->GetTimeInstanceEx2(IDateFormat_SHORT, mLocale, (IDateFormat**)&dft2);
     AutoPtr<IDateFormat> dfd2;
-    DateFormat::GetDateInstance(IDateFormat_SHORT, mLocale, (IDateFormat**)&dfd2);
+    dfh->GetDateInstanceEx2(IDateFormat_SHORT, mLocale, (IDateFormat**)&dfd2);
     AutoPtr<IDateFormat> dft3;
-    DateFormat::GetTimeInstance(IDateFormat_LONG, mLocale, (IDateFormat**)&dft3);
+    dfh->GetTimeInstanceEx2(IDateFormat_LONG, mLocale, (IDateFormat**)&dft3);
     AutoPtr<IDateFormat> dfd3;
-    DateFormat::GetDateInstance(IDateFormat_LONG, mLocale, (IDateFormat**)&dfd3);
+    dfh->GetDateInstanceEx2(IDateFormat_LONG, mLocale, (IDateFormat**)&dfd3);
     AutoPtr<IDateFormat> dft4;
-    DateFormat::GetTimeInstance(IDateFormat_FULL, mLocale, (IDateFormat**)&dft4);
+    dfh->GetTimeInstanceEx2(IDateFormat_FULL, mLocale, (IDateFormat**)&dft4);
     AutoPtr<IDateFormat> dfd4;
-    DateFormat::GetDateInstance(IDateFormat_FULL, mLocale, (IDateFormat**)&dfd4);
+    dfh->GetDateInstanceEx2(IDateFormat_FULL, mLocale, (IDateFormat**)&dfd4);
     if (df == dft.Get()) {
         *buffer += ",time";
     } else if (df == dfd.Get()) {
