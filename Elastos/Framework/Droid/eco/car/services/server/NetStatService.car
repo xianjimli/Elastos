@@ -1,0 +1,31 @@
+
+module
+{
+    [deprecated]
+    interface INetStatService{
+
+        GetMobileTxPackets(
+            [out] Int64* result);
+
+        GetMobileRxPackets(
+            [out] Int64* result);
+
+        GetMobileTxBytes(
+            [out] Int64* result);
+
+        GetMobileRxBytes(
+            [out] Int64* result);
+
+        GetTotalTxPackets(
+            [out] Int64* result);
+
+        GetTotalRxPackets(
+            [out] Int64* result);
+
+        GetTotalTxBytes(
+            [out] Int64* result);
+
+        GetTotalRxBytes(
+            [out] Int64* result);
+    }
+}

@@ -1,0 +1,110 @@
+
+module
+{
+    /**
+    * The return value to indicate that the device does not support the statistic.
+    */
+    const TrafficStats_UNSUPPORTED = -1;
+
+    interface ITrafficStats{
+        
+        /**
+        * Get the total number of packets transmitted through the mobile interface.
+        *
+        * @return number of packets.  If the statistics are not supported by this device,
+        * {@link #UNSUPPORTED} will be returned.
+        */
+        TrafficStatsGetMobileTxPackets(
+            [out] Int64* result);
+
+        /**
+        * Get the total number of packets received through the mobile interface.
+        *
+        * @return number of packets.  If the statistics are not supported by this device,
+        * {@link #UNSUPPORTED} will be returned.
+        */
+        TrafficStatsGetMobileRxPackets(
+            [out] Int64* result);
+
+        /**
+        * Get the total number of bytes transmitted through the mobile interface.
+        *
+        * @return number of bytes.  If the statistics are not supported by this device,
+        * {@link #UNSUPPORTED} will be returned.
+        */
+        TrafficStatsGetMobileTxBytes(
+            [out] Int64* result);
+
+        /**
+        * Get the total number of bytes received through the mobile interface.
+        *
+        * @return number of bytes.  If the statistics are not supported by this device,
+        * {@link #UNSUPPORTED} will be returned.
+        */
+        TrafficStatsGetMobileRxBytes(
+            [out] Int64* result);
+
+        /**
+        * Get the total number of packets sent through all network interfaces.
+        *
+        * @return the number of packets.  If the statistics are not supported by this device,
+        * {@link #UNSUPPORTED} will be returned.
+        */
+        TrafficStatsGetTotalTxPackets(
+            [out] Int64* result);
+
+        /**
+        * Get the total number of packets received through all network interfaces.
+        *
+        * @return number of packets.  If the statistics are not supported by this device,
+        * {@link #UNSUPPORTED} will be returned.
+        */
+        TrafficStatsGetTotalRxPackets(
+            [out] Int64* result);
+
+        /**
+        * Get the total number of bytes sent through all network interfaces.
+        *
+        * @return number of bytes.  If the statistics are not supported by this device,
+        * {@link #UNSUPPORTED} will be returned.
+        */
+        TrafficStatsGetTotalTxBytes(
+            [out] Int64* result);
+
+        /**
+        * Get the total number of bytes received through all network interfaces.
+        *
+        * @return number of bytes.  If the statistics are not supported by this device,
+        * {@link #UNSUPPORTED} will be returned.
+        */
+        TrafficStatsGetTotalRxBytes(
+            [out] Int64* result);
+
+        /**
+        * Get the number of bytes sent through the network for this UID.
+        * The statistics are across all interfaces.
+        *
+        * {@see android.os.Process#myUid()}.
+        *
+        * @param uid The UID of the process to examine.
+        * @return number of bytes.  If the statistics are not supported by this device,
+        * {@link #UNSUPPORTED} will be returned.
+        */
+        TrafficStatsGetUidTxBytes(
+            [in] Int32 uid,
+            [out] Int32* result);
+
+        /**
+        * Get the number of bytes received through the network for this UID.
+        * The statistics are across all interfaces.
+        *
+        * {@see android.os.Process#myUid()}.
+        *
+        * @param uid The UID of the process to examine.
+        * @return number of bytes
+        */
+        TrafficStatsGetUidRxBytes(
+            [in] Int32 uid,
+            [out] Int32* result);
+    }
+}

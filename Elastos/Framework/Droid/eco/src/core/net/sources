@@ -25,5 +25,6 @@ SOURCES += SntpClient.cpp
 SOURCES += CNetworkInfo.cpp
 SOURCES += CConnectivityManager.cpp
 SOURCES += CConnectivityManagerHelper.cpp
+SOURCES += CTrafficStats.cpp
 
 #LIBRARIES += wifi/wifi.lib

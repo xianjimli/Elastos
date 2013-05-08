@@ -7,6 +7,7 @@ module
     merge("server/InputMethodManagerService.car");
     merge("server/BatteryService.car");
     merge("server/ConnectivityService.car");
+    merge("server/NetStatService.car");
 
     class CWindowSession {
         constructor(
@@ -166,6 +167,13 @@ module
             [in] IContext* context);
 
         interface IClipboard;
+    }
+
+    class CNetStatService {
+        constructor(
+	    [in] IContext* context);
+
+        interface INetStatService;
     }
 
 }

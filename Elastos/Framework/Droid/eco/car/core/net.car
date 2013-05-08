@@ -15,6 +15,11 @@ module
     merge("net/http/HttpAuthHandler.car");
     merge("net/http/SslError.car");
     merge("net/WebAddress.car");
+    merge("net/TrafficStats.car");
+
+    singleton class CTrafficStats {
+        interface ITrafficStats;
+    }
 
     class CPathSegments {
         constructor(
@@ -203,4 +208,5 @@ module
 //        constructor(
 //            [in] IWifiStateTracker* tracker);
 //    }
+
 }
