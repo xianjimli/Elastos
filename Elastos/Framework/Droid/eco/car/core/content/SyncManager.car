@@ -4,7 +4,7 @@ module
 
     interface IAccount;
 
-//    [deprecated]
+    [deprecated]
     interface ISyncManager {
     
         GetSyncQueue(
@@ -46,14 +46,14 @@ module
          */
         ScheduleSync(
             [in] IAccount* requestedAccount,
-            [in] String requestedAuthority,
+            [in] String* requestedAuthority,
             [in] IBundle* extras,
             [in] Int64 delay,
             [in] Boolean onlyThoseWithUnkownSyncableState);
 
         ScheduleLocalSync(
             [in] IAccount* account,
-            [in] String authority);
+            [in] String* authority);
 
         GetSyncAdapterTypes(
             [out, callee] ArrayOf<ISyncAdapterType*>* syncAdapterTypes);
@@ -65,7 +65,7 @@ module
          */
         CancelActiveSync(
             [in] IAccount* account,
-            [in] String authority);
+            [in] String* authority);
 
         /**
          * Create and schedule a SyncOperation.
@@ -82,6 +82,6 @@ module
          */
         ClearScheduledSyncOperations(
             [in] IAccount* account,
-            [in] String authority);
+            [in] String* authority);
         }
 }
