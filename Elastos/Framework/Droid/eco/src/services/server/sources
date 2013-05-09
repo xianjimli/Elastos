@@ -62,6 +62,7 @@ SOURCES += CBatteryService.cpp
 SOURCES += CConnectivityService.cpp
 SOURCES += CClipboardService.cpp
 SOURCES += CNetStatService.cpp
+SOURCES += CPrivacySettingsManagerService.cpp
 
 LIBRARIES += location/location.lib
 LIBRARIES += connectivity/connectivity.lib
