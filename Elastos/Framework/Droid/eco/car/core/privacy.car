@@ -3,7 +3,13 @@ module
 {
     merge("privacy/PrivacySettings.car");
     merge("privacy/PrivacySettingsManager.car");
-        
+    merge("privacy/PrivacyPersistenceAdapter.car");
+    
+    /**
+     Adapting for privacy.car be emake singlely
+     interface  IContext {}
+    //*/
+    
     class CPrivacySettings {
         interface IPrivacySettings;
         
@@ -19,5 +25,13 @@ module
         constructor(
             [in] IContext* context,
             [in] IPrivacySettingsManager* service);
+    }
+    
+    class CPrivacyPersistenceAdapter {
+        
+        constructor(
+            [in] IContext* context);
+            
+        interface IPrivacyPersistenceAdapter;
     }
 }

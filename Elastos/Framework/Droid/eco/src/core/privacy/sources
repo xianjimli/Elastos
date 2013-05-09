@@ -11,4 +11,4 @@ C_DEFINES += -D_FRAMEWORK_CORE
 
 SOURCES += CPrivacySettings.cpp
 SOURCES += CPrivacySettingsManager.cpp
-
+SOURCES += CPrivacyPersistenceAdapter.cpp
