@@ -169,7 +169,6 @@ module
 
         interface IClipboard;
     }
-<<<<<<< HEAD
 
     class CNetStatService {
         constructor(
@@ -177,8 +176,6 @@ module
 
         interface INetStatService;
     }
-
-=======
     
     class CPrivacySettingsManagerService {
         constructor (
@@ -186,5 +183,4 @@ module
             
         interface IPrivacySettingsManagerService;
     }
->>>>>>> Modified PrivacySettingsManagerService setup file
 }
