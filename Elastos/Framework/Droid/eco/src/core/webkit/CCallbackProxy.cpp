@@ -5,7 +5,7 @@
 #include "webkit/CWebView.h"
 #include "webkit/CWebHistoryItem.h"
 
-const CString CCallbackProxy::LOGTAG = "CallbackProxy";
+const CString CCallbackProxy::LOGTAG("CallbackProxy");
 
 ECode CCallbackProxy::SetWebViewClient(
     /* [in] */ IWebViewClient* client)

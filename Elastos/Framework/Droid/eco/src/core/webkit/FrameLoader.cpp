@@ -10,14 +10,13 @@
 #include "webkit/CacheLoader.h"
 #include "webkit/CCookieManager.h"
 
-const CString FrameLoader::HEADER_STR = "text/xml, text/html, application/xhtml+xml, image/png, text/plain, */*;q=0.8";
-const CString FrameLoader::CONTENT_TYPE = "content-type";
+const CString FrameLoader::HEADER_STR("text/xml, text/html, application/xhtml+xml, image/png, text/plain, */*;q=0.8");
+const CString FrameLoader::CONTENT_TYPE("content-type");
 
 // Contents of an about:blank page
-const CString FrameLoader::mAboutBlank =
-        "<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EB\"><html><head><title>about:blank</title></head><body></body></html>";
+const CString FrameLoader::mAboutBlank("<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EB\"><html><head><title>about:blank</title></head><body></body></html>");
 
-const CString FrameLoader::LOGTAG = "webkit";
+const CString FrameLoader::LOGTAG("webkit");
 
 
 FrameLoader::FrameLoader(

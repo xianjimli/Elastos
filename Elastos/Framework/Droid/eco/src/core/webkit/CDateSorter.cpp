@@ -1,7 +1,7 @@
 
 #include "webkit/CDateSorter.h"
 
-const CString CDateSorter::LOGTAG = "webkit";
+const CString CDateSorter::LOGTAG("webkit");
 
 ECode CDateSorter::GetIndex(
     /* [in] */ Int64 time,

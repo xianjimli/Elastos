@@ -6,6 +6,7 @@
 #include <elastos/Mutex.h>
 #include <elastos/List.h>
 #include <elastos/AutoPtr.h>
+#include <elastos/ElRefBase.h>
 
 class LoadListener;
 
@@ -15,7 +16,8 @@ class LoadListener;
  * parameter to BrowserCallback.displayHttpAuthDialog and is
  * meant to receive the user's response.
  */
-class HttpAuthHandler //: public Handler 
+class HttpAuthHandler : public ElRefBase,
+                        public IApartment
 {
 
 public:
@@ -30,18 +32,79 @@ public:
 		/* [in] */ Network* network);
 
 public:
-    // Use to synchronize when making synchronous calls to
-    // onReceivedHttpAuthRequest(). We can't use a single Boolean object for
-    // both the lock and the state, because Boolean is immutable.
-    IInterface* mRequestInFlightLock;
-    Boolean mRequestInFlight;
-    String mUsername;
-    String mPassword;
+
+    CARAPI_(PInterface) Probe(
+        /* [in] */ REIID riid);
+
+    CARAPI_(UInt32) AddRef();
+
+    CARAPI_(UInt32) Release();
+
+    CARAPI GetInterfaceID(
+        /* [in] */ IInterface *pObject,
+        /* [out] */ InterfaceID *pIID);
 
 public:
+    CARAPI Start(
+        /* [in] */ ApartmentAttr attr);
+
+    CARAPI Finish();
+
+    CARAPI PostCppCallback(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [in] */ IParcel* params,
+        /* [in] */ Int32 id);
+
+    CARAPI PostCppCallbackAtTime(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [in] */ IParcel* params,
+        /* [in] */ Int32 id,
+        /* [in] */ Millisecond64 uptimeMillis);
+
+    CARAPI PostCppCallbackDelayed(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [in] */ IParcel* params,
+        /* [in] */ Int32 id,
+        /* [in] */ Millisecond64 delayMillis);
+
+    CARAPI PostCppCallbackAtFrontOfQueue(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [in] */ IParcel* params,
+        /* [in] */ Int32 id);
+
+    CARAPI RemoveCppCallbacks(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func);
+
+    CARAPI RemoveCppCallbacksEx(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [in] */ Int32 id);
+
+    CARAPI HasCppCallbacks(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [out] */ Boolean* result);
+
+    CARAPI HasCppCallbacksEx(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [in] */ Int32 id,
+        /* [out] */ Boolean* result);
+
+    CARAPI SendMessage(
+        /* [in] */ Int32 message,
+        /* [in] */ IParcel* params);
+
+public:
+
     //@Override
-	virtual CARAPI_(void) HandleMessage(
-		/* [in] */ IMessage* msg);
+	//virtual CARAPI_(void) HandleMessage(
+	//	/* [in] */ IMessage* msg);
 
     /**
      * Helper method used to unblock handleAuthRequest(), which in the case of a
@@ -56,8 +119,6 @@ public:
 	virtual CARAPI_(Boolean) HandleResponseForSynchronousRequest(
 		/* [in] */ const String& username, 
 		/* [in] */ const String& password);
-
-
 
     /**
      * Proceed with the authorization with the given credentials
@@ -107,6 +168,35 @@ public:
 		/* [in] */ const String& username, 
 		/* [in] */ const String& password);
 
+public:
+    // Use to synchronize when making synchronous calls to
+    // onReceivedHttpAuthRequest(). We can't use a single Boolean object for
+    // both the lock and the state, because Boolean is immutable.
+    IInterface* mRequestInFlightLock;
+    Boolean mRequestInFlight;
+    String mUsername;
+    String mPassword;
+
+private:
+
+    CARAPI SendMessage(
+        /* [in] */ Handle32 pvFunc,
+        /* [in] */ IParcel* params);
+
+    CARAPI SendMessageAtTime(
+        /* [in] */ Handle32 pvFunc,
+        /* [in] */ IParcel* params,
+        /* [in] */ Millisecond64 uptimeMillis);
+
+    CARAPI RemoveMessage(
+        /* [in] */ Handle32 func);
+
+    CARAPI HandleAuthProceed(
+        /* [in] */ String& username,
+        /* [in] */ String& password);
+
+    CARAPI HandleAuthCancel();
+
 private:
 
 	CARAPI_(void) SignalRequestComplete();
@@ -139,11 +229,13 @@ private:
      */
 //	LinkedList<LoadListener> mLoaderQueue;
     List<AutoPtr<LoadListener> > mLoaderQueue;
-    Core::Threading::Mutex        mLoaderQueueMutex;
+    Core::Threading::Mutex       mSyncLock;
 
     // Message id for handling the user response
 	static const int AUTH_PROCEED = 100;
 	static const int AUTH_CANCEL = 200;
+
+    AutoPtr<IApartment> mApartment;
 };
 
 #endif //__HTTPAUTHHANDLER_H__

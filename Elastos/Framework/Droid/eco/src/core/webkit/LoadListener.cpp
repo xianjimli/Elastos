@@ -17,9 +17,9 @@
 // This is the same regex that DOMImplementation uses to check for xml
 // content. Use this to check if another Activity wants to handle the
 // content before giving it to webkit.
-const CString XML_MIME_TYPE = "^[\\w_\\-+~!$\\^{}|.%'`#&*]+/[\\w_\\-+~!$\\^{}|.%'`#&*]+\\+xml$";
+const CString XML_MIME_TYPE("^[\\w_\\-+~!$\\^{}|.%'`#&*]+/[\\w_\\-+~!$\\^{}|.%'`#&*]+\\+xml$");
 
-const CString LoadListener::LOGTAG = "webkit";
+const CString LoadListener::LOGTAG("webkit");
 
 CARAPI_(LoadListener*) LoadListener::GetLoadListener(
 	/* [in] */ IContext* context,

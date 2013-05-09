@@ -17,7 +17,7 @@
 #include "view/CKeyEvent.h"
 #include "view/animation/CAlphaAnimation.h"
 
-const CString CWebView::LOGTAG = "webview";
+const CString CWebView::LOGTAG("webview");
 
 const CString CWebView::HandlerPrivateDebugString[] = {
     "REMEMBER_PASSWORD", //              = 1;

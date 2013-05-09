@@ -6,13 +6,13 @@
 #include "webkit/WebViewCore.h"
 
 // Log tag
-const CString CWebStorage::TAG = "webstorage";
+const CString CWebStorage::TAG("webstorage");
 
-const CString CWebStorage::ORIGINS = "origins";
-const CString CWebStorage::ORIGIN = "origin";
-const CString CWebStorage::CALLBACK = "callback";
-const CString CWebStorage::USAGE = "usage";
-const CString CWebStorage::QUOTA = "quota";
+const CString CWebStorage::ORIGINS("origins");
+const CString CWebStorage::ORIGIN("origin");
+const CString CWebStorage::CALLBACK("callback");
+const CString CWebStorage::USAGE("usage");
+const CString CWebStorage::QUOTA("quota");
 
 CWebStorage* CWebStorage::sWebStorage = NULL;
 

@@ -6,21 +6,21 @@
 
 using namespace Core;
 
-const CString CCookieManager::LOGTAG = "webkit";
+const CString CCookieManager::LOGTAG("webkit");
 
-const CString CCookieManager::DOMAIN = "domain";
+const CString CCookieManager::DOMAIN("domain");
 
-const CString CCookieManager::PATH = "path";
+const CString CCookieManager::PATH("path");
 
-const CString CCookieManager::EXPIRES = "expires";
+const CString CCookieManager::EXPIRES("expires");
 
-const CString CCookieManager::SECURE = "secure";
+const CString CCookieManager::SECURE("secure");
 
-const CString CCookieManager::MAX_AGE = "max-age";
+const CString CCookieManager::MAX_AGE("max-age");
 
-const CString CCookieManager::HTTP_ONLY = "httponly";
+const CString CCookieManager::HTTP_ONLY("httponly");
 
-const CString CCookieManager::HTTPS = "https";
+const CString CCookieManager::HTTPS("https");
 
 const Byte CCookieManager::PERIOD = '.';
 

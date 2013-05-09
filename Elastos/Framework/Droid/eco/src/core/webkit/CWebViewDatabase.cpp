@@ -3,87 +3,87 @@
 #include "content/CContentValues.h"
 #include <elastos/Thread.h>
 
-const CString CWebViewDatabase::LOGTAG = "webviewdatabase";
+const CString CWebViewDatabase::LOGTAG("webviewdatabase");
 
-const CString CWebViewDatabase::DATABASE_FILE = "webview.db";
-const CString CWebViewDatabase::CACHE_DATABASE_FILE = "webviewCache.db";
+const CString CWebViewDatabase::DATABASE_FILE("webview.db");
+const CString CWebViewDatabase::CACHE_DATABASE_FILE("webviewCache.db");
 
 // column id strings for "_id" which can be used by any table
-const CString CWebViewDatabase::ID_COL = "_id";
+const CString CWebViewDatabase::ID_COL("_id");
 
 //static const char* ID_PROJECTION[];
 
 // column id strings for "cookies" table
-const CString CWebViewDatabase::COOKIES_NAME_COL = "name";
+const CString CWebViewDatabase::COOKIES_NAME_COL("name");
 
-const CString CWebViewDatabase::COOKIES_VALUE_COL = "value";
+const CString CWebViewDatabase::COOKIES_VALUE_COL("value");
 
-const CString CWebViewDatabase::COOKIES_DOMAIN_COL = "domain";
+const CString CWebViewDatabase::COOKIES_DOMAIN_COL("domain");
 
-const CString CWebViewDatabase::COOKIES_PATH_COL = "path";
+const CString CWebViewDatabase::COOKIES_PATH_COL("path");
 
-const CString CWebViewDatabase::COOKIES_EXPIRES_COL = "expires";
+const CString CWebViewDatabase::COOKIES_EXPIRES_COL("expires");
 
-const CString CWebViewDatabase::COOKIES_SECURE_COL = "secure";
+const CString CWebViewDatabase::COOKIES_SECURE_COL("secure");
 
 // column id strings for "cache" table
-const CString CWebViewDatabase::CACHE_URL_COL = "url";
+const CString CWebViewDatabase::CACHE_URL_COL("url");
 
-const CString CWebViewDatabase::CACHE_FILE_PATH_COL = "filepath";
+const CString CWebViewDatabase::CACHE_FILE_PATH_COL("filepath");
 
-const CString CWebViewDatabase::CACHE_LAST_MODIFY_COL = "lastmodify";
+const CString CWebViewDatabase::CACHE_LAST_MODIFY_COL("lastmodify");
 
-const CString CWebViewDatabase::CACHE_ETAG_COL = "etag";
+const CString CWebViewDatabase::CACHE_ETAG_COL("etag");
 
-const CString CWebViewDatabase::CACHE_EXPIRES_COL = "expires";
+const CString CWebViewDatabase::CACHE_EXPIRES_COL("expires");
 
-const CString CWebViewDatabase::CACHE_EXPIRES_STRING_COL = "expiresstring";
+const CString CWebViewDatabase::CACHE_EXPIRES_STRING_COL("expiresstring");
 
-const CString CWebViewDatabase::CACHE_MIMETYPE_COL = "mimetype";
+const CString CWebViewDatabase::CACHE_MIMETYPE_COL("mimetype");
 
-const CString CWebViewDatabase::CACHE_ENCODING_COL = "encoding";
+const CString CWebViewDatabase::CACHE_ENCODING_COL("encoding");
 
-const CString CWebViewDatabase::CACHE_HTTP_STATUS_COL = "httpstatus";
+const CString CWebViewDatabase::CACHE_HTTP_STATUS_COL("httpstatus");
 
-const CString CWebViewDatabase::CACHE_LOCATION_COL = "location";
+const CString CWebViewDatabase::CACHE_LOCATION_COL("location");
 
-const CString CWebViewDatabase::CACHE_CONTENTLENGTH_COL = "contentlength";
+const CString CWebViewDatabase::CACHE_CONTENTLENGTH_COL("contentlength");
 
-const CString CWebViewDatabase::CACHE_CONTENTDISPOSITION_COL = "contentdisposition";
+const CString CWebViewDatabase::CACHE_CONTENTDISPOSITION_COL("contentdisposition");
 
-const CString CWebViewDatabase::CACHE_CROSSDOMAIN_COL = "crossdomain";
+const CString CWebViewDatabase::CACHE_CROSSDOMAIN_COL("crossdomain");
 
 // column id strings for "password" table
-const CString CWebViewDatabase::PASSWORD_HOST_COL = "host";
+const CString CWebViewDatabase::PASSWORD_HOST_COL("host");
 
-const CString CWebViewDatabase::PASSWORD_USERNAME_COL = "username";
+const CString CWebViewDatabase::PASSWORD_USERNAME_COL("username");
 
-const CString CWebViewDatabase::PASSWORD_PASSWORD_COL = "password";
+const CString CWebViewDatabase::PASSWORD_PASSWORD_COL("password");
 
 // column id strings for "formurl" table
-const CString CWebViewDatabase::FORMURL_URL_COL = "url";
+const CString CWebViewDatabase::FORMURL_URL_COL("url");
 
 // column id strings for "formdata" table
-const CString CWebViewDatabase::FORMDATA_URLID_COL = "urlid";
+const CString CWebViewDatabase::FORMDATA_URLID_COL("urlid");
 
-const CString CWebViewDatabase::FORMDATA_NAME_COL = "name";
+const CString CWebViewDatabase::FORMDATA_NAME_COL("name");
 
-const CString CWebViewDatabase::FORMDATA_VALUE_COL = "value";
+const CString CWebViewDatabase::FORMDATA_VALUE_COL("value");
 
 // column id strings for "httpauth" table
-const CString CWebViewDatabase::HTTPAUTH_HOST_COL = "host";
+const CString CWebViewDatabase::HTTPAUTH_HOST_COL("host");
 
-const CString CWebViewDatabase::HTTPAUTH_REALM_COL = "realm";
+const CString CWebViewDatabase::HTTPAUTH_REALM_COL("realm");
 
-const CString CWebViewDatabase::HTTPAUTH_USERNAME_COL = "username";
+const CString CWebViewDatabase::HTTPAUTH_USERNAME_COL("username");
 
-const CString CWebViewDatabase::HTTPAUTH_PASSWORD_COL = "password";
+const CString CWebViewDatabase::HTTPAUTH_PASSWORD_COL("password");
 
 // log tag
-const CString LOGTAG = "webviewdatabase";
+const CString LOGTAG("webviewdatabase");
 
-const CString DATABASE_FILE = "webview.db";
-const CString CACHE_DATABASE_FILE = "webviewCache.db";
+const CString DATABASE_FILE("webview.db");
+const CString CACHE_DATABASE_FILE("webviewCache.db");
 
 // 1 -> 2 Add expires String
 // 2 -> 3 Add content-disposition

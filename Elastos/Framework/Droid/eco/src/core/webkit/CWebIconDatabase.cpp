@@ -1,9 +1,9 @@
 
 #include "webkit/CWebIconDatabase.h"
 
-const CString CWebIconDatabase::LOGTAG = "WebIconDatabase";
+const CString CWebIconDatabase::LOGTAG("WebIconDatabase");
 
-CWebIconDatabase* CWebIconDatabase::sIconDatabase = NULL;
+CWebIconDatabase* CWebIconDatabase::sIconDatabase(NULL);
 
 ECode CWebIconDatabase::Open(
     /* [in] */ CString path)

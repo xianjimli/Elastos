@@ -4,18 +4,21 @@
 #include "ext/frameworkext.h"
 
 #include <utils/Timers.h>
+#include <elastos/AutoPtr.h>
+#include <elastos/ElRefBase.h>
 
 class MediaPlayer;
 
 /**
  * <p>HTML5 support class for Audio.
  */
-class HTML5Audio //: public IHandler,
-                 //         IOnBufferingUpdateListener,
-                 //         IOnCompletionListener,
-                 //         IOnErrorListener,
-                 //         IOnPreparedListener,
-                 //         IOnSeekCompleteListener
+class HTML5Audio : public ElRefBase,
+                   public IApartment,
+                   public IMediaPlayerOnBufferingUpdateListener,
+                   public IMediaPlayerOnCompletionListener,
+                   public IMediaPlayerOnErrorListener,
+                   public IMediaPlayerOnPreparedListener,
+                   public IMediaPlayerOnSeekCompleteListener
 {
 public:
 
@@ -27,35 +30,104 @@ public:
 
 public:
     //@Override
-	virtual CARAPI_(void) HandleMessage(
-		/* [in] */ IMessage* msg);
+	//virtual CARAPI_(void) HandleMessage(
+	//	/* [in] */ IMessage* msg);
 
     // event listeners for MediaPlayer
     // Those are called from the same thread we created the MediaPlayer
     // (i.e. the webviewcore thread here)
 
     // MediaPlayer.OnBufferingUpdateListener
-	virtual CARAPI_(void) OnBufferingUpdate(
-		/* [in] */ MediaPlayer* mp, 
+	CARAPI OnBufferingUpdate(
+		/* [in] */ IMediaPlayer* mp, 
 		/* [in] */ Int32 percent);
 
     // MediaPlayer.OnCompletionListener;
-	virtual CARAPI_(void) OnCompletion(
-		/* [in] */ MediaPlayer* mp);
+	CARAPI OnCompletion(
+		/* [in] */ IMediaPlayer* mp);
 
     // MediaPlayer.OnErrorListener
-	virtual CARAPI_(Boolean) OnError(
-		/* [in] */ MediaPlayer* mp, 
+	CARAPI OnError(
+		/* [in] */ IMediaPlayer* mp, 
 		/* [in] */ Int32 what, 
-		/* [in] */ Int32 extra);
+		/* [in] */ Int32 extra,
+		/* [out] */ Boolean* result);
 
     // MediaPlayer.OnPreparedListener
-	virtual CARAPI_(void) OnPrepared(
-		/* [in] */ MediaPlayer* mp);
+	CARAPI OnPrepared(
+		/* [in] */ IMediaPlayer* mp);
 
     // MediaPlayer.OnSeekCompleteListener
-	virtual CARAPI_(void) OnSeekComplete(
-		/* [in] */ MediaPlayer* mp);
+	CARAPI OnSeekComplete(
+		/* [in] */ IMediaPlayer* mp);
+
+public:
+	CARAPI_(PInterface) Probe(
+        /* [in] */ REIID riid);
+
+    CARAPI_(UInt32) AddRef();
+
+    CARAPI_(UInt32) Release();
+
+    CARAPI GetInterfaceID(
+        /* [in] */ IInterface *pObject,
+        /* [out] */ InterfaceID *pIID);
+
+public:
+    CARAPI Start(
+        /* [in] */ ApartmentAttr attr);
+
+    CARAPI Finish();
+
+    CARAPI PostCppCallback(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [in] */ IParcel* params,
+        /* [in] */ Int32 id);
+
+    CARAPI PostCppCallbackAtTime(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [in] */ IParcel* params,
+        /* [in] */ Int32 id,
+        /* [in] */ Millisecond64 uptimeMillis);
+
+    CARAPI PostCppCallbackDelayed(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [in] */ IParcel* params,
+        /* [in] */ Int32 id,
+        /* [in] */ Millisecond64 delayMillis);
+
+    CARAPI PostCppCallbackAtFrontOfQueue(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [in] */ IParcel* params,
+        /* [in] */ Int32 id);
+
+    CARAPI RemoveCppCallbacks(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func);
+
+    CARAPI RemoveCppCallbacksEx(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [in] */ Int32 id);
+
+    CARAPI HasCppCallbacks(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [out] */ Boolean* result);
+
+    CARAPI HasCppCallbacksEx(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [in] */ Int32 id,
+        /* [out] */ Boolean* result);
+
+    CARAPI SendMessage(
+        /* [in] */ Int32 message,
+        /* [in] */ IParcel* params);
 
 private:
 	class TimeupdateTask // : public TimerTask 
@@ -98,10 +170,25 @@ private:
 		/* [in] */ Int32 nativePointer);
 
 private:
+	CARAPI SendMessage(
+        /* [in] */ Handle32 pvFunc,
+        /* [in] */ IParcel* params);
+
+    CARAPI SendMessageAtTime(
+        /* [in] */ Handle32 pvFunc,
+        /* [in] */ IParcel* params,
+        /* [in] */ Millisecond64 uptimeMillis);
+
+    CARAPI RemoveMessage(
+        /* [in] */ Handle32 func);
+
+     CARAPI HandleTimeUpdate();
+
+private:
     // Logging tag.
 	static const CString LOGTAG;// = "HTML5Audio";
 
-	MediaPlayer* mMediaPlayer;
+	AutoPtr<IMediaPlayer> mMediaPlayer;
 
     // The C++ MediaPlayerPrivateAndroid object.
 	Int32 mNativePointer;
@@ -128,6 +215,8 @@ private:
     // The timer for timeupate events.
     // See http://www.whatwg.org/specs/web-apps/current-work/#event-media-timeupdate
 //	Timer mTimer;
+
+	AutoPtr<IApartment> mApartment;
 };
 
 #endif //__HTML5AUDIO_H__

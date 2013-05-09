@@ -14,7 +14,7 @@
 #include "webkit/CCallbackProxy.h"
 #include "os/CApartment.h"
 
-const CString CBrowserFrame::LOGTAG = "webkit";
+const CString CBrowserFrame::LOGTAG("webkit");
 
 AutoPtr<JWebCoreJavaBridge> CBrowserFrame::sJavaBridge;
 

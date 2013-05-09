@@ -6,7 +6,7 @@
 #include "webkit/CertTool.h"
 #include "content/Context.h"
 
-const CString JWebCoreJavaBridge::LOGTAG = "webkit-timers";
+const CString JWebCoreJavaBridge::LOGTAG("webkit-timers");
 AutoPtr<IWebView> JWebCoreJavaBridge::sCurrentMainWebView = NULL;
 Core::Threading::Mutex JWebCoreJavaBridge::mutexClass;
 

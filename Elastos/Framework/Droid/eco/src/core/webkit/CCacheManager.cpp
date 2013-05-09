@@ -9,15 +9,15 @@
 #include "os/Runnable.h"
 #include "os/FileUtils.h"
 
-const CString CCacheManager::HEADER_KEY_IFMODIFIEDSINCE = "if-modified-since";
-const CString CCacheManager::HEADER_KEY_IFNONEMATCH = "if-none-match";
+const CString CCacheManager::HEADER_KEY_IFMODIFIEDSINCE("if-modified-since");
+const CString CCacheManager::HEADER_KEY_IFNONEMATCH("if-none-match");
 
-const CString CCacheManager::LOGTAG = "cache";
+const CString CCacheManager::LOGTAG("cache");
 
-const CString CCacheManager::NO_STORE = "no-store";
-const CString CCacheManager::NO_CACHE = "no-cache";
-const CString CCacheManager::MAX_AGE = "max-age";
-const CString CCacheManager::MANIFEST_MIME = "text/cache-manifest";
+const CString CCacheManager::NO_STORE("no-store");
+const CString CCacheManager::NO_CACHE("no-cache");
+const CString CCacheManager::MAX_AGE("max-age");
+const CString CCacheManager::MANIFEST_MIME("text/cache-manifest");
 
 AutoPtr<CWebViewDatabase> CCacheManager::mDataBase;
 AutoPtr<IFile> CCacheManager::mBaseDir;

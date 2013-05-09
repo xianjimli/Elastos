@@ -3,7 +3,7 @@
 #include "webkit/CURLUtil.h"
 #include "utils/CTypedValue.h"
 
-const CString FileLoader::LOGTAG = "webkit";
+const CString FileLoader::LOGTAG("webkit");
 
 /**
  * Construct a FileLoader with the file URL specified as the content

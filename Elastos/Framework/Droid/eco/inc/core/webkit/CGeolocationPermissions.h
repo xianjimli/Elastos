@@ -7,6 +7,8 @@
 #include <elastos/AutoPtr.h>
 #include <elastos/Vector.h>
 #include <elastos/ElRefBase.h>
+#include <elastos/Set.h>
+#include <elastos/HashMap.h>
 
 CarClass(CGeolocationPermissions)
 {
@@ -61,16 +63,18 @@ private:
      */
     /*synchronized*/
     CARAPI_(void) PostMessage(
-        /* [in] */ IMessage* msg);
+        /* [in] */ Handle32 handle,
+        /* [in] */ IParcel* params);
 
     /**
      * Utility function to send a message to the handler on the UI thread
      */
     CARAPI_(void) PostUIMessage(
-        /* [in] */ IMessage* msg);
+        /* [in] */ Handle32 handle,
+        /* [in] */ IParcel* params);
 
     // Native functions, run on the WebKit thread.
-//    static CARAPI_(Set) NativeGetOrigins();
+    static CARAPI_(Set<String>*) NativeGetOrigins();
 
     static CARAPI_(Boolean) NativeGetAllowed(
         /* [in] */ const String& origin);
@@ -84,14 +88,58 @@ private:
     static CARAPI_(void) NativeClearAll();
 
 private:
+    CARAPI SendMessage(
+        /* [in] */ IApartment* handle,
+        /* [in] */ Handle32 pvFunc,
+        /* [in] */ IParcel* params);
+
+    CARAPI SendMessageAtTime(
+        /* [in] */ IApartment* handle,
+        /* [in] */ Handle32 pvFunc,
+        /* [in] */ IParcel* params,
+        /* [in] */ Millisecond64 uptimeMillis);
+
+    CARAPI RemoveMessage(
+        /* [in] */ IApartment* handle,
+        /* [in] */ Handle32 func);
+
+    CARAPI HandleGetOrigins(
+        /* [in] */ IValueCallback* callback);
+
+    CARAPI HandleReturnOrigins(
+        /* [in] */ HashMap<String, IInterface*>* values);
+
+    CARAPI HandleGetAllowed(
+        /* [in] */ HashMap<String, IInterface*>* values);
+
+    CARAPI HandleReturnAllowed(
+        /* [in] */ HashMap<String, IInterface*>* values);
+
+    CARAPI HandleClear(
+        /* [in] */ String& obj);
+
+    CARAPI HandleAllow(
+        /* [in] */ String& obj);
+
+    CARAPI HandleClearAll();
+
+private:
     // Global instance
     static CGeolocationPermissions* sInstance;
 
-    AutoPtr<IHandler> mHandler;
-    AutoPtr<IHandler> mUIHandler;
+    AutoPtr<IApartment> mHandler;
+    AutoPtr<IApartment> mUIHandler;
+
+    struct Message
+    {
+        Message(Handle32 func, AutoPtr<IParcel> _params) :
+                  pFunc(func), params(_params) {}
+        Handle32 pFunc;
+        AutoPtr<IParcel> params;
+    };
 
     // A queue to store messages until the handler is ready.
-    Vector<AutoPtr<IMessage> > mQueuedMessages;
+    Vector<Message*> mQueuedMessages;
 };
 
 class GeolocationPermissionsCallback: public ElRefBase, public IGeolocationPermissionsCallback

@@ -2,7 +2,7 @@
 #include "webkit/Network.h"
 #include "webkit/HttpAuthHandler.h"
 
-const CString Network::LOGTAG = "network";
+const CString Network::LOGTAG("network");
 
 Core::Threading::Mutex Network::mSyncLock;
 

@@ -1,3 +1,3 @@
 #include "webkit/DebugFlags.h"
 
-const CString DebugFlags::sDRAG_TRACKER_LOGTAG = "skia";
+const CString DebugFlags::sDRAG_TRACKER_LOGTAG("skia");

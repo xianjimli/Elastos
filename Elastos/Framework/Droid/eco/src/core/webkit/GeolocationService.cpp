@@ -3,7 +3,7 @@
 #include "location/CLocationManager.h"
 #include "location/LocationProvider.h"
 
-const CString GeolocationService::TAG = "geolocationService";
+const CString GeolocationService::TAG("geolocationService");
 
 GeolocationService::GeolocationService(
 	/* [in] */ Int64 nativeObject)
