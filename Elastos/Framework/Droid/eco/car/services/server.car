@@ -176,7 +176,7 @@ module
 
         interface INetStatService;
     }
-    
+       
     class CPrivacySettingsManagerService {
         constructor (
             [in] IContext* context);
