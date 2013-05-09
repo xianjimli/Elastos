@@ -1,5 +1,5 @@
 
-#include "CPrivacyPersistenceAdapter.h"
+#include "privacy/CPrivacyPersistenceAdapter.h"
 #include <sqlite3.h>
 
 const char* CPrivacyPersistenceAdapter::mDBFileName     = "/data/system/privacy.db";

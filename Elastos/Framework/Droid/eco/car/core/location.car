@@ -58,6 +58,27 @@ module
         interface IParcelable;
     }
 
+    class CListenerTransport {
+        constructor(
+            [in] Handle32 host,
+            [in] ILocalLocationListener* listener,
+            [in] IApartment* apartment);
+
+        interface ILocationListener;
+    }
+
+    class CGpsStatusListenerTransport {
+        constructor(
+            [in] Handle32 host,
+            [in] ILocalGpsStatusListener* listener);
+
+        constructor(
+            [in] Handle32 host,
+            [in] ILocalGpsStatusNmeaListener* nmealistener);
+
+        interface IGpsStatusListener;
+    }
+
     class CLocationManager {
         constructor(
             [in] ILocationManager* service);

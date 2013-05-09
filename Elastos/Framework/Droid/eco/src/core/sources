@@ -50,6 +50,8 @@ INCLUDES += $(MAKEDIR)/../../inc/core/media/
 INCLUDES += $(MAKEDIR)/../../inc/core/media/media
 INCLUDES += $(MAKEDIR)/../../inc/core/media/media/audiofx
 INCLUDES += $(MAKEDIR)/../../inc/core/media/drm/mobile1
+INCLUDES += $(MAKEDIR)/../../inc/core/privacy
+INCLUDES += $(MAKEDIR)/../../inc/core/privacy/surrogate
 
 ifeq "$(XDK_TARGET_PLATFORM)" "linux"
 INCLUDES += $(PREBUILD_INC)/skia/utils

@@ -742,6 +742,8 @@ public:
 private:
     CARAPI_(AutoPtr<IClipboardManager>) GetClipboardManager();
 
+    CARAPI_(AutoPtr<ILocalLocationManager>) GetLocationManager();
+
     CARAPI GetDataDirFile(
         /* [out] */ IFile** dirFile);
 
@@ -764,6 +766,9 @@ private:
 
 private:
     static const char* TAG;
+
+    static Mutex sSync;
+    static AutoPtr<ILocalLocationManager> sLocationManager;
 
     LoadedCap* mCapsuleInfo;
     AutoPtr<IResources> mResources;

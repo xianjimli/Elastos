@@ -1,4 +1,0 @@
-
-EXPORT_HEADERS += CPrivacySettings.h
-EXPORT_HEADERS += CPrivacySettingsManager.h
-EXPORT_HEADERS += CPrivacyPersistenceAdapter.h

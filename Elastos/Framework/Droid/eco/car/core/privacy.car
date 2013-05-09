@@ -4,34 +4,29 @@ module
     merge("privacy/PrivacySettings.car");
     merge("privacy/PrivacySettingsManager.car");
     merge("privacy/PrivacyPersistenceAdapter.car");
-    
-    /**
-     Adapting for privacy.car be emake singlely
-     interface  IContext {}
-    //*/
-    
+
     class CPrivacySettings {
-        interface IPrivacySettings;
-        
         constructor(
-            [in]  Int32 _id, 
-            [in]  String packageName,
+            [in]  Int32 id,
+            [in]  String capsuleName,
             [in]  Int32 uid);
-    }
-    
-    class CPrivacySettingsManager {
-        interface IPrivacySettingsManager;
 
         constructor(
-            [in] IContext* context,
-            [in] IPrivacySettingsManager* service);
+            [in] Int32 id,
+            [in] String capsuleName,
+            [in] Int32 uid,
+            [in] Byte locationGpsSetting,
+            [in] String locationGpsLat,
+            [in] String locationGpsLon);
+
+        interface IPrivacySettings;
+        interface IParcelable;
     }
-    
+
     class CPrivacyPersistenceAdapter {
-        
         constructor(
             [in] IContext* context);
-            
+
         interface IPrivacyPersistenceAdapter;
     }
 }

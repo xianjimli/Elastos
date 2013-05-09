@@ -10,5 +10,7 @@ INCLUDES += ../
 C_DEFINES += -D_FRAMEWORK_CORE
 
 SOURCES += CPrivacySettings.cpp
-SOURCES += CPrivacySettingsManager.cpp
+SOURCES += PrivacySettingsManager.cpp
 SOURCES += CPrivacyPersistenceAdapter.cpp
+
+LIBRARIES += surrogate/surrogate.lib

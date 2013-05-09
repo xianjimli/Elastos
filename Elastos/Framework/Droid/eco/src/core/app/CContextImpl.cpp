@@ -11,7 +11,9 @@
 #include "os/FileUtils.h"
 #include "os/Environment.h"
 #include "os/Binder.h"
+#include "os/CServiceManager.h"
 #include "text/CClipboardManager.h"
+#include "privacy/surrogate/PrivacyLocationManager.h"
 #include <unistd.h>
 #include <assert.h>
 #include <Slogger.h>
@@ -21,6 +23,8 @@
 using namespace Elastos::Utility::Logging;
 
 const char* CContextImpl::TAG  = "CContextImpl";
+Mutex CContextImpl::sSync;
+AutoPtr<ILocalLocationManager> CContextImpl::sLocationManager;
 
 ICONTEXT_METHODS_IMPL(ReceiverRestrictedContext, ContextWrapper, ContextWrapper);
 
@@ -2258,8 +2262,10 @@ ECode CContextImpl::GetSystemService(
         return E_NOT_IMPLEMENTED;
     }
     else if (!CString(Context_LOCATION_SERVICE).Compare(name)) {
-//        return getLocationManager();
-        return E_NOT_IMPLEMENTED;
+        AutoPtr<ILocalLocationManager> lm = GetLocationManager();
+        *object = (IInterface*)lm.Get();
+        (*object)->AddRef();
+        return NOERROR;
     }
     else if (!CString(Context_SEARCH_SERVICE).Compare(name)) {
 //        return getSearchManager();
@@ -2340,6 +2346,25 @@ AutoPtr<IClipboardManager> CContextImpl::GetClipboardManager()
                 (IClipboardManager**)&mClipboardManager));
     }
     return mClipboardManager;
+}
+
+AutoPtr<ILocalLocationManager> CContextImpl::GetLocationManager()
+{
+    {
+        Mutex::Autolock lock(&sSync);
+
+        if (sLocationManager == NULL) {
+            AutoPtr<IServiceManager> sm;
+            CServiceManager::AcquireSingleton((IServiceManager**)&sm);
+            AutoPtr<IInterface> service;
+            sm->GetService(String(Context_LOCATION_SERVICE), (IInterface**)&service);
+            // CLocationManager::New(ILocationManager::Probe(service), (ILocationManager**)&sLocationManager);
+            // BEGIN privacy-modified
+            sLocationManager = new PrivacyLocationManager(ILocationManager::Probe(service), GetOuterContext());
+            // END privacy-modified
+        }
+    }
+    return sLocationManager;
 }
 
 ECode CContextImpl::Init(
