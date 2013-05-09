@@ -1,0 +1,22 @@
+module
+{
+     interface IPrivacyPersistenceAdapter {
+        GetSettings(
+            [in]  String packageName, 
+            [in]  Int32  uid, 
+            [in]  Boolean forceCloseDB,
+            [out] IPrivacySettings** privacySettings);
+         
+        SaveSettings(
+            [in]  IPrivacySettings* s,
+            [out] Boolean* result);
+            
+        DeleteSettings(
+            [in]  String packageName, 
+            [in]  Int32  uid,
+            [out] Boolean* result);
+            
+        PurgeSettings(
+            [out] Boolean* result);
+     }
+}

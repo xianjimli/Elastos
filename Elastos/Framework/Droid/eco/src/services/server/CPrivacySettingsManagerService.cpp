@@ -1,5 +1,12 @@
-
 #include "server/CPrivacySettingsManagerService.h"
+
+ECode CPrivacySettingsManagerService::constructor(
+    /* [in] */ IContext * pContext)
+{
+    mContext = pContext;
+    return NOERROR;
+}
+
 ECode CPrivacySettingsManagerService::GetSettings(
     /* [in] */ const String& packageName,
     /* [in] */ Int32 uid,
@@ -58,13 +65,6 @@ ECode CPrivacySettingsManagerService::AddObserver(
 
 ECode CPrivacySettingsManagerService::PurgeSettings(
     /* [out] */ Boolean * pResult)
-{
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
-}
-
-ECode CPrivacySettingsManagerService::constructor(
-    /* [in] */ IContext * pContext)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;

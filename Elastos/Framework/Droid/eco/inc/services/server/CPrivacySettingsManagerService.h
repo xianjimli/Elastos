@@ -42,7 +42,7 @@ public:
         /* [in] */ IContext * pContext);
 
 private:
-    // TODO: Add your private member variables here.
+    IContext*       mContext;
 };
 
 #endif // __CPRIVACYSETTINGSMANAGERSERVICE_H__
