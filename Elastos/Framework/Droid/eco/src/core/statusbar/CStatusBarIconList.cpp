@@ -26,7 +26,7 @@ ECode CStatusBarIconList::GetDescription(
 ECode CStatusBarIconList::ReadFromParcel(
     /* [in] */ IParcel* source)
 {
-    source->ReadArrayOfString((Handle32*)&mSlots);
+    source->ReadArrayOfString((ArrayOf<String>**)&mSlots);
     Int32 N;
     source->ReadInt32(&N);
     if (N < 0) {

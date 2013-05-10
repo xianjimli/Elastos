@@ -337,6 +337,26 @@ ECode CRemoteParcel::ReadValue(PVoid pValue, Int32 type)
             }
             break;
 
+        case Type_ArrayOfString:
+            {
+                Int32 tag = (Int32)m_pData->readInt32();
+                if (tag != MSH_NULL) {
+                    CarQuintet buf;
+
+                    m_pData->read((void*)&buf, sizeof(buf));
+                    Int32 size = buf.m_size / sizeof(String);
+                    *(ArrayOf<String>**)pValue = ArrayOf<String>::Alloc(size);
+                    for (Int32 i = 0; i < size; i++) {
+                        Int32 tag = m_pData->readInt32();
+                        if (tag != MSH_NULL) {
+                            const char* str = m_pData->readCString();
+                            (**(ArrayOf<String>**)pValue)[i] = str;
+                        }
+                    }
+                }
+            }
+            break;
+
         case Type_InterfacePtr:
             {
                 Int32 tag = (Int32)m_pData->readInt32();
@@ -684,8 +704,45 @@ ECode CRemoteParcel::WriteValue(PVoid pValue, Int32 type, Int32 size)
             break;
 
         case Type_ArrayOfString:
+            m_pData->writeInt32(pValue ? MSH_NOT_NULL : MSH_NULL);
+
+            if (pValue) {
+                m_pData->write(pValue, sizeof(CarQuintet));
+
+                Int32 size = ((PCARQUINTET)pValue)->m_size
+                            / sizeof(String);
+                String *pBuf = (String*)((PCARQUINTET)pValue)->m_pBuf;
+                for (Int32 i = 0; i < size; i++) {
+                    if (!pBuf[i].IsNull()) {
+                        m_pData->writeInt32(MSH_NOT_NULL);
+                        m_pData->writeCString(pBuf[i].string());
+                    }
+                    else {  // null pointer
+                        m_pData->writeInt32(MSH_NULL);
+                    }
+                }
+            }
+            break;
+
         case Type_BufferOfString:
-            assert(0);
+            m_pData->writeInt32(pValue ? MSH_NOT_NULL : MSH_NULL);
+
+            if (pValue) {
+                m_pData->write(pValue, sizeof(CarQuintet));
+
+                Int32 used = ((PCARQUINTET)pValue)->m_used
+                            / sizeof(String);
+                String *pBuf = (String*)((PCARQUINTET)pValue)->m_pBuf;
+                for (Int32 i = 0; i < used; i++) {
+                    if (!pBuf[i].IsNull()) {
+                        m_pData->writeInt32(MSH_NOT_NULL);
+                        m_pData->writeCString(pBuf[i].string());
+                    }
+                    else {  // null pointer
+                        m_pData->writeInt32(MSH_NULL);
+                    }
+                }
+            }
             break;
 
         case Type_Fd:
@@ -823,15 +880,15 @@ ECode CRemoteParcel::ReadArrayOf(
 }
 
 ECode CRemoteParcel::ReadArrayOfCString(
-    /* [out] */ Handle32 *ppArray)
+    /* [out, callee] */ ArrayOf<CString>** ppArray)
 {
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CRemoteParcel::ReadArrayOfString(
-    /* [out] */ Handle32 *ppArray)
+    /* [out, callee] */ ArrayOf<String>** ppArray)
 {
-    return E_NOT_IMPLEMENTED;
+    return ReadValue((PVoid)ppArray, Type_ArrayOfString);
 }
 
 ECode CRemoteParcel::ReadBufferOf(
@@ -1076,7 +1133,8 @@ ECode CRemoteParcel::WriteArrayOfCString(
 ECode CRemoteParcel::WriteArrayOfString(
     /* [in] */ const ArrayOf<String> & array)
 {
-    return E_NOT_IMPLEMENTED;
+    Int32 size = sizeof(UInt32) + sizeof(CarQuintet) + array.m_size;
+    return WriteValue((PVoid)&array, Type_ArrayOfString, size);
 }
 
 ECode CRemoteParcel::WriteBufferOf(

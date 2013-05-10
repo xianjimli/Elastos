@@ -1,4 +1,5 @@
 
+#include "ext/frameworkdef.h"
 #include "server/CPrivacySettingsManagerService.h"
 
 
@@ -14,11 +15,17 @@ ECode CPrivacySettingsManagerService::GetSettings(
     /* [in] */ Int32 uid,
     /* [out] */ IPrivacySettings** privacySettings)
 {
+    VALIDATE_NOT_NULL(privacySettings);
+
     // Log.d(TAG, "getSettings - " + packageName + " UID: " + uid);
     // return persistenceAdapter.getSettings(packageName, uid, false);
     //TODO:
-    return CPrivacySettings::New(0, String("ButtonDemo"), 0, PrivacySettings_RANDOM,
-            String("0.0"), String("0.0"), privacySettings);
+    AutoPtr<IPrivacySettings> settings;
+    CPrivacySettings::New(0, String("ButtonDemo"), 0, PrivacySettings_RANDOM,
+            String("0.0"), String("0.0"), (IPrivacySettings**)&settings);
+    *privacySettings = settings.Get();
+    (*privacySettings)->AddRef();
+    return NOERROR;
 }
 
 ECode CPrivacySettingsManagerService::SaveSettings(

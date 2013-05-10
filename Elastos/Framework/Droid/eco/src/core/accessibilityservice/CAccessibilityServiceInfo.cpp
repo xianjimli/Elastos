@@ -94,7 +94,7 @@ ECode CAccessibilityServiceInfo::ReadFromParcel(
     /* [in] */ IParcel *source)
 {
     source->ReadInt32(&mEventTypes);
-    source->ReadArrayOfString((Handle32*)&mPackageNames);
+    source->ReadArrayOfString((ArrayOf<String>**)&mPackageNames);
     source->ReadInt32(&mFeedbackType);
     source->ReadInt64(&mNotificationTimeout);
     source->ReadInt32(&mFlags);

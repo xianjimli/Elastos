@@ -777,13 +777,13 @@ ECode CCallbackParcel::ReadArrayOf(
 }
 
 ECode CCallbackParcel::ReadArrayOfCString(
-    /* [out] */ Handle32 *ppArray)
+    /* [out, callee] */ ArrayOf<CString>** ppArray)
 {
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CCallbackParcel::ReadArrayOfString(
-    /* [out] */ Handle32 *ppArray)
+    /* [out, callee] */ ArrayOf<String>** ppArray)
 {
     return E_NOT_IMPLEMENTED;
 }

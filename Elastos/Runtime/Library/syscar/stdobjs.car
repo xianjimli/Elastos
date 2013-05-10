@@ -120,13 +120,13 @@ library
             [in] Handle32 array);
 
         ReadArrayOfCString(
-            [out] Handle32 *array);
+            [out, callee] ArrayOf<CString>* array);
 
         WriteArrayOfCString(
             [in] ArrayOf<CString> array);
 
         ReadArrayOfString(
-            [out] Handle32 *array);
+            [out, callee] ArrayOf<String>* array);
 
         WriteArrayOfString(
             [in] ArrayOf<String> array);

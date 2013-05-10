@@ -930,13 +930,13 @@ ECode CRemoteParcel::ReadArrayOf(
 }
 
 ECode CRemoteParcel::ReadArrayOfCString(
-    /* [out] */ Handle32 *ppArray)
+    /* [out, callee] */ ArrayOf<CString>** ppArray)
 {
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CRemoteParcel::ReadArrayOfString(
-    /* [out] */ Handle32 *ppArray)
+    /* [out, callee] */ ArrayOf<String>** ppArray)
 {
     return E_NOT_IMPLEMENTED;
 }

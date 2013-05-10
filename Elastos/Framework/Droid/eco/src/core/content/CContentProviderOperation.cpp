@@ -324,7 +324,7 @@ ECode CContentProviderOperation::ToString(
     } else {
         str1.Append(mSelection);
     }
-    
+
     str1.Append(", mExpectedCount: ");
     str1.Append(strExpectedCount);
     str1.Append(", mYieldAllowed: ");
@@ -457,7 +457,7 @@ ECode CContentProviderOperation::constructor(
     Int32 type;
     FAIL_RETURN(source->ReadInt32(&type));
     String str1;
-    
+
     if (1 == type) {
         FAIL_RETURN(source->ReadString(&str1));
         FAIL_RETURN(CStringUri::New(str1, (IUri**)&mUri));
@@ -487,7 +487,7 @@ ECode CContentProviderOperation::constructor(
     }
 
     if ((source->ReadInt32(&tmpInt), tmpInt) != 0) {
-        source->ReadArrayOfString((Handle32*) &mSelectionArgs);
+        source->ReadArrayOfString((ArrayOf<String>**)&mSelectionArgs);
     }
 
     if ((source->ReadInt32(&tmpInt), tmpInt) != 0) {

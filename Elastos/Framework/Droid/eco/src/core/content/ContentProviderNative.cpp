@@ -138,7 +138,7 @@ ECode ContentProviderNative::ContentProviderProxy::Query(
         *cursor = NULL;
         return NOERROR;
     }
-    
+
     *cursor = adaptor;
     return NOERROR;
 }
@@ -182,7 +182,7 @@ ECode ContentProviderNative::ContentProviderProxy::Insert(
     Int32 type;
     FAIL_RETURN(reply->ReadInt32(&type));
     String str1;
-    
+
     if (1 == type) {
         FAIL_RETURN(reply->ReadString(&str1));
         FAIL_RETURN(CStringUri::New(str1, insertUri));
@@ -223,7 +223,7 @@ ECode ContentProviderNative::ContentProviderProxy::BulkInsert(
     //data.writeInterfaceToken(IContentProvider.descriptor);
     AutoPtr<IParcelable> uriParcelable = (IParcelable*) uri->Probe(EIID_IParcelable);
     FAIL_RETURN(uriParcelable->WriteToParcel(reply));
-    
+
     if (NULL != (&values)) {
         Int32 N = values.GetLength();
         FAIL_RETURN(data->WriteInt32(N));
@@ -649,7 +649,7 @@ ECode ContentProviderNative::OnTransact(
             ec = data->ReadInt32(&type);
             FAILED_WITH_RETURN(ec, reply, result);
             String str1;
-            
+
             if (1 == type) {
                 ec = data->ReadString(&str1);
                 FAILED_WITH_RETURN(ec, reply, result);
@@ -771,7 +771,7 @@ ECode ContentProviderNative::OnTransact(
             ec = data->ReadInt32(&type);
             FAILED_WITH_RETURN(ec, reply, result);
             String str1;
-            
+
             if (1 == type) {
                 ec = data->ReadString(&str1);
                 FAILED_WITH_RETURN(ec, reply, result);
@@ -824,7 +824,7 @@ ECode ContentProviderNative::OnTransact(
             ec = data->ReadInt32(&type);
             FAILED_WITH_RETURN(ec, reply, result);
             String str1;
-            
+
             if (1 == type) {
                 ec = data->ReadString(&str1);
                 FAILED_WITH_RETURN(ec, reply, result);
@@ -901,7 +901,7 @@ ECode ContentProviderNative::OnTransact(
             ec = ApplyBatch(operations, (ArrayOf<IContentProviderResult*>**)&results);
             FAILED_WITH_RETURN(ec, reply, result);
             //reply.writeNoException();
-            
+
             if (NULL != results) {
                 Int32 N = results->GetLength();
                 ec = reply->WriteInt32(N);
@@ -939,7 +939,7 @@ ECode ContentProviderNative::OnTransact(
             ec = data->ReadInt32(&type);
             FAILED_WITH_RETURN(ec, reply, result);
             String str1;
-            
+
             if (1 == type) {
                 ec = data->ReadString(&str1);
                 FAILED_WITH_RETURN(ec, reply, result);
@@ -974,12 +974,12 @@ ECode ContentProviderNative::OnTransact(
                 ec = CHierarchicalUri::New(str1, part1, pathPart1, part2, part3, (IUri**)&url);
                 FAILED_WITH_RETURN(ec, reply, result);
             }
-            
+
             String selection;
             ec = data->ReadString(&selection);
             FAILED_WITH_RETURN(ec, reply, result);
             AutoFree<ArrayOf<String> > selectionArgs;
-            ec = data->ReadArrayOfString((Handle32*) &selectionArgs);
+            ec = data->ReadArrayOfString((ArrayOf<String>**)&selectionArgs);
             FAILED_WITH_RETURN(ec, reply, result);
             Int32 count;
             ec = Delete(url, selection, *selectionArgs, &count);
@@ -998,7 +998,7 @@ ECode ContentProviderNative::OnTransact(
             ec = data->ReadInt32(&type);
             FAILED_WITH_RETURN(ec, reply, result);
             String str1;
-            
+
             if (1 == type) {
                 ec = data->ReadString(&str1);
                 FAILED_WITH_RETURN(ec, reply, result);
@@ -1040,7 +1040,7 @@ ECode ContentProviderNative::OnTransact(
             ec = data->ReadString(&selection);
             FAILED_WITH_RETURN(ec, reply, result);
             AutoFree<ArrayOf<String> > selectionArgs;
-            ec = data->ReadArrayOfString((Handle32*) &selectionArgs);
+            ec = data->ReadArrayOfString((ArrayOf<String>**)&selectionArgs);
             FAILED_WITH_RETURN(ec, reply, result);
             Int32 count;
             ec = Update(url, values, selection, *selectionArgs, &count);
@@ -1059,7 +1059,7 @@ ECode ContentProviderNative::OnTransact(
             ec = data->ReadInt32(&type);
             FAILED_WITH_RETURN(ec, reply, result);
             String str1;
-            
+
             if (1 == type) {
                 ec = data->ReadString(&str1);
                 FAILED_WITH_RETURN(ec, reply, result);
@@ -1125,7 +1125,7 @@ ECode ContentProviderNative::OnTransact(
             ec = data->ReadInt32(&type);
             FAILED_WITH_RETURN(ec, reply, result);
             String str1;
-            
+
             if (1 == type) {
                 ec = data->ReadString(&str1);
                 FAILED_WITH_RETURN(ec, reply, result);
