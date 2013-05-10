@@ -3,29 +3,39 @@
 #include "text/CSpannableStringBuilder.h"
 #include "text/Selection.h"
 #include <elastos/Math.h>
+#include <elastos/AutoFree.h>
 
 using namespace Elastos::Core;
 
 Int32 NumberKeyListener::Lookup(
-    /* [in] */ IKeyEvent* event, 
+    /* [in] */ IKeyEvent* event,
     /* [in] */ ISpannable* content)
 {
-    Int32 res;
-    event->GetMatch(GetAcceptedChars(), GetMetaState(content), &res);
+    Char16 res;
+    ArrayOf<Char32>* cs = GetAcceptedChars();
+
+    AutoFree< ArrayOf<Char16> > char16Array
+            = ArrayOf<Char16>::Alloc(cs->GetLength());
+    for (Int32 i = 0; i < cs->GetLength(); i++) {
+        (*char16Array)[i] = (*cs)[i];
+    }
+    event->GetMatchEx(*char16Array, GetMetaState(content), &res);
 
     return res;
 }
 
-AutoPtr<ICharSequence> NumberKeyListener::Filter(
-    /* [in] */ ICharSequence* source, 
-    /* [in] */ Int32 start, 
+ECode NumberKeyListener::Filter(
+    /* [in] */ ICharSequence* source,
+    /* [in] */ Int32 start,
     /* [in] */ Int32 end,
-    /* [in] */ ISpanned* dest, 
-    /* [in] */ Int32 dstart, 
-    /* [in] */ Int32 dend)
+    /* [in] */ ISpanned* dest,
+    /* [in] */ Int32 dstart,
+    /* [in] */ Int32 dend,
+    /*[out] */ ICharSequence** cs)
 {
-    ArrayOf<Char16>* accept = GetAcceptedChars();
-    Boolean filter = FALSE;
+    VALIDATE_NOT_NULL(cs);
+
+    ArrayOf<Char32>* accept = GetAcceptedChars();
 
     Int32 i;
     for (i = start; i < end; i++) {
@@ -38,35 +48,39 @@ AutoPtr<ICharSequence> NumberKeyListener::Filter(
 
     if (i == end) {
         // It was all OK.
-        return NULL;
+        *cs = NULL;
+        return NOERROR;
     }
 
     if (end - start == 1) {
-        // It was not OK, and there is only one Char16, so nothing remains.
-        return "";
+        // It was not OK, and there is only one char, so nothing remains.
+        return CStringWrapper::New(String(""), cs);
     }
 
     AutoPtr<ISpannableStringBuilder> filtered;
-    CSpannableStringBuilder::New(source, start, end, (ISpannableStringBuilder**)&filtered);
+    CSpannableStringBuilder::New(
+            source, start, end, (ISpannableStringBuilder**)&filtered);
     i -= start;
     end -= start;
 
-    Int32 len = end - start;
     // Only count down to i because the chars before that were all OK.
     for (Int32 j = end - 1; j >= i; j--) {
         Char32 c;
         source->GetCharAt(j, &c);
         if (!Ok(accept, c)) {
-            filtered->Delete(j, j + 1);
+            AutoPtr<IEditable> editable;
+            filtered->Delete(j, j + 1, (IEditable**)&editable);
         }
     }
 
-    return filtered;
+    *cs = (ICharSequence*)filtered->Probe(EIID_ICharSequence);
+    (*cs)->AddRef();
+    return NOERROR;
 }
 
 Boolean NumberKeyListener::Ok(
-    /* [in] */ ArrayOf<Char16>* accept, 
-    /* [in] */ Char16 c)
+    /* [in] */ ArrayOf<Char32>* accept,
+    /* [in] */ Char32 c)
 {
     for (Int32 i = accept->GetLength() - 1; i >= 0; i--) {
         if ((*accept)[i] == c) {
@@ -78,10 +92,10 @@ Boolean NumberKeyListener::Ok(
 }
 
 Boolean NumberKeyListener::OnKeyDown(
-    /* [in] */ IView* view, 
+    /* [in] */ IView* view,
     /* [in] */ IEditable* content,
-    /* [in] */ Int32 keyCode, 
-    /* [in] */ IKeyEvent* event) 
+    /* [in] */ Int32 keyCode,
+    /* [in] */ IKeyEvent* event)
 {
     Int32 selStart, selEnd;
 
@@ -107,8 +121,11 @@ Boolean NumberKeyListener::OnKeyDown(
             if (selStart != selEnd) {
                 Selection::SetSelection(content, selEnd);
             }
-
-            content->Replace(selStart, selEnd, String.valueOf((Char16) i));
+            AutoPtr<IEditable> editable;
+            String s = String::FromInt32(i);
+            AutoPtr<ICharSequence> cs;
+            CStringWrapper::New(s, (ICharSequence**)&cs);
+            content->ReplaceEx(selStart, selEnd, cs, (IEditable**)&editable);
 
             AdjustMetaAfterKeypress(content);
             return TRUE;

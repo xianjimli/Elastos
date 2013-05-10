@@ -136,6 +136,7 @@ SOURCES += CCursorAdapter.cpp
 SOURCES += CursorFilter.cpp
 SOURCES += CCursorFilter.cpp
 SOURCES += CursorTreeAdapter.cpp
+SOURCES += NumberKeyListener.cpp
 SOURCES += NumberPicker.cpp
 SOURCES += CNumberPicker.cpp
 SOURCES += ImageButton.cpp

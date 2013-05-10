@@ -30,19 +30,19 @@ public:
         /* [in] */ Int32 maxHeight);
 
     CARAPI GetDrawable(
-        /* [out] */ IDrawable ** ppDrawable);
+        /* [out] */ IDrawable** drawable);
 
     CARAPI SetImageResource(
         /* [in] */ Int32 resId);
 
     CARAPI SetImageURI(
-        /* [in] */ IUri * pUri);
+        /* [in] */ IUri* uri);
 
     CARAPI SetImageDrawable(
-        /* [in] */ IDrawable * pDrawable);
+        /* [in] */ IDrawable* drawable);
 
     CARAPI SetImageBitmap(
-        /* [in] */ IBitmap * pBm);
+        /* [in] */ IBitmap* bm);
 
     CARAPI SetImageState(
         /* [in] */ const ArrayOf<Int32> & state,
@@ -55,27 +55,27 @@ public:
         /* [in] */ ImageViewScaleType scaleType);
 
     CARAPI GetScaleType(
-        /* [out] */ ImageViewScaleType * pScaleType);
+        /* [out] */ ImageViewScaleType* scaleType);
 
     CARAPI GetImageMatrix(
-        /* [out] */ IMatrix ** ppMartix);
+        /* [out] */ IMatrix** martix);
 
     CARAPI SetImageMatrix(
-        /* [in] */ IMatrix * pMatrix);
+        /* [in] */ IMatrix* matrix);
 
     CARAPI SetNumberPicker(
-        /* [in] */ INumberPicker * pPicker);
+        /* [in] */ INumberPicker* picker);
 
     CARAPI constructor(
-        /* [in] */ IContext * pCtx);
+        /* [in] */ IContext* ctx);
 
     CARAPI constructor(
-        /* [in] */ IContext * pCtx,
-        /* [in] */ IAttributeSet * pAttrs);
+        /* [in] */ IContext* ctx,
+        /* [in] */ IAttributeSet* attrs);
 
     CARAPI constructor(
-        /* [in] */ IContext * pCtx,
-        /* [in] */ IAttributeSet * pAttrs,
+        /* [in] */ IContext* ctx,
+        /* [in] */ IAttributeSet* attrs,
         /* [in] */ Int32 defStyle);
 
 private:

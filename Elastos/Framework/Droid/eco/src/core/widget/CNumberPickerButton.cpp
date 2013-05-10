@@ -21,130 +21,129 @@ PInterface CNumberPickerButton::Probe(
 ECode CNumberPickerButton::SetAdjustViewBounds(
     /* [in] */ Boolean adjustViewBounds)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+
+    return NumberPickerButton::SetAdjustViewBounds(adjustViewBounds);
 }
 
 ECode CNumberPickerButton::SetMaxWidth(
     /* [in] */ Int32 maxWidth)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NumberPickerButton::SetMaxWidth(maxWidth);
 }
 
 ECode CNumberPickerButton::SetMaxHeight(
     /* [in] */ Int32 maxHeight)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NumberPickerButton::SetMaxHeight(maxHeight);
 }
 
 ECode CNumberPickerButton::GetDrawable(
-    /* [out] */ IDrawable ** ppDrawable)
+    /* [out] */ IDrawable** drawable)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(drawable);
+
+    AutoPtr<IDrawable> temp = NumberPickerButton::GetDrawable();
+    *drawable = temp;
+    (*drawable)->AddRef();
+    return NOERROR;
 }
 
 ECode CNumberPickerButton::SetImageResource(
     /* [in] */ Int32 resId)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NumberPickerButton::SetImageResource(resId);
 }
 
 ECode CNumberPickerButton::SetImageURI(
-    /* [in] */ IUri * pUri)
+    /* [in] */ IUri* uri)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NumberPickerButton::SetImageURI(uri);
 }
 
 ECode CNumberPickerButton::SetImageDrawable(
-    /* [in] */ IDrawable * pDrawable)
+    /* [in] */ IDrawable* drawable)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    // TODO: Add your NumberPickerButton::SetAdjustViewBounds(adjustViewBounds) here
+    return NumberPickerButton::SetImageDrawable(drawable);
 }
 
 ECode CNumberPickerButton::SetImageBitmap(
-    /* [in] */ IBitmap * pBm)
+    /* [in] */ IBitmap* bm)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NumberPickerButton::SetImageBitmap(bm);
 }
 
 ECode CNumberPickerButton::SetImageState(
     /* [in] */ const ArrayOf<Int32> & state,
     /* [in] */ Boolean mg)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NumberPickerButton::SetImageState(state, mg);
 }
 
 ECode CNumberPickerButton::SetImageLevel(
     /* [in] */ Int32 level)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NumberPickerButton::SetImageLevel(level);
 }
 
 ECode CNumberPickerButton::SetScaleType(
     /* [in] */ ImageViewScaleType scaleType)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NumberPickerButton::SetScaleType(scaleType);
 }
 
 ECode CNumberPickerButton::GetScaleType(
-    /* [out] */ ImageViewScaleType * pScaleType)
+    /* [out] */ ImageViewScaleType* scaleType)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(scaleType);
+
+    *scaleType = NumberPickerButton::GetScaleType();
+    return NOERROR;
 }
 
 ECode CNumberPickerButton::GetImageMatrix(
-    /* [out] */ IMatrix ** ppMartix)
+    /* [out] */ IMatrix** matrix)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(matrix);
+
+    AutoPtr<IMatrix> temp = NumberPickerButton::GetImageMatrix();
+    *matrix = temp;
+    (*matrix)->AddRef();
+    return NOERROR;
 }
 
 ECode CNumberPickerButton::SetImageMatrix(
-    /* [in] */ IMatrix * pMatrix)
+    /* [in] */ IMatrix* matrix)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NumberPickerButton::SetImageMatrix(matrix);
 }
 
 ECode CNumberPickerButton::SetNumberPicker(
-    /* [in] */ INumberPicker * pPicker)
+    /* [in] */ INumberPicker * picker)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NumberPickerButton::SetNumberPicker(picker);
 }
 
 ECode CNumberPickerButton::constructor(
-    /* [in] */ IContext * pCtx)
+    /* [in] */ IContext* ctx)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return constructor(ctx, NULL);
 }
 
 ECode CNumberPickerButton::constructor(
-    /* [in] */ IContext * pCtx,
-    /* [in] */ IAttributeSet * pAttrs)
+    /* [in] */ IContext* ctx,
+    /* [in] */ IAttributeSet* attrs)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return constructor(ctx, attrs,
+            0x01010072/*com.android.internal.R.attr.imageButtonStyle*/);
 }
 
 ECode CNumberPickerButton::constructor(
-    /* [in] */ IContext * pCtx,
-    /* [in] */ IAttributeSet * pAttrs,
+    /* [in] */ IContext* ctx,
+    /* [in] */ IAttributeSet* attrs,
     /* [in] */ Int32 defStyle)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    NumberPickerButton::Init(ctx, attrs, defStyle);
+    return NOERROR;
 }
 

@@ -6,28 +6,35 @@ static const Int32 R_Id_Decrement=0x010201fc;
 
 NumberPickerButton::NumberPickerButton()
 {
-
 }
 
 NumberPickerButton::NumberPickerButton(
-    /* [in] */ IContext* context, 
+    /* [in] */ IContext* context,
     /* [in] */ IAttributeSet* attrs,
-    /* [in] */ Int32 defStyle) : ImageButton(context, attrs, defStyle)
+    /* [in] */ Int32 defStyle)
+        : ImageButton(context, attrs, defStyle)
 {
-
 }
 
 NumberPickerButton::NumberPickerButton(
-    /* [in] */ IContext* context, 
-    /* [in] */ IAttributeSet* attrs)  : ImageButton(context, attrs)
+    /* [in] */ IContext* context,
+    /* [in] */ IAttributeSet* attrs)
+        : ImageButton(context, attrs)
 {
-
 }
 
 NumberPickerButton::NumberPickerButton(
-    /* [in] */ IContext* context) : ImageButton(context)
+    /* [in] */ IContext* context)
+        : ImageButton(context)
 {
+}
 
+void NumberPickerButton::Init(
+    /* [in] */ IContext* context,
+    /* [in] */ IAttributeSet* attrs,
+    /* [in] */ Int32 defStyle)
+{
+    ImageButton::Init(context, attrs, defStyle);
 }
 
 ECode NumberPickerButton::SetNumberPicker(
@@ -53,7 +60,7 @@ Boolean NumberPickerButton::OnTrackballEvent(
 }
 
 Boolean NumberPickerButton::OnKeyUp(
-    /* [in] */ Int32 keyCode, 
+    /* [in] */ Int32 keyCode,
     /* [in] */ IKeyEvent* event)
 {
     if ((keyCode == KeyEvent_KEYCODE_DPAD_CENTER)
@@ -74,7 +81,7 @@ void NumberPickerButton::CancelLongpressIfRequired(
     }
 }
 
-void NumberPickerButton::CancelLongpress() 
+void NumberPickerButton::CancelLongpress()
 {
     if (R_Id_Increment == GetId()) {
         mNumberPicker->CancelIncrement();

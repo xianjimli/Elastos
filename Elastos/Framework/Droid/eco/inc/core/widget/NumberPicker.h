@@ -4,6 +4,7 @@
 
 #include "widget/LinearLayout.h"
 #include "widget/NumberKeyListener.h"
+#include <elastos/ElRefBase.h>
 
 /**
  * A view for selecting a number
@@ -14,7 +15,115 @@
 
 class NumberPicker : public LinearLayout
 {
+private:
+    class OnLongClickRunnable
+            : public IRunnable
+            , public ElRefBase
+    {
+    public:
+        OnLongClickRunnable(
+            /* [in] */ NumberPicker* host);
+
+        UInt32 AddRef();
+
+        UInt32 Release();
+
+        PInterface Probe(
+            /* [in] */ REIID riid);
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface* pObject,
+            /* [in] */ InterfaceID* pIID);
+
+        ECode Run();
+
+    private:
+        NumberPicker* mHost;
+    };
+
+    class ClickListener
+            : public IViewOnClickListener
+            , public ElRefBase
+    {
+    public:
+        ClickListener(
+            /* [in] */ NumberPicker* host);
+
+        CARAPI_(PInterface) Probe(
+            /* [in]  */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
+        CARAPI OnClick(
+            /* [in] */ IView* v);
+
+    private:
+        NumberPicker* mHost;
+    };
+
+    class FocusListener
+            : public IViewOnFocusChangeListener
+            , public ElRefBase
+    {
+    public:
+        FocusListener(
+            /* [in] */ NumberPicker* host);
+
+        CARAPI_(PInterface) Probe(
+            /* [in]  */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
+        CARAPI OnFocusChange(
+            /* [in] */ IView* v,
+            /* [in] */ Boolean hasFocus);
+
+    private:
+        NumberPicker* mHost;
+    };
+
+    class LongClickListener
+            : public IViewOnLongClickListener
+            , public ElRefBase
+    {
+    public:
+        LongClickListener(
+            /* [in] */ NumberPicker* host);
+
+        CARAPI_(PInterface) Probe(
+            /* [in]  */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
+        CARAPI OnLongClick(
+            /* [in] */ IView* v,
+            /* [out] */ Boolean* result);
+
+    private:
+        NumberPicker* mHost;
+    };
+
 public:
+    NumberPicker();
+
     /**
      * Create a new number picker
      * @param context the application environment
@@ -28,7 +137,13 @@ public:
      * @param attrs a collection of attributes
      */
     NumberPicker(
-        /* [in] */ IContext* context, 
+        /* [in] */ IContext* context,
+        /* [in] */ IAttributeSet* attrs);
+
+    ~NumberPicker();
+
+    CARAPI_(void) Init(
+        /* [in] */ IContext* context,
         /* [in] */ IAttributeSet* attrs);
 
     /**
@@ -63,7 +178,7 @@ public:
      * @param end the end of the range (inclusive)
      */
     virtual CARAPI SetRange(
-        /* [in] */ Int32 start, 
+        /* [in] */ Int32 start,
         /* [in] */ Int32 end);
 
     /**
@@ -75,9 +190,9 @@ public:
      * @param end the end of the range (inclusive)
      * @param displayedValues the values displayed to the user.
      */
-    virtual CARAPI SetRange(
-        /* [in] */ Int32 start, 
-        /* [in] */ Int32 end, 
+    virtual CARAPI SetRangeEx(
+        /* [in] */ Int32 start,
+        /* [in] */ Int32 end,
         /* [in] */ ArrayOf<String>* displayedValues);
 
     /**
@@ -143,10 +258,6 @@ protected:
 
 
 private:
-    CARAPI_(void) Init(
-        /* [in] */ IContext* context, 
-        /* [in] */ IAttributeSet* attrs);
-
     CARAPI_(String) FormatNumber(
         /* [in] */ Int32 value);
 
@@ -191,59 +302,71 @@ public:
         };*/
 
 private:
-    static Char16 DIGIT_CHARACTERS[10];/* = {
+    static const ArrayOf<Char32>* DIGIT_CHARACTERS;/* = {
         '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
     };*/
-
-    AutoPtr<INumberPickerButton> mIncrementButton;
-    AutoPtr<INumberPickerButton> mDecrementButton;
+    static CARAPI_(const ArrayOf<Char32>*) InitDigitCharacters();
 
     class NumberPickerInputFilter
     {
     public:
-        AutoPtr<ICharSequence> Filter(
-            /* [in] */ ICharSequence* source, 
-            /* [in] */ Int32 start, 
+        NumberPickerInputFilter(
+            /* [in] */ NumberPicker* host);
+
+        CARAPI Filter(
+            /* [in] */ ICharSequence* source,
+            /* [in] */ Int32 start,
             /* [in] */ Int32 end,
-            /* [in] */ ISpanned* dest, 
-            /* [in] */ Int32 dstart, 
-            /* [in] */ Int32 dend);
+            /* [in] */ ISpanned* dest,
+            /* [in] */ Int32 dstart,
+            /* [in] */ Int32 dend,
+            /*[out] */ ICharSequence** cs);
+
+    private:
+        NumberPicker* mHost;
     };
 
-    class NumberRangeKeyListener : public NumberKeyListener 
+    class NumberRangeKeyListener : public NumberKeyListener
     {
     public:
+        NumberRangeKeyListener(
+            /* [in] */ NumberPicker* host);
+
         // XXX This doesn't allow for range limits when controlled by a
         // soft input method!
-        virtual CARAPI_(Int32) GetInputType();
+        CARAPI_(Int32) GetInputType();
 
-        virtual CARAPI_(AutoPtr<ICharSequence>) Filter(
-            /* [in] */ ICharSequence* source, 
-            /* [in] */ Int32 start, 
+        CARAPI Filter(
+            /* [in] */ ICharSequence* source,
+            /* [in] */ Int32 start,
             /* [in] */ Int32 end,
-            /* [in] */ ISpanned* dest, 
-            /* [in] */ Int32 dstart, 
-            /* [in] */ Int32 dend);
+            /* [in] */ ISpanned* dest,
+            /* [in] */ Int32 dstart,
+            /* [in] */ Int32 dend,
+            /*[out] */ ICharSequence** cs);
 
-    protected:        
-        virtual CARAPI_(Char16*) GetAcceptedChars();  
+        CARAPI_(Boolean) OnKeyDown(
+            /* [in] */ IView* view,
+            /* [in] */ IEditable* content,
+            /* [in] */ Int32 keyCode,
+            /* [in] */ IKeyEvent* event);
+
+    protected:
+        CARAPI_(ArrayOf<Char32>*) GetAcceptedChars();
+
+        CARAPI_(Int32) Lookup(
+            /* [in] */ IKeyEvent* event,
+            /* [in] */ ISpannable* content);
+
+    private:
+        NumberPicker* mHost;
     };
 
     CARAPI_(Int32) GetSelectedPos(
         /* [in] */ String str);
 
-    AutoPtr<IHandler> mHandler;
-    AutoPtr<IRunnable> mRunnable;/* = new Runnable() {
-        public void run() {
-            if (mIncrement) {
-                changeCurrent(mCurrent + 1);
-                mHandler.postDelayed(this, mSpeed);
-            } else if (mDecrement) {
-                changeCurrent(mCurrent - 1);
-                mHandler.postDelayed(this, mSpeed);
-            }
-        }
-    };*/
+    AutoPtr<IApartment> mHandler;
+    AutoPtr<IRunnable> mRunnable;
 
     AutoPtr<IEditText> mText;
     //AutoPtr<IInputFilter> mNumberInputFilter;
@@ -271,10 +394,13 @@ private:
     Int32 mPrevious;
     AutoPtr<IOnChangedListener> mListener;
     AutoPtr<IFormatter> mFormatter;
-    Int64 mSpeed;// = 300;
+    Int64 mSpeed;
 
     Boolean mIncrement;
     Boolean mDecrement;
+
+    AutoPtr<INumberPickerButton> mIncrementButton;
+    AutoPtr<INumberPickerButton> mDecrementButton;
 };
 
 #endif

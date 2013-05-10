@@ -25,6 +25,11 @@ public:
     NumberPickerButton(
         /* [in] */ IContext* context);
 
+    CARAPI_(void) Init(
+        /* [in] */ IContext* context,
+        /* [in] */ IAttributeSet* attrs,
+        /* [in] */ Int32 defStyle);
+
     virtual CARAPI SetNumberPicker(
         /* [in] */ INumberPicker* picker);
 
