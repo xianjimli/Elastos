@@ -1,8 +1,55 @@
 
 module
 {
+    interface IComparable;
+    interface IAccount;
+    
     [deprecated]
-    interface ISyncOperation {
-       
+    interface ISyncOperation extends IComparable{
+    
+        ToString(
+            [out] String* str);
+            
+        GetAccount(
+            [out] IAccount** account);
+            
+        GetSyncSource(
+            [out] Int32* syncSource);
+            
+        SetSyncSource(
+            [in] Int32 syncSource);
+            
+        GetAuthority(
+            [out] String* authority);
+            
+        SetAuthority(
+            [in] String authority);
+            
+        GetExtras(
+            [out] IBundle** extras);
+            
+        SetExtras(
+            [in] IBundle* extras);
+            
+        GetKey(
+            [out] String* key);
+            
+        GetEearliestRunTime(
+            [out] Int64* earliestRunTime);
+            
+        SetEearliestRunTime(
+            [in] Int64 earliestRunTime);
+            
+        GetExpedited(
+            [out] Boolean* expedited);
+            
+        SetExpedited(
+            [in] Boolean expedited);
+            
+        //GetPendingOperation(
+        //    [out] ISyncStorageEnginePendingOperation** pendingOperation);
+            
+        //SetPendingOperation(
+        //    [in] ISyncStorageEnginePendingOperation* pendingOperation);
     }
 }

@@ -115,6 +115,20 @@ module
         interface IParcelable;
     }
     
+    class CSyncOperation {
+        constructor(
+            [in] ISyncOperation* other);
+        
+        constructor(
+            [in] IAccount* account, 
+            [in] Int32 source,
+            [in] String authority,
+            [in] IBundle* extras,
+            [in] Int64 delayInMs);
+            
+            interface ISyncOperation;
+    }
+    
     interface IOnAccountsUpdateListener;
     
     class CApplicationContentResolver {

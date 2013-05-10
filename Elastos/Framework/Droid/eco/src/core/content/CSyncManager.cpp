@@ -4,7 +4,7 @@
 Int64 CSyncManager::LOCAL_SYNC_DELAY;
 Int64 CSyncManager::MAX_TIME_PER_SYNC;
 ArrayOf<IAccount*>* CSyncManager::INITIAL_ACCOUNTS_ARRAY;
-Boolean CSyncManager::mIsStaticMemberInitialized = FALSE;
+Boolean CSyncManager::mIsStaticMemberInitialized = InitStaticMembers();
 
 const CString CSyncManager::TAG("SyncManager");
 const String CSyncManager::SYNC_WAKE_LOCK("*sync*");
@@ -13,7 +13,6 @@ const String CSyncManager::ACTION_SYNC_ALARM("android.content.syncmanager.SYNC_A
 
 CSyncManager::CSyncManager()
 {
-    InitStaticMembers();
     mAccounts = INITIAL_ACCOUNTS_ARRAY;
     mDataConnectionIsConnected = FALSE;
     mStorageIsLow = FALSE;
@@ -33,15 +32,13 @@ CSyncManager::CSyncManager()
 
 CSyncManager::~CSyncManager()
 {
-//    if(mSyncHandler != NULL){
-//        delete mSyncHandler;
-//        mSyncHandler = NULL;
-//    }
 }
 
 ECode CSyncManager::GetSyncQueue(
 /* [out] */ISyncQueue** syncQueue)
 {
+    VALIDATE_NOT_NULL(syncQueue);
+
     *syncQueue = (ISyncQueue*)mSyncQueue;
     return NOERROR;
 }
@@ -49,6 +46,8 @@ ECode CSyncManager::GetSyncQueue(
 ECode CSyncManager::GetSyncStorageEngine(
 /* [out] */ISyncStorageEngine** engine)
 {
+    VALIDATE_NOT_NULL(engine);
+
     *engine = (ISyncStorageEngine*)mSyncStorageEngine;
     return NOERROR;
 }
@@ -201,14 +200,34 @@ ECode CSyncManager::ScheduleLocalSync(
 /* [in] */ IAccount* account,
 /* [in] */ String* authority)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    IBundle* extras;
+    CBundle::New((IBundle**)&extras);
+
+    extras->PutBoolean(String(ContentResolver_SYNC_EXTRAS_UPLOAD), TRUE);
+    ScheduleSync(account, authority, extras, LOCAL_SYNC_DELAY, FALSE /* onlyThoseWithUnkownSyncableState */);
+
+    return NOERROR;
 }
 
 ECode CSyncManager::GetSyncAdapterTypes(
 /* [out, callee] */ArrayOf<ISyncAdapterType *>** syncAdapterTypes)
 {
-    // TODO: Add your code here
+    /*
+    final Collection<RegisteredServicesCache.ServiceInfo<SyncAdapterType>> serviceInfos =
+            mSyncAdapters.getAllServices();
+
+    ArrayOf<ISyncAdapterType*> types = ArrayOf<ISyncAdapterType*>::Alloc(serviceInfos.Size());
+
+    Int32 i = 0;
+
+    for (RegisteredServicesCache.ServiceInfo<SyncAdapterType> serviceInfo : serviceInfos) {
+        types[i] = serviceInfo.type;
+        ++i;
+    }
+
+    *syncAdapterTypes = types;
+    */
+
     return E_NOT_IMPLEMENTED;
 }
 
@@ -216,14 +235,68 @@ ECode CSyncManager::CancelActiveSync(
 /* [in] */ IAccount* account,
 /* [in] */ String* authority)
 {
-    // TODO: Add your code here
+    /*
+    AutoPtr<ActiveSyncContext> activeSyncContext = mActiveSyncContext;
+
+    if (activeSyncContext != NULL) {
+        // if an authority was specified then only cancel the sync if it matches
+        if (account != NULL) {
+            if (!account.equals(activeSyncContext.mSyncOperation.account)) {
+                return NOERROR;
+            }
+        }
+        // if an account was specified then only cancel the sync if it matches
+        if (authority != NULL) {
+            if (!(*authority).Equals(activeSyncContext->mSyncOperation->authority)) {
+                return NOERROR;
+            }
+        }
+
+        sendSyncFinishedOrCanceledMessage(activeSyncContext, null ); // null means no result since this is a cancel
+    }
+     */
+
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CSyncManager::ScheduleSyncOperation(
 /* [in] */ISyncOperation* syncOperation)
 {
-    // TODO: Add your code here
+    // If this operation is expedited and there is a sync in progress then
+    // reschedule the current operation and send a cancel for it.
+    /*final*/ AutoPtr<ActiveSyncContext> activeSyncContext = mActiveSyncContext;
+
+    /*
+    if (syncOperation.expedited && activeSyncContext != null) {
+        final boolean hasSameKey =
+                activeSyncContext.mSyncOperation.key.equals(syncOperation.key);
+        // This request is expedited and there is a sync in progress.
+        // Interrupt the current sync only if it is not expedited and if it has a different
+        // key than the one we are scheduling.
+        if (!activeSyncContext.mSyncOperation.expedited && !hasSameKey) {
+            scheduleSyncOperation(new SyncOperation(activeSyncContext.mSyncOperation));
+            sendSyncFinishedOrCanceledMessage(activeSyncContext, null ); // null means no result since this is a cancel
+        }
+    }
+
+    boolean queueChanged;
+    synchronized (mSyncQueue) {
+        queueChanged = mSyncQueue.add(syncOperation);
+    }
+
+    if (queueChanged) {
+        if (Log.isLoggable(TAG, Log.VERBOSE)) {
+            Log.v(TAG, "scheduleSyncOperation: enqueued " + syncOperation);
+        }
+        sendCheckAlarmsMessage();
+    } else {
+        if (Log.isLoggable(TAG, Log.VERBOSE)) {
+            Log.v(TAG, "scheduleSyncOperation: dropping duplicate sync operation "
+                    + syncOperation);
+        }
+    }
+    */
+
     return E_NOT_IMPLEMENTED;
 }
 
@@ -250,10 +323,10 @@ ECode CSyncManager::constructor(
     return E_NOT_IMPLEMENTED;
 }
 
-void CSyncManager::InitStaticMembers()
+Boolean CSyncManager::InitStaticMembers()
 {
     if(mIsStaticMemberInitialized == TRUE){
-        return;
+        return TRUE;
     }
 
     String localSyncDelayString = SystemProperties::Get("sync.local_sync_delay");
@@ -293,7 +366,7 @@ void CSyncManager::InitStaticMembers()
 
     INITIAL_ACCOUNTS_ARRAY = ArrayOf<IAccount*>::Alloc(0);
 
-    mIsStaticMemberInitialized = TRUE;
+    return TRUE;
 }
 
 AutoPtr<IConnectivityManager> CSyncManager::GetConnectivityManager()
@@ -352,15 +425,15 @@ UInt32 CSyncManager::InitializerServiceConnection::Release()
 }
 
 ECode CSyncManager::InitializerServiceConnection::GetInterfaceID(
-/* [in] */ IInterface *pObject,
-/* [out] */ InterfaceID *pIID)
+/* [in] */ IInterface *object,
+/* [out] */ InterfaceID *IID)
 {
-    if (pIID == NULL) {
+    if (IID == NULL) {
         return E_INVALID_ARGUMENT;
     }
 
-    if (pObject == (IInterface*)(IServiceConnection*)this) {
-        *pIID = EIID_IServiceConnection;
+    if (object == (IInterface*)(IServiceConnection*)this) {
+        *IID = EIID_IServiceConnection;
     }
     else {
         return E_INVALID_ARGUMENT;
@@ -450,15 +523,15 @@ UInt32 CSyncManager::SyncAlarmIntentReceiver::Release()
 }
 
 ECode CSyncManager::SyncAlarmIntentReceiver::GetInterfaceID(
-/* [in] */ IInterface *pObject,
-/* [out] */ InterfaceID *pIID)
+/* [in] */ IInterface *object,
+/* [out] */ InterfaceID *IID)
 {
-    if (pIID == NULL) {
+    if (IID == NULL) {
         return E_INVALID_ARGUMENT;
     }
 
-    if (pObject == (IInterface*)(IBroadcastReceiver*)this) {
-        *pIID = EIID_IBroadcastReceiver;
+    if (object == (IInterface*)(IBroadcastReceiver*)this) {
+        *IID = EIID_IBroadcastReceiver;
     }
     else {
         return E_INVALID_ARGUMENT;

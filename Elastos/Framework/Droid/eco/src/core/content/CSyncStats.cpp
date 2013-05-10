@@ -5,6 +5,8 @@
 ECode CSyncStats::ToString(
     /* [out] */ String* str)
 {
+    VALIDATE_NOT_NULL(str);
+
     StringBuffer sb("");
 
     sb += " stats [";
@@ -79,7 +81,9 @@ ECode CSyncStats::Clear()
 ECode CSyncStats::DescribeContents(
     /* [out] */ Int32* result)
 {
-    result = 0;
+    VALIDATE_NOT_NULL(result);
+
+    *result = 0;
     return NOERROR;
 }
 
