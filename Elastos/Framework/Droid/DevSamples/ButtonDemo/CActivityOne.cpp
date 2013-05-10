@@ -70,20 +70,8 @@ ECode CActivityOne::MyListener::OnClick(
     /* [in] */ IView* v)
 {
     printf("==== File: %s, Line: %d ====\n", __FILE__, __LINE__);
-    AutoPtr<IServiceManager> serviceManager;
-    AutoPtr<IActivityManager> activityManagerService;
 
-    CServiceManager::AcquireSingleton((IServiceManager**)&serviceManager);
-    serviceManager->GetService(String("ActivityManagerService"), (IInterface**)&activityManagerService);
-    printf("==== File: %s, Line: %d ====\n", __FILE__, __LINE__);
-    AutoPtr<IIntent> intent;
-    CIntent::New((IIntent**)&intent);
-    intent->SetCapsule(String("TabDemo"));
-    intent->SetAction(String("elastos.intent.action.MAIN"));
-    Int32 status;
-    activityManagerService->StartActivity(NULL, (IIntent*)intent, String(NULL),
-            NULL, 0, NULL, String(NULL), -1, FALSE, FALSE, &status);
-    printf("==== File: %s, Line: %d ====\n", __FILE__, __LINE__);
+
     return NOERROR;
 }
 
@@ -97,6 +85,19 @@ ECode CActivityOne::OnCreate(
 
     AutoPtr<MyListener> l = new MyListener(this);
     view->SetOnClickListener(l.Get());
+
+printf("==== File: %s, Line: %d ====\n", __FILE__, __LINE__);
+    AutoPtr<ILocalLocationManager> lm;
+    GetSystemService(
+        Context_LOCATION_SERVICE, (IInterface**)&lm);
+printf("==== File: %s, Line: %d, lm: %p ====\n", __FILE__, __LINE__, lm.Get());
+
+    AutoPtr<ILocation> loc;
+    lm->GetLastKnownLocation(String("gps"), (ILocation**)&loc);
+    Double latitude, longitude;
+    loc->GetLatitude(&latitude);
+    loc->GetLongitude(&longitude);
+printf("==== File: %s, Line: %d, latitude: %f, longitude: %f ====\n", __FILE__, __LINE__, latitude, longitude);
 
     return NOERROR;
 }

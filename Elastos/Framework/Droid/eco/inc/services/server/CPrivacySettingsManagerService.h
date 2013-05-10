@@ -3,28 +3,30 @@
 #define __CPRIVACYSETTINGSMANAGERSERVICE_H__
 
 #include "_CPrivacySettingsManagerService.h"
+#include <elastos/AutoPtr.h>
 
 CarClass(CPrivacySettingsManagerService)
 {
 public:
     CARAPI GetSettings(
-        /* [in] */ const String& packageName,
+        /* [in] */ const String& capsuleName,
         /* [in] */ Int32 uid,
-        /* [out] */ IPrivacySettings ** ppPrivacySettings);
+        /* [out] */ IPrivacySettings** privacySettings);
 
     CARAPI SaveSettings(
-        /* [in] */ IPrivacySettings * pSettings,
-        /* [out] */ Boolean * pResult);
+        /* [in] */ IPrivacySettings* settings,
+        /* [out] */ Boolean* result);
 
     CARAPI DeleteSettings(
-        /* [in] */ const String& packageName,
+        /* [in] */ const String& capsuleName,
         /* [in] */ Int32 uid,
-        /* [out] */ Boolean * pResult);
+        /* [out] */ Boolean* result);
 
-    CARAPI GetVersion();
+    CARAPI GetVersion(
+        /* [out] */ Double* version);
 
     CARAPI Notification(
-        /* [in] */ const String& packageName,
+        /* [in] */ const String& capsuleName,
         /* [in] */ Int32 uid,
         /* [in] */ Byte accessMode,
         /* [in] */ const String& dataType,
@@ -33,16 +35,16 @@ public:
     CARAPI RegisterObservers();
 
     CARAPI AddObserver(
-        /* [in] */ const String& packageName);
+        /* [in] */ const String& capsuleName);
 
     CARAPI PurgeSettings(
-        /* [out] */ Boolean * pResult);
+        /* [out] */ Boolean* result);
 
     CARAPI constructor(
-        /* [in] */ IContext * pContext);
+        /* [in] */ IContext* context);
 
 private:
-    IContext*       mContext;
+    AutoPtr<IContext> mContext;
 };
 
 #endif // __CPRIVACYSETTINGSMANAGERSERVICE_H__

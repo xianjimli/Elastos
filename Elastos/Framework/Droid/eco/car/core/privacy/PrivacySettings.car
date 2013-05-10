@@ -5,17 +5,17 @@ module
      * Real value, provided by the unmodified Android framework.
      */
     const PrivacySettings_REAL = 0;
-  
+
     /**
      * Empty or unavailable, depending on setting type. For String settings, it is
-     * setter method caller's responsibility to make sure that the corresponding 
+     * setter method caller's responsibility to make sure that the corresponding
      * setting field will contain an empty String.
      */
     const PrivacySettings_EMPTY = 1;
-    
+
     /**
-     * Custom specified output, appropriate for relevant setting. For String settings, 
-     * it is setter method caller's responsibility to make sure that the corresponding 
+     * Custom specified output, appropriate for relevant setting. For String settings,
+     * it is setter method caller's responsibility to make sure that the corresponding
      * setting field will contain a custom String.
      */
     const PrivacySettings_CUSTOM = 2;
@@ -23,7 +23,7 @@ module
     /**
      * Random output, appropriate for relevant setting. When this option is set, the
      * corresponding getter methods will generate appropriate random values automatically.
-     * 
+     *
      * Device ID: a random string consisting of 15 numeric digits preceded by a "+"
      * Line1Number: a random string consisting of 13 numeric digits
      */
@@ -31,7 +31,7 @@ module
 
     const PrivacySettings_SETTING_NOTIFY_OFF    = 0;
     const PrivacySettings_SETTING_NOTIFY_ON     = 1;
-    
+
     /**
      * constants for identification of data types transmitted in the notification intent
      */
@@ -56,6 +56,21 @@ module
     const PrivacySettings_DATA_BOOKMARKS = "bookmarks";
     const PrivacySettings_DATA_SYSTEM_LOGS = "systemLogs";
     const PrivacySettings_DATA_INTENT_BOOT_COMPLETED = "intentBootCompleted";
-    
-    interface IPrivacySettings {}
+
+    interface IPrivacySettings {
+        GetLocationGpsSetting(
+            [out] Byte* setting);
+
+        GetLocationGpsLat(
+            [out] String* latitude);
+
+        SetLocationGpsLat(
+            [in] String latitude);
+
+        GetLocationGpsLon(
+            [out] String* longitude);
+
+        SetLocationGpsLon(
+            [in] String longitude);
+    }
 }

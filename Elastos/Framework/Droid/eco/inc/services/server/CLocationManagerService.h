@@ -298,7 +298,7 @@ public:
         /* [in] */ ILocationListener* listener);
 
     /* package */
-    CARAPI_(void) SystemReady();
+    CARAPI SystemReady();
 
     CARAPI Run();
 

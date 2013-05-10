@@ -228,7 +228,7 @@ private:
     static const Int32 CUSTOM_LOCATION_UPDATE_COUNT = 5;
 
     AutoPtr<IContext> mContext;
-    AutoPtr<IPrivacySettingsManager> mSetMan;
+    AutoPtr<IPrivacySettingsManager> mPSetMan;
     Mutex mLock;
 };
 

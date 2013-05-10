@@ -1,7 +1,10 @@
 
+#include "ext/frameworkdef.h"
 #include "privacy/surrogate/PrivacyLocationManager.h"
 #include "privacy/PrivacySettingsManager.h"
+#include "location/CLocation.h"
 #include "os/CServiceManager.h"
+#include "os/Binder.h"
 
 
 const CString PrivacyLocationManager::TAG = "PrivacyLocationManager";
@@ -19,7 +22,7 @@ PrivacyLocationManager::PrivacyLocationManager(
     CServiceManager::AcquireSingleton((IServiceManager**)&sm);
     AutoPtr<IInterface> psm;
     sm->GetService(String("privacy"), (IInterface**)&psm);
-    mSetMan = new PrivacySettingsManager(context, IPrivacySettingsManager::Probe(psm));
+    mPSetMan = new PrivacySettingsManager(context, IPrivacySettingsManager::Probe(psm));
 }
 
 PInterface PrivacyLocationManager::Probe(
@@ -368,40 +371,54 @@ ECode PrivacyLocationManager::GetLastKnownLocation(
 {
     VALIDATE_NOT_NULL(location);
 
-    // if (provider == null) return super.getLastKnownLocation(provider);
+    if (provider.IsNull()) {
+        return LocationManager::GetLastKnownLocation(provider, location);
+    }
 
-    // String packageName = context.getPackageName();
-    // int uid = Binder.getCallingUid();
-    // PrivacySettings pSet = pSetMan.getSettings(packageName, uid);
-    // Location output = null;
-
-    // if (pSet != null) {
-    //     if (provider.equals(LocationManager.GPS_PROVIDER)) {
-    //         switch (pSet.getLocationGpsSetting()) {
-    //             case PrivacySettings.REAL:
-    //                 output = super.getLastKnownLocation(provider);
+    String capsuleName;
+    mContext->GetCapsuleName(&capsuleName);
+    Int32 uid = Binder::GetCallingUid();
+    AutoPtr<IPrivacySettings> pSet;
+    mPSetMan->GetSettings(capsuleName, uid, (IPrivacySettings**)&pSet);
+    AutoPtr<ILocation> output;
+    if (pSet != NULL) {
+        if (provider.Equals(LocationManager_GPS_PROVIDER)) {
+            Byte gpsSetting;
+            pSet->GetLocationGpsSetting(&gpsSetting);
+            switch (gpsSetting) {
+                case PrivacySettings_REAL:
+                    FAIL_RETURN(LocationManager::GetLastKnownLocation(provider, (ILocation**)&output));
     //                 pSetMan.notification(packageName, uid, PrivacySettings.REAL, PrivacySettings.DATA_LOCATION_GPS,
     //                         (output != null ? "Lat: " + output.getLatitude() + " Lon: " + output.getLongitude() : null), pSet);
-    //                 break;
-    //             case PrivacySettings.EMPTY:
+                    break;
+                case PrivacySettings_EMPTY:
     //                 pSetMan.notification(packageName, uid, PrivacySettings.EMPTY, PrivacySettings.DATA_LOCATION_GPS, null, pSet);
-    //                 break;
-    //             case PrivacySettings.CUSTOM:
-    //                 output = new Location(provider);
-    //                 output.setLatitude(Double.parseDouble(pSet.getLocationGpsLat()));
-    //                 output.setLongitude(Double.parseDouble(pSet.getLocationGpsLon()));
+                    break;
+                case PrivacySettings_CUSTOM: {
+                    CLocation::New(provider, (ILocation**)&output);
+                    String latitude, longitude;
+                    pSet->GetLocationGpsLat(&latitude);
+                    pSet->GetLocationGpsLon(&longitude);
+                    output->SetLatitude(latitude.ToDouble());
+                    output->SetLongitude(longitude.ToDouble());
     //                 pSetMan.notification(packageName, uid, PrivacySettings.CUSTOM, PrivacySettings.DATA_LOCATION_GPS,
     //                         "Lat: " + output.getLatitude() + " Lon: " + output.getLongitude(), pSet);
-    //                 break;
-    //             case PrivacySettings.RANDOM:
-    //                 output = new Location(provider);
-    //                 output.setLatitude(Double.parseDouble(pSet.getLocationGpsLat()));
-    //                 output.setLongitude(Double.parseDouble(pSet.getLocationGpsLon()));
+                    break;
+                }
+                case PrivacySettings_RANDOM: {
+                    CLocation::New(provider, (ILocation**)&output);
+                    String latitude, longitude;
+                    pSet->GetLocationGpsLat(&latitude);
+                    pSet->GetLocationGpsLon(&longitude);
+                    output->SetLatitude(latitude.ToDouble());
+                    output->SetLongitude(longitude.ToDouble());
     //                 pSetMan.notification(packageName, uid, PrivacySettings.RANDOM, PrivacySettings.DATA_LOCATION_GPS,
     //                         "Lat: " + output.getLatitude() + " Lon: " + output.getLongitude(), pSet);
-    //                 break;
-    //         }
-    //     } else if (provider.equals(LocationManager.NETWORK_PROVIDER)) {
+                    break;
+                }
+            }
+        }
+        else if (provider.Equals(LocationManager_NETWORK_PROVIDER)) {
     //         switch (pSet.getLocationNetworkSetting()) {
     //             case PrivacySettings.REAL:
     //                 output = super.getLastKnownLocation(provider);
@@ -426,16 +443,18 @@ ECode PrivacyLocationManager::GetLastKnownLocation(
     //                         "Lat: " + output.getLatitude() + " Lon: " + output.getLongitude(), pSet);
     //                 break;
     //         }
-    //     } else if (provider.equals(LocationManager.PASSIVE_PROVIDER) &&
-    //             pSet.getLocationGpsSetting() == PrivacySettings.REAL &&
-    //                     pSet.getLocationNetworkSetting() == PrivacySettings.REAL) {
+        }
+        else if (provider.Equals(LocationManager_PASSIVE_PROVIDER)/* &&
+                pSet.getLocationGpsSetting() == PrivacySettings.REAL &&
+                        pSet.getLocationNetworkSetting() == PrivacySettings.REAL*/) {
     //         // only output real location if both gps and network are allowed
     //         output = super.getLastKnownLocation(provider);
     //         pSetMan.notification(packageName, uid, PrivacySettings.REAL, PrivacySettings.DATA_LOCATION_GPS,
     //                 output != null ? "Lat: " + output.getLatitude() + " Lon: " + output.getLongitude() : null, pSet);
-    //     }
-    // } else {
-    //     output = super.getLastKnownLocation(provider);
+        }
+    }
+    else {
+        FAIL_RETURN(LocationManager::GetLastKnownLocation(provider, (ILocation**)&output));
     //     if (provider.equals(LocationManager.NETWORK_PROVIDER)) {
     //         pSetMan.notification(packageName, uid, PrivacySettings.REAL, PrivacySettings.DATA_LOCATION_NETWORK,
     //             output != null ? "Lat: " + output.getLatitude() + " Lon: " + output.getLongitude() : null, pSet);
@@ -443,12 +462,13 @@ ECode PrivacyLocationManager::GetLastKnownLocation(
     //         pSetMan.notification(packageName, uid, PrivacySettings.REAL, PrivacySettings.DATA_LOCATION_GPS,
     //                 output != null ? "Lat: " + output.getLatitude() + " Lon: " + output.getLongitude() : null, pSet);
     //     }
-    // }
+    }
 
     // Log.d(TAG, "getLastKnownLocation - " + context.getPackageName() + " (" + Binder.getCallingUid() +
     //         ") output: " + output);
-    // return output;
-    return E_NOT_IMPLEMENTED;
+    *location = output;
+    if (*location != NULL) (*location)->AddRef();
+    return NOERROR;
 }
 
 ECode PrivacyLocationManager::AddTestProvider(

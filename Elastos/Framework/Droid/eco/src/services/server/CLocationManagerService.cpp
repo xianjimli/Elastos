@@ -759,7 +759,7 @@ void CLocationManagerService::_LoadProvidersLocked()
     UpdateProvidersLocked();
 }
 
-void CLocationManagerService::SystemReady()
+ECode CLocationManagerService::SystemReady()
 {
     // we defer starting up the service until the system is ready
     CThread::New(NULL, (IRunnable*)this, String("CLocationManagerService"), (IThread**)&mThread);
@@ -805,7 +805,8 @@ ECode CLocationManagerService::Run()
 {
     // Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
     CApartment::New(FALSE, (IApartment**)(&mLocationHandler));
-    Initialize();
+    // TODO:
+    // Initialize();
     return mLocationHandler->Start(ApartmentAttr_Current);
 }
 

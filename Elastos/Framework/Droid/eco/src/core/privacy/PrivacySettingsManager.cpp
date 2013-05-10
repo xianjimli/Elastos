@@ -1,10 +1,15 @@
 
+#include "ext/frameworkdef.h"
 #include "privacy/PrivacySettingsManager.h"
+
 
 PrivacySettingsManager::PrivacySettingsManager(
     /* [in] */ IContext* context,
     /* [in] */ IPrivacySettingsManager* service)
+    : mService(service)
 {
+    // Log.d(TAG, "PrivacySettingsManager - initializing for package: " + context.getPackageName() +
+    //         " UID:" + Binder.getCallingUid());
 }
 
 PInterface PrivacySettingsManager::Probe(
@@ -53,8 +58,22 @@ ECode PrivacySettingsManager::GetSettings(
     /* [in] */ Int32 uid,
     /* [out] */ IPrivacySettings** privactySettings)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(privactySettings);
+
+    // try {
+    //     Log.d(TAG, "getSettings for package: " + packageName + " UID: " + uid);
+    if (mService != NULL) {
+        return mService->GetSettings(capsuleName, uid, privactySettings);
+    }
+    else {
+        // Log.e(TAG, "getSettings - PrivacySettingsManagerService is null");
+        *privactySettings = NULL;
+        return NOERROR;
+    }
+    // } catch (RemoteException e) {
+    //     e.printStackTrace();
+    //     return null;
+    // }
 }
 
 ECode PrivacySettingsManager::SaveSettings(

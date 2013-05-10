@@ -4,6 +4,7 @@
 
 #include "ext/frameworkext.h"
 #include <elastos/ElRefBase.h>
+#include <elastos/AutoPtr.h>
 
 class PrivacySettingsManager
     : public ElRefBase
@@ -56,6 +57,9 @@ public:
 
     CARAPI GetVersion(
         /* [out] */ Double* result);
+
+private:
+    AutoPtr<IPrivacySettingsManager> mService;
 };
 
 #endif // __PRIVACYSETTINGSMANAGER_H__

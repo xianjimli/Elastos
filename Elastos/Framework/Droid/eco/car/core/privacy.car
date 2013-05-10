@@ -6,6 +6,8 @@ module
     merge("privacy/PrivacyPersistenceAdapter.car");
 
     class CPrivacySettings {
+        constructor();
+
         constructor(
             [in]  Int32 id,
             [in]  String capsuleName,

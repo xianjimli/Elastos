@@ -1,46 +1,52 @@
+
 #include "server/CPrivacySettingsManagerService.h"
 
+
 ECode CPrivacySettingsManagerService::constructor(
-    /* [in] */ IContext * pContext)
+    /* [in] */ IContext* context)
 {
-    mContext = pContext;
+    mContext = context;
     return NOERROR;
 }
 
 ECode CPrivacySettingsManagerService::GetSettings(
-    /* [in] */ const String& packageName,
+    /* [in] */ const String& capsuleName,
     /* [in] */ Int32 uid,
-    /* [out] */ IPrivacySettings ** ppPrivacySettings)
+    /* [out] */ IPrivacySettings** privacySettings)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    // Log.d(TAG, "getSettings - " + packageName + " UID: " + uid);
+    // return persistenceAdapter.getSettings(packageName, uid, false);
+    //TODO:
+    return CPrivacySettings::New(0, String("ButtonDemo"), 0, PrivacySettings_RANDOM,
+            String("0.0"), String("0.0"), privacySettings);
 }
 
 ECode CPrivacySettingsManagerService::SaveSettings(
-    /* [in] */ IPrivacySettings * pSettings,
-    /* [out] */ Boolean * pResult)
+    /* [in] */ IPrivacySettings* settings,
+    /* [out] */ Boolean* result)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CPrivacySettingsManagerService::DeleteSettings(
-    /* [in] */ const String& packageName,
+    /* [in] */ const String& capsuleName,
     /* [in] */ Int32 uid,
-    /* [out] */ Boolean * pResult)
+    /* [out] */ Boolean* result)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
-ECode CPrivacySettingsManagerService::GetVersion()
+ECode CPrivacySettingsManagerService::GetVersion(
+    /* [out] */ Double* version)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CPrivacySettingsManagerService::Notification(
-    /* [in] */ const String& packageName,
+    /* [in] */ const String& capsuleName,
     /* [in] */ Int32 uid,
     /* [in] */ Byte accessMode,
     /* [in] */ const String& dataType,
@@ -57,14 +63,14 @@ ECode CPrivacySettingsManagerService::RegisterObservers()
 }
 
 ECode CPrivacySettingsManagerService::AddObserver(
-    /* [in] */ const String& packageName)
+    /* [in] */ const String& capsuleName)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CPrivacySettingsManagerService::PurgeSettings(
-    /* [out] */ Boolean * pResult)
+    /* [out] */ Boolean* result)
 {
     // TODO: Add your code here
     return E_NOT_IMPLEMENTED;

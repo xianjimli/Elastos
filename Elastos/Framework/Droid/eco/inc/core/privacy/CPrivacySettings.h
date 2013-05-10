@@ -7,6 +7,8 @@
 CarClass(CPrivacySettings)
 {
 public:
+    CARAPI constructor();
+
     CARAPI constructor(
         /* [in] */ Int32 id,
         /* [in] */ const String& capsuleName,
@@ -20,11 +22,31 @@ public:
         /* [in] */ const String& locationGpsLat,
         /* [in] */ const String& locationGpsLon);
 
+    CARAPI GetLocationGpsSetting(
+        /* [out] */ Byte* setting);
+
+    CARAPI GetLocationGpsLat(
+        /* [out] */ String* latitude);
+
+    CARAPI SetLocationGpsLat(
+        /* [in] */ const String& latitude);
+
+    CARAPI GetLocationGpsLon(
+        /* [out] */ String* longitude);
+
+    CARAPI SetLocationGpsLon(
+        /* [in] */ const String& longitude);
+
     CARAPI ReadFromParcel(
         /* [in] */ IParcel* source);
 
     CARAPI WriteToParcel(
         /* [in] */ IParcel* dest);
+
+private:
+    CARAPI_(String) GetRandomLat();
+
+    CARAPI_(String) GetRandomLon();
 
 private:
     // Database entry ID

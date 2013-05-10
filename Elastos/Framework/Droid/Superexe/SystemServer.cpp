@@ -47,6 +47,20 @@ ECode SystemServer::Init()
 
     CInputMethodManagerService::New(ctx, NULL, (IInputMethodManager**)&inputmethodService);
     IInputMethodManagerService::Probe(inputmethodService)->SystemReady();
+    serviceManager->AddService(String(Context_INPUT_METHOD_SERVICE), inputmethodService.Get());
 
-    return serviceManager->AddService(String(Context_INPUT_METHOD_SERVICE), inputmethodService.Get());
+    AutoPtr<ILocationManagerService> locationService;
+    CLocationManagerService::New(ctx, (ILocationManagerService**)&locationService);
+    ec = serviceManager->AddService(String(Context_LOCATION_SERVICE), locationService.Get());
+    if (FAILED(ec)) return ec;
+    locationService->SystemReady();
+
+    // BEGIN privacy-added
+    AutoPtr<IPrivacySettingsManager> privacyService;
+    CPrivacySettingsManagerService::New(ctx, (IPrivacySettingsManager**)&privacyService);
+    ec = serviceManager->AddService(String("privacy"), privacyService.Get());
+    if (FAILED(ec)) return ec;
+    // END privacy-added
+
+    return NOERROR;
 }
