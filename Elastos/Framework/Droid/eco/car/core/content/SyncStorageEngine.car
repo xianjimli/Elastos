@@ -1,8 +1,493 @@
 
 module
 {
+    /** Enum value for a sync start event. */
+    const SyncStorageEngine_EVENT_START = 0;
+
+    /** Enum value for a sync stop event. */
+    const SyncStorageEngine_EVENT_STOP = 1;
+
+    // TODO: i18n -- grab these out of resources.
+    /** String names for the sync event types. */
+    //public static final String[] EVENTS = { "START", "STOP" };
+
+    /** Enum value for a server-initiated sync. */
+    const SyncStorageEngine_SOURCE_SERVER = 0;
+
+    /** Enum value for a local-initiated sync. */
+    const SyncStorageEngine_SOURCE_LOCAL = 1;
+
+    /**
+     * Enum value for a poll-based sync (e.g., upon connection to
+     * network)
+     */
+    const SyncStorageEngine_SOURCE_POLL = 2;
+
+    /** Enum value for a user-initiated sync. */
+    const SyncStorageEngine_SOURCE_USER = 3;
+
+    /** Enum value for a periodic sync. */
+    const SyncStorageEngine_SOURCE_PERIODIC = 4;
+
+    const SyncStorageEngine_NOT_IN_BACKOFF_MODE = -1;
+
+    //TODO: public static final Intent SYNC_CONNECTION_SETTING_CHANGED_INTENT = new Intent("com.android.sync.SYNC_CONN_STATUS_CHANGED");
+
+    // TODO: i18n -- grab these out of resources.
+    /** String names for the sync source types. */
+    //TODO: public static final String[] SOURCES = { "SERVER", "LOCAL", "POLL", "USER", "PERIODIC" };
+
+    // The MESG column will contain one of these or one of the Error types.
+    const SyncStorageEngine_MESG_SUCCESS = "success";
+
+    const SyncStorageEngine_MESG_CANCELED = "canceled";
+
+    const SyncStorageEngine_MAX_HISTORY = 100;
+
+    const SyncStorageEngine_STATUS_FILE_END = 0;
+
+    const SyncStorageEngine_STATUS_FILE_ITEM = 100;
+
+    const SyncStorageEngine_PENDING_OPERATION_VERSION = 2;
+
+    const SyncStorageEngine_STATISTICS_FILE_END = 0;
+
+    const SyncStorageEngine_STATISTICS_FILE_ITEM_OLD = 100;
+
+    const SyncStorageEngine_STATISTICS_FILE_ITEM = 101;
+
+    interface IAccount;
+    interface IBundle;
+    interface IContext;
+    interface IHandler;
+    interface ISyncInfo;
+    interface ISyncStatusInfo;
+    interface ISyncStatusObserver;
+    interface ISyncStorageEngineAuthorityInfo;
+    interface ISyncStorageEngineDayStats;
+    interface ISyncStorageEnginePendingOperation;
+
     [deprecated]
-    interface ISyncStorageEngine {
-       
+    interface ISyncStorageEngine extends IHandler {
+
+        AddStatusChangeListener(
+            [in] Int32 mask,
+            [in] ISyncStatusObserver* syncStatusObserver);
+
+        RemoveStatusChangeListener(
+            [in] ISyncStatusObserver* syncStatusObserver);
+
+        GetSyncAutomatically(
+            [in] IAccount* account,
+            [in] String providerName,
+            [out] Boolean* result);
+
+        SetSyncAutomatically(
+            [in] IAccount* account,
+            [in] String providerName,
+            [in] Boolean sync);
+
+        GetIsSyncable(
+            [in] IAccount* account,
+            [in] String providerName,
+            [out] Int32* result);
+ 
+        SetIsSyncable(
+            [in] IAccount* account,
+            [in] String providerName,
+            [in] Int32 syncable);
+
+       //TODO: public Pair<Long, Long> getBackoff(Account account, String providerName)
+
+        SetBackoff(
+            [in] IAccount* account,
+            [in] String providerName,
+            [in] Int64 nextSyncTime,
+            [in] Int64 nextDelay);
+
+        ClearAllBackoffs();
+
+        SetDelayUntilTime(
+            [in] IAccount* account,
+            [in] String providerName,
+            [in] Int64 delayUntil);
+
+        GetDelayUntilTime(
+            [in] IAccount* account,
+            [in] String providerName,
+            [out] Int64* delayUntilTime);
+
+        AddPeriodicSync(
+            [in] IAccount* account,
+            [in] String providerName,
+            [in] IBundle* extras,
+            [in] Int64 pollFrequency);
+
+        RemovePeriodicSync(
+            [in] IAccount* account,
+            [in] String providerName,
+            [in] IBundle* extras);
+
+        GetPeriodicSyncs(
+            [in] IAccount* account,
+            [in] String providerName,
+            [out] IObjectContainer** periodicSyncList);
+
+        SetMasterSyncAutomatically(
+            [in] Boolean flag);
+
+        GetMasterSyncAutomatically(
+            [out] Boolean* result);
+
+        GetOrCreateAuthority(
+            [in] IAccount* account,
+            [in] String authority,
+            [out] ISyncStorageEngineAuthorityInfo** authorityInfo);
+
+        RemoveAuthority(
+            [in] IAccount* account,
+            [in] String authority);
+
+        GetAuthority(
+            [in] Int32 authoriyId,
+            [out] ISyncStorageEngineAuthorityInfo** authorityInfo);
+
+        /**
+         * Returns true if there is currently a sync operation for the given
+         * account or authority in the pending list, or actively being processed.
+         */
+        IsSyncActive(
+            [in] IAccount* account,
+            [in] String authority,
+            [out] Boolean* isActive);
+
+        InsertIntoPending(
+            [in] ISyncStorageEnginePendingOperation* op,
+            [out] ISyncStorageEnginePendingOperation** pendingOperation);
+
+        DeleteFromPending(
+            [in] ISyncStorageEnginePendingOperation* op,
+            [out] Boolean* result);
+
+        ClearPending(
+            [out] Int32* result);
+
+        /**
+         * Return a copy of the current array of pending operations.  The
+         * PendingOperation objects are the real objects stored inside, so that
+         * they can be used with deleteFromPending().
+         */
+        GetPendingOperations(
+            [out] IObjectContainer** pendingOperationList);
+
+        /**
+         * Return the number of currently pending operations.
+         */
+        GetPendingOperationCount(
+            [out] Int32* count);
+
+        /**
+         * Called when the set of account has changed, given the new array of
+         * active accounts.
+         */
+        DoDatabaseCleanup(
+            [in] ArrayOf<IAccount*>* accounts);
+
+        /**
+         * Called when the currently active sync is changing (there can only be
+         * one at a time).  Either supply a valid ActiveSyncContext with information
+         * about the sync, or null to stop the currently active sync.
+         */
+        //TODO: public void setActiveSync(SyncManager.ActiveSyncContext activeSyncContext)
+
+        /**
+         * To allow others to send active change reports, to poke clients.
+         */
+        ReportActiveChange();
+
+        /**
+         * Note that sync has started for the given account and authority.
+         */
+        InsertStartSyncEvent(
+            [in] IAccount* accountName,
+            [in] String authorityName,
+            [in] Int64 now,
+            [in] Int32 source,
+            [out] Int64* result);
+
+        StopSyncEvent(
+            [in] Int64 historyId,
+            [in] Int64 elapsedTime,
+            [in] String resultMessage,
+            [in] Int64 downstreamActivity,
+            [in] Int64 upstreamActivity);
+
+        /**
+         * Return the currently active sync information, or null if there is no
+         * active sync.  Note that the returned object is the real, live active
+         * sync object, so be careful what you do with it.
+         */
+        GetCurrentSync(
+            [out] ISyncInfo** syncInfo);
+
+        /**
+         * Return an array of the current sync status for all authorities.  Note
+         * that the objects inside the array are the real, live status objects,
+         * so be careful what you do with them.
+         */
+        GetSyncStatus(
+            [out] IObjectContainer** syncStatusInfoList);
+
+        /**
+         * Return an array of the current authorities. Note
+         * that the objects inside the array are the real, live objects,
+         * so be careful what you do with them.
+         */
+        GetAuthorities(
+            [out] IObjectContainer** authorityInfoList);
+
+        /**
+         * Returns the status that matches the authority and account.
+         *
+         * @param account the account we want to check
+         * @param authority the authority whose row should be selected
+         * @return the SyncStatusInfo for the authority
+         */
+        GetStatusByAccountAndAuthority(
+            [in] IAccount* account,
+            [in] String authority,
+            [out] ISyncStatusInfo** result);
+
+        /**
+         * Return true if the pending status is true of any matching authorities.
+         */
+        IsSyncPending(
+            [in] IAccount* account,
+            [in] String authority,
+            [out] Boolean* isPending);
+
+        /**
+         * Return an array of the current sync status for all authorities.  Note
+         * that the objects inside the array are the real, live status objects,
+         * so be careful what you do with them.
+         */
+        GetSyncHistory(
+            [out] IObjectContainer** syncHistoryItemList);
+
+        /**
+         * Return an array of the current per-day statistics.  Note
+         * that the objects inside the array are the real, live status objects,
+         * so be careful what you do with them.
+         */
+        GetDayStatistics(
+            [out, callee] ArrayOf<ISyncStorageEngineDayStats*>* DayStats);
+
+        /**
+         * If sync is failing for any of the provider/accounts then determine the time at which it
+         * started failing and return the earliest time over all the provider/accounts. If none are
+         * failing then return 0.
+         */
+        GetInitialSyncFailureTime(
+            [out] Int64* failureTime);
+
+        GetOrCreateSyncStatus(
+            [in] ISyncStorageEngineAuthorityInfo* authority,
+            [out] ISyncStatusInfo** syncStatus);
+
+        WriteAllState();
+
+        /**
+         * public for testing
+         */
+        ClearAndReadState();
+
     }
+
+    interface ISyncStorageEngineHelper {
+
+        NewTestInstance(
+            [in] IContext* context,
+            [out] ISyncStorageEngine** newEngine);
+
+        Init(
+            [in] IContext* context);
+
+        GetSingleton(
+            [out] ISyncStorageEngine** syncStoregeEngine);
+
+        Equals(
+            [in] IBundle* bundleOne,
+            [in] IBundle* bundleTwo,
+            [out] Boolean* isEqual);
+
+    }
+
+    [deprecated]
+    interface ISyncStorageEnginePendingOperation {
+
+        GetAccount(
+            [out] IAccount** account);
+
+        GetSyncSource(
+            [out] Int32* syncSource);
+
+        GetAuthority(
+            [out] String* authority);
+
+        // note: read-only.      
+        GetExtras(
+            [out] IBundle** extras);
+
+        GetExpendited(
+            [out] Boolean* expedited);
+
+        GetAuthorityId(
+            [out] Int32* authorityId);
+
+        SetAuthorityId(
+            [in] Int32 authorityId);
+
+        GetFlatExtras(
+            [out, callee] ArrayOf<Byte>*  flatExtras);
+
+        SetFlatExtras(
+            [in] ArrayOf<Byte>* flatExtras);
+
+    }
+
+    interface ISyncStorageEngineAuthorityInfo {
+
+        GetAccount(
+            [out] IAccount** account);
+
+        GetAuthority(
+            [out] String* authority);
+
+        GetIdent(
+            [out] Int32* ident);
+
+        GetEnabled(
+            [out] Boolean* enabled);
+
+        SetEnabled(
+            [in] Boolean enabled);
+
+        GetSyncable(
+            [out] Int32* syncable);
+
+        SetSyncable(
+            [in] Int32 syncable);
+
+        GetBackoffTime(
+            [out] Int64* backoffTime);
+
+        SetBackoffTime(
+            [in] Int64 backoffTime);
+
+        GetBackoffDelay(
+            [out] Int64* backoffDelay);
+
+        SetBackoffDelay(
+            [in] Int64 backoffDelay);
+
+        GetDelayUntil(
+            [out] Int64* delayUntil);
+
+        SetDelayUntil(
+            [in] Int64 delayUntil);
+
+        GetPeriodicSyncs(
+            [out] IObjectContainer** periodicSyncs);
+
+    }
+
+    interface ISyncStorageEngineSyncHistoryItem {
+
+        GetAuthorityId(
+            [out] Int32* authorityId);
+
+        SetAuthorityId(
+            [in] Int32 authorityId);
+
+        GetHistoryId(
+            [out] Int32* historyId);
+
+        SetHistoryId(
+            [in] Int32 historyId);
+
+        GetEventTime(
+            [out] Int64* eventTime);
+
+        SetEventTime(
+            [in] Int64 eventTime);
+
+        GetElapsedTime(
+            [out] Int64* elapsedTime);
+
+        SetElapsedTime(
+            [in] Int64 elapsedTime);
+
+        GetSource(
+            [out] Int32* source);
+
+        SetSource(
+            [in] Int32 source);
+
+        GetEvent(
+            [out] Int32* event);
+
+        SetEvent(
+            [in] Int32 event);
+
+        GetUpstreamActivity(
+            [out] Int64* upstreamActivity);
+
+        SetUpstreamActivity(
+            [in] Int64 upstreamActivity);
+
+        GetDownstreamActivity(
+            [out] Int64* downstreamActivity);
+
+        SetDownstreamActivity(
+            [in] Int64 downstreamActivity);
+
+        GetMesg(
+            [out] String* mesg);
+
+        SetMesg(
+            [in] String mesg);
+
+    }
+
+    interface ISyncStorageEngineDayStats {
+
+        GetDay(
+            [out] Int32* day);
+
+        GetSuccessCount(
+            [out] Int32* successCount);
+
+        SetSuccessCount(
+            [in] Int32 successCount);
+
+        GetSuccessTime(
+            [out] Int64* successTime);
+
+        SetSuccessTime(
+            [in] Int64 successTime);
+
+        GetFailureCount(
+            [out] Int32* failureCount);
+
+        SetFailureCount(
+            [in] Int32 failureCount);
+
+        GetFailureTime(
+            [out] Int64* failureTime);
+
+        SetFailureTime(
+            [in] Int64 failureTime);
+
+    }
+
 }

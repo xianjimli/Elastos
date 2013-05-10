@@ -70,5 +70,11 @@ SOURCES += CIntegerMapWrapper.cpp
 SOURCES += CEntity.cpp
 SOURCES += CEntityNamedContentValues.cpp
 SOURCES += ContentProviderNative.cpp
+SOURCES += CSyncStorageEngine.cpp
+SOURCES += CSyncStorageEngineAuthorityInfo.cpp
+SOURCES += CSyncStorageEngineDayStats.cpp
+SOURCES += CSyncStorageEngineHelper.cpp
+SOURCES += CSyncStorageEnginePendingOperation.cpp
+SOURCES += CSyncStorageEngineSyncHistoryItem.cpp
 
 LIBRARIES += cm/cm.lib

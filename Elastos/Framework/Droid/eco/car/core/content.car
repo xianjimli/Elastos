@@ -698,5 +698,54 @@ module
             
         interface IEntityNamedContentValues;
     }
+
+    class CSyncStorageEngine {
+        constructor(
+            [in] IContext* context,
+            [in] IFile* dataDir);
+
+        interface ISyncStorageEngine;
+    }
+
+    class CSyncStorageEnginePendingOperation {
+        constructor(
+            [in] IAccount* account,
+            [in] Int32 source,
+            [in] String authority,
+            [in] IBundle* extras,
+            [in] Boolean expedited);
+
+        constructor(
+            [in] ISyncStorageEnginePendingOperation* other);
+
+        interface ISyncStorageEnginePendingOperation;
+    }
+
+    class CSyncStorageEngineAuthorityInfo {
+        constructor(
+            [in] IAccount* account,
+            [in] String authority,
+            [in] Int32 ident);
+
+        interface ISyncStorageEngineAuthorityInfo;
+    }
+
+    class CSyncStorageEngineSyncHistoryItem {
+
+        interface ISyncStorageEngineSyncHistoryItem;
+    }
+
+    class CSyncStorageEngineDayStats {
+        constructor(
+            [in] Int32 day);
+
+        interface ISyncStorageEngineDayStats;
+    }
+
+    singleton class CSyncStorageEngineHelper {
+
+        interface ISyncStorageEngineHelper;
+    }
+
 }
 
