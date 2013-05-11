@@ -48,6 +48,8 @@ module
     }
 
     class CLocation {
+        constructor();
+
         constructor(
             [in] String provider);
 

@@ -764,6 +764,7 @@ ECode CLocationManagerService::SystemReady()
     // we defer starting up the service until the system is ready
     CThread::New(NULL, (IRunnable*)this, String("CLocationManagerService"), (IThread**)&mThread);
     mThread->Start();
+    return NOERROR;
 }
 
 void CLocationManagerService::Initialize()
@@ -1955,6 +1956,15 @@ ECode CLocationManagerService::_GetLastKnownLocationLocked(
     /* [in] */ const String& provider,
     /* [out] */ ILocation** location)
 {
+    //TODO:
+    AutoPtr<ILocation> loc;
+    CLocation::New(provider, (ILocation**)&loc);
+    loc->SetLatitude(121.30);
+    loc->SetLongitude(25.03);
+    *location = loc.Get();
+    (*location)->AddRef();
+    return NOERROR;
+
     FAIL_RETURN(CheckPermissionsSafe(provider));
 
     ILocationProviderInterface* p = NULL;

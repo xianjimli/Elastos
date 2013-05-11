@@ -614,31 +614,21 @@ ECode CLocation::GetDescription(
 ECode CLocation::ReadFromParcel(
     /* [in] */ IParcel* source)
 {
-    String provider;
-    source->ReadString(&provider);
-    AutoPtr<CLocation> l;
-    CLocation::NewByFriend(provider, (CLocation**)&l);
-    source->ReadInt64(&(l->mTime));
-    source->ReadDouble(&(l->mLatitude));
-    source->ReadDouble(&(l->mLongitude));
-    Int32 result;
-    source->ReadInt32(&result);
-    l->mHasAltitude = result != 0;
-    source->ReadDouble(&(l->mAltitude));
-    source->ReadInt32(&result);
-    l->mHasSpeed = result != 0;
-    source->ReadFloat(&(l->mSpeed));
-    source->ReadInt32(&result);
-    l->mHasBearing = result != 0;
-    source->ReadFloat(&(l->mBearing));
-    source->ReadInt32(&result);
-    l->mHasAccuracy = result != 0;
-    source->ReadFloat(&(l->mAccuracy));
+    source->ReadString(&mProvider);
+    source->ReadInt64(&mTime);
+    source->ReadDouble(&mLatitude);
+    source->ReadDouble(&mLongitude);
+    source->ReadBoolean(&mHasAltitude);
+    source->ReadDouble(&mAltitude);
+    source->ReadBoolean(&mHasSpeed);
+    source->ReadFloat(&mSpeed);
+    source->ReadBoolean(&mHasBearing);
+    source->ReadFloat(&mBearing);
+    source->ReadBoolean(&mHasAccuracy);
+    source->ReadFloat(&mAccuracy);
     AutoPtr<IInterface> obj;
     source->ReadInterfacePtrPtr((Handle32*)&obj);
-    mExtras = obj != NULL ?
-            (IBundle*)obj->Probe(EIID_IBundle) : NULL;
-
+    mExtras = obj != NULL ? IBundle::Probe(obj) : NULL;
     return NOERROR;
 }
 
@@ -649,16 +639,20 @@ ECode CLocation::WriteToParcel(
     dest->WriteInt64(mTime);
     dest->WriteDouble(mLatitude);
     dest->WriteDouble(mLongitude);
-    dest->WriteInt32(mHasAltitude ? 1 : 0);
+    dest->WriteBoolean(mHasAltitude);
     dest->WriteDouble(mAltitude);
-    dest->WriteInt32(mHasSpeed ? 1 : 0);
+    dest->WriteBoolean(mHasSpeed);
     dest->WriteFloat(mSpeed);
-    dest->WriteInt32(mHasBearing ? 1 : 0);
+    dest->WriteBoolean(mHasBearing);
     dest->WriteFloat(mBearing);
-    dest->WriteInt32(mHasAccuracy ? 1 : 0);
+    dest->WriteBoolean(mHasAccuracy);
     dest->WriteFloat(mAccuracy);
     dest->WriteInterfacePtr((IBundle*)mExtras);
+    return NOERROR;
+}
 
+ECode CLocation::constructor()
+{
     return NOERROR;
 }
 
