@@ -1,6 +1,7 @@
 
 #include "CURL.h"
 #include "CURI.h"
+#include "CFileHandler.h"
 
 HashMap<String, AutoPtr<IURLStreamHandler> > CURL::sStreamHandlers;
 AutoPtr<IURLStreamHandlerFactory> CURL::sStreamHandlerFactory;
@@ -371,7 +372,8 @@ void CURL::SetupStreamHandler()
 //            }
 //        }
 //    }
-
+    AutoPtr<IURLStreamHandler> handle;
+    CFileHandler::New((IFileHandler**)&handle);
     // No one else has provided a handler, so try our internal one.
 
 //    String className = "org.apache.harmony.luni.internal.net.www.protocol." + mProtocol

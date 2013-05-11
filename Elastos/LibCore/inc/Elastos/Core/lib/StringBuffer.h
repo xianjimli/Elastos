@@ -153,6 +153,7 @@ public:
     */
     CARAPI_(String) Substring(Int32 start, Int32 end);
 
+    CARAPI_(String) ToString();
     // Note that this function takes O(N) time to calculate the value.
     // No cache value is stored.
     CARAPI_(UInt32) GetCharCount() const;

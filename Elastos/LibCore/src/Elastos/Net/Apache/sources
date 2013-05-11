@@ -1,0 +1,4 @@
+TARGET_NAME = Elastos.Net.Apache
+TARGET_TYPE = lib
+
+LIBRARIES += ./Protocol/File/Elastos.Net.Apache.Protocol.FileURL.lib
