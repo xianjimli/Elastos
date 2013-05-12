@@ -3,10 +3,13 @@
 #define __CPRIVACYPERSISTENCEADAPTER_H__
 
 #include "_CPrivacyPersistenceAdapter.h"
+#include <sqlite3.h>
 
 CarClass(CPrivacyPersistenceAdapter)
 {
 public:
+    CPrivacyPersistenceAdapter();
+
     CARAPI GetSettings(
         /* [in] */ const String& packageName,
         /* [in] */ Int32 uid,
@@ -30,14 +33,24 @@ public:
 
 private:
     void CreateDatabase();
+    void UpgradeDatabase(Int32 curVersion);
+    sqlite3* GetReadableDatabase();
+
     void CreateSettingsDir();
     Int32 GetVersion();
-    void UpgradeDatabase(Int32 curVersion);
 
+
+    static const char* LOG_TAG;
     static const char* mDBFileName;
     static const char* mSettingsDir;
     static const Int32 mDBVersion = 2;
+    static const char* mCreateSettingsTabStr;
+    static const char* mCreateVersionTabStr;
+    static const char* mInsetVersionStr;
 
+    static Int32 mReadingThreadsCount;
+
+    sqlite3*        mSqlDB;
     IContext*       mContext;
 };
 
