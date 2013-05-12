@@ -86,11 +86,9 @@ ECode CActivityOne::OnCreate(
     AutoPtr<MyListener> l = new MyListener(this);
     view->SetOnClickListener(l.Get());
 
-printf("==== File: %s, Line: %d ====\n", __FILE__, __LINE__);
     AutoPtr<ILocalLocationManager> lm;
     GetSystemService(
         Context_LOCATION_SERVICE, (IInterface**)&lm);
-printf("==== File: %s, Line: %d, lm: %p ====\n", __FILE__, __LINE__, lm.Get());
 
     AutoPtr<ILocation> loc;
     lm->GetLastKnownLocation(String("gps"), (ILocation**)&loc);
@@ -98,6 +96,22 @@ printf("==== File: %s, Line: %d, lm: %p ====\n", __FILE__, __LINE__, lm.Get());
     loc->GetLatitude(&latitude);
     loc->GetLongitude(&longitude);
 printf("==== File: %s, Line: %d, latitude: %f, longitude: %f ====\n", __FILE__, __LINE__, latitude, longitude);
+
+    AutoPtr<ILocalCapsuleManager> cm;
+    GetCapsuleManager((ILocalCapsuleManager**)&cm);
+
+    AutoPtr<IObjectContainer> caps;
+    cm->GetInstalledCapsules(0, (IObjectContainer**)&caps);
+    AutoPtr<IObjectEnumerator> it;
+    caps->GetObjectEnumerator((IObjectEnumerator**)&it);
+    Boolean succeeded;
+    while (it->MoveNext(&succeeded), succeeded) {
+        AutoPtr<IInterface> obj;
+        it->Current((IInterface**)&obj);
+        String capName;
+        ICapsuleInfo::Probe(obj)->GetCapsuleName(&capName);
+        printf("==== File: %s, Line: %d, capName: %s ====\n", __FILE__, __LINE__, capName.string());
+    }
 
     return NOERROR;
 }

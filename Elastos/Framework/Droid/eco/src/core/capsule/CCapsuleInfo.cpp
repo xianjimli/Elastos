@@ -250,12 +250,14 @@ ECode CCapsuleInfo::SetInstallLocation(
 ECode CCapsuleInfo::ReadFromParcel(
     /* [in] */ IParcel* source)
 {
-    return E_NOT_IMPLEMENTED;
+    source->ReadString(&mCapsuleName);
+    return NOERROR;
 }
 
 ECode CCapsuleInfo::WriteToParcel(
     /* [in] */ IParcel* dest)
 {
-    return E_NOT_IMPLEMENTED;
+    dest->WriteString(mCapsuleName);
+    return NOERROR;
 }
 

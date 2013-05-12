@@ -339,6 +339,7 @@ EXPORTS
     EIID_ICallbackArgumentList                      @645    NONAME  DATA
 
     EIID_IParcelable                                @689    NONAME  DATA
+    EIID_IParcel                                     @690    NONAME  DATA
 
     gElEmptyStringBuf                               @700    NONAME  DATA
     gElEmptyString                                  @701    NONAME  DATA

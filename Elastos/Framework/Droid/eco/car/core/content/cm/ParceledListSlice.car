@@ -23,7 +23,10 @@ module
          *        target object type.
          * @return the last item inserted into the list or null if none.
          */
-//	        public T populateList(List<T> list, Creator<T> creator);
+        PopulateList(
+            [in/*, out*/] IObjectContainer* list,
+            [in] ClassID clsid,
+            [out] IInterface** obj);
 
         /**
          * Sets whether this is the last list slice in the series.
