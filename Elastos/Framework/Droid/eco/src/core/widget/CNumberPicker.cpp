@@ -6,6 +6,16 @@ IVIEW_METHODS_IMPL(CNumberPicker, NumberPicker, NumberPicker);
 
 IVIEWGROUP_METHODS_IMPL(CNumberPicker, NumberPicker, NumberPicker);
 
+IVIEWPARENT_METHODS_IMPL(CNumberPicker, NumberPicker, NumberPicker);
+
+IVIEWMANAGER_METHODS_IMPL(CNumberPicker, NumberPicker, NumberPicker);
+
+IDrawableCallback_METHODS_IMPL(CNumberPicker, NumberPicker, NumberPicker);
+
+IKeyEventCallback_METHODS_IMPL(CNumberPicker, NumberPicker, NumberPicker);
+
+IAccessibilityEventSource_METHODS_IMPL(CNumberPicker, NumberPicker, NumberPicker);
+
 PInterface CNumberPicker::Probe(
     /* [in] */ REIID riid)
 {

@@ -1299,6 +1299,11 @@ module
             [in] IAttributeSet* attrs);
 
         interface INumberPicker;
+        interface IViewParent;
+        interface IViewManager;
+        interface IDrawableCallback;
+        interface IKeyEventCallback;
+        interface IAccessibilityEventSource;
     }
 
     class CNumberPickerButton {
