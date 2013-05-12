@@ -147,4 +147,10 @@ module
 
         interface IResultReceiver;
     }
+
+    class CParcel {
+        constructor();
+
+        interface IParcel;
+    }
 }

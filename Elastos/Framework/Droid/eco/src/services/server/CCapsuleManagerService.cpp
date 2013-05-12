@@ -5791,19 +5791,26 @@ AutoPtr<ICapsuleInfo> CCapsuleManagerService::GenerateCapsuleInfo(
     /* [in] */ CapsuleParser::Capsule* c,
     /* [in] */ Int32 flags)
 {
-    if ((flags & CapsuleManager_GET_UNINSTALLED_CAPSULES) != 0) {
-        // The package has been uninstalled but has retained data and resources.
-        return CapsuleParser::GenerateCapsuleInfo(c, NULL, flags, 0, 0);
-    }
-    CapsuleSetting* cs = (CapsuleSetting*)c->mExtras->Probe(EIID_CapsuleSetting);
-    if (cs == NULL) {
-        return NULL;
-    }
-    GrantedPermissions* gp = cs->mSharedUser != NULL
-        ? (GrantedPermissions*)cs->mSharedUser
-        : (GrantedPermissions*)cs;
-    return CapsuleParser::GenerateCapsuleInfo(c, gp->mGids, flags,
-            cs->mFirstInstallTime, cs->mLastUpdateTime);
+    //TODO:
+    AutoPtr<ICapsuleInfo> ci;
+    CCapsuleInfo::New((ICapsuleInfo**)&ci);
+    ci->SetCapsuleName(c->mCapsuleName);
+    return ci;
+
+    // if ((flags & CapsuleManager_GET_UNINSTALLED_CAPSULES) != 0) {
+    //     // The package has been uninstalled but has retained data and resources.
+    //     return CapsuleParser::GenerateCapsuleInfo(c, NULL, flags, 0, 0);
+    // }
+    // CapsuleSetting* cs = c->mExtras == NULL ?
+    //         NULL : (CapsuleSetting*)c->mExtras->Probe(EIID_CapsuleSetting);
+    // if (cs == NULL) {
+    //     return NULL;
+    // }
+    // GrantedPermissions* gp = cs->mSharedUser != NULL
+    //     ? (GrantedPermissions*)cs->mSharedUser
+    //     : (GrantedPermissions*)cs;
+    // return CapsuleParser::GenerateCapsuleInfo(c, gp->mGids, flags,
+    //         cs->mFirstInstallTime, cs->mLastUpdateTime);
 }
 
 ECode CCapsuleManagerService::GetCapsuleInfo(
@@ -7616,9 +7623,21 @@ Int32 arrays_binary_search(
 }
 
 void arrays_sort(
-    /* [in] */ const ArrayOf<String>& keys)
+    /* [in] */ ArrayOf<String>& keys)
 {
-    //not implemented
+    //Bubble Sort
+    Int32 i = keys.GetLength(), j;
+    String temp;
+    while(i > 0) {
+        for(j = 0; j < i - 1; j++) {
+            if (keys[j].Compare(keys[j + 1]) > 0) {
+                temp = keys[j];
+                keys[j] = keys[j + 1];
+                keys[j + 1] = temp;
+            }
+        }
+        i--;
+    }
 }
 
 Int32 CCapsuleManagerService::GetContinuationPoint(
@@ -7673,7 +7692,7 @@ ECode CCapsuleManagerService::GetInstalledCapsules(
             }
         }
 
-	    arrays_sort(*keys);
+        arrays_sort(*keys);
         Int32 i = GetContinuationPoint(*keys, lastRead);
         const Int32 N = keys->GetLength();
 

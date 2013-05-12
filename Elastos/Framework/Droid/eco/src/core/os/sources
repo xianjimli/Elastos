@@ -42,6 +42,7 @@ SOURCES += CMyResultReceiver.cpp
 SOURCES += CRemoteCallbackList.cpp
 SOURCES += HandlerThread.cpp
 SOURCES += UEventObserver.cpp
+SOURCES += CParcel.cpp
 
 ifeq "$(XDK_TARGET_CPU)" "arm"
 ifneq "$(XDK_COMPILER)" "gnu"

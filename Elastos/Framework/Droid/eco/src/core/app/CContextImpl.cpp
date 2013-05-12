@@ -12,6 +12,7 @@
 #include "os/Environment.h"
 #include "os/Binder.h"
 #include "os/CServiceManager.h"
+#include "utils/CParcelableObjectContainer.h"
 #include "text/CClipboardManager.h"
 #include "privacy/surrogate/PrivacyLocationManager.h"
 #include <unistd.h>
@@ -616,23 +617,29 @@ ECode CContextImpl::ApplicationCapsuleManager::GetInstalledCapsules(
     /* [in] */ Int32 flags,
     /* [out] */ IObjectContainer** caps)
 {
+    VALIDATE_NOT_NULL(caps);
+
     // try {
-    //     final List<PackageInfo> packageInfos = new ArrayList<PackageInfo>();
-    //     PackageInfo lastItem = null;
-    //     ParceledListSlice<PackageInfo> slice;
+    FAIL_RETURN(CParcelableObjectContainer::New(caps));
+    AutoPtr<ICapsuleInfo> lastItem;
+    AutoPtr<IParceledListSlice> slice;
+    Boolean isLast;
 
-    //     do {
-    //         final String lastKey = lastItem != null ? lastItem.packageName : null;
-    //         slice = mPM.getInstalledPackages(flags, lastKey);
-    //         lastItem = slice.populateList(packageInfos, PackageInfo.CREATOR);
-    //     } while (!slice.isLastSlice());
+    do {
+        String lastKey;
+        if (lastItem != NULL) lastItem->GetCapsuleName(&lastKey);
 
-    //     return packageInfos;
+        slice = NULL;
+        mPM->GetInstalledCapsules(flags, lastKey, (IParceledListSlice**)&slice);
+        AutoPtr<IInterface> obj;
+        slice->PopulateList(*caps, ECLSID_CCapsuleInfo, (IInterface**)&obj);
+        lastItem = obj != NULL ? ICapsuleInfo::Probe(obj) : NULL;
+    } while (slice->IsLastSlice(&isLast), !isLast);
+
     // } catch (RemoteException e) {
     //     throw new RuntimeException("Package manager has died", e);
     // }
-    assert(0);
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CContextImpl::ApplicationCapsuleManager::GetInstalledApplications(
