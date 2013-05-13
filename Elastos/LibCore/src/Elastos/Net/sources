@@ -4,6 +4,7 @@ TARGET_TYPE= eco
 INCLUDES += $(MAKEDIR)/../../../inc/Elastos/common;
 INCLUDES += $(MAKEDIR)/../../../inc/Elastos/Net;
 INCLUDES += $(MAKEDIR)/../../../inc/Elastos/Security;
+INCLUDES += $(MAKEDIR)/../../../inc/Elastos/Net/Apache/Protocol/File;
 #INCLUDES += $(MAKEDIR)/../../../inc/Elastos/IO;
 
 VPATH := $(MAKEDIR)/../Security
@@ -76,6 +77,7 @@ SOURCES += BasicPermission.cpp
 
 LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.lib
 LIBRARIES += $(XDK_USER_LIB)/Elastos.Utility.lib
+LIBRARIES += ./Apache/Elastos.Net.Apache.lib
 LIBRARIES += $(XDK_USER_LIB)/Elastos.Core.lib
 ifeq "$(XDK_TARGET_PLATFORM)" "win32"
 LIBRARIES += $(XDK_LIB_PATH)/Elastos.Runtime.lib

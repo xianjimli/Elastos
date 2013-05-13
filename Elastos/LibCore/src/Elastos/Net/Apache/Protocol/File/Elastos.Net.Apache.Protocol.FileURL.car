@@ -1,0 +1,19 @@
+module
+{
+    merge("../../../../../../car/Elastos/Net/Apache/Protocol/File/IFileHandler.car");
+    merge("../../../../../../car/Elastos/Net/Apache/Protocol/File/IFileURLConnection.car");
+
+    class CFileURLConnection {
+        constructor(
+            [in] IURL* url);
+
+        interface IFileURLConnection;
+    }
+
+
+    class CFileHandler {
+        constructor();
+
+        interface IFileHandler;
+    }
+}

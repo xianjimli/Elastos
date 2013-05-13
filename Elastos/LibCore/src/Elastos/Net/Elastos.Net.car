@@ -54,6 +54,7 @@ module
     merge("../../../car/Elastos/Net/IPlainSocketImpl.car");
     merge("../../../car/Elastos/Net/IPlainServerSocketImpl.car");
     merge("../../../car/Elastos/Net/INetGlobalInit.car");
+    merge("./Apache/Protocol/File/Elastos.Net.Apache.Protocol.FileURL.car");
 
     class CInet4Address {
         constructor(

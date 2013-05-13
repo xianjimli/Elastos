@@ -111,6 +111,12 @@ String StringBuffer::Substring(Int32 start, Int32 end)
     return String(NULL);
 }
 
+
+String StringBuffer::ToString()
+{
+    return Substring(0, mLength);
+}
+
 StringBuffer& StringBuffer::operator=(const StringBuffer& right)
 {
     if ( &right != this ) {

@@ -1,0 +1,10 @@
+TARGET_NAME = Elastos.Net.Apache.Protocol.FileURL
+TARGET_TYPE = lib
+
+INCLUDES += $(MAKEDIR)/../../../../../../inc/Elastos/Net/Apache/Protocol/File;
+INCLUDES += $(MAKEDIR)/../../../../../../inc/Elastos/Net;
+INCLUDES += $(TARGET_OBJ_PATH)/../../../
+INCLUDES += $(MAKEDIR)/../../../../../../inc/Elastos/common;
+
+SOURCES += CFileURLConnection.cpp
+SOURCES += CFileHandler.cpp
