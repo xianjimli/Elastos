@@ -29,6 +29,7 @@ SOURCES += CContentValues.cpp
 SOURCES += CSyncManager.cpp
 SOURCES += CSyncResult.cpp
 SOURCES += CSyncStats.cpp
+SOURCES += CSyncOperation.cpp
 SOURCES += CConfiguration.cpp
 SOURCES += CInstrumentationInfo.cpp
 SOURCES += ContextWrapper.cpp

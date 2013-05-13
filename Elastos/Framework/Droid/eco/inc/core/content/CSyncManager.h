@@ -155,7 +155,7 @@ private:
     volatile Boolean mBootCompleted; // = false;
 
 private:
-    static void InitStaticMembers();
+    static Boolean InitStaticMembers();
 
 private:
     static Boolean mIsStaticMemberInitialized;

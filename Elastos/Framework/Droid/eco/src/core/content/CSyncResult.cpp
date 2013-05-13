@@ -29,6 +29,8 @@ CSyncResult::CSyncResult(
 ECode CSyncResult::HasHardError(
     /* [out] */ Boolean* hasError)
 {
+    VALIDATE_NOT_NULL(hasError);
+
     *hasError = (stats->numParseExceptions > 0) ||
                 stats->numConflictDetectedExceptions > 0 ||
                 stats->numAuthExceptions > 0 ||
@@ -42,6 +44,8 @@ ECode CSyncResult::HasHardError(
 ECode CSyncResult::HasSoftError(
     /* [out] */ Boolean* hasError)
 {
+    VALIDATE_NOT_NULL(hasError);
+
     CSyncStats* syncStats = (CSyncStats*)stats;
 
     *hasError = syncAlreadyInProgress ||
@@ -53,6 +57,8 @@ ECode CSyncResult::HasSoftError(
 ECode CSyncResult::HasError(
     /* [out] */ Boolean* hasError)
 {
+    VALIDATE_NOT_NULL(hasError);
+
     Boolean hardError = FALSE;
     Boolean softError = FALSE;
 
@@ -67,6 +73,8 @@ ECode CSyncResult::HasError(
 ECode CSyncResult::MadeSomeProgress(
     /* [out] */ Boolean* result)
 {
+    VALIDATE_NOT_NULL(result);
+
     CSyncStats* syncStats = (CSyncStats*)stats;
 
     *result = ((syncStats->numDeletes > 0) && !tooManyDeletions) ||
@@ -79,6 +87,8 @@ ECode CSyncResult::MadeSomeProgress(
 ECode CSyncResult::DescribeContents(
     /* [out] */ Int32* result)
 {
+    VALIDATE_NOT_NULL(result);
+
     *result = 0;
     return NOERROR;
 }
@@ -107,6 +117,8 @@ ECode CSyncResult::Clear()
 ECode CSyncResult::ToString(
     /* [out] */ String* str)
 {
+    VALIDATE_NOT_NULL(str);
+
     StringBuffer sb("");
 
     sb += "SyncResult:";
@@ -165,6 +177,8 @@ ECode CSyncResult::ToString(
 ECode CSyncResult::ToDebugString(
     /* [out] */ String* str)
 {
+    VALIDATE_NOT_NULL(str);
+
     Boolean hasError = FALSE;
     CSyncStats* syncStats = (CSyncStats*)stats;
 
