@@ -1,3 +1,12 @@
+/** @file Elastos.IO.car
+ *  @brief CAR file for Elastos IO library.
+ *
+ *  This contains the prototypes for the Elastos IO library.
+ *  Java: 
+ *
+ *  @author cao.jing
+ *  @bug No known bugs.
+ */
 
 module
 {
@@ -87,17 +96,39 @@ module
 
 
 
-
+   /**
+    * A FilterInputStream contains some other input stream, which it uses as its basic source of data, possibly transforming the data 
+    * along the way or providing additional functionality. The class FilterInputStream itself simply overrides all methods of 
+    * InputStream with versions that pass all requests to the contained input stream. Subclasses of FilterInputStream may further
+    * override some of these methods and may also provide additional methods and fields.
+    * 
+    * @implements com::elastos::IInputStream
+    *
+    * <strong>Direct Known Subclasses:</strong>
+    * - @ref com::elastos::CBufferedInputStream
+    * - @ref com::elastos::CCheckedInputStream
+    * - @ref com::elastos::CCipherInputStream
+    * - @ref com::elastos::CDataInputStream
+    * - @ref com::elastos::CDeflaterInputStream
+    * - @ref com::elastos::CDigestInputStream
+    * - @ref com::elastos::CInflaterInputStream
+    * - @ref com::elastos::CLineNumberInputStream,
+    * - @ref com::elastos::CProgressMonitorInputStream
+    * - @ref com::elastos::CPushbackInputStream
+    *
+    * @since Elastos 1.0
+    * @todo  http://docs.oracle.com/javase/6/docs/api/java/io/FilterInputStream.html
+    */
     class CFilterInputStream {
-        /**
-        * Constructs a new {@code FilterInputStream} with the specified input
-        * stream as source.
+       /**
+        * Constructs a new with the specified input stream as source.
         *
-        * <p><strong>Warning:</strong> passing a null source creates an invalid
-        * {@code FilterInputStream}, that fails on every method that is not
-        * overridden. Subclasses should check for null in their constructors.
+        * <p><strong>Warning:</strong> passing a null source creates an invalid,
+        * that fails on every method that is not overridden.
+        * Subclasses should check for null in their constructors.
         *
-        * @param in the input stream to filter reads on.
+        * @param is    the input stream to filter reads on.
+        * @return ECode    SUCCESS, FAIL
         */
         constructor(
             [in] IInputStream* is);
@@ -105,11 +136,76 @@ module
         interface IFilterInputStream;
     }
 
-    class CRandomAccessFile{
+   /**
+    * Instances of this class support both reading and writing to a random access file. A random access file behaves like a large array of bytes stored in the file system.
+    * There is a kind of cursor, or index into the implied array, called the file pointer; input operations read bytes starting at the file pointer and advance the file pointer     
+    * past the bytes read. If the random access file is created in read/write mode, then output operations are also available; output operations write bytes starting at the file pointer and advance the file pointer past the bytes written. Output operations that write past the current end of the implied array cause the array to be extended. The file pointer can be read by the getFilePointer method and set by the seek method.
+    * It is generally true of all the reading routines in this class that if end-of-file is reached before the desired number of bytes has been read, an EOFException (which is a kind of IOException) is thrown. If any byte cannot be read for any reason other than end-of-file, an IOException other than EOFException is thrown. In particular, an IOException may be thrown if the stream has been closed.
+    * 
+    * @implements com::elastos::IRandomAccessFile
+    * @implements com::elastos::IDataInput
+    * @implements com::elastos::IDataOutput
+    *
+    *
+    * @since Elastos 1.0
+    * @todo  http://docs.oracle.com/javase/6/docs/api/java/io/RandomAccessFile.html
+    */
+    class CRandomAccessFile {
+       /**
+        * @brief Constructs a new with the specified input stream as source.
+        * 
+        * Creates a random access file stream to read from, and optionally to write to, a file with the specified name. 
+        * A new FileDescriptor object is created to represent the connection to the file.
+        * The mode argument specifies the access mode with which the file is to be opened. The permitted values and their
+        * meanings are as specified for the RandomAccessFile(File,String) constructor.
+        * 
+        * If there is a security manager, its checkRead method is called with the name argument as its argument to see
+        * if read access to the file is allowed. If the mode allows writing, the security manager's checkWrite method is
+        * also called with the name argument as its argument to see if write access to the file is allowed.
+        *
+        * @sa com::elastos::ISecurityManager::CheckRead()
+        * 
+        * @param file    the file object.
+        * @param mode    the access mode, as described above.
+        * @return ECode    SUCCESS, FAIL
+        */
         constructor(
             [in] IFile* pFile,
             [in] CString mode);
 
+       /**
+        * @brief Creates a random access file stream to read from, and optionally to write to, the file specified by the File argument.
+        *
+        * Creates a random access file stream to read from, and optionally to write to, the file specified by the File argument. A new FileDescriptor
+        * object is created to represent this file connection. The mode argument specifies the access mode in which the file is to be opened. The
+        * permitted values and their meanings are:
+        * Value | Meaning |
+        * :-:|:------------|
+        * "r"| Open for reading only. Invoking any of the write methods of the resulting object will cause an IOException to be thrown.
+        * "rw"| Open for reading and writing. If the file does not already exist then an attempt will be made to create it.
+        * "rws" | Open for reading and writing, as with "rw", and also require that every update to the file's content or metadata be 
+        * written synchronously to the underlying storage device.
+        * "rwd" | Open for reading and writing, as with "rw", and also require that every update to the file's content be written synchronously to the underlying storage device.
+        * 
+        * The "rws" and "rwd" modes work much like the force(boolean) method of the FileChannel class, passing arguments of true and false, 
+        * respectively, except that they always apply to every I/O operation and are therefore often more efficient. If the file resides on
+        * a local storage device then when an invocation of a method of this class returns it is guaranteed that all changes made to the file
+        * by that invocation will have been written to that device. This is useful for ensuring that critical information is not lost in the
+        * event of a system crash. If the file does not reside on a local device then no such guarantee is made.
+        * 
+        * The "rwd" mode can be used to reduce the number of I/O operations performed. Using "rwd" only requires updates to the file's content
+        * to be written to storage; using "rws" requires updates to both the file's content and its metadata to be written, which generally
+        * requires at least one more low-level I/O operation.
+        * 
+        * If there is a security manager, its checkRead method is called with the pathname of the file argument as its argument to see if read
+        * access to the file is allowed. If the mode allows writing, the security manager's checkWrite method is also called with the path argument to see if write access to the file is allowed.
+        * 
+        * @sa com::elastos::ISecurityManager::CheckRead()
+        * 
+        * @param fileName     the system-dependent filename.
+        * @param mode    the access mode, as described above.
+        * @return ECode    SUCCESS, FAIL
+        */
         constructor(
             [in] String fileName,
             [in] CString mode);
