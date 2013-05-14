@@ -160,3 +160,4 @@ SOURCES += CSetDrawableParameters.cpp
 SOURCES += CViewGroupAction.cpp
 SOURCES += CReflectionAction.cpp
 SOURCES += CRemoteViews.cpp
+SOURCES += CDatePickerSavedState.cpp

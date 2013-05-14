@@ -4,7 +4,8 @@
 
 #include "widget/LinearLayout.h"
 #include "widget/NumberKeyListener.h"
-#include <elastos/ElRefBase.h>
+//#include <elastos/ElRefBase.h>
+#include <StringBuffer.h>
 
 /**
  * A view for selecting a number
@@ -282,6 +283,31 @@ private:
         /* [in] */ IView* v);
 
 public:
+    class NumberPickerFormatter
+            : public IFormatter
+            , public ElRefBase
+    {
+    public:
+        UInt32 AddRef();
+
+        UInt32 Release();
+
+        PInterface Probe(
+            /* [in] */ REIID riid);
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface* pObject,
+            /* [in] */ InterfaceID* pIID);
+
+        CARAPI ToString(
+            /* [in] */ Int32 val,
+            /* [out] */ String* str);
+
+    public:
+        StringBuffer mBuf;// = new StringBuilder();
+        //final java.util.Formatter mFmt = new java.util.Formatter(mBuilder);
+        //final Object[] mArgs = new Object[1];
+    };
     /*
      * Use a custom NumberPicker formatting callback to use two-digit
      * minutes strings like "01".  Keeping a static formatter etc. is the
