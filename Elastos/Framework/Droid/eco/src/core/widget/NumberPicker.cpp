@@ -21,6 +21,50 @@ const ArrayOf<Char32>* NumberPicker::InitDigitCharacters()
 
 const ArrayOf<Char32>* NumberPicker::DIGIT_CHARACTERS = InitDigitCharacters();
 
+const AutoPtr<IFormatter> NumberPicker::TWO_DIGIT_FORMATTER =
+        new NumberPickerFormatter();
+
+PInterface NumberPicker::NumberPickerFormatter::Probe(
+    /* [in]  */ REIID riid)
+{
+    if (riid == EIID_IInterface) {
+        return (PInterface)(IFormatter*)this;
+    }
+    else if (riid == EIID_IFormatter) {
+        return (IFormatter*)this;
+    }
+
+    return NULL;
+}
+
+UInt32 NumberPicker::NumberPickerFormatter::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 NumberPicker::NumberPickerFormatter::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode NumberPicker::NumberPickerFormatter::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode NumberPicker::NumberPickerFormatter::ToString(
+    /* [in] */ Int32 val,
+    /* [out] */ String* str)
+{
+    // mArgs[0] = value;
+    // mBuilder.delete(0, mBuilder.length());
+    // mFmt.format("%02d", mArgs);
+    // return mFmt.toString();
+    return E_NOT_IMPLEMENTED;
+}
+
 NumberPicker::OnLongClickRunnable::OnLongClickRunnable(
     /* [in] */ NumberPicker* host)
     : mHost(host)
@@ -321,7 +365,6 @@ void NumberPicker::Init(
 
     mIncrementButton = (INumberPickerButton*)
             FindViewById(0x010201fa/*R.id.increment*/).Get();
-    assert(mIncrementButton != NULL);
     mIncrementButton->SetOnClickListener((IViewOnClickListener*)clickListener);
     mIncrementButton->SetOnLongClickListener(
                 (IViewOnLongClickListener*)longClickListener);

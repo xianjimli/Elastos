@@ -10,6 +10,7 @@ module
     importlib("Elastos.Utility.eco");
     importlib("Elastos.IO.eco");
     importlib("Elastos.Xml.eco");
+    importlib("Elastos.Text.eco");
 
     merge("../../car/core/util.car");
     merge("../../car/core/os.car");
