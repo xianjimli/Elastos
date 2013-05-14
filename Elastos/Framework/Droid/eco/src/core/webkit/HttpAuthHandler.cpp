@@ -436,7 +436,7 @@ ECode HttpAuthHandler::HandleAuthProceed(
     //String username = msg.getData().getString("username");
     //String password = msg.getData().getString("password");
 
-    AutoPtr<LoadListener> loader;// = null;
+    AutoPtr<LoadListener> loader;
     //synchronized (mLoaderQueue) 
     {
         Mutex::Autolock lock(mSyncLock);
@@ -452,7 +452,7 @@ ECode HttpAuthHandler::HandleAuthProceed(
 
 ECode HttpAuthHandler::HandleAuthCancel()
 {
-    AutoPtr<LoadListener> loader;// = null;
+    AutoPtr<LoadListener> loader;
     //synchronized (mLoaderQueue) 
     {
         Mutex::Autolock lock(mSyncLock);

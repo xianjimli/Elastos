@@ -16,6 +16,8 @@
 #include "graphics/CCanvas.h"
 #include "view/CKeyEvent.h"
 #include "view/animation/CAlphaAnimation.h"
+#include "text/Selection.h"
+#include "view/inputmethod/CLocalInputMethodManager.h"
 
 const CString CWebView::LOGTAG("webview");
 
@@ -64,6 +66,125 @@ const CString CWebView::HandlerPackageDebugString[] = {
     "SET_SCROLLBAR_MODES" //             = 129;
 };
 
+
+// if AUTO_REDRAW_HACK is true, then the CALL key will toggle redrawing
+// the screen all-the-time. Good for profiling our drawing code
+const Boolean CWebView::AUTO_REDRAW_HACK;
+
+// enable debug output for drag trackers
+const Boolean CWebView::DEBUG_DRAG_TRACKER;
+
+const Int32 CWebView::TOUCH_SENT_INTERVAL;// = 50;
+
+const Int32 CWebView::TOUCH_INIT_MODE;
+const Int32 CWebView::TOUCH_DRAG_START_MODE;
+const Int32 CWebView::TOUCH_DRAG_MODE;
+const Int32 CWebView::TOUCH_SHORTPRESS_START_MODE;
+const Int32 CWebView::TOUCH_SHORTPRESS_MODE;
+const Int32 CWebView::TOUCH_DOUBLE_TAP_MODE;
+const Int32 CWebView::TOUCH_DONE_MODE;
+const Int32 CWebView::TOUCH_PINCH_DRAG;
+
+// Whether to prevent default during touch. The initial value depends on
+// mForwardTouchEvents. If WebCore wants all the touch events, it says yes
+// for touch down. Otherwise UI will wait for the answer of the first
+// confirmed move before taking over the control.
+const Int32 CWebView::PREVENT_DEFAULT_NO;
+const Int32 CWebView::PREVENT_DEFAULT_MAYBE_YES;
+const Int32 CWebView::PREVENT_DEFAULT_NO_FROM_TOUCH_DOWN;
+const Int32 CWebView::PREVENT_DEFAULT_YES;
+const Int32 CWebView::PREVENT_DEFAULT_IGNORE;
+
+// This should be ViewConfiguration.getTapTimeout()
+// But system time out is 100ms, which is too short for the browser.
+// In the browser, if it switches out of tap too soon, jump tap won't work.
+const Int32 CWebView::TAP_TIMEOUT;
+// This should be ViewConfiguration.getLongPressTimeout()
+// But system time out is 500ms, which is too short for the browser.
+// With a short timeout, it's difficult to treat trigger a short press.
+const Int32 CWebView::LONG_PRESS_TIMEOUT;
+// needed to avoid flinging after a pause of no movement
+const Int32 CWebView::MIN_FLING_TIME;
+// draw unfiltered after drag is held without movement
+const Int32 CWebView::MOTIONLESS_TIME;
+// The time that the Zoom Controls are visible before fading away
+//const Int64 CWebView::ZOOM_CONTROLS_TIMEOUT;// = ViewConfiguration.getZoomControlsTimeout();
+// The amount of content to overlap between two screens when going through
+// pages with the space bar, in pixels.
+const Int32 CWebView::PAGE_SCROLL_OVERLAP;
+
+// our standard speed. this way small distances will be traversed in less
+// time than large distances, but we cap the duration, so that very large
+// distances won't take too long to get there.
+const Int32 CWebView::STD_SPEED;  // pixels per second
+// time for the longest scroll animation
+const Int32 CWebView::MAX_DURATION;   // milliseconds
+const Int32 CWebView::SLIDE_TITLE_DURATION;   // milliseconds
+
+const Int32 CWebView::MOTIONLESS_FALSE;
+const Int32 CWebView::MOTIONLESS_PENDING;
+const Int32 CWebView::MOTIONLESS_TRUE;
+const Int32 CWebView::MOTIONLESS_IGNORE;
+
+/*
+ * Private message ids
+ */
+const Int32 CWebView::REMEMBER_PASSWORD;
+const Int32 CWebView::NEVER_REMEMBER_PASSWORD;
+const Int32 CWebView::SWITCH_TO_SHORTPRESS;
+const Int32 CWebView::SWITCH_TO_LONGPRESS;
+const Int32 CWebView::RELEASE_SINGLE_TAP;
+const Int32 CWebView::REQUEST_FORM_DATA;
+const Int32 CWebView::RESUME_WEBCORE_PRIORITY;
+const Int32 CWebView::DRAG_HELD_MOTIONLESS;
+const Int32 CWebView::AWAKEN_SCROLL_BARS;
+const Int32 CWebView::PREVENT_DEFAULT_TIMEOUT;
+
+const Int32 CWebView::FIRST_PRIVATE_MSG_ID;
+const Int32 CWebView::LAST_PRIVATE_MSG_ID;
+
+const Int32 CWebView::FIRST_PACKAGE_MSG_ID;
+const Int32 CWebView::LAST_PACKAGE_MSG_ID;
+
+const Int32 CWebView::SNAP_NONE;
+const Int32 CWebView::SNAP_LOCK; // not a separate state
+const Int32 CWebView::SNAP_X; // may be combined with SNAP_LOCK
+const Int32 CWebView::SNAP_Y; // may be combined with SNAP_LOCK
+
+// keep these in sync with their counterparts in WebView.cpp
+const Int32 CWebView::DRAW_EXTRAS_NONE;
+const Int32 CWebView::DRAW_EXTRAS_FIND;
+const Int32 CWebView::DRAW_EXTRAS_SELECTION;
+const Int32 CWebView::DRAW_EXTRAS_CURSOR_RING;
+
+// keep this in sync with WebCore:ScrollbarMode in WebKit
+const Int32 CWebView::SCROLLBAR_AUTO;
+const Int32 CWebView::SCROLLBAR_ALWAYSOFF;
+// as we auto fade scrollbar, this is ignored.
+const Int32 CWebView::SCROLLBAR_ALWAYSON;
+
+// if the page can scroll <= this value, we won't allow the drag tracker
+// to have any effect.
+const Int32 CWebView::MIN_SCROLL_AMOUNT_TO_DISABLE_DRAG_TRACKER;
+
+// return NO_LEFTEDGE means failure.
+const Int32 CWebView::NO_LEFTEDGE;
+
+const Float CWebView::MAX_SLOPE_FOR_DIAG;
+const Int32 CWebView::MIN_BREAK_SNAP_CROSS_DISTANCE;
+
+const Int32 CWebView::ZOOM_ANIMATION_LENGTH;
+
+const Int32 CWebView::TRACKBALL_KEY_TIMEOUT;
+const Int32 CWebView::TRACKBALL_TIMEOUT;
+const Int32 CWebView::TRACKBALL_WAIT;
+const Int32 CWebView::TRACKBALL_SCALE;
+const Int32 CWebView::TRACKBALL_SCROLL_COUNT;
+const Int32 CWebView::TRACKBALL_MOVE_COUNT;
+const Int32 CWebView::TRACKBALL_MULTIPLIER;
+const Int32 CWebView::SELECT_CURSOR_OFFSET;
+
+
 // default scale. Depending on the display density.
 Int32 CWebView::DEFAULT_SCALE_PERCENT;
 
@@ -86,6 +207,17 @@ IVIEWGROUP_METHODS_IMPL(CWebView, AbsoluteLayout, AbsoluteLayout);
 
 CARAPI_(PInterface) CWebView::Probe(
             /* [in]  */ REIID riid)
+{}
+
+UInt32 CWebView::AddRef()
+{}
+
+UInt32 CWebView::Release()
+{}
+
+ECode CWebView::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
 {}
 
 #if 0
@@ -1967,6 +2099,7 @@ ECode CWebView::SetLayoutAnimationListener(
 }
 #endif
 
+
 ECode CWebView::SetHorizontalScrollbarOverlay(
     /* [in] */ Boolean overlay)
 {
@@ -3029,10 +3162,11 @@ ECode CWebView::FindAll(
     /* [in] */ const String& find,
     /* [out] */ Int32* f)
 {
-    VALIDATE_NOT_NULL(f);
-
     if (0 == mNativeClass) {
-        *f = 0;
+        if (f) {
+            *f = 0;
+        }
+        
         return E_FAIL; // client isn't initialized
     }
 
@@ -3044,8 +3178,10 @@ ECode CWebView::FindAll(
     InvalidateEx2();
     mLastFind = find;
     
-    *f = result;
-
+    if (f) {
+        *f = result;
+    }
+    
     return NOERROR;
 }
 
@@ -3700,7 +3836,82 @@ CARAPI_(Boolean) CWebView::OnSavePassword(
     /* [in] */ IApartment* resumeMsgHandle,
     /* [in] */ Int32 resumeMsgId,
     /* [in] */ IParcel* resumeMsgParams)
-{}
+{
+    Boolean rVal = FALSE;
+   if (resumeMsgHandle == NULL) {
+       // null resumeMsg implies saving password silently
+       ((CWebViewDatabase*)(mDatabase.Get()))->SetUsernamePassword(schemePlusHost, username, password);
+   } else {
+
+        //final Message remember = mPrivateHandler.obtainMessage(
+        //        REMEMBER_PASSWORD);
+        //remember.getData().putString("host", schemePlusHost);
+        //remember.getData().putString("username", username);
+        //remember.getData().putString("password", password);
+        //remember.obj = resumeMsg;
+
+        ECode (STDCALL CWebView::PrivateHandler::*pHandlerFunc)(
+                     IApartment*, Int32, IParcel*, String&, String&, String&);
+
+        pHandlerFunc = &CWebView::PrivateHandler::HandleRememberPassword;
+
+        AutoPtr<IParcel> params;
+        CCallbackParcel::New((IParcel**)&params);
+        params->WriteInterfacePtr(resumeMsgHandle);
+        params->WriteInt32(resumeMsgId);
+        params->WriteInterfacePtr(resumeMsgParams);
+        params->WriteString(schemePlusHost);
+        params->WriteString(username);
+        params->WriteString(password);
+
+
+        //final Message neverRemember = mPrivateHandler.obtainMessage(
+        //        NEVER_REMEMBER_PASSWORD);
+        //neverRemember.getData().putString("host", schemePlusHost);
+        //neverRemember.getData().putString("username", username);
+        //neverRemember.getData().putString("password", password);
+        //neverRemember.obj = resumeMsg;
+
+        ECode (STDCALL CWebView::PrivateHandler::*pHandlerFuncNever)(
+                     IApartment*, Int32, IParcel*, String&, String&, String&);
+
+        pHandlerFuncNever = &CWebView::PrivateHandler::HandleNeverRememberPassword;
+
+#if 0
+        new AlertDialog.Builder(getContext())
+                .setTitle(com.android.internal.R.string.save_password_label)
+                .setMessage(com.android.internal.R.string.save_password_message)
+                .setPositiveButton(com.android.internal.R.string.save_password_notnow,
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        resumeMsg.sendToTarget();
+                    }
+                })
+                .setNeutralButton(com.android.internal.R.string.save_password_remember,
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        remember.sendToTarget();
+                    }
+                })
+                .setNegativeButton(com.android.internal.R.string.save_password_never,
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        neverRemember.sendToTarget();
+                    }
+                })
+                .setOnCancelListener(new OnCancelListener() {
+                    public void onCancel(DialogInterface dialog) {
+                        resumeMsg.sendToTarget();
+                    }
+                }).show();
+        // Return true so that WebViewCore will pause while the dialog is
+        // up.
+        rVal = true;
+#endif
+    }
+
+   return rVal;
+}
 
 /*
  * Return the width of the view where the content of WebView should render
@@ -4013,7 +4224,18 @@ CARAPI_(void) CWebView::RebuildWebTextView()
 CARAPI_(void) CWebView::RequestFormData(
     /* [in] */ const String& name,
     /* [in] */ Int32 nodePointer)
-{}
+{
+#if 0
+    if (mWebViewCore.getSettings().getSaveFormData()) {
+        Message update = mPrivateHandler.obtainMessage(REQUEST_FORM_DATA);
+        update.arg1 = nodePointer;
+        RequestFormData updater = new RequestFormData(name, getUrl(),
+                update);
+        Thread t = new Thread(updater);
+        t.start();
+    }
+#endif
+}
 
 /**
  * Pass a message to find out the <label> associated with the <input>
@@ -4137,7 +4359,7 @@ CARAPI_(void) CWebView::InitiateTextFieldDrag(
     mLastTouchTime = eventTime;
     if (!mScroller->IsFinished()) {
         AbortAnimation();
-//        mPrivateHandler->RemoveMessages(RESUME_WEBCORE_PRIORITY);
+//        mPrivateHandler->RemoveMessage(*(Handle32*)&CWebView::PrivateHandler::HandleResumeWebcorePriority);
     }
     mSnapScrollMode = SNAP_NONE;
     mVelocityTracker = VelocityTracker::Obtain();
@@ -7454,12 +7676,6 @@ CARAPI CWebView::HitTestResult::GetExtra(
 CARAPI_(PInterface) CWebView::HitTestResult::Probe(
     /* [in] */ REIID riid)
 {
-    if (riid == EIID_IInterface) {
-        return (IInterface*)(IRunnable*)this;
-    }
-    else if (riid == EIID_IHitTestResult) {
-        return (IHitTestResult*)this;
-    }
     return NULL;
 }
 
@@ -7706,3 +7922,863 @@ CARAPI_(void) CWebView::ExtendedZoomControls::Fade(
     /* [in] */ Float startAlpha,
     /* [in] */ Float endAlpha)
 {}
+
+/********************************PrivateHandler*****************************/
+CARAPI_(PInterface) CWebView::PrivateHandler::Probe(
+    /* [in] */ REIID riid)
+{
+    return NULL;
+}
+
+CARAPI_(UInt32) CWebView::PrivateHandler::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+CARAPI_(UInt32) CWebView::PrivateHandler::Release()
+{
+    return ElRefBase::Release();
+}
+
+CARAPI CWebView::PrivateHandler::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CWebView::PrivateHandler::Start(
+    /* [in] */ ApartmentAttr attr)
+{
+    assert(0);
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CWebView::PrivateHandler::Finish()
+{
+    assert(0);
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CWebView::PrivateHandler::PostCppCallback(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ IParcel* params,
+    /* [in] */ Int32 id)
+{
+    assert(mApartment != NULL);
+    return mApartment->PostCppCallback(target, func, params, id);
+}
+
+ECode CWebView::PrivateHandler::PostCppCallbackAtTime(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ IParcel* params,
+    /* [in] */ Int32 id,
+    /* [in] */ Millisecond64 uptimeMillis)
+{
+    assert(mApartment != NULL);
+    return mApartment->PostCppCallbackAtTime(target, func, params, id, uptimeMillis);
+}
+
+ECode CWebView::PrivateHandler::PostCppCallbackDelayed(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ IParcel* params,
+    /* [in] */ Int32 id,
+    /* [in] */ Millisecond64 delayMillis)
+{
+    assert(mApartment != NULL);
+    return mApartment->PostCppCallbackDelayed(target, func, params, id, delayMillis);
+}
+
+ECode CWebView::PrivateHandler::PostCppCallbackAtFrontOfQueue(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ IParcel* params,
+    /* [in] */ Int32 id)
+{
+    assert(mApartment != NULL);
+    return mApartment->PostCppCallbackAtFrontOfQueue(target, func, params, id);
+}
+
+ECode CWebView::PrivateHandler::RemoveCppCallbacks(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func)
+{
+    assert(mApartment != NULL);
+    return mApartment->RemoveCppCallbacks(target, func);
+}
+
+ECode CWebView::PrivateHandler::RemoveCppCallbacksEx(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ Int32 id)
+{
+    assert(mApartment != NULL);
+    return mApartment->RemoveCppCallbacksEx(target, func, id);
+}
+
+ECode CWebView::PrivateHandler::HasCppCallbacks(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [out] */ Boolean* result)
+{
+    assert(mApartment != NULL);
+    return mApartment->HasCppCallbacks(target, func, result);
+}
+
+ECode CWebView::PrivateHandler::HasCppCallbacksEx(
+    /* [in] */ Handle32 target,
+    /* [in] */ Handle32 func,
+    /* [in] */ Int32 id,
+    /* [out] */ Boolean* result)
+{
+    assert(mApartment != NULL);
+    return mApartment->HasCppCallbacksEx(target, func, id, result);
+}
+
+ECode CWebView::PrivateHandler::SendMessage(
+    /* [in] */ Int32 message,
+    /* [in] */ IParcel* params)
+{
+    return E_ILLEGAL_ARGUMENT_EXCEPTION;
+}
+
+ECode CWebView::PrivateHandler::SendMessage(
+    /* [in] */ Handle32 pvFunc,
+    /* [in] */ IParcel* params)
+{
+    return mApartment->PostCppCallback((Handle32)this, pvFunc, params, 0);
+}
+
+ECode CWebView::PrivateHandler::SendMessageAtTime(
+    /* [in] */ Handle32 pvFunc,
+    /* [in] */ IParcel* params,
+    /* [in] */ Millisecond64 uptimeMillis)
+{
+    return mApartment->PostCppCallbackAtTime(
+        (Handle32)this, pvFunc, params, 0, uptimeMillis);
+}
+
+ECode CWebView::PrivateHandler::RemoveMessage(
+    /* [in] */ Handle32 func)
+{
+    return mApartment->RemoveCppCallbacks((Handle32)this, func);
+}
+
+ECode CWebView::PrivateHandler::HandleRememberPassword(
+    /* [in] */ IApartment* resumeMsgHandle,
+    /* [in] */ Int32 resumeMsgId,
+    /* [in] */ IParcel* resumeMsgParams,
+    /* [in] */ String& host,
+    /* [in] */ String& username,
+    /* [in] */ String& password)
+{
+    VALIDATE_NOT_NULL(resumeMsgHandle);
+
+    ((CWebViewDatabase*)(mWebView->mDatabase.Get()))->SetUsernamePassword(host,
+                           username, password);
+    resumeMsgHandle->SendMessage(resumeMsgId, resumeMsgParams);
+}
+
+ECode CWebView::PrivateHandler::HandleNeverRememberPassword(
+    /* [in] */ IApartment* resumeMsgHandle,
+    /* [in] */ Int32 resumeMsgId,
+    /* [in] */ IParcel* resumeMsgParams,
+    /* [in] */ String& host,
+    /* [in] */ String& username,
+    /* [in] */ String& password)
+{
+    VALIDATE_NOT_NULL(resumeMsgHandle);
+
+    ((CWebViewDatabase*)(mWebView->mDatabase.Get()))->SetUsernamePassword(
+            host, String(NULL), String(NULL));
+    resumeMsgHandle->SendMessage(resumeMsgId, resumeMsgParams);
+}
+
+ECode CWebView::PrivateHandler::HandlePreventDefaultTimeout(
+    /* [in] */ Int32 action)
+{
+    // if timeout happens, cancel it so that it won't block UI
+    // to continue handling touch events
+    if ((action == MotionEvent_ACTION_DOWN
+            && mWebView->mPreventDefault == PREVENT_DEFAULT_MAYBE_YES)
+            || (action == MotionEvent_ACTION_MOVE
+            && mWebView->mPreventDefault == PREVENT_DEFAULT_NO_FROM_TOUCH_DOWN)) {
+        mWebView->CancelWebCoreTouchEvent(
+                mWebView->ViewToContentX((Int32) mWebView->mLastTouchX + mWebView->mScrollX),
+                mWebView->ViewToContentY((Int32) mWebView->mLastTouchY + mWebView->mScrollY),
+                TRUE);
+    }
+}
+
+ECode CWebView::PrivateHandler::HandleSwitchToShortPress()
+{
+    if (mWebView->mTouchMode == TOUCH_INIT_MODE) {
+        if (mWebView->mPreventDefault != PREVENT_DEFAULT_YES) {
+            mWebView->mTouchMode = TOUCH_SHORTPRESS_START_MODE;
+            mWebView->UpdateSelection();
+        } else {
+            // set to TOUCH_SHORTPRESS_MODE so that it won't
+            // trigger double tap any more
+            mWebView->mTouchMode = TOUCH_SHORTPRESS_MODE;
+        }
+    } else if (mWebView->mTouchMode == TOUCH_DOUBLE_TAP_MODE) {
+        mWebView->mTouchMode = TOUCH_DONE_MODE;
+    }
+}
+
+ECode CWebView::PrivateHandler::HandleSwitchToLongPress()
+{
+    if (mWebView->InFullScreenMode() || mWebView->mDeferTouchProcess) {
+        WebViewCore::TouchEventData* ted = new WebViewCore::TouchEventData();
+        ted->mAction = WebViewCore::ACTION_LONGPRESS;
+        ted->mX = mWebView->ViewToContentX((Int32) mWebView->mLastTouchX + mWebView->mScrollX);
+        ted->mY = mWebView->ViewToContentY((Int32) mWebView->mLastTouchY + mWebView->mScrollY);
+        // metaState for long press is tricky. Should it be the
+        // state when the press started or when the press was
+        // released? Or some intermediary key state? For
+        // simplicity for now, we don't set it.
+        ted->mMetaState = 0;
+        ted->mReprocess = mWebView->mDeferTouchProcess;
+        if (mWebView->mDeferTouchProcess) {
+            ted->mViewX = mWebView->mLastTouchX;
+            ted->mViewY = mWebView->mLastTouchY;
+        }
+//        mWebViewCore.sendMessage(EventHub.TOUCH_EVENT, ted);
+    } else if (mWebView->mPreventDefault != PREVENT_DEFAULT_YES) {
+        mWebView->mTouchMode = TOUCH_DONE_MODE;
+        mWebView->PerformLongClick(NULL);
+        mWebView->RebuildWebTextView();
+    }
+}
+
+ECode CWebView::PrivateHandler::HandleReleaseSingleTap()
+{
+    mWebView->DoShortPress();
+}
+
+ECode CWebView::PrivateHandler::HandleScrollByMsgId(
+    /* [in] */ Int32 cx,
+    /* [in] */ Int32 cy,
+    /* [in] */ Boolean animate)
+{
+    mWebView->SetContentScrollBy(cx, cy, animate);
+}
+
+ECode CWebView::PrivateHandler::HandleSyncScrollToMsgId()
+{
+    if (mWebView->mUserScroll) {
+        // if user has scrolled explicitly, don't sync the
+        // scroll position any more
+        mWebView->mUserScroll = FALSE;
+    }
+}
+
+ECode CWebView::PrivateHandler::HandleScrollToMsgId(
+    /* [in] */ Int32 cx,
+    /* [in] */ Int32 cy)
+{
+    if (mWebView->SetContentScrollTo(cx, cy)) {
+        // if we can't scroll to the exact position due to pin,
+        // send a message to WebCore to re-scroll when we get a
+        // new picture
+        mWebView->mUserScroll = FALSE;
+//        mWebViewCore.sendMessage(EventHub.SYNC_SCROLL, msg.arg1, msg.arg2);
+    }
+}
+
+ECode CWebView::PrivateHandler::HandleSpawnScrollToMsgId(
+    /* [in] */ Int32 cx,
+    /* [in] */ Int32 cy)
+{
+    mWebView->SpawnContentScrollTo(cx, cy);
+}
+
+ECode CWebView::PrivateHandler::HandleUpdateZoomRange(
+    /* [in] */ WebViewCore::RestoreState* restoreState)
+{
+    VALIDATE_NOT_NULL(restoreState);
+
+    // mScrollX contains the new minPrefWidth
+    mWebView->UpdateZoomRange(restoreState, mWebView->GetViewWidth(),
+            restoreState->mScrollX, FALSE);
+}
+
+ECode CWebView::PrivateHandler::HandleNewPictureMsgId(
+    /* [in] */ WebViewCore::DrawData* draw)
+{
+    // If we've previously delayed deleting a root
+    // layer, do it now.
+    if (mWebView->mDelayedDeleteRootLayer) {
+        mWebView->mDelayedDeleteRootLayer = FALSE;
+        mWebView->NativeSetRootLayer(0);
+    }
+
+    WebSettings* settings = mWebView->mWebViewCore->GetSettings();
+    // called for new content
+    const Int32 viewWidth = mWebView->GetViewWidth();
+    //const WebViewCore.DrawData draw = (WebViewCore.DrawData) msg.obj;
+    AutoPtr<IPoint> viewSize = draw->mViewPoint;
+    Boolean useWideViewport = settings->GetUseWideViewPort();
+    WebViewCore::RestoreState* restoreState = draw->mRestoreState;
+    Boolean hasRestoreState = restoreState != NULL;
+    if (hasRestoreState) {
+
+        Int32 x;
+        viewSize->GetX(&x);
+
+        mWebView->UpdateZoomRange(restoreState, x, draw->mMinPrefWidth, TRUE);
+
+        if (!mWebView->mDrawHistory) {
+            mWebView->mInZoomOverview = FALSE;
+
+            if (mWebView->mInitialScaleInPercent > 0) {
+                mWebView->SetNewZoomScale(mWebView->mInitialScaleInPercent / 100.0f,
+                    mWebView->mInitialScaleInPercent != mWebView->mTextWrapScale * 100,
+                    FALSE);
+            } else if (restoreState->mViewScale > 0) {
+                mWebView->mTextWrapScale = restoreState->mTextWrapScale;
+                mWebView->SetNewZoomScale(restoreState->mViewScale, FALSE,
+                    FALSE);
+            } else {
+
+                mWebView->mInZoomOverview = useWideViewport
+                    && settings->GetLoadWithOverviewMode();
+                
+                Float scale;
+
+                if (mWebView->mInZoomOverview) {
+                    scale = (Float) viewWidth / DEFAULT_VIEWPORT_WIDTH;
+                } else {
+                    scale = restoreState->mTextWrapScale;
+                }
+
+                Int32 abs = scale - mWebView->mTextWrapScale;
+                abs = abs > 0 ? abs : -abs;
+
+                mWebView->SetNewZoomScale(scale, abs >= MINIMUM_SCALE_INCREMENT,
+                    FALSE);
+            }
+
+            mWebView->SetContentScrollTo(restoreState->mScrollX,
+                restoreState->mScrollY);
+            // As we are on a new page, remove the WebTextView. This
+            // is necessary for page loads driven by webkit, and in
+            // particular when the user was on a password field, so
+            // the WebTextView was visible.
+            mWebView->ClearTextEntry(FALSE);
+            // update the zoom buttons as the scale can be changed
+//            AutoPtr<IWebSettings> settings;
+//            mWebView->GetSettings((IWebSettings**)&settings);
+//            if (((CWebSettings*)(settings.Get()))->GetBuiltInZoomControls()) {
+                mWebView->UpdateZoomButtonsEnabled();
+//            }
+        }
+    }
+    // We update the layout (i.e. request a layout from the
+    // view system) if the last view size that we sent to
+    // WebCore matches the view size of the picture we just
+    // received in the fixed dimension.
+    Int32 x, y;
+
+    viewSize->GetX(&x);
+    viewSize->GetY(&y);
+
+    const Boolean updateLayout = x == mWebView->mLastWidthSent
+            && y == mWebView->mLastHeightSent;
+    
+    draw->mWidthHeight->GetX(&x);
+    draw->mWidthHeight->GetY(&x);
+    mWebView->RecordNewContentSize(x, y
+            + (mWebView->mFindIsUp ? mWebView->mFindHeight : 0), updateLayout);
+#if 0
+    if (DebugFlags.WEB_VIEW) {
+        Rect b = draw.mInvalRegion.getBounds();
+        Log.v(LOGTAG, "NEW_PICTURE_MSG_ID {" +
+                b.left+","+b.top+","+b.right+","+b.bottom+"}");
+    }
+#endif
+
+    AutoPtr<IRect> rect;
+    draw->mInvalRegion->GetBounds((IRect**)&rect);
+    mWebView->InvalidateContentRect(rect);
+    if (mWebView->mPictureListener != NULL) {
+        AutoPtr<IPicture> pic;
+        mWebView->CapturePicture((IPicture**)&pic);
+        mWebView->mPictureListener->OnNewPicture(/*WebView.this*/mWebView, pic);
+    }
+
+    if (useWideViewport) {
+        // limit mZoomOverviewWidth upper bound to
+        // sMaxViewportWidth so that if the page doesn't behave
+        // well, the WebView won't go insane. limit the lower
+        // bound to match the default scale for mobile sites.
+        
+        Int32 max1, max2;
+        Int32 x, y;
+
+        draw->mViewPoint->GetX(&x);
+        draw->mViewPoint->GetY(&y);
+
+        max1 = draw->mMinPrefWidth > x ? draw->mMinPrefWidth : x;
+        max2 = (Int32) (viewWidth / mWebView->mDefaultScale) > max1 ? (Int32) (viewWidth / mWebView->mDefaultScale) : max1;
+        mWebView->mZoomOverviewWidth = sMaxViewportWidth < max2 ? sMaxViewportWidth : max2;
+    }
+
+    if (!mWebView->mMinZoomScaleFixed) {
+        mWebView->mMinZoomScale = (Float) viewWidth / mWebView->mZoomOverviewWidth;
+    }
+
+    if (!mWebView->mDrawHistory && mWebView->mInZoomOverview) {
+        // fit the content width to the current view. Ignore
+        // the rounding error case.
+        Int32 abs = (viewWidth * mWebView->mInvActualScale) - mWebView->mZoomOverviewWidth;
+        abs = abs > 0 ? abs : -abs;
+        if (abs > 1) {
+            abs = mWebView->mActualScale - mWebView->mTextWrapScale;
+            abs = abs > 0 ? abs : -abs;
+            mWebView->SetNewZoomScale((Float) viewWidth
+                    / mWebView->mZoomOverviewWidth, abs < MINIMUM_SCALE_INCREMENT,
+                    FALSE);
+        }
+    }
+
+    if (draw->mFocusSizeChanged && mWebView->InEditingMode()) {
+        mWebView->mFocusSizeChanged = TRUE;
+    }
+
+    if (hasRestoreState) {
+        mWebView->mViewManager->PostReadyToDrawAll();
+    }
+
+}
+
+ECode CWebView::PrivateHandler::HandleWebcoreInitializedMsgId(
+    /* [in] */ Int32 arg)
+{
+    // nativeCreate sets mNativeClass to a non-zero value
+    mWebView->NativeCreate(arg);
+}
+
+ECode CWebView::PrivateHandler::HandleUpdateTextfieldTextMsgId(
+    /* [in] */ String& obj,
+    /* [in] */ String& password,
+    /* [in] */ Int32 arg1,
+    /* [in] */ Int32 arg2)
+{
+    // Make sure that the textfield is currently focused
+    // and representing the same node as the pointer.
+    if (mWebView->InEditingMode() &&
+            mWebView->mWebTextView->IsSameTextField(arg1)) {
+        if (password.GetLength() != 0) {
+            AutoPtr<ISpannable> text;// = (Spannable) mWebTextView->GetText();
+            Int32 start = Selection::GetSelectionStart(text);
+            Int32 end = Selection::GetSelectionEnd(text);
+            mWebView->mWebTextView->SetInPassword(TRUE);
+            // Restore the selection, which may have been
+            // ruined by setInPassword.
+            AutoPtr<ISpannable> pword;// = (Spannable) mWebTextView.getText();
+            Selection::SetSelection(pword, start, end);
+        // If the text entry has created more events, ignore
+        // this one.
+        } else if (arg2 == mWebView->mTextGeneration) {
+            mWebView->mWebTextView->SetTextAndKeepSelection(obj);
+        }
+    }
+}
+
+ECode CWebView::PrivateHandler::HandleRequestKeyBoardWithSelectionMsgId(
+    /* [in] */ Int32 nodePointer,
+    /* [in] */ Int32 textGeneration,
+    /* [in] */ WebViewCore::TextSelectionData* data)
+{
+    mWebView->DisplaySoftKeyboard(TRUE);
+    mWebView->UpdateTextSelectionFromMessage(nodePointer, textGeneration, data);
+}
+
+ECode CWebView::PrivateHandler::HandleUpdateTextSelectionMsgId(
+    /* [in] */ Int32 nodePointer,
+    /* [in] */ Int32 textGeneration,
+    /* [in] */ WebViewCore::TextSelectionData* data)
+{
+    // If no textfield was in focus, and the user touched one,
+    // causing it to send this message, then WebTextView has not
+    // been set up yet.  Rebuild it so it can set its selection.
+    mWebView->RebuildWebTextView();
+    mWebView->UpdateTextSelectionFromMessage(nodePointer, textGeneration, data);
+}
+
+ECode CWebView::PrivateHandler::HandleReturnLabel(
+    /* [in] */ Int32 arg,
+    /* [in] */ String& obj)
+{
+#if 0
+    if (inEditingMode()
+            && mWebTextView.isSameTextField(msg.arg1)) {
+        mWebTextView.setHint((String) msg.obj);
+        InputMethodManager imm
+                = InputMethodManager.peekInstance();
+        // The hint is propagated to the IME in
+        // onCreateInputConnection.  If the IME is already
+        // active, restart it so that its hint text is updated.
+        if (imm != null && imm.isActive(mWebTextView)) {
+            imm.restartInput(mWebTextView);
+        }
+    }
+#endif
+}
+
+ECode CWebView::PrivateHandler::HandleMoveOutOfPlugin(
+    /* [in] */ Int32 arg)
+{
+    mWebView->NavHandledKey(arg, 1, FALSE, 0);
+}
+
+ECode CWebView::PrivateHandler::HandleUpdateTextEntryMsgId()
+{
+    // this is sent after finishing resize in WebViewCore. Make
+    // sure the text edit box is still on the  screen.
+    mWebView->SelectionDone();
+    if (mWebView->InEditingMode() && mWebView->NativeCursorIsTextInput()) {
+        mWebView->mWebTextView->BringIntoView();
+        mWebView->RebuildWebTextView();
+    }
+}
+
+ECode CWebView::PrivateHandler::HandleClearTextEntry()
+{
+    mWebView->ClearTextEntry(FALSE);
+}
+
+ECode CWebView::PrivateHandler::HandleInvalRectMsgId(
+    /* [in] */ IRect* r)
+{    
+    if (r == NULL) {
+        mWebView->InvalidateEx2();
+    } else {
+        // we need to scale r from content into view coords,
+        // which viewInvalidate() does for us
+        Int32 left, top, right, bottom;
+        r->GetLeft(&left);
+        r->GetTop(&top);
+        r->GetRight(&right);
+        r->GetBottom(&bottom);
+        mWebView->ViewInvalidate(left, top, right, bottom);
+    }
+}
+
+ECode CWebView::PrivateHandler::HandleImmediateRepaintMsgId()
+{
+    mWebView->InvalidateEx2();
+}
+
+ECode CWebView::PrivateHandler::HandleSetRootLayerMsgId(
+    /* [in] */ Int32 arg)
+{
+    if (0 == arg) {
+        // Null indicates deleting the old layer, but
+        // don't actually do so until we've got the
+        // new page to display.
+        mWebView->mDelayedDeleteRootLayer = TRUE;
+    } else {
+        mWebView->mDelayedDeleteRootLayer = FALSE;
+        mWebView->NativeSetRootLayer(arg);
+        mWebView->InvalidateEx2();
+    }
+}
+
+ECode CWebView::PrivateHandler::HandleRequestFormData(
+    /* [in] */ Int32 arg,
+    /* [in] */ WebTextView::AutoCompleteAdapter* adapter)
+{
+    if (mWebView->mWebTextView->IsSameTextField(arg)) {
+        mWebView->mWebTextView->SetAdapterCustom(adapter);
+    }
+}
+
+ECode CWebView::PrivateHandler::HandleResumeWebcorePriority()
+{
+    WebViewCore::ResumePriority();
+    WebViewCore::ResumeUpdatePicture(mWebView->mWebViewCore);
+}
+
+ECode CWebView::PrivateHandler::HandleLongPressCenter()
+{
+    // as this is shared by keydown and trackballdown, reset all
+    // the states
+//    mWebView->mGotCenterDown = FALSE;
+    mWebView->mTrackballDown = FALSE;
+    mWebView->PerformLongClick(NULL);
+}
+
+ECode CWebView::PrivateHandler::HandleWebCoreNeedTouchEvents(
+    /* [in] */ Int32 arg)
+{
+    mWebView->mForwardTouchEvents = (arg != 0);
+}
+
+ECode CWebView::PrivateHandler::HandlePreventTouchId(
+    /* [in] */ Int32 arg1,
+    /* [in] */ Int32 arg2,
+    /* [in] */ WebViewCore::TouchEventData* obj)
+{
+    if (mWebView->InFullScreenMode()) {
+        return E_NOT_IMPLEMENTED;
+    }
+
+    if (obj == NULL) {
+        if (arg1 == MotionEvent_ACTION_DOWN
+                && mWebView->mPreventDefault == PREVENT_DEFAULT_MAYBE_YES) {
+            // if prevent default is called from WebCore, UI
+            // will not handle the rest of the touch events any
+            // more.
+            mWebView->mPreventDefault = arg2 == 1 ? PREVENT_DEFAULT_YES
+                    : PREVENT_DEFAULT_NO_FROM_TOUCH_DOWN;
+        } else if (arg1 == MotionEvent_ACTION_MOVE
+                && mWebView->mPreventDefault == PREVENT_DEFAULT_NO_FROM_TOUCH_DOWN) {
+            // the return for the first ACTION_MOVE will decide
+            // whether UI will handle touch or not. Currently no
+            // support for alternating prevent default
+            mWebView->mPreventDefault = arg2 == 1 ? PREVENT_DEFAULT_YES
+                    : PREVENT_DEFAULT_NO;
+        }
+    } else if (arg2 == 0) {
+        // prevent default is not called in WebCore, so the
+        // message needs to be reprocessed in UI
+        WebViewCore::TouchEventData* ted = obj;
+        switch (ted->mAction) {
+
+            case MotionEvent_ACTION_DOWN:
+                mWebView->mLastDeferTouchX = ted->mViewX;
+                mWebView->mLastDeferTouchY = ted->mViewY;
+                mWebView->mDeferTouchMode = TOUCH_INIT_MODE;
+                break;
+
+            case MotionEvent_ACTION_MOVE: {
+                // no snapping in defer process
+                if (mWebView->mDeferTouchMode != TOUCH_DRAG_MODE) {
+                    mWebView->mDeferTouchMode = TOUCH_DRAG_MODE;
+                    mWebView->mLastDeferTouchX = ted->mViewX;
+                    mWebView->mLastDeferTouchY = ted->mViewY;
+                    mWebView->StartDrag();
+                }
+
+                Int32 deltaX = mWebView->PinLocX((Int32) (mWebView->mScrollX
+                        + mWebView->mLastDeferTouchX - ted->mViewX))
+                        - mWebView->mScrollX;
+                Int32 deltaY = mWebView->PinLocY((Int32) (mWebView->mScrollY
+                        + mWebView->mLastDeferTouchY - ted->mViewY))
+                        - mWebView->mScrollY;
+                mWebView->DoDrag(deltaX, deltaY);
+
+                if (deltaX != 0) mWebView->mLastDeferTouchX = ted->mViewX;
+                if (deltaY != 0) mWebView->mLastDeferTouchY = ted->mViewY;
+                break;
+            }
+
+            case MotionEvent_ACTION_UP:
+            case MotionEvent_ACTION_CANCEL:
+                if (mWebView->mDeferTouchMode == TOUCH_DRAG_MODE) {
+                    // no fling in defer process
+                    mWebView->mScroller->SpringBack(mWebView->mScrollX, mWebView->mScrollY, 0,
+                            mWebView->ComputeMaxScrollX(), 0,
+                            mWebView->ComputeMaxScrollY());
+                    mWebView->InvalidateEx2();
+                    WebViewCore::ResumePriority();
+                    WebViewCore::ResumeUpdatePicture(mWebView->mWebViewCore);
+                }
+
+                mWebView->mDeferTouchMode = TOUCH_DONE_MODE;
+                break;
+
+            case WebViewCore::ACTION_DOUBLETAP:
+                // doDoubleTap() needs mLastTouchX/Y as anchor
+                mWebView->mLastTouchX = ted->mViewX;
+                mWebView->mLastTouchY = ted->mViewY;
+                mWebView->DoDoubleTap();
+                mWebView->mDeferTouchMode = TOUCH_DONE_MODE;
+                break;
+
+            case WebViewCore::ACTION_LONGPRESS:
+                AutoPtr<IHitTestResult> hitTest;
+                mWebView->GetHitTestResult((IHitTestResult**)&hitTest);
+                if (hitTest != NULL && ((HitTestResult*)(hitTest.Get()))->mType
+                        != HitTestResult_UNKNOWN_TYPE) {
+                    mWebView->PerformLongClick(NULL);
+                    mWebView->RebuildWebTextView();
+                }
+                mWebView->mDeferTouchMode = TOUCH_DONE_MODE;
+                break;
+        }
+    }
+}
+
+ECode CWebView::PrivateHandler::HandleRequestKeyBoard(
+    /* [in] */ Int32 arg)
+{
+    if (arg == 0) {
+        mWebView->HideSoftKeyboard();
+    } else {
+        mWebView->DisplaySoftKeyboard(FALSE);
+    }
+}
+
+ECode CWebView::PrivateHandler::HandleFindAgain()
+{
+    // Ignore if find has been dismissed.
+    if (mWebView->mFindIsUp) {
+        mWebView->FindAll(mWebView->mLastFind, NULL);
+    }
+}
+
+ECode CWebView::PrivateHandler::HandleDragHeldMotionless()
+{
+    mWebView->mHeldMotionless = MOTIONLESS_TRUE;
+    mWebView->InvalidateEx2();
+    // fall through to keep scrollbars awake
+}
+
+ECode CWebView::PrivateHandler::HandleAwakenScrollBars()
+{
+    if (mWebView->mTouchMode == TOUCH_DRAG_MODE
+            && mWebView->mHeldMotionless == MOTIONLESS_TRUE) {
+        mWebView->AwakenScrollBars(ViewConfiguration::GetScrollDefaultDelay(), FALSE);
+        
+        ECode (STDCALL CWebView::PrivateHandler::*pHandlerFunc)();
+
+        pHandlerFunc = &CWebView::PrivateHandler::HandleAwakenScrollBars;
+
+        mWebView->mPrivateHandler->mApartment->PostCppCallback((Handle32)this, 
+             *(Handle32*)&pHandlerFunc, NULL, ViewConfiguration::GetScrollDefaultDelay());
+    }
+}
+
+ECode CWebView::PrivateHandler::HandleDoMotionUp(
+    /* [in] */ Int32 arg1,
+    /* [in] */ Int32 arg2)
+{
+    mWebView->DoMotionUp(arg1, arg2);
+}
+
+ECode CWebView::PrivateHandler::HandleShowFullScreen(
+    /* [in] */ IView* view,
+    /* [in] */ Int32 npp)
+{
+    if (mWebView->mFullScreenHolder != NULL) {
+//        Log.w(LOGTAG, "Should not have another full screen.");
+        mWebView->mFullScreenHolder->Dismiss();
+    }
+
+    mWebView->mFullScreenHolder = new PluginFullScreenHolder(mWebView, npp);
+    mWebView->mFullScreenHolder->SetContentView(view);
+    mWebView->mFullScreenHolder->SetCancelable(FALSE);
+    mWebView->mFullScreenHolder->SetCanceledOnTouchOutside(FALSE);
+    mWebView->mFullScreenHolder->Show();
+}
+
+ECode CWebView::PrivateHandler::HandleHideFullScreen()
+{
+    if (mWebView->InFullScreenMode()) {
+        mWebView->mFullScreenHolder->Dismiss();
+        mWebView->mFullScreenHolder = NULL;
+    }
+}
+
+ECode CWebView::PrivateHandler::HandleDomFocusChanged()
+{
+    if (mWebView->InEditingMode()) {
+        mWebView->NativeClearCursor();
+        mWebView->RebuildWebTextView();
+    }
+}
+
+ECode CWebView::PrivateHandler::HandleShowRectMsgId(
+    /* [in] */ WebViewCore::ShowRectData* data)
+{
+    VALIDATE_NOT_NULL(data);
+
+    Int32 x = mWebView->mScrollX;
+    Int32 left = mWebView->ContentToViewX(data->mLeft);
+    Int32 width = mWebView->ContentToViewDimension(data->mWidth);
+    Int32 maxWidth = mWebView->ContentToViewDimension(data->mContentWidth);
+    Int32 viewWidth = mWebView->GetViewWidth();
+    
+    if (width < viewWidth) {
+        // center align
+        x += left + width / 2 - mWebView->mScrollX - viewWidth / 2;
+    } else {
+        x += (Int32) (left + data->mXPercentInDoc * width
+                - mWebView->mScrollX - data->mXPercentInView * viewWidth);
+    }
+#if 0
+    if (DebugFlags.WEB_VIEW) {
+        Log.v(LOGTAG, "showRectMsg=(left=" + left + ",width=" +
+              width + ",maxWidth=" + maxWidth +
+              ",viewWidth=" + viewWidth + ",x="
+              + x + ",xPercentInDoc=" + data.mXPercentInDoc +
+              ",xPercentInView=" + data.mXPercentInView+ ")");
+    }
+#endif
+    // use the passing content width to cap x as the current
+    // mContentWidth may not be updated yet
+    
+    //x = Math.max(0, (Math.min(maxWidth, x + viewWidth)) - viewWidth);
+    x += viewWidth;
+    x = x < maxWidth ? x : maxWidth;
+    x -= viewWidth;
+    x = x > 0 ? x : 0;
+
+    Int32 top = mWebView->ContentToViewY(data->mTop);
+    Int32 height = mWebView->ContentToViewDimension(data->mHeight);
+    Int32 maxHeight = mWebView->ContentToViewDimension(data->mContentHeight);
+    Int32 viewHeight = mWebView->GetViewHeight();
+    Int32 y = (Int32) (top + data->mYPercentInDoc * height -
+                   data->mYPercentInView * viewHeight);
+#if 0
+    if (DebugFlags.WEB_VIEW) {
+        Log.v(LOGTAG, "showRectMsg=(top=" + top + ",height=" +
+              height + ",maxHeight=" + maxHeight +
+              ",viewHeight=" + viewHeight + ",y="
+              + y + ",yPercentInDoc=" + data.mYPercentInDoc +
+              ",yPercentInView=" + data.mYPercentInView+ ")");
+    }
+#endif
+    // use the passing content height to cap y as the current
+    // mContentHeight may not be updated yet
+    //y = Math.max(0, (Math.min(maxHeight, y + viewHeight) - viewHeight));
+    y += viewHeight;
+    y = y < maxHeight ? y : maxHeight;
+    y -= viewHeight;
+    y = y > 0 ? y : 0;
+
+    // We need to take into account the visible title height
+    // when scrolling since y is an absolute view position.
+    //y = Math.max(0, y - getVisibleTitleHeight());
+    y -= mWebView->GetVisibleTitleHeight();
+    y = y > 0 ? y : 0;
+    mWebView->ScrollTo(x, y);
+}
+
+ECode CWebView::PrivateHandler::HandleCenterFitRect(
+    /* [in] */ IRect* r)
+{
+    VALIDATE_NOT_NULL(r);
+
+    mWebView->mInZoomOverview = FALSE;
+    Int32 left, top, width, height;
+    r->GetLeft(&left);
+    r->GetTop(&top);
+    r->GetWidth(&width);
+    r->GetHeight(&height);
+    mWebView->CenterFitRect(left, top, width, height);
+}
+
+ECode CWebView::PrivateHandler::HandleSetScrollBarModes(
+    /* [in] */ Int32 arg1,
+    /* [in] */ Int32 arg2)
+{
+    mWebView->mHorizontalScrollBarMode = arg1;
+    mWebView->mVerticalScrollBarMode = arg2;
+}

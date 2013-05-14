@@ -19,7 +19,9 @@
 #include "WebViewCore.h"
 #include "WebTextView.h"
 
-CarClass(CWebView), public AbsoluteLayout
+CarClass(CWebView), public AbsoluteLayout,
+                    public IOnGlobalFocusChangeListener,
+                    public IViewGroupOnHierarchyChangeListener
 {
 public:
     // FIXME: Want to make this public, but need to change the API file.
@@ -66,6 +68,14 @@ public:
 
     CARAPI_(PInterface) Probe(
             /* [in]  */ REIID riid);
+
+    CARAPI_(UInt32) AddRef();
+
+    CARAPI_(UInt32) Release();
+
+    CARAPI GetInterfaceID(
+        /* [in] */ IInterface *pObject,
+        /* [out] */ InterfaceID *pIID);
 
 #if 0
     CARAPI GetVerticalFadingEdgeLength(
@@ -1374,12 +1384,231 @@ public:
     /**
      * General handler to receive message coming from webkit thread
      */
-    class PrivateHandler : public IHandler {
-        
+    class PrivateHandler : public ElRefBase,
+                           public IApartment
+    {
+        friend class CWebView;
+    public:
+        PrivateHandler(CWebView* webView) : mWebView(webView) {}
+
     public:
         //@Override
-        CARAPI_(void) HandleMessage(
-            /* [in] */ IMessage* msg);
+        //CARAPI_(void) HandleMessage(
+        //    /* [in] */ IMessage* msg);
+        CARAPI_(PInterface) Probe(
+            /* [in] */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
+    public:
+        CARAPI Start(
+            /* [in] */ ApartmentAttr attr);
+
+        CARAPI Finish();
+
+        CARAPI PostCppCallback(
+            /* [in] */ Handle32 target,
+            /* [in] */ Handle32 func,
+            /* [in] */ IParcel* params,
+            /* [in] */ Int32 id);
+
+        CARAPI PostCppCallbackAtTime(
+            /* [in] */ Handle32 target,
+            /* [in] */ Handle32 func,
+            /* [in] */ IParcel* params,
+            /* [in] */ Int32 id,
+            /* [in] */ Millisecond64 uptimeMillis);
+
+        CARAPI PostCppCallbackDelayed(
+            /* [in] */ Handle32 target,
+            /* [in] */ Handle32 func,
+            /* [in] */ IParcel* params,
+            /* [in] */ Int32 id,
+            /* [in] */ Millisecond64 delayMillis);
+
+        CARAPI PostCppCallbackAtFrontOfQueue(
+            /* [in] */ Handle32 target,
+            /* [in] */ Handle32 func,
+            /* [in] */ IParcel* params,
+            /* [in] */ Int32 id);
+
+        CARAPI RemoveCppCallbacks(
+            /* [in] */ Handle32 target,
+            /* [in] */ Handle32 func);
+
+        CARAPI RemoveCppCallbacksEx(
+            /* [in] */ Handle32 target,
+            /* [in] */ Handle32 func,
+            /* [in] */ Int32 id);
+
+        CARAPI HasCppCallbacks(
+            /* [in] */ Handle32 target,
+            /* [in] */ Handle32 func,
+            /* [out] */ Boolean* result);
+
+        CARAPI HasCppCallbacksEx(
+            /* [in] */ Handle32 target,
+            /* [in] */ Handle32 func,
+            /* [in] */ Int32 id,
+            /* [out] */ Boolean* result);
+
+        CARAPI SendMessage(
+            /* [in] */ Int32 message,
+            /* [in] */ IParcel* params);
+
+    private:
+        CARAPI SendMessage(
+            /* [in] */ Handle32 pvFunc,
+            /* [in] */ IParcel* params);
+
+        CARAPI SendMessageAtTime(
+            /* [in] */ Handle32 pvFunc,
+            /* [in] */ IParcel* params,
+            /* [in] */ Millisecond64 uptimeMillis);
+
+        CARAPI RemoveMessage(
+            /* [in] */ Handle32 func);
+
+        CARAPI HandleRememberPassword(
+            /* [in] */ IApartment* resumeMsgHandle,
+            /* [in] */ Int32 resumeMsgId,
+            /* [in] */ IParcel* resumeMsgParams,
+            /* [in] */ String& host,
+            /* [in] */ String& username,
+            /* [in] */ String& password);
+
+        CARAPI HandleNeverRememberPassword(
+            /* [in] */ IApartment* resumeMsgHandle,
+            /* [in] */ Int32 resumeMsgId,
+            /* [in] */ IParcel* resumeMsgParams,
+            /* [in] */ String& host,
+            /* [in] */ String& username,
+            /* [in] */ String& password);
+
+        CARAPI HandlePreventDefaultTimeout(
+            /* [in] */ Int32 action);
+
+        CARAPI HandleSwitchToShortPress();
+
+        CARAPI HandleSwitchToLongPress();
+
+        CARAPI HandleReleaseSingleTap();
+
+        CARAPI HandleScrollByMsgId(
+            /* [in] */ Int32 cx,
+            /* [in] */ Int32 cy,
+            /* [in] */ Boolean animate);
+
+        CARAPI HandleSyncScrollToMsgId();
+
+        CARAPI HandleScrollToMsgId(
+            /* [in] */ Int32 cx,
+            /* [in] */ Int32 cy);
+
+        CARAPI HandleSpawnScrollToMsgId(
+            /* [in] */ Int32 cx,
+            /* [in] */ Int32 cy);
+
+        CARAPI HandleUpdateZoomRange(
+            /* [in] */ WebViewCore::RestoreState* restoreState);
+
+        CARAPI HandleNewPictureMsgId(
+            /* [in] */ WebViewCore::DrawData* draw);
+
+        CARAPI HandleWebcoreInitializedMsgId(
+            /* [in] */ Int32 arg);
+
+        CARAPI HandleUpdateTextfieldTextMsgId(
+            /* [in] */ String& obj,
+            /* [in] */ String& password,
+            /* [in] */ Int32 arg1,
+            /* [in] */ Int32 arg2);
+
+        CARAPI HandleRequestKeyBoardWithSelectionMsgId(
+            /* [in] */ Int32 nodePointer,
+            /* [in] */ Int32 textGeneration,
+            /* [in] */ WebViewCore::TextSelectionData* data);
+
+        CARAPI HandleUpdateTextSelectionMsgId(
+            /* [in] */ Int32 nodePointer,
+            /* [in] */ Int32 textGeneration,
+            /* [in] */ WebViewCore::TextSelectionData* data);
+
+        CARAPI HandleReturnLabel(
+            /* [in] */ Int32 arg,
+            /* [in] */ String& obj);
+
+        CARAPI HandleMoveOutOfPlugin(
+            /* [in] */ Int32 arg);
+
+        CARAPI HandleUpdateTextEntryMsgId();
+
+        CARAPI HandleClearTextEntry();
+
+        CARAPI HandleInvalRectMsgId(
+            /* [in] */ IRect* r);
+
+        CARAPI HandleImmediateRepaintMsgId();
+
+        CARAPI HandleSetRootLayerMsgId(
+            /* [in] */ Int32 arg);
+
+        CARAPI HandleRequestFormData(
+            /* [in] */ Int32 arg,
+            /* [in] */ WebTextView::AutoCompleteAdapter* adapter);
+
+        CARAPI HandleResumeWebcorePriority();
+
+        CARAPI HandleLongPressCenter();
+
+        CARAPI HandleWebCoreNeedTouchEvents(
+            /* [in] */ Int32 arg);
+
+        CARAPI HandlePreventTouchId(
+            /* [in] */ Int32 arg1,
+            /* [in] */ Int32 arg2,
+            /* [in] */ WebViewCore::TouchEventData* obj);
+
+        CARAPI HandleRequestKeyBoard(
+            /* [in] */ Int32 arg);
+
+        CARAPI HandleFindAgain();
+
+        CARAPI HandleDragHeldMotionless();
+
+        CARAPI HandleAwakenScrollBars();
+
+        CARAPI HandleDoMotionUp(
+            /* [in] */ Int32 arg1,
+            /* [in] */ Int32 arg2);
+
+        CARAPI HandleShowFullScreen(
+            /* [in] */ IView* view,
+            /* [in] */ Int32 npp);
+
+        CARAPI HandleHideFullScreen();
+
+        CARAPI HandleDomFocusChanged();
+
+        CARAPI HandleShowRectMsgId(
+            /* [in] */ WebViewCore::ShowRectData* data);
+
+        CARAPI HandleCenterFitRect(
+            /* [in] */ IRect* r);
+
+        CARAPI HandleSetScrollBarModes(
+            /* [in] */ Int32 arg1,
+            /* [in] */ Int32 arg2);
+
+    private:
+        CWebView* mWebView;
+        AutoPtr<IApartment> mApartment;
     };
 
 public:
@@ -1671,7 +1900,7 @@ public:
 
     // Handler for dispatching UI messages.
     /* package */
-    const AutoPtr<IApartment> mPrivateHandler;// = new PrivateHandler();
+    /*const*/ AutoPtr<PrivateHandler> mPrivateHandler;// = new PrivateHandler();
 
     // Used by WebViewCore to create child views.
     /* package */
@@ -1840,10 +2069,10 @@ private:
 
     // if AUTO_REDRAW_HACK is true, then the CALL key will toggle redrawing
     // the screen all-the-time. Good for profiling our drawing code
-    static const Boolean AUTO_REDRAW_HACK = false;
+    static const Boolean AUTO_REDRAW_HACK = FALSE;
 
     // enable debug output for drag trackers
-    static const Boolean DEBUG_DRAG_TRACKER = false;
+    static const Boolean DEBUG_DRAG_TRACKER = FALSE;
 
     /**
      * The minimum elapsed time before sending another ACTION_MOVE event to
@@ -1858,7 +2087,7 @@ private:
      * current high speed devices. For Dream like devices, 100 is a better
      * choice. Maybe make this in the buildspec later.
      */
-    static const Int32 TOUCH_SENT_INTERVAL;// = 50;
+    static const Int32 TOUCH_SENT_INTERVAL = 50;
 
     /**
      * Touch mode
@@ -2832,7 +3061,7 @@ private:
     // A final CallbackProxy shared by WebViewCore and BrowserFrame.
     const AutoPtr<ICallbackProxy>   mCallbackProxy;
 
-    const AutoPtr<IWebViewDatabase> mDatabase;
+    /*const*/ AutoPtr<IWebViewDatabase> mDatabase;
 
     // SSL certificate for the main top-level page (if secure)
     AutoPtr<ISslCertificate> mCertificate;
