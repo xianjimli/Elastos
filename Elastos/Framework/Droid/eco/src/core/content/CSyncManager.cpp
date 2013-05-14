@@ -331,13 +331,11 @@ Boolean CSyncManager::InitStaticMembers()
 
     String localSyncDelayString = SystemProperties::Get("sync.local_sync_delay");
     Int64 localSyncDelay = 30 * 1000; // 30 seconds
-    if (localSyncDelayString != NULL && !localSyncDelayString.IsEmpty())
-    {
+    if (!localSyncDelayString.IsNullOrEmpty()) {
 //        try
 //        {
             Int64 tempSyncDelay = localSyncDelayString.ToInt64();
-            if (tempSyncDelay > 0)
-            {
+            if (tempSyncDelay > 0) {
                 localSyncDelay = tempSyncDelay;
             }
 //        }
@@ -350,14 +348,12 @@ Boolean CSyncManager::InitStaticMembers()
     LOCAL_SYNC_DELAY = localSyncDelay;
 
     String maxTimePerSyncString = SystemProperties::Get("sync.max_time_per_sync");
-    long maxTimePerSync = 5 * 60 * 1000; // 5 minutes
+    Int64 maxTimePerSync = 5 * 60 * 1000; // 5 minutes
 
-    if (maxTimePerSyncString != NULL && !maxTimePerSyncString.IsEmpty())
-    {
+    if (!maxTimePerSyncString.IsNullOrEmpty()) {
         Int64 tempTimePerSync = maxTimePerSyncString.ToInt64();
 
-        if (tempTimePerSync > 0)
-        {
+        if (tempTimePerSync > 0) {
             maxTimePerSync = tempTimePerSync;
         }
     }
