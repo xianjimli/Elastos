@@ -97,24 +97,24 @@ module
 
 
    /**
-    * A FilterInputStream contains some other input stream, which it uses as its basic source of data, possibly transforming the data 
+    * A CFilterInputStream contains some other input stream, which it uses as its basic source of data, possibly transforming the data 
     * along the way or providing additional functionality. The class FilterInputStream itself simply overrides all methods of 
     * InputStream with versions that pass all requests to the contained input stream. Subclasses of FilterInputStream may further
     * override some of these methods and may also provide additional methods and fields.
     * 
-    * @implements com::elastos::IInputStream
+    * @implements com.elastos.IInputStream
     *
     * <strong>Direct Known Subclasses:</strong>
-    * - @ref com::elastos::CBufferedInputStream
-    * - @ref com::elastos::CCheckedInputStream
-    * - @ref com::elastos::CCipherInputStream
-    * - @ref com::elastos::CDataInputStream
-    * - @ref com::elastos::CDeflaterInputStream
-    * - @ref com::elastos::CDigestInputStream
-    * - @ref com::elastos::CInflaterInputStream
-    * - @ref com::elastos::CLineNumberInputStream,
-    * - @ref com::elastos::CProgressMonitorInputStream
-    * - @ref com::elastos::CPushbackInputStream
+    * - @ref com.elastos.CBufferedInputStream
+    * - @ref com.elastos.CCheckedInputStream
+    * - @ref com.elastos.CCipherInputStream
+    * - @ref com.elastos.CDataInputStream
+    * - @ref com.elastos.CDeflaterInputStream
+    * - @ref com.elastos.CDigestInputStream
+    * - @ref com.elastos.CInflaterInputStream
+    * - @ref com.elastos.CLineNumberInputStream,
+    * - @ref com.elastos.CProgressMonitorInputStream
+    * - @ref com.elastos.CPushbackInputStream
     *
     * @since Elastos 1.0
     * @todo  http://docs.oracle.com/javase/6/docs/api/java/io/FilterInputStream.html
@@ -128,7 +128,7 @@ module
         * Subclasses should check for null in their constructors.
         *
         * @param is    the input stream to filter reads on.
-        * @return ECode    SUCCESS, FAIL
+        * @return ECode    NOERROR(0)
         */
         constructor(
             [in] IInputStream* is);
@@ -142,9 +142,9 @@ module
     * past the bytes read. If the random access file is created in read/write mode, then output operations are also available; output operations write bytes starting at the file pointer and advance the file pointer past the bytes written. Output operations that write past the current end of the implied array cause the array to be extended. The file pointer can be read by the getFilePointer method and set by the seek method.
     * It is generally true of all the reading routines in this class that if end-of-file is reached before the desired number of bytes has been read, an EOFException (which is a kind of IOException) is thrown. If any byte cannot be read for any reason other than end-of-file, an IOException other than EOFException is thrown. In particular, an IOException may be thrown if the stream has been closed.
     * 
-    * @implements com::elastos::IRandomAccessFile
-    * @implements com::elastos::IDataInput
-    * @implements com::elastos::IDataOutput
+    * @implements com.elastos.IRandomAccessFile
+    * @implements com.elastos.IDataInput
+    * @implements com.elastos.IDataOutput
     *
     *
     * @since Elastos 1.0
@@ -163,11 +163,16 @@ module
         * if read access to the file is allowed. If the mode allows writing, the security manager's checkWrite method is
         * also called with the name argument as its argument to see if write access to the file is allowed.
         *
-        * @sa com::elastos::ISecurityManager::CheckRead()
+        * @sa com.elastos.ISecurityManager::CheckRead()
         * 
         * @param file    the file object.
-        * @param mode    the access mode, as described above.
-        * @return ECode    SUCCESS, FAIL
+        * @param mode    the access mode, as described @ref mode
+        * @return ECode = NOERROR(0) if success, elas as follows:
+        * Value | Meaning |
+        * :-|:------------|
+        * IllegalArgumentException | if the mode argument is not equal to one of "r", "rw", "rws", or "rwd"
+        * FileNotFoundException | if the mode is "r" but the given file object does not denote an existing regular file, or if the mode begins with "rw" but the given file object does not denote an existing, writable regular file and a new regular file of that name cannot be created, or if some other error occurs while opening or creating the file
+        * SecurityException | if a security manager exists and its checkRead method denies read access to the file or the mode is "rw" and the security manager's checkWrite method denies write access to the file
         */
         constructor(
             [in] IFile* pFile,
@@ -179,12 +184,14 @@ module
         * Creates a random access file stream to read from, and optionally to write to, the file specified by the File argument. A new FileDescriptor
         * object is created to represent this file connection. The mode argument specifies the access mode in which the file is to be opened. The
         * permitted values and their meanings are:
+        *
+        * @section mode
+        *
         * Value | Meaning |
-        * :-:|:------------|
+        * :-|:------------|
         * "r"| Open for reading only. Invoking any of the write methods of the resulting object will cause an IOException to be thrown.
         * "rw"| Open for reading and writing. If the file does not already exist then an attempt will be made to create it.
-        * "rws" | Open for reading and writing, as with "rw", and also require that every update to the file's content or metadata be 
-        * written synchronously to the underlying storage device.
+        * "rws" | Open for reading and writing, as with "rw", and also require that every update to the file's content or metadata be written synchronously to the underlying storage device.
         * "rwd" | Open for reading and writing, as with "rw", and also require that every update to the file's content be written synchronously to the underlying storage device.
         * 
         * The "rws" and "rwd" modes work much like the force(boolean) method of the FileChannel class, passing arguments of true and false, 
@@ -200,11 +207,16 @@ module
         * If there is a security manager, its checkRead method is called with the pathname of the file argument as its argument to see if read
         * access to the file is allowed. If the mode allows writing, the security manager's checkWrite method is also called with the path argument to see if write access to the file is allowed.
         * 
-        * @sa com::elastos::ISecurityManager::CheckRead()
+        * @sa com.elastos.ISecurityManager::CheckRead()
         * 
         * @param fileName     the system-dependent filename.
         * @param mode    the access mode, as described above.
-        * @return ECode    SUCCESS, FAIL
+        * @return ECode = NOERROR(0) if success, elas as follows:
+        * Value | Meaning |
+        * :-|:------------|
+        * IllegalArgumentException | if the mode argument is not equal to one of "r", "rw", "rws", or "rwd"
+        * FileNotFoundException | if the mode is "r" but the given string does not denote an existing regular file, or if the mode begins with "rw" but the given string does not denote an existing, writable regular file and a new regular file of that name cannot be created, or if some other error occurs while opening or creating the file.
+        * SecurityException | if a security manager exists and its checkRead method denies read access to the file or the mode is "rw" and the security manager's checkWrite method denies write access to the file.
         */
         constructor(
             [in] String fileName,
@@ -215,32 +227,42 @@ module
         interface IDataOutput;
     }
 
+   /**
+    * A CBufferedInputStream adds functionality to another input stream-namely, the ability to buffer the input and to support the mark and reset methods. 
+    * When the CBufferedInputStream is created, an internal buffer array is created. As bytes from the stream are read or skipped, the internal buffer
+    * is refilled as necessary from the contained input stream, many bytes at a time. The mark operation remembers a point in the input stream and the
+    * reset operation causes all the bytes read since the most recent mark operation to be reread before new bytes are taken from the contained input stream.
+    * 
+    * @implements com.elastos.ICloseable
+    * @implements com.elastos.IBufferedInputStream
+    *
+    * @since Elastos 1.0
+    * @todo  http://docs.oracle.com/javase/6/docs/api/java/io/BufferedInputStream.html
+    */
     class CBufferedInputStream {
-        /**
-         * Constructs a new {@code BufferedInputStream}, providing {@code in} with a buffer
-         * of 8192 bytes.
-         *
-         * <p><strong>Warning:</strong> passing a null source creates a closed
-         * {@code BufferedInputStream}. All read operations on such a stream will
-         * fail with an IOException.
-         *
-         * @param in the {@code InputStream} the buffer reads from.
-         */
+       /**
+        * @brief Creates a BufferedInputStream and saves its argument, the input stream in, for later use.
+        *
+        * Creates a BufferedInputStream and saves its argument, the input stream in, for later use. An internal buffer array is created and stored in buf.
+        *
+        * @param is the buffer reads from
+        */
         constructor(
             [in] IInputStream* is);
 
-        /**
-         * Constructs a new {@code BufferedInputStream}, providing {@code in} with {@code size} bytes
-         * of buffer.
-         *
-         * <p><strong>Warning:</strong> passing a null source creates a closed
-         * {@code BufferedInputStream}. All read operations on such a stream will
-         * fail with an IOException.
-         *
-         * @param in the {@code InputStream} the buffer reads from.
-         * @param size the size of buffer in bytes.
-         * @throws IllegalArgumentException if {@code size <= 0}.
-         */
+       /**
+        * @brief Creates a BufferedInputStream with the specified buffer size, and saves its argument, the input stream in, for later use.
+        *
+        * Creates a BufferedInputStream with the specified buffer size, and saves its argument, the input stream in, for later use.
+        * An internal buffer array of length size is created and stored in buf.
+        *
+        * @param is    the buffer reads from
+        * @param size  the buffer size.
+        * @return ECode = NOERROR(0) if success, elas as follows:
+        * Value | Meaning |
+        * :-|:------------|
+        * IllegalArgumentException | if size <= 0.
+        */
         constructor(
             [in] IInputStream* is,
             [in] Int32 size);
@@ -248,38 +270,62 @@ module
         interface IBufferedInputStream;
     }
 
+   /**
+    * This class is the superclass of all classes that filter output streams. These streams sit on top of an already existing output stream
+    * (the underlying output stream) which it uses as its basic sink of data, but possibly transforming the data along the way or providing additional functionality.
+    * 
+    * The class FilterOutputStream itself simply overrides all methods of OutputStream with versions that pass all requests to the underlying
+    * output stream. Subclasses of FilterOutputStream may further override some of these methods as well as provide additional methods and fields.
+    * 
+    * @implements com.elastos.ICloseable
+    * @implements com.elastos.IFlushable
+    * @implements com.elastos.IFilterOutputStream
+    *
+    * @since Elastos 1.0
+    * @todo  http://docs.oracle.com/javase/6/docs/api/java/io/FilterOutputStream.html
+    */
     class CFilterOutputStream {
-        /**
-         * Constructs a new {@code FilterOutputStream} with {@code out} as its
-         * target stream.
-         *
-         * @param out
-         *            the target stream that this stream writes to.
-         */
+       /**
+        * @brief  Creates an output stream filter built on top of the specified underlying output stream.
+        *
+        * @param os  the underlying output stream to be assigned to the field this.out for later use, or null if this instance is to be created without an underlying stream.
+        */
         constructor(
             [in] IOutputStream* os);
 
         interface IFilterOutputStream;
     }
 
+   /**
+    * The class implements a buffered output stream. By setting up such an output stream, an application can write bytes to the underlying output stream without
+    * necessarily causing a call to the underlying system for each byte written.
+    * 
+    * @implements com.elastos.ICloseable
+    * @implements com.elastos.IFlushable
+    * @implements com.elastos.IBufferedOutputStream
+    *
+    * @since Elastos 1.0
+    * @todo  http://docs.oracle.com/javase/6/docs/api/java/io/BufferedOutputStream.html
+    */
     class CBufferedOutputStream {
-        /**
-         * Constructs a new {@code BufferedOutputStream}, providing {@code out} with a buffer
-         * of 8192 bytes.
-         *
-         * @param out the {@code OutputStream} the buffer writes to.
-         */
+       /**
+        * @brief  Constructs a new IBufferedOutputStream, providing with a buffer
+        *
+        * @param os IOutputStream the buffer writes to.
+        */
         constructor(
             [in] IOutputStream* os);
 
-        /**
-         * Constructs a new {@code BufferedOutputStream}, providing {@code out} with {@code size} bytes
-         * of buffer.
-         *
-         * @param out the {@code OutputStream} the buffer writes to.
-         * @param size the size of buffer in bytes.
-         * @throws IllegalArgumentException if {@code size <= 0}.
-         */
+       /**
+        * @brief  Constructs a new IBufferedOutputStream, providing os with size bytes of buffer.
+        *
+        * @param out the IOutputStream the buffer writes to.
+        * @param size the size of buffer in bytes.
+        * @return ECode = NOERROR(0) if success, elas as follows:
+        * Value | Meaning |
+        * :-|:------------|
+        * IllegalArgumentException | if size <= 0
+        */
         constructor(
             [in] IOutputStream* os,
             [in] Int32 size);
@@ -287,26 +333,35 @@ module
         interface IBufferedOutputStream;
     }
 
+   /**
+    * A ByteArrayInputStream contains an internal buffer that contains bytes that may be read from the stream. An internal counter keeps track of the next byte to be supplied by the read method.
+    * Closing a ByteArrayInputStream has no effect. The methods in this class can be called after the stream has been closed without generating an IOException.
+    * 
+    * @implements com.elastos.ICloseable
+    * @implements com.elastos.IByteArrayInputStream
+    * 
+    * @sa com.elastos.StringBufferInputStream
+    *
+    * @since Elastos 1.0
+    * @todo  http://docs.oracle.com/javase/6/docs/api/java/io/ByteArrayInputStream.html
+    */
     class CByteArrayInputStream {
         /**
-         * Constructs a new {@code ByteArrayInputStream} on the byte array
-         * {@code buf}.
+         * @brief Constructs a new ByteArrayInputStream on the byte array
          *
-         * @param buf
-         *            the byte array to stream over.
+         * @param buffer   the byte array to stream over.
          */
         constructor(
             [in] BufferOf<Byte> buffer);
 
         /**
-         * Constructs a new {@code ByteArrayInputStream} on the byte array
-         * {@code buf} with the initial position set to {@code offset} and the
-         * number of bytes available set to {@code offset} + {@code length}.
+         * @brief Constructs a new IByteArrayInputStream on the byte array with the initial position set to offset and the
+         * number of bytes available set to offset + length.
          *
          * @param buf
          *            the byte array to stream over.
          * @param offset
-         *            the initial position in {@code buf} to start streaming from.
+         *            the initial position in  buf} to start streaming from.
          * @param length
          *            the number of bytes available for streaming.
          */
@@ -318,6 +373,18 @@ module
         interface IByteArrayInputStream;
     }
 
+   /**
+    * This class implements an output stream in which the data is written into a byte array. The buffer automatically grows as data is written to it. 
+    * The data can be retrieved using toByteArray() and toString().
+    * Closing a ByteArrayOutputStream has no effect. The methods in this class can be called after the stream has been closed without generating an IOException.
+    * 
+    * @implements com.elastos.ICloseable
+    * @implements com.elastos.IFlushable
+    * @implements com.elastos.IByteArrayOutputStream
+    *
+    * @since Elastos 1.0
+    * @todo  http://docs.oracle.com/javase/6/docs/api/java/io/ByteArrayOutputStream.html
+    */
     class CByteArrayOutputStream {
         /**
          * Constructs a new ByteArrayOutputStream with a default size of 32 bytes.
@@ -327,15 +394,17 @@ module
         constructor();
 
         /**
-         * Constructs a new {@code ByteArrayOutputStream} with a default size of
-         * {@code size} bytes. If more than {@code size} bytes are written to this
+         * Constructs a new  ByteArrayOutputStream with a default size of
+         * size bytes. If more than size bytes are written to this
          * instance, the underlying byte array will expand.
          *
          * @param size
          *            initial size for the underlying byte array, must be
          *            non-negative.
-         * @throws IllegalArgumentException
-         *             if {@code size} < 0.
+         * @return ECode = NOERROR(0) if success, elas as follows:
+         * Value | Meaning |
+         * :-|:------------|
+         * IllegalArgumentException | if size < 0.
          */
         constructor(
             [in] Int32 size);
@@ -343,6 +412,37 @@ module
         interface IByteArrayOutputStream;
     }
 
+   /**
+    * An abstract representation of file and directory pathnames.
+    * 
+    * User interfaces and operating systems use system-dependent pathname strings to name files and directories. This class presents an abstract, system-independent view of hierarchical pathnames. An abstract pathname has two components:
+    * 
+    * An optional system-dependent prefix string, such as a disk-drive specifier, "/" for the UNIX root directory, or "\\\\" for a Microsoft Windows UNC pathname, and
+    * A sequence of zero or more string names.
+    * The first name in an abstract pathname may be a directory name or, in the case of Microsoft Windows UNC pathnames, a hostname. Each subsequent name in an abstract pathname denotes a directory; the last name may denote either a directory or a file. The empty abstract pathname has no prefix and an empty name sequence.
+    * The conversion of a pathname string to or from an abstract pathname is inherently system-dependent. When an abstract pathname is converted into a pathname string, each name is separated from the next by a single copy of the default separator character. The default name-separator character is defined by the system property file.separator, and is made available in the public static fields separator and separatorChar of this class. When a pathname string is converted into an abstract pathname, the names within it may be separated by the default name-separator character or by any other name-separator character that is supported by the underlying system.
+    * 
+    * A pathname, whether abstract or in string form, may be either absolute or relative. An absolute pathname is complete in that no other information is required in order to locate the file that it denotes. A relative pathname, in contrast, must be interpreted in terms of information taken from some other pathname. By default the classes in the java.io package always resolve relative pathnames against the current user directory. This directory is named by the system property user.dir, and is typically the directory in which the Java virtual machine was invoked.
+    * 
+    * The parent of an abstract pathname may be obtained by invoking the getParent() method of this class and consists of the pathname's prefix and each name in the pathname's name sequence except for the last. Each directory's absolute pathname is an ancestor of any File object with an absolute abstract pathname which begins with the directory's absolute pathname. For example, the directory denoted by the abstract pathname "/usr" is an ancestor of the directory denoted by the pathname "/usr/local/bin".
+    * 
+    * The prefix concept is used to handle root directories on UNIX platforms, and drive specifiers, root directories and UNC pathnames on Microsoft Windows platforms, as follows:
+    * 
+    * - For UNIX platforms, the prefix of an absolute pathname is always "/". Relative pathnames have no prefix. The abstract pathname denoting the root directory has the prefix "/" and an empty name sequence.
+    * - For Microsoft Windows platforms, the prefix of a pathname that contains a drive specifier consists of the drive letter followed by ":" and possibly followed by "\\" if the pathname is absolute. The prefix of a UNC pathname is "\\\\"; the hostname and the share name are the first two names in the name sequence. A relative pathname that does not specify a drive has no prefix.
+    * Instances of this class may or may not denote an actual file-system object such as a file or a directory. If it does denote such an object then that object resides in a partition. A partition is an operating system-specific portion of storage for a file system. A single storage device (e.g. a physical disk-drive, flash memory, CD-ROM) may contain multiple partitions. The object, if any, will reside on the partition named by some ancestor of the absolute form of this pathname.
+    * 
+    * A file system may implement restrictions to certain operations on the actual file-system object, such as reading, writing, and executing. These restrictions are collectively known as access permissions. The file system may have multiple sets of access permissions on a single object. For example, one set may apply to the object's owner, and another may apply to all other users. The access permissions on an object may cause some methods in this class to fail.
+    * 
+    * Instances of the File class are immutable; that is, once created, the abstract pathname represented by a File object will never change.
+    * 
+    * @implements com.elastos.ISerializable
+    * @implements com.elastos.IComparable
+    * @implements com.elastos.IFile
+    *
+    * @since Elastos 1.0
+    * @todo  http://docs.oracle.com/javase/6/docs/api/java/io/File.html
+    */
     class CFile {
         /**
          * Constructs a new file using the specified directory and name.
@@ -352,7 +452,7 @@ module
          * @param name
          *            the file's name.
          * @throws NullPointerException
-         *             if {@code name} is {@code null}.
+         *             if  name is  null.
          */
         constructor(
             [in] IFile* dir,
@@ -376,14 +476,14 @@ module
          * @param name
          *            the file's name.
          * @throws NullPointerException
-         *             if {@code name} is {@code null}.
+         *             if  name is  null.
          */
         constructor(
             [in] String dirPath,
             [in] String name);
 
         /**
-         * Constructs a new File using the path of the specified URI. {@code uri}
+         * Constructs a new File using the path of the specified URI.  uri}
          * needs to be an absolute and hierarchical Unified Resource Identifier with
          * file scheme and non-empty path component, but with undefined authority,
          * query or fragment components.
@@ -392,7 +492,7 @@ module
          *            the Unified Resource Identifier that is used to construct this
          *            file.
          * @throws IllegalArgumentException
-         *             if {@code uri} does not comply with the conditions above.
+         *             if  uri does not comply with the conditions above.
          * @see #toURI
          * @see java.net.URI
          */
@@ -402,55 +502,83 @@ module
         interface IFile;
     }
 
+   /**
+    * Utilities for File manipulation.
+    * 
+    * @implements com.elastos.IFileHelper
+    *
+    * @since Elastos 1.0
+    * @todo  http://docs.oracle.com/cd/E18150_01/javadocs/DevelopmentKit/com/stc/connector/framework/util/FileHelper.html
+    */
     singleton class CFileHelper {
         interface IFileHelper;
     }
 
+   /**
+    * Instances of the file descriptor class serve as an opaque handle to the underlying machine-specific structure representing an open file, 
+    * an open socket, or another source or sink of bytes. The main practical use for a file descriptor is to create a FileInputStream or FileOutputStream to contain it.
+    * Applications should not create their own file descriptors.
+    * 
+    * @implements com.elastos.IFileDescriptor
+    *
+    * @since Elastos 1.0
+    * @todo  http://docs.oracle.com/javase/6/docs/api/java/io/FileDescriptor.html
+    */
     class CFileDescriptor {
         interface IFileDescriptor;
     }
 
+   /**
+    * A FileInputStream obtains input bytes from a file in a file system. What files are available depends on the host environment.
+    * FileInputStream is meant for reading streams of raw bytes such as image data. For reading streams of characters, consider using FileReader.
+    * 
+    * @implements com.elastos.IFileInputStream
+    * @implements com.elastos.ICloseable
+    *
+    * @since Elastos 1.0
+    * @todo  http://docs.oracle.com/javase/6/docs/api/index.html?java/io/FileInputStream.html
+    */
     class CFileInputStream {
         /**
-         * Constructs a new {@code FileInputStream} based on {@code file}.
+         * Constructs a new  FileInputStream based on  file
          *
          * @param file
          *            the file from which this stream reads.
          * @throws FileNotFoundException
-         *             if {@code file} does not exist.
+         *             if  file does not exist.
          * @throws SecurityException
-         *             if a {@code SecurityManager} is installed and it denies the
+         *             if a  SecurityManager is installed and it denies the
          *             read request.
          */
         constructor(
             [in] IFile* file);
         /**
-         * Constructs a new {@code FileInputStream} on the {@link FileDescriptor}
-         * {@code fd}. The file must already be open, therefore no
-         * {@code FileNotFoundException} will be thrown.
+         * Constructs a new IFileInputStream on the IFile
+         *  fd The file must already be open, therefore no
+         *  FileNotFoundException will be thrown.
          *
          * @param fd
          *            the FileDescriptor from which this stream reads.
          * @throws NullPointerException
-         *             if {@code fd} is {@code null}.
+         *             if  fd is  null
          * @throws SecurityException
-         *             if a {@code SecurityManager} is installed and it denies the
+         *             if a  SecurityManager is installed and it denies the
          *             read request.
          */
         constructor(
             [in] IFileDescriptor* fd);
 
         /**
-         * Constructs a new {@code FileInputStream} on the file named
-         * {@code fileName}. The path of {@code fileName} may be absolute or
-         * relative to the system property {@code "user.dir"}.
+         * Constructs a new  FileInputStream on the file named
+         *  fileName. The path of  fileName may be absolute or
+         * relative to the system property  "user.dir".
          *
          * @param fileName
          *            the path and name of the file from which this stream reads.
          * @throws FileNotFoundException
-         *             if there is no file named {@code fileName}.
+         *             if there is no file named  fileName.
          * @throws SecurityException
-         *             if a {@code SecurityManager} is installed and it denies the
+         *             if a  SecurityManager is installed and it denies the
          *             read request.
          */
         constructor(
@@ -459,17 +587,34 @@ module
         interface IFileInputStream;
     }
 
+
+   /**
+    * A file output stream is an output stream for writing data to a File or to a FileDescriptor. Whether or not a file is available or may
+    * be created depends upon the underlying platform. Some platforms, in particular, allow a file to be opened for writing by only one
+    * IFileOutputStream (or other file-writing object) at a time. In such situations the constructors in this class will fail if the file involved is already open.
+    * IFileOutputStream is meant for writing streams of raw bytes such as image data. For writing streams of characters, consider using FileWriter.
+    * 
+    * @implements com.elastos.IFileOutputStream
+    * @implements com.elastos.ICloseable
+    *
+    * @sa com.elastos.IFile
+    * @sa com.elastos.IFileDescriptor
+    * @sa com.elastos.IFileInputStream
+    *
+    * @since Elastos 1.0
+    * @todo  http://docs.oracle.com/javase/1.4.2/docs/api/java/io/FileOutputStream.html
+    */
     class CFileOutputStream {
         /**
-         * Constructs a new FileOutputStream on the File {@code file}. If the file
+         * Constructs a new FileOutputStream on the File  file. If the file
          * exists, it is overwritten.
          *
          * @param file
          *            the file to which this stream writes.
          * @throws FileNotFoundException
-         *             if {@code file} cannot be opened for writing.
+         *             if  file cannot be opened for writing.
          * @throws SecurityException
-         *             if a {@code SecurityManager} is installed and it denies the
+         *             if a  SecurityManager is installed and it denies the
          *             write request.
          * @see java.lang.SecurityManager#checkWrite(FileDescriptor)
          */
@@ -477,8 +622,8 @@ module
             [in] IFile* file);
 
         /**
-         * Constructs a new FileOutputStream on the File {@code file}. The
-         * parameter {@code append} determines whether or not the file is opened and
+         * Constructs a new FileOutputStream on the File  file. The
+         * parameter  append} determines whether or not the file is opened and
          * appended to or just opened and overwritten.
          *
          * @param file
@@ -486,9 +631,9 @@ module
          * @param append
          *            indicates whether or not to append to an existing file.
          * @throws FileNotFoundException
-         *             if the {@code file} cannot be opened for writing.
+         *             if the  file cannot be opened for writing.
          * @throws SecurityException
-         *             if a {@code SecurityManager} is installed and it denies the
+         *             if a  SecurityManager is installed and it denies the
          *             write request.
          * @see java.lang.SecurityManager#checkWrite(FileDescriptor)
          * @see java.lang.SecurityManager#checkWrite(String)
@@ -498,16 +643,16 @@ module
             [in] Boolean append);
 
         /**
-         * Constructs a new FileOutputStream on the FileDescriptor {@code fd}. The
-         * file must already be open, therefore no {@code FileNotFoundException}
+         * Constructs a new FileOutputStream on the FileDescriptor fd The
+         * file must already be open, therefore no FileNotFoundException}
          * will be thrown.
          *
          * @param fd
          *            the FileDescriptor to which this stream writes.
          * @throws NullPointerException
-         *             if {@code fd} is {@code null}.
+         *             if fd} is null
          * @throws SecurityException
-         *             if a {@code SecurityManager} is installed and it denies the
+         *             if a SecurityManager} is installed and it denies the
          *             write request.
          * @see java.lang.SecurityManager#checkWrite(FileDescriptor)
          */
@@ -515,26 +660,26 @@ module
             [in] IFileDescriptor* fd);
 
         /**
-         * Constructs a new FileOutputStream on the file named {@code filename}. If
-         * the file exists, it is overwritten. The {@code filename} may be absolute
-         * or relative to the system property {@code "user.dir"}.
+         * Constructs a new FileOutputStream on the file named filename If
+         * the file exists, it is overwritten. The filename} may be absolute
+         * or relative to the system property "user.dir"
          *
          * @param filename
          *            the name of the file to which this stream writes.
          * @throws FileNotFoundException
          *             if the file cannot be opened for writing.
          * @throws SecurityException
-         *             if a {@code SecurityManager} is installed and it denies the
+         *             if a SecurityManager} is installed and it denies the
          *             write request.
          */
         constructor(
             [in] String fileName);
 
         /**
-         * Constructs a new FileOutputStream on the file named {@code filename}.
-         * The parameter {@code append} determines whether or not the file is opened
-         * and appended to or just opened and overwritten. The {@code filename} may
-         * be absolute or relative to the system property {@code "user.dir"}.
+         * Constructs a new FileOutputStream on the file named filename
+         * The parameter append} determines whether or not the file is opened
+         * and appended to or just opened and overwritten. The filename} may
+         * be absolute or relative to the system property "user.dir"
          *
          * @param filename
          *            the name of the file to which this stream writes.
@@ -543,7 +688,7 @@ module
          * @throws FileNotFoundException
          *             if the file cannot be opened for writing.
          * @throws SecurityException
-         *             if a {@code SecurityManager} is installed and it denies the
+         *             if a SecurityManager} is installed and it denies the
          *             write request.
          */
         constructor(
@@ -553,15 +698,28 @@ module
         interface IFileOutputStream;
     }
 
+   /**
+    * A data input stream lets an application read primitive Java data types from an underlying input stream in a machine-independent way.
+    * An application uses a data output stream to write data that can later be read by a data input stream.
+    * IDataInputStream is not necessarily safe for multithreaded access. Thread safety is optional and is the responsibility of users of methods in this class.
+    * 
+    * @implements com.elastos.IDataInput
+    * @implements com.elastos.IDataInputStream
+    *
+    * @sa com.elastos.IDataOutputStream
+    *
+    * @since Elastos 1.0
+    * @todo  http://docs.oracle.com/javase/6/docs/api/java/io/DataInputStream.html
+    */
     class CDataInputStream {
         /**
-         * Constructs a new DataInputStream on the InputStream {@code in}. All
+         * Constructs a new DataInputStream on the InputStream in All
          * reads are then filtered through this stream. Note that data read by this
          * stream is not in a human readable format and was most likely created by a
          * DataOutputStream.
          *
          * <p><strong>Warning:</strong> passing a null source creates an invalid
-         * {@code DataInputStream}. All operations on such a stream will fail.
+         * DataInputStream All operations on such a stream will fail.
          *
          * @param in
          *            the source InputStream the filter reads from.
@@ -575,10 +733,22 @@ module
         interface IDataInputStream;
     }
 
+   /**
+    * A data output stream lets an application write primitive Java data types to an output stream in a portable way.
+    * An application can then use a data input stream to read the data back in.
+    * 
+    * @implements com.elastos.IDataOutput
+    * @implements com.elastos.IDataOutputStream
+    *
+    * @sa com.elastos.IDataInputStream
+    *
+    * @since Elastos 1.0
+    * @todo  http://docs.oracle.com/javase/6/docs/api/java/io/DataOutputStream.html
+    */
     class CDataOutputStream {
         /**
-         * Constructs a new {@code DataOutputStream} on the {@code OutputStream}
-         * {@code out}. Note that data written by this stream is not in a human
+         * Constructs a new DataOutputStream on the OutputStream
+         * out Note that data written by this stream is not in a human
          * readable form but can be reconstructed by using a {@link DataInputStream}
          * on the resulting output.
          *
@@ -595,9 +765,9 @@ module
     [deprecated]
     class CCharArrayReader {
         /**
-         * Constructs a CharArrayReader on the char array {@code buf}. The size of
+         * Constructs a CharArrayReader on the char array buf The size of
          * the reader is set to the length of the buffer and the object to to read
-         * from is set to {@code buf}.
+         * from is set to buf
          *
          * @param buf
          *            the char array from which to read.
@@ -606,19 +776,19 @@ module
             [in] ArrayOf<Char8> buf);
 
         /**
-         * Constructs a CharArrayReader on the char array {@code buf}. The size of
-         * the reader is set to {@code length} and the start position from which to
-         * read the buffer is set to {@code offset}.
+         * Constructs a CharArrayReader on the char array buf The size of
+         * the reader is set to length} and the start position from which to
+         * read the buffer is set to offset
          *
          * @param buf
          *            the char array from which to read.
          * @param offset
-         *            the index of the first character in {@code buf} to read.
+         *            the index of the first character in buf} to read.
          * @param length
-         *            the number of characters that can be read from {@code buf}.
+         *            the number of characters that can be read from buf
          * @throws IllegalArgumentException
-         *             if {@code offset < 0} or {@code length < 0}, or if
-         *             {@code offset} is greater than the size of {@code buf} .
+         *             if offset < 0} or length < 0 or if
+         *             offset} is greater than the size of buf} .
          */
         constructor(
             [in] ArrayOf<Char8> buf,
@@ -628,22 +798,35 @@ module
         interface ICharArrayReader;
     }
 
+   /**
+    * This class implements a character buffer that can be used as an Writer. The buffer automatically grows when data is written to the stream.
+    * The data can be retrieved using toCharArray() and toString().
+    * Note: Invoking close() on this class has no effect, and methods of this class can be called after the stream has closed without generating an IOException.
+
+    * @implements com.elastos.ICharArrayWriter
+    * @implements com.elastos.ICloseable
+    * @implements com.elastos.IFlushable
+    * @implements com.elastos.IAppendable
+    *
+    * @since Elastos 1.0
+    * @todo  http://docs.oracle.com/javase/6/docs/api/java/io/CharArrayWriter.html
+    */
     class CCharArrayWriter {
         /**
-         * Constructs a new {@code CharArrayWriter} which has a buffer allocated
+         * Constructs a new CharArrayWriter} which has a buffer allocated
          * with the default size of 32 characters. This buffer is also used as the
-         * {@code lock} to synchronize access to this writer.
+         * lock} to synchronize access to this writer.
          */
         constructor();
         /**
-         * Constructs a new {@code CharArrayWriter} which has a buffer allocated
-         * with the size of {@code initialSize} characters. The buffer is also used
-         * as the {@code lock} to synchronize access to this writer.
+         * Constructs a new CharArrayWriter} which has a buffer allocated
+         * with the size of initialSize} characters. The buffer is also used
+         * as the lock} to synchronize access to this writer.
          *
          * @param initialSize
          *            the initial size of this CharArrayWriters buffer.
          * @throws IllegalArgumentException
-         *             if {@code initialSize < 0}.
+         *             if initialSize < 0
          */
         constructor(
             [in] Int32 initialSize);
@@ -653,21 +836,21 @@ module
 
     class CBufferedReader {
         /**
-        * Constructs a new {@code BufferedReader}, providing {@code in} with a buffer
+        * Constructs a new BufferedReader, providing in with a buffer
         * of 8192 characters.
         *
-        * @param in the {@code Reader} the buffer reads from.
+        * @param rin the Reader the buffer reads from.
         */
         constructor(
             [in] IReader* rin);
 
         /**
-        * Constructs a new {@code BufferedReader}, providing {@code in} with {@code size} characters
+        * Constructs a new BufferedReader providing in} with size} characters
         * of buffer.
         *
-        * @param in the {@code InputStream} the buffer reads from.
+        * @param in the InputStream} the buffer reads from.
         * @param size the size of buffer in characters.
-        * @throws IllegalArgumentException if {@code size <= 0}.
+        * @throws IllegalArgumentException if size <= 0
         */
         constructor(
             [in] IReader* rin,
@@ -678,21 +861,21 @@ module
 
     class CBufferedWriter {
         /**
-         * Constructs a new {@code BufferedWriter}, providing {@code out} with a buffer
+         * Constructs a new BufferedWriter providing out} with a buffer
          * of 8192 bytes.
          *
-         * @param out the {@code Writer} the buffer writes to.
+         * @param out the Writer} the buffer writes to.
          */
         constructor(
             [in] IWriter* wout);
 
         /**
-         * Constructs a new {@code BufferedWriter}, providing {@code out} with {@code size} bytes
+         * Constructs a new BufferedWriter providing out} with size} bytes
          * of buffer.
          *
-         * @param out the {@code OutputStream} the buffer writes to.
+         * @param out the OutputStream} the buffer writes to.
          * @param size the size of buffer in bytes.
-         * @throws IllegalArgumentException if {@code size <= 0}.
+         * @throws IllegalArgumentException if size <= 0
          */
         constructor(
             [in] IWriter* wout,
@@ -703,14 +886,14 @@ module
 
     class CStringBufferInputStream {
         /**
-         * Construct a new {@code StringBufferInputStream} with {@code str} as
-         * source. The size of the stream is set to the {@code length()} of the
+         * Construct a new StringBufferInputStream} with str} as
+         * source. The size of the stream is set to the length()} of the
          * string.
          *
          * @param str
          *            the source string for this stream.
          * @throws NullPointerException
-         *             if {@code str} is {@code null}.
+         *             if str is null
          */
         constructor(
             [in] String str);
@@ -720,11 +903,11 @@ module
 
     class CLineNumberInputStream {
         /**
-         * Constructs a new {@code LineNumberInputStream} on the {@link InputStream}
-         * {@code in}. Line numbers are counted for all data read from this stream.
+         * Constructs a new LineNumberInputStream on the InputStream
+         * in Line numbers are counted for all data read from this stream.
          *
          * <p><strong>Warning:</strong> passing a null source creates an invalid
-         * {@code LineNumberInputStream}. All operations on such a stream will fail.
+         * LineNumberInputStream All operations on such a stream will fail.
          *
          * @param in
          *            The non-null input stream to count line numbers.
@@ -737,7 +920,7 @@ module
 
     class CLineNumberReader {
         /**
-         * Constructs a new LineNumberReader on the Reader {@code in}. The internal
+         * Constructs a new LineNumberReader on the Reader in The internal
          * buffer gets the default size (8 KB).
          *
          * @param in
@@ -746,15 +929,15 @@ module
         constructor(
             [in] IReader* ir);
         /**
-         * Constructs a new LineNumberReader on the Reader {@code in}. The size of
-         * the internal buffer is specified by the parameter {@code size}.
+         * Constructs a new LineNumberReader on the Reader in The size of
+         * the internal buffer is specified by the parameter size
          *
          * @param in
          *            the Reader that is buffered.
          * @param size
          *            the size of the buffer to allocate.
          * @throws IllegalArgumentException
-         *             if {@code size <= 0}.
+         *             if size <= 0
          */
         constructor(
             [in] IReader* ir,
@@ -765,12 +948,12 @@ module
 
     class CPushbackInputStream {
         /**
-         * Constructs a new {@code PushbackInputStream} with the specified input
+         * Constructs a new PushbackInputStream} with the specified input
          * stream as source. The size of the pushback buffer is set to the default
          * value of 1 byte.
          *
          * <p><strong>Warning:</strong> passing a null source creates an invalid
-         * {@code PushbackInputStream}. All read operations on such a stream will
+         * PushbackInputStream All read operations on such a stream will
          * fail.
          *
          * @param in
@@ -779,11 +962,11 @@ module
         constructor(
             [in] IInputStream* is);
         /**
-         * Constructs a new {@code PushbackInputStream} with {@code in} as source
-         * input stream. The size of the pushback buffer is set to {@code size}.
+         * Constructs a new PushbackInputStream} with in} as source
+         * input stream. The size of the pushback buffer is set to size
          *
          * <p><strong>Warning:</strong> passing a null source creates an invalid
-         * {@code PushbackInputStream}. All read operations on such a stream will
+         * PushbackInputStream All read operations on such a stream will
          * fail.
          *
          * @param in
@@ -791,7 +974,7 @@ module
          * @param size
          *            the size of the pushback buffer.
          * @throws IllegalArgumentException
-         *             if {@code size} is negative.
+         *             if size} is negative.
          */
         constructor(
             [in] IInputStream* is,
@@ -802,7 +985,7 @@ module
 
     class CPushbackReader {
         /**
-         * Constructs a new {@code PushbackReader} with the specified reader as
+         * Constructs a new PushbackReader} with the specified reader as
          * source. The size of the pushback buffer is set to the default value of 1
          * character.
          *
@@ -812,15 +995,15 @@ module
         constructor(
             [in] IReader* ir);
         /**
-         * Constructs a new {@code PushbackReader} with {@code in} as source reader.
-         * The size of the pushback buffer is set to {@code size}.
+         * Constructs a new PushbackReader} with in} as source reader.
+         * The size of the pushback buffer is set to size
          *
          * @param in
          *            the source reader.
          * @param size
          *            the size of the pushback buffer.
          * @throws IllegalArgumentException
-         *             if {@code size} is negative.
+         *             if size} is negative.
          */
         constructor(
             [in] IReader* ir,
@@ -836,14 +1019,14 @@ module
          * @param path
          *            the pathname of the file or directory to apply the actions to.
          * @param actions
-         *            the actions for the {@code path}. May be any combination of
+         *            the actions for the path May be any combination of
          *            "read", "write", "execute" and "delete".
          * @throws IllegalArgumentException
-         *             if {@code actions} is {@code null} or an empty string, or if
+         *             if actions} is null} or an empty string, or if
          *             it contains a string other than "read", "write", "execute"
          *             and "delete".
          * @throws NullPointerException
-         *             if {@code path} is {@code null}.
+         *             if path} is null
          */
         constructor(
             [in] String path,
@@ -858,15 +1041,15 @@ module
 
     class CSequenceInputStream {
         /**
-         * Constructs a new {@code SequenceInputStream} using the two streams
-         * {@code s1} and {@code s2} as the sequence of streams to read from.
+         * Constructs a new SequenceInputStream} using the two streams
+         * s1} and s2} as the sequence of streams to read from.
          *
          * @param s1
          *            the first stream to get bytes from.
          * @param s2
          *            the second stream to get bytes from.
          * @throws NullPointerException
-         *             if {@code s1} is {@code null}.
+         *             if s1} is null
          */
         constructor(
             [in] IInputStream *s1,
@@ -874,13 +1057,13 @@ module
 
         /**
          * Constructs a new SequenceInputStream using the elements returned from
-         * Enumeration {@code e} as the stream sequence. The instances returned by
-         * {@code e.nextElement()} must be of type {@link InputStream}.
+         * Enumeration e} as the stream sequence. The instances returned by
+         * e.nextElement()} must be of type {@link InputStream
          *
          * @param e
-         *            the enumeration of {@code InputStreams} to get bytes from.
+         *            the enumeration of InputStreams} to get bytes from.
          * @throws NullPointerException
-         *             if any of the elements in {@code e} is {@code null}.
+         *             if any of the elements in e} is null
          */
         constructor(
             [in] IObjectEnumerator* e);
@@ -931,8 +1114,8 @@ module
 
     class CInputStreamReader {
         /**
-         * Constructs a new {@code InputStreamReader} on the {@link InputStream}
-         * {@code in}. This constructor sets the character converter to the encoding
+         * Constructs a new InputStreamReader} on the {@link InputStream}
+         * in This constructor sets the character converter to the encoding
          * specified in the "file.encoding" property and falls back to ISO 8859_1
          * (ISO-Latin-1) if the property doesn't exist.
          *
@@ -943,9 +1126,9 @@ module
             [in] IInputStream* is);
 
         /**
-         * Constructs a new InputStreamReader on the InputStream {@code in}. The
+         * Constructs a new InputStreamReader on the InputStream in The
          * character converter that is used to decode bytes into characters is
-         * identified by name by {@code enc}. If the encoding cannot be found, an
+         * identified by name by enc If the encoding cannot be found, an
          * UnsupportedEncodingException error is thrown.
          *
          * @param in
@@ -953,17 +1136,17 @@ module
          * @param enc
          *            identifies the character converter to use.
          * @throws NullPointerException
-         *             if {@code enc} is {@code null}.
+         *             if enc} is null
          * @throws UnsupportedEncodingException
-         *             if the encoding specified by {@code enc} cannot be found.
+         *             if the encoding specified by enc} cannot be found.
          */
         constructor(
             [in] IInputStream* is,
             [in] String enc);
 
 //        /**
-//         * Constructs a new InputStreamReader on the InputStream {@code in} and
-//         * CharsetDecoder {@code dec}.
+//         * Constructs a new InputStreamReader on the InputStream in} and
+//         * CharsetDecoder dec
 //         *
 //         * @param in
 //         *            the source InputStream from which to read characters.
@@ -975,8 +1158,8 @@ module
 //            [in] CharsetDecoder dec);
 //
         /**
-         * Constructs a new InputStreamReader on the InputStream {@code in} and
-         * Charset {@code charset}.
+         * Constructs a new InputStreamReader on the InputStream in} and
+         * Charset charset
          *
          * @param in
          *            the source InputStream from which to read characters.
@@ -993,7 +1176,7 @@ module
 
     class COutputStreamWriter {
         /**
-         * Constructs a new OutputStreamWriter using {@code out} as the target
+         * Constructs a new OutputStreamWriter using out} as the target
          * stream to write converted characters to. The default character encoding
          * is used.
          *
@@ -1004,8 +1187,8 @@ module
             [in] IOutputStream* os);
 
         /**
-         * Constructs a new OutputStreamWriter using {@code out} as the target
-         * stream to write converted characters to and {@code enc} as the character
+         * Constructs a new OutputStreamWriter using out} as the target
+         * stream to write converted characters to and enc} as the character
          * encoding. If the encoding cannot be found, an
          * UnsupportedEncodingException error is thrown.
          *
@@ -1014,31 +1197,31 @@ module
          * @param enc
          *            the string describing the desired character encoding.
          * @throws NullPointerException
-         *             if {@code enc} is {@code null}.
+         *             if enc} is null
          * @throws UnsupportedEncodingException
-         *             if the encoding specified by {@code enc} cannot be found.
+         *             if the encoding specified by enc} cannot be found.
          */
         constructor(
             [in] IOutputStream* os,
             [in] String enc);
 
         /**
-         * Constructs a new OutputStreamWriter using {@code out} as the target
-         * stream to write converted characters to and {@code cs} as the character
+         * Constructs a new OutputStreamWriter using out} as the target
+         * stream to write converted characters to and cs} as the character
          * encoding.
          *
          * @param out
          *            the target stream to write converted bytes to.
          * @param cs
-         *            the {@code Charset} that specifies the character encoding.
+         *            the Charset} that specifies the character encoding.
          */
 //        constructor(
 //            [in] IOutputStream* os,
 //            [in] Charset cs);
 
         /**
-         * Constructs a new OutputStreamWriter using {@code out} as the target
-         * stream to write converted characters to and {@code enc} as the character
+         * Constructs a new OutputStreamWriter using out} as the target
+         * stream to write converted characters to and enc} as the character
          * encoder.
          *
          * @param out
@@ -1055,18 +1238,18 @@ module
 
     class CFileReader {
         /**
-         * Constructs a new FileReader on the given {@code file}.
+         * Constructs a new FileReader on the given file
          *
          * @param file
          *            a File to be opened for reading characters from.
          * @throws FileNotFoundException
-         *             if {@code file} does not exist.
+         *             if file} does not exist.
          */
         constructor(
             [in] IFile* file);
 
         /**
-         * Construct a new FileReader on the given FileDescriptor {@code fd}. Since
+         * Construct a new FileReader on the given FileDescriptor fd Since
          * a previously opened FileDescriptor is passed as an argument, no
          * FileNotFoundException can be thrown.
          *
@@ -1077,12 +1260,12 @@ module
             [in] IFileDescriptor* fd);
 
         /**
-         * Construct a new FileReader on the given file named {@code filename}.
+         * Construct a new FileReader on the given file named filename
          *
          * @param filename
          *            an absolute or relative path specifying the file to open.
          * @throws FileNotFoundException
-         *             if there is no file named {@code filename}.
+         *             if there is no file named filename
          */
         constructor(
             [in] String filename);
@@ -1092,19 +1275,19 @@ module
 
     class CFileWriter {
         /**
-         * Creates a FileWriter using the File {@code file}.
+         * Creates a FileWriter using the File file
          *
          * @param file
          *            the non-null File to write bytes to.
          * @throws IOException
-         *             if {@code file} cannot be opened for writing.
+         *             if file} cannot be opened for writing.
          */
         constructor(
             [in] IFile* file);
 
         /**
-         * Creates a FileWriter using the File {@code file}. The parameter
-         * {@code append} determines whether or not the file is opened and appended
+         * Creates a FileWriter using the File file The parameter
+         * append} determines whether or not the file is opened and appended
          * to or just opened and overwritten.
          *
          * @param file
@@ -1112,14 +1295,14 @@ module
          * @param append
          *            indicates whether or not to append to an existing file.
          * @throws IOException
-         *             if the {@code file} cannot be opened for writing.
+         *             if the file} cannot be opened for writing.
          */
         constructor(
             [in] IFile* file,
             [in] Boolean append);
 
         /**
-         * Creates a FileWriter using the existing FileDescriptor {@code fd}.
+         * Creates a FileWriter using the existing FileDescriptor fd
          *
          * @param fd
          *            the non-null FileDescriptor to write bytes to.
@@ -1128,7 +1311,7 @@ module
             [in] IFileDescriptor* fd);
 
         /**
-         * Creates a FileWriter using the platform dependent {@code filename}.
+         * Creates a FileWriter using the platform dependent filename
          *
          * @param filename
          *            the non-null name of the file to write bytes to.
@@ -1139,8 +1322,8 @@ module
             [in] String filename);
 
         /**
-         * Creates a FileWriter using the platform dependent {@code filename}. The
-         * parameter {@code append} determines whether or not the file is opened and
+         * Creates a FileWriter using the platform dependent filename The
+         * parameter append} determines whether or not the file is opened and
          * appended to or just opened and overwritten.
          *
          * @param filename
@@ -1148,7 +1331,7 @@ module
          * @param append
          *            indicates whether or not to append to an existing file.
          * @throws IOException
-         *             if the {@code file} cannot be opened for writing.
+         *             if the file} cannot be opened for writing.
          */
         constructor(
             [in] String filename,
@@ -1159,9 +1342,9 @@ module
 
     class CStringReader {
         /**
-         * Construct a new {@code StringReader} with {@code str} as source. The size
-         * of the reader is set to the {@code length()} of the string and the Object
-         * to synchronize access through is set to {@code str}.
+         * Construct a new StringReader} with str} as source. The size
+         * of the reader is set to the length()} of the string and the Object
+         * to synchronize access through is set to str
          *
          * @param str
          *            the source string for this reader.
@@ -1174,17 +1357,17 @@ module
 
     class CStringWriter {
         /**
-         * Constructs a new {@code StringWriter} which has a {@link StringBuffer}
+         * Constructs a new StringWriter} which has a {@link StringBuffer}
          * allocated with the default size of 16 characters. The {@code
-         * StringBuffer} is also the {@code lock} used to synchronize access to this
+         * StringBuffer} is also the lock} used to synchronize access to this
          * writer.
          */
         constructor();
 
         /**
-         * Constructs a new {@code StringWriter} which has a {@link StringBuffer}
-         * allocated with a size of {@code initialSize} characters. The {@code
-         * StringBuffer} is also the {@code lock} used to synchronize access to this
+         * Constructs a new StringWriter} which has a {@link StringBuffer}
+         * allocated with a size of initialSize} characters. The {@code
+         * StringBuffer} is also the lock} used to synchronize access to this
          * writer.
          *
          * @param initialSize
@@ -1214,21 +1397,21 @@ module
 
     class CPrintWriter {
         /**
-         * Constructs a new {@code PrintWriter} with {@code out} as its target
+         * Constructs a new PrintWriter} with out} as its target
          * stream. By default, the new print writer does not automatically flush its
          * contents to the target stream when a newline is encountered.
          *
          * @param out
          *            the target output stream.
          * @throws NullPointerException
-         *             if {@code out} is {@code null}.
+         *             if out} is null
          */
         constructor(
             [in] IOutputStream* outs);
 
         /**
-         * Constructs a new {@code PrintWriter} with {@code out} as its target
-         * stream. The parameter {@code autoflush} determines if the print writer
+         * Constructs a new PrintWriter} with out} as its target
+         * stream. The parameter autoflush} determines if the print writer
          * automatically flushes its contents to the target stream when a newline is
          * encountered.
          *
@@ -1238,28 +1421,28 @@ module
          *            indicates whether contents are flushed upon encountering a
          *            newline sequence.
          * @throws NullPointerException
-         *             if {@code out} is {@code null}.
+         *             if out} is null
          */
         constructor(
             [in] IOutputStream* outs, 
             [in] Boolean autoflush);
 
         /**
-         * Constructs a new {@code PrintWriter} with {@code wr} as its target
+         * Constructs a new PrintWriter} with wr} as its target
          * writer. By default, the new print writer does not automatically flush its
          * contents to the target writer when a newline is encountered.
          *
          * @param wr
          *            the target writer.
          * @throws NullPointerException
-         *             if {@code wr} is {@code null}.
+         *             if wr} is null
          */
         constructor(
             [in] IWriter* wr);
 
         /**
-         * Constructs a new {@code PrintWriter} with {@code out} as its target
-         * writer. The parameter {@code autoflush} determines if the print writer
+         * Constructs a new PrintWriter} with out} as its target
+         * writer. The parameter autoflush} determines if the print writer
          * automatically flushes its contents to the target writer when a newline is
          * encountered.
          *
@@ -1269,14 +1452,14 @@ module
          *            indicates whether to flush contents upon encountering a
          *            newline sequence.
          * @throws NullPointerException
-         *             if {@code out} is {@code null}.
+         *             if out} is null
          */
         constructor(
             [in] IWriter* wr, 
             [in] Boolean autoflush);
 
         /**
-         * Constructs a new {@code PrintWriter} with {@code file} as its target. The
+         * Constructs a new PrintWriter} with file} as its target. The
          * virtual machine's default character set is used for character encoding.
          * The print writer does not automatically flush its contents to the target
          * file when a newline is encountered. The output to the file is buffered.
@@ -1294,8 +1477,8 @@ module
             [in] IFile* file);
 
         /**
-         * Constructs a new {@code PrintWriter} with {@code file} as its target. The
-         * character set named {@code csn} is used for character encoding.
+         * Constructs a new PrintWriter} with file} as its target. The
+         * character set named csn} is used for character encoding.
          * The print writer does not automatically flush its contents to the target
          * file when a newline is encountered. The output to the file is buffered.
          *
@@ -1307,18 +1490,18 @@ module
          * @throws FileNotFoundException
          *             if an error occurs while opening or creating the target file.
          * @throws NullPointerException
-         *             if {@code csn} is {@code null}.
+         *             if csn} is null
          * @throws SecurityException
          *             if a security manager exists and it denies writing to the
          *             target file.
          * @throws UnsupportedEncodingException
-         *             if the encoding specified by {@code csn} is not supported.
+         *             if the encoding specified by csn} is not supported.
          */
         constructor(
             [in] IFile* file, 
             [in] String csn);
         /**
-         * Constructs a new {@code PrintWriter} with the file identified by {@code
+         * Constructs a new PrintWriter} with the file identified by {@code
          * fileName} as its target. The virtual machine's default character set is
          * used for character encoding. The print writer does not automatically
          * flush its contents to the target file when a newline is encountered. The
@@ -1337,8 +1520,8 @@ module
             [in] String fileName);
 
         /**
-         * Constructs a new {@code PrintWriter} with the file identified by {@code
-         * fileName} as its target. The character set named {@code csn} is used for
+         * Constructs a new PrintWriter} with the file identified by {@code
+         * fileName} as its target. The character set named csn} is used for
          * character encoding. The print writer does not automatically flush its
          * contents to the target file when a newline is encountered. The output to
          * the file is buffered.
@@ -1351,12 +1534,12 @@ module
          * @throws FileNotFoundException
          *             if an error occurs while opening or creating the target file.
          * @throws NullPointerException
-         *             if {@code csn} is {@code null}.
+         *             if csn} is null
          * @throws SecurityException
          *             if a security manager exists and it denies writing to the
          *             target file.
          * @throws UnsupportedEncodingException
-         *             if the encoding specified by {@code csn} is not supported.
+         *             if the encoding specified by csn} is not supported.
          */
         constructor(
             [in] String fileName, 
@@ -1367,21 +1550,21 @@ module
 
     class CPrintStream {
         /**
-         * Constructs a new {@code PrintStream} with {@code out} as its target
+         * Constructs a new PrintStream} with out} as its target
          * stream. By default, the new print stream does not automatically flush its
          * contents to the target stream when a newline is encountered.
          *
          * @param out
          *            the target output stream.
          * @throws NullPointerException
-         *             if {@code out} is {@code null}.
+         *             if out} is null
          */
         constructor(
             [in] IOutputStream* outs);
 
         /**
-         * Constructs a new {@code PrintStream} with {@code out} as its target
-         * stream. The parameter {@code autoflush} determines if the print stream
+         * Constructs a new PrintStream} with out} as its target
+         * stream. The parameter autoflush} determines if the print stream
          * automatically flushes its contents to the target stream when a newline is
          * encountered.
          *
@@ -1391,16 +1574,16 @@ module
          *            indicates whether to flush contents upon encountering a
          *            newline sequence.
          * @throws NullPointerException
-         *             if {@code out} is {@code null}.
+         *             if out} is null
          */
         constructor(
             [in] IOutputStream* outs, 
             [in] Boolean autoflush);
 
         /**
-         * Constructs a new {@code PrintStream} with {@code out} as its target
-         * stream and using the character encoding {@code enc} while writing. The
-         * parameter {@code autoflush} determines if the print stream automatically
+         * Constructs a new PrintStream} with out} as its target
+         * stream and using the character encoding enc} while writing. The
+         * parameter autoflush} determines if the print stream automatically
          * flushes its contents to the target stream when a newline is encountered.
          *
          * @param out
@@ -1411,9 +1594,9 @@ module
          * @param enc
          *            the non-null string describing the desired character encoding.
          * @throws NullPointerException
-         *             if {@code out} or {@code enc} are {@code null}.
+         *             if out} or enc} are null
          * @throws UnsupportedEncodingException
-         *             if the encoding specified by {@code enc} is not supported.
+         *             if the encoding specified by enc} is not supported.
          */
         constructor(
             [in] IOutputStream* outs, 
@@ -1421,7 +1604,7 @@ module
             [in] String enc);
 
         /**
-         * Constructs a new {@code PrintStream} with {@code file} as its target. The
+         * Constructs a new PrintStream} with file} as its target. The
          * virtual machine's default character set is used for character encoding.
          *
          * @param file
@@ -1437,8 +1620,8 @@ module
             [in] IFile* file);
 
         /**
-         * Constructs a new {@code PrintStream} with {@code file} as its target. The
-         * character set named {@code csn} is used for character encoding.
+         * Constructs a new PrintStream} with file} as its target. The
+         * character set named csn} is used for character encoding.
          *
          * @param file
          *            the target file. If the file already exists, its contents are
@@ -1448,20 +1631,20 @@ module
          * @throws FileNotFoundException
          *             if an error occurs while opening or creating the target file.
          * @throws NullPointerException
-         *             if {@code csn} is {@code null}.
+         *             if csn} is null
          * @throws SecurityException
          *             if a security manager exists and it denies writing to the
          *             target file.
          * @throws UnsupportedEncodingException
-         *             if the encoding specified by {@code csn} is not supported.
+         *             if the encoding specified by csn} is not supported.
          */
         constructor(
             [in] IFile* file, 
             [in] String csn);
 
         /**
-         * Constructs a new {@code PrintStream} with the file identified by
-         * {@code fileName} as its target. The virtual machine's default character
+         * Constructs a new PrintStream} with the file identified by
+         * fileName} as its target. The virtual machine's default character
          * set is used for character encoding.
          *
          * @param fileName
@@ -1477,8 +1660,8 @@ module
             [in] String fileName);
 
         /**
-         * Constructs a new {@code PrintStream} with the file identified by
-         * {@code fileName} as its target. The character set named {@code csn} is
+         * Constructs a new PrintStream} with the file identified by
+         * fileName} as its target. The character set named csn} is
          * used for character encoding.
          *
          * @param fileName
@@ -1489,12 +1672,12 @@ module
          * @throws FileNotFoundException
          *             if an error occurs while opening or creating the target file.
          * @throws NullPointerException
-         *             if {@code csn} is {@code null}.
+         *             if csn} is null
          * @throws SecurityException
          *             if a security manager exists and it denies writing to the
          *             target file.
          * @throws UnsupportedEncodingException
-         *             if the encoding specified by {@code csn} is not supported.
+         *             if the encoding specified by csn} is not supported.
          */
         constructor(
             [in] String fileName, 
