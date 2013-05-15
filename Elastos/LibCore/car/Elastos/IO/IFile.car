@@ -8,14 +8,15 @@ module
          * Note that this is a best-effort result; the only way to be certain is
          * to actually attempt the operation.
          *
-         * @return {@code true} if this file can be executed, {@code false} otherwise.
-         * @throws SecurityException
-         *             If a security manager exists and
-         *             SecurityManager.checkExec(java.lang.String) disallows read
-         *             permission to this file object
-         * @see java.lang.SecurityManager#checkExec(String)
+         * @param  [out] canExecute   TRUE(1) if this file can be executed, FALSE(0) otherwise.
+         * @return ECode = NOERROR(0) if success, elas as follows:
+         * Value | Meaning |
+         * :-|:------------|
+         * SecurityException | If a security manager exists and SecurityManager.checkExec(java.lang.String) disallows read permission to this file object
+         * 
+         * @sa java.lang.SecurityManager#checkExec(String)
          *
-         * @since 1.6
+         * @since Elastos 1.0
          */
         CanExecute(
             [out] Boolean* canExecute);
@@ -23,10 +24,11 @@ module
         /**
          * Indicates whether the current context is allowed to read from this file.
          *
-         * @return {@code true} if this file can be read, {@code false} otherwise.
-         * @throws SecurityException
-         *             if a {@code SecurityManager} is installed and it denies the
-         *             read request.
+         * @param  [out] canRead   TRUE(1) if this file can be read, FALSE(0) otherwise.
+         * @return ECode = NOERROR(0) if success, elas as follows:
+         * Value | Meaning |
+         * :-|:------------|
+         * SecurityException | if a SecurityManager is installed and it denies the read request.
          */
         CanRead(
             [out] Boolean* canRead);
@@ -34,18 +36,18 @@ module
         /**
          * Indicates whether the current context is allowed to write to this file.
          *
-         * @return {@code true} if this file can be written, {@code false}
-         *         otherwise.
-         * @throws SecurityException
-         *             if a {@code SecurityManager} is installed and it denies the
-         *             write request.
+         * @param  [out] canWrite   TRUE(1) if this file can be written, FALSE(0) otherwise.
+         * @return ECode = NOERROR(0) if success, elas as follows:
+         * Value | Meaning |
+         * :-|:------------|
+         * SecurityException | if a SecurityManager is installed and it denies the write request.
          */
         CanWrite(
             [out] Boolean* canWrite);
 
         /**
          * Returns the relative sort ordering of the paths for this file and the
-         * file {@code another}. The ordering is platform dependent.
+         * file another. The ordering is platform dependent.
          *
          * @param another
          *            a file to compare this file to
@@ -60,41 +62,40 @@ module
         /**
          * Deletes this file. Directories must be empty before they will be deleted.
          *
-         * <p>Note that this method does <i>not</i> throw {@code IOException} on failure.
+         * <p>Note that this method does <i>not</i> return ECode to means failure.
          * Callers must check the return value.
          *
-         * @return {@code true} if this file was deleted, {@code false} otherwise.
-         * @throws SecurityException
-         *             if a {@code SecurityManager} is installed and it denies the
-         *             request.
-         * @see java.lang.SecurityManager#checkDelete
+         * @param  [out] isDeleted   TRUE(1) if this file was deleted, FALSE(0) otherwise.
+         * @return ECode = NOERROR(0) if success, elas as follows:
+         * Value | Meaning |
+         * :-|:------------|
+         * SecurityException | if a SecurityManager is installed and it denies the request.
+         *
+         * @see com::elastos::SecurityManager#checkDelete
          */
         Delete(
             [out] Boolean* isDeleted);
 
         /**
-         * Compares {@code obj} to this file and returns {@code true} if they
-         * represent the <em>same</em> object using a path specific comparison.
+         * Compares <em>obj</em> to <em>this</em> file and returns TRUE(1) if they represent the <em>same</em> object using a path specific comparison.
          *
-         * @param obj
-         *            the object to compare this file with.
-         * @return {@code true} if {@code obj} is the same as this object,
-         *         {@code false} otherwise.
+         * @param obj         the object to compare this file with.
+         * @param  [out] isEqual   TRUE(1) if <em>obj</em> is the same as <em>this</em> object, FALSE(0) otherwise.
          */
         Equals(
             [in] IInterface* obj,
             [out] Boolean* isEqual);
 
         /**
-         * Returns a Boolean indicating whether this file can be found on the
-         * underlying file system.
+         * Returns a Boolean indicating whether this file can be found on the underlying file system.
          *
-         * @return {@code true} if this file exists, {@code false} otherwise.
-         * @throws SecurityException
-         *             if a {@code SecurityManager} is installed and it denies read
-         *             access to this file.
+         * @param  [out] isEqual   TRUE(1) if this file exists, FALSE(0) otherwise.
+         * @return ECode = NOERROR(0) if success, elas as follows:
+         * Value | Meaning |
+         * :-|:------------|
+         * SecurityException | if a SecurityManager is installed and it denies read access to this file.
          * @see #getPath
-         * @see java.lang.SecurityManager#checkRead(FileDescriptor)
+         * @see com::elastos::SecurityManager#checkRead(FileDescriptor)
          */
         Exists(
             [out] Boolean* isExist);
@@ -102,7 +103,7 @@ module
         /**
          * Returns the absolute path of this file.
          *
-         * @return the absolute file path.
+         * @param  [out] path   the absolute file path.
          */
         GetAbsolutePath(
             [out] String* path);
@@ -110,7 +111,8 @@ module
         /**
          * Returns a new file constructed using the absolute path of this file.
          *
-         * @return a new file from this file's absolute path.
+         * @param  [out] file   a new file from this file's absolute path.
+         * 
          * @see java.lang.SecurityManager#checkPropertyAccess
          */
         GetAbsoluteFile(
@@ -126,16 +128,18 @@ module
          * getCanonicalPath() may not resolve any references and simply returns an
          * absolute path name or throws an IOException.
          *
-         * @return the canonical path of this file.
-         * @throws IOException
-         *             if an I/O error occurs.
+         * @param  [out] path   the canonical path of this file.
+         * @return ECode = NOERROR(0) if success, elas as follows:
+         * Value | Meaning |
+         * :-|:------------|
+         * IOException | if an I/O error occurs.
          */
         GetCanonicalPath(
             [out] String* path);
 
         /**
          * Returns a new file created using the canonical path of this file.
-         * Equivalent to {@code new File(this.getCanonicalPath())}.
+         * Equivalent to new File(this.getCanonicalPath()).
          *
          * @return the new file constructed from this file's canonical path.
          * @throws IOException
@@ -156,20 +160,20 @@ module
 
         /**
          * Returns the pathname of the parent of this file. This is the path up to
-         * but not including the last name. {@code null} is returned if there is no
+         * but not including the last name. null is returned if there is no
          * parent.
          *
-         * @return this file's parent pathname or {@code null}.
+         * @return this file's parent pathname or null.
          */
         GetParent(
             [out] String* parent);
 
         /**
          * Returns a new file made from the pathname of the parent of this file.
-         * This is the path up to but not including the last name. {@code null} is
+         * This is the path up to but not including the last name. null is
          * returned when there is no parent.
          *
-         * @return a new file representing this file's parent or {@code null}.
+         * @return a new file representing this file's parent or null.
          */
         GetParentFile(
             [out] IFile** file);
@@ -184,7 +188,7 @@ module
 
         /**
          * Returns an integer hash code for the receiver. Any two objects for which
-         * {@code equals} returns {@code true} must return the same hash code.
+         * equals returns true must return the same hash code.
          *
          * @return this files's hash value.
          * @see #equals
@@ -197,7 +201,7 @@ module
          * absolute is platform specific. On Android, absolute paths start with
          * the character '/'.
          *
-         * @return {@code true} if this file's pathname is absolute, {@code false}
+         * @return true if this file's pathname is absolute, false
          *         otherwise.
          * @see #getPath
          */
@@ -208,10 +212,10 @@ module
          * Indicates if this file represents a <em>directory</em> on the
          * underlying file system.
          *
-         * @return {@code true} if this file is a directory, {@code false}
+         * @return true if this file is a directory, false
          *         otherwise.
          * @throws SecurityException
-         *             if a {@code SecurityManager} is installed and it denies read
+         *             if a SecurityManager is installed and it denies read
          *             access to this file.
          */
         IsDirectory(
@@ -221,9 +225,9 @@ module
          * Indicates if this file represents a <em>file</em> on the underlying
          * file system.
          *
-         * @return {@code true} if this file is a file, {@code false} otherwise.
+         * @return true if this file is a file, false otherwise.
          * @throws SecurityException
-         *             if a {@code SecurityManager} is installed and it denies read
+         *             if a SecurityManager is installed and it denies read
          *             access to this file.
          */
         IsFile(
@@ -236,9 +240,9 @@ module
          * Windows systems there is an explicit flag in the file system for this
          * purpose.
          *
-         * @return {@code true} if the file is hidden, {@code false} otherwise.
+         * @return true if the file is hidden, false otherwise.
          * @throws SecurityException
-         *             if a {@code SecurityManager} is installed and it denies read
+         *             if a SecurityManager is installed and it denies read
          *             access to this file.
          */
         IsHidden(
@@ -251,7 +255,7 @@ module
          *
          * @return the time when this file was last modified.
          * @throws SecurityException
-         *             if a {@code SecurityManager} is installed and it denies read
+         *             if a SecurityManager is installed and it denies read
          *             access to this file.
          */
         LastModified(
@@ -261,17 +265,17 @@ module
          * Sets the time this file was last modified, measured in milliseconds since
          * January 1st, 1970, midnight.
          *
-         * <p>Note that this method does <i>not</i> throw {@code IOException} on failure.
+         * <p>Note that this method does <i>not</i> throw IOException on failure.
          * Callers must check the return value.
          *
          * @param time
          *            the last modification time for this file.
-         * @return {@code true} if the operation is successful, {@code false}
+         * @return true if the operation is successful, false
          *         otherwise.
          * @throws IllegalArgumentException
-         *             if {@code time < 0}.
+         *             if time < 0.
          * @throws SecurityException
-         *             if a {@code SecurityManager} is installed and it denies write
+         *             if a SecurityManager is installed and it denies write
          *             access to this file.
          */
         SetLastModified(
@@ -290,7 +294,7 @@ module
          * Manipulates the execute permissions for the abstract path designated by
          * this file.
          *
-         * <p>Note that this method does <i>not</i> throw {@code IOException} on failure.
+         * <p>Note that this method does <i>not</i> throw IOException on failure.
          * Callers must check the return value.
          *
          * @param executable
@@ -309,7 +313,7 @@ module
          *             If a security manager exists and
          *             SecurityManager.checkWrite(java.lang.String) disallows write
          *             permission to this file object
-         * @since 1.6
+         * @since Elastos 1.0
          */
         SetExecutable(
             [in] Boolean executable,
@@ -319,7 +323,7 @@ module
         /**
          * Equivalent to setExecutable(executable, true).
          * @see #setExecutable(Boolean, Boolean)
-         * @since 1.6
+         * @since Elastos 1.0
          */
         SetExecutableEx(
             [in] Boolean executable,
@@ -345,7 +349,7 @@ module
          *             If a security manager exists and
          *             SecurityManager.checkWrite(java.lang.String) disallows write
          *             permission to this file object
-         * @since 1.6
+         * @since Elastos 1.0
          */
         SetReadable(
             [in] Boolean readable,
@@ -355,7 +359,7 @@ module
         /**
          * Equivalent to setReadable(readable, true).
          * @see #setReadable(Boolean, Boolean)
-         * @since 1.6
+         * @since Elastos 1.0
          */
         SetReadableEx(
             [in] Boolean readable,
@@ -379,7 +383,7 @@ module
          *             If a security manager exists and
          *             SecurityManager.checkWrite(java.lang.String) disallows write
          *             permission to this file object
-         * @since 1.6
+         * @since Elastos 1.0
          */
         SetWritable(
             [in] Boolean writable,
@@ -389,7 +393,7 @@ module
         /**
          * Equivalent to setWritable(writable, true).
          * @see #setWritable(Boolean, Boolean)
-         * @since 1.6
+         * @since Elastos 1.0
          */
         SetWritableEx(
             [in] Boolean writable,
@@ -402,7 +406,7 @@ module
          *
          * @return the number of bytes in this file.
          * @throws SecurityException
-         *             if a {@code SecurityManager} is installed and it denies read
+         *             if a SecurityManager is installed and it denies read
          *             access to this file.
          */
         GetLength(
@@ -412,17 +416,17 @@ module
          * Gets a list of the files in the directory represented by this file. This
          * list is then filtered through a FilenameFilter and the names of files
          * with matching names are returned as an array of strings. Returns
-         * {@code null} if this file is not a directory. If {@code filter} is
-         * {@code null} then all filenames match.
+         * null if this file is not a directory. If filter is
+         * null then all filenames match.
          * <p>
-         * The entries {@code .} and {@code ..} representing the current and parent
+         * The entries . and .. representing the current and parent
          * directories are not returned as part of the list.
          *
          * @param filter
-         *            the filter to match names against, may be {@code null}.
-         * @return an array of files or {@code null}.
+         *            the filter to match names against, may be null.
+         * @return an array of files or null.
          * @throws SecurityException
-         *             if a {@code SecurityManager} is installed and it denies read
+         *             if a SecurityManager is installed and it denies read
          *             access to this file.
          * @see #getPath
          * @see #isDirectory
@@ -435,17 +439,17 @@ module
          * Gets a list of the files in the directory represented by this file. This
          * list is then filtered through a FilenameFilter and the names of files
          * with matching names are returned as an array of strings. Returns
-         * {@code null} if this file is not a directory. If {@code filter} is
-         * {@code null} then all filenames match.
+         * null if this file is not a directory. If filter is
+         * null then all filenames match.
          * <p>
-         * The entries {@code .} and {@code ..} representing the current and parent
+         * The entries . and .. representing the current and parent
          * directories are not returned as part of the list.
          *
          * @param filter
-         *            the filter to match names against, may be {@code null}.
-         * @return an array of files or {@code null}.
+         *            the filter to match names against, may be null.
+         * @return an array of files or null.
          * @throws SecurityException
-         *             if a {@code SecurityManager} is installed and it denies read
+         *             if a SecurityManager is installed and it denies read
          *             access to this file.
          * @see #getPath
          * @see #isDirectory
@@ -457,13 +461,13 @@ module
 
         /**
          * Returns an array of files contained in the directory represented by this
-         * file. The result is {@code null} if this file is not a directory. The
+         * file. The result is null if this file is not a directory. The
          * paths of the files in the array are absolute if the path of this file is
          * absolute, they are relative otherwise.
          *
-         * @return an array of files or {@code null}.
+         * @return an array of files or null.
          * @throws SecurityException
-         *             if a {@code SecurityManager} is installed and it denies read
+         *             if a SecurityManager is installed and it denies read
          *             access to this file.
          * @see #list
          * @see #isDirectory
@@ -474,18 +478,18 @@ module
         /**
          * Gets a list of the files in the directory represented by this file. This
          * list is then filtered through a FilenameFilter and files with matching
-         * names are returned as an array of files. Returns {@code null} if this
-         * file is not a directory. If {@code filter} is {@code null} then all
+         * names are returned as an array of files. Returns null if this
+         * file is not a directory. If filter is null then all
          * filenames match.
          * <p>
-         * The entries {@code .} and {@code ..} representing the current and parent
+         * The entries . and .. representing the current and parent
          * directories are not returned as part of the list.
          *
          * @param filter
-         *            the filter to match names against, may be {@code null}.
-         * @return an array of files or {@code null}.
+         *            the filter to match names against, may be null.
+         * @return an array of files or null.
          * @throws SecurityException
-         *             if a {@code SecurityManager} is installed and it denies read
+         *             if a SecurityManager is installed and it denies read
          *             access to this file.
          * @see #list(FilenameFilter filter)
          * @see #getPath
@@ -499,17 +503,17 @@ module
         /**
          * Gets a list of the files in the directory represented by this file. This
          * list is then filtered through a FileFilter and matching files are
-         * returned as an array of files. Returns {@code null} if this file is not a
-         * directory. If {@code filter} is {@code null} then all files match.
+         * returned as an array of files. Returns null if this file is not a
+         * directory. If filter is null then all files match.
          * <p>
-         * The entries {@code .} and {@code ..} representing the current and parent
+         * The entries . and .. representing the current and parent
          * directories are not returned as part of the list.
          *
          * @param filter
-         *            the filter to match names against, may be {@code null}.
-         * @return an array of files or {@code null}.
+         *            the filter to match names against, may be null.
+         * @return an array of files or null.
          * @throws SecurityException
-         *             if a {@code SecurityManager} is installed and it denies read
+         *             if a SecurityManager is installed and it denies read
          *             access to this file.
          * @see #getPath
          * @see #isDirectory
@@ -523,13 +527,13 @@ module
          * Creates the directory named by the trailing filename of this file. Does
          * not create the complete path required to create this directory.
          *
-         * <p>Note that this method does <i>not</i> throw {@code IOException} on failure.
+         * <p>Note that this method does <i>not</i> throw IOException on failure.
          * Callers must check the return value.
          *
-         * @return {@code true} if the directory has been created, {@code false}
+         * @return true if the directory has been created, false
          *         otherwise.
          * @throws SecurityException
-         *             if a {@code SecurityManager} is installed and it denies write
+         *             if a SecurityManager is installed and it denies write
          *             access for this file.
          * @see #mkdirs
          */
@@ -540,14 +544,14 @@ module
          * Creates the directory named by the trailing filename of this file,
          * including the complete directory path required to create this directory.
          *
-         * <p>Note that this method does <i>not</i> throw {@code IOException} on failure.
+         * <p>Note that this method does <i>not</i> throw IOException on failure.
          * Callers must check the return value.
          *
-         * @return {@code true} if the necessary directories have been created,
-         *         {@code false} if the target directory already exists or one of
+         * @return true if the necessary directories have been created,
+         *         false if the target directory already exists or one of
          *         the directories can not be created.
          * @throws SecurityException
-         *             if a {@code SecurityManager} is installed and it denies write
+         *             if a SecurityManager is installed and it denies write
          *             access for this file.
          * @see #mkdir
          */
@@ -558,21 +562,21 @@ module
          * Creates a new, empty file on the file system according to the path
          * information stored in this file.
          *
-         * <p>Note that this method does <i>not</i> throw {@code IOException} on failure.
+         * <p>Note that this method does <i>not</i> throw IOException on failure.
          * Callers must check the return value.
          *
-         * @return {@code true} if the file has been created, {@code false} if it
+         * @return true if the file has been created, false if it
          *         already exists.
          * @throws IOException if it's not possible to create the file.
          * @throws SecurityException
-         *             if a {@code SecurityManager} is installed and it denies write
+         *             if a SecurityManager is installed and it denies write
          *             access for this file.
          */
         CreateNewFile(
             [out] Boolean* succeeded);
 
         /**
-         * Renames this file to {@code newPath}. This operation is supported for both
+         * Renames this file to newPath. This operation is supported for both
          * files and directories.
          *
          * <p>Many failures are possible. Some of the more likely failures include:
@@ -584,14 +588,14 @@ module
          * this restriction when attempting to copy between internal storage and an SD card.
          * </ul>
          *
-         * <p>Note that this method does <i>not</i> throw {@code IOException} on failure.
+         * <p>Note that this method does <i>not</i> throw IOException on failure.
          * Callers must check the return value.
          *
          * @param newPath the new path.
          * @return true on success.
          * @throws SecurityException
-         *             if a {@code SecurityManager} is installed and it denies write
-         *             access for this file or {@code newPath}.
+         *             if a SecurityManager is installed and it denies write
+         *             access for this file or newPath.
          */
         RenameTo(
             [in] IFile* newPath,
@@ -624,7 +628,7 @@ module
          * @return a URL for this file.
          * @throws java.net.MalformedURLException
          *             if the path cannot be transformed into a URL.
-         * @deprecated use {@link #toURI} and {@link java.net.URI#toURL} to get
+         * @deprecated use {@link #toURI and {@link java.net.URI#toURL to get
          * correct escaping of illegal characters.
          */
 //        ToURL(
@@ -634,7 +638,7 @@ module
          * Returns the total size in bytes of the partition containing this path.
          * Returns 0 if this path does not exist.
          *
-         * @since 1.6
+         * @since Elastos 1.0
          */
         GetTotalSpace(
             [out] Int64* space);
@@ -648,9 +652,9 @@ module
          * On Android (and other Unix-based systems), this method returns the number of free bytes
          * available to non-root users, regardless of whether you're actually running as root,
          * and regardless of any quota or other restrictions that might apply to the user.
-         * (The {@code getFreeSpace} method returns the number of bytes potentially available to root.)
+         * (The getFreeSpace method returns the number of bytes potentially available to root.)
          *
-         * @since 1.6
+         * @since Elastos 1.0
          */
         GetUsableSpace(
             [out] Int64* space);
@@ -662,20 +666,20 @@ module
          * <p>Note that this is likely to be an optimistic over-estimate and should not
          * be taken as a guarantee your application can actually write this many bytes.
          *
-         * @since 1.6
+         * @since Elastos 1.0
          */
         GetFreeSpace(
             [out] Int64* space);
-    }
+    }    
 
     interface IFileHelper {
 
         /**
          * Creates an empty temporary file using the given prefix and suffix as part
-         * of the file name. If {@code suffix} is null, {@code .tmp} is used. This
+         * of the file name. If suffix is null, .tmp is used. This
          * method is a convenience method that calls
-         * {@link #createTempFile(String, String, File)} with the third argument
-         * being {@code null}.
+         * {@link #createTempFile(String, String, File) with the third argument
+         * being null.
          *
          * @param prefix
          *            the prefix to the temp file name.
@@ -692,9 +696,9 @@ module
 
         /**
          * Creates an empty temporary file in the given directory using the given
-         * prefix and suffix as part of the file name. If {@code suffix} is null, {@code .tmp} is used.
+         * prefix and suffix as part of the file name. If suffix is null, .tmp is used.
          *
-         * <p>Note that this method does <i>not</i> call {@link #deleteOnExit}.
+         * <p>Note that this method does <i>not</i> call {@link #deleteOnExit.
          *
          * @param prefix
          *            the prefix to the temp file name.
@@ -702,13 +706,13 @@ module
          *            the suffix to the temp file name.
          * @param directory
          *            the location to which the temp file is to be written, or
-         *            {@code null} for the default location for temporary files,
+         *            null for the default location for temporary files,
          *            which is taken from the "java.io.tmpdir" system property. It
          *            may be necessary to set this property to an existing, writable
          *            directory for this method to work properly.
          * @return the temporary file.
          * @throws IllegalArgumentException
-         *             if the length of {@code prefix} is less than 3.
+         *             if the length of prefix is less than 3.
          * @throws IOException
          *             if an error occurs when writing the file.
          */
