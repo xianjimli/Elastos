@@ -2,14 +2,15 @@
 #include "ext/frameworkdef.h"
 #include "server/CPrivacySettingsManagerService.h"
 #include <stdio.h>
+#include "utils/log.h"
 
 
 ECode CPrivacySettingsManagerService::constructor(
     /* [in] */ IContext* context)
 {
-    printf("\t + CPrivacySettingsManagerService::constructor");
+    LOGD("\t + CPrivacySettingsManagerService::constructor\n");
     mContext = context;
-    // CPrivacyPersistenceAdapter::New(context, &mPersistence);
+    CPrivacyPersistenceAdapter::New(context, &mPersistence);
     return NOERROR;
 }
 
@@ -32,8 +33,7 @@ ECode CPrivacySettingsManagerService::GetSettings(
     (*privacySettings)->AddRef();
     */
 
-    // return mPersistence->GetSettings(capsuleName, 0, false, privacySettings);
-    return NOERROR;
+    return mPersistence->GetSettings(capsuleName, 0, false, privacySettings);
 }
 
 ECode CPrivacySettingsManagerService::SaveSettings(
@@ -41,8 +41,7 @@ ECode CPrivacySettingsManagerService::SaveSettings(
     /* [out] */ Boolean* result)
 {
     printf("\t + CPrivacySettingsManagerService::SaveSettings");
-    // return mPersistence->SaveSettings(settings, result);
-    return NOERROR;
+    return mPersistence->SaveSettings(settings, result);
 }
 
 ECode CPrivacySettingsManagerService::DeleteSettings(

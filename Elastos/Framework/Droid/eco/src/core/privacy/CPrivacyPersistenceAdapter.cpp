@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "privacy/CPrivacySettings.h"
+#include "utils/log.h"
 
 Int32 CPrivacyPersistenceAdapter::mReadingThreadsCount = 0;
 
@@ -96,7 +97,8 @@ ECode CPrivacyPersistenceAdapter::constructor(
     mContext    = pContext;
     mSqlDB      = NULL;
     mSqlDBW     = NULL;
-
+    LOGD("\t + CPrivacyPersistenceAdapter::constructor\n");
+    printf("\t + CPrivacyPersistenceAdapter::constructor\n");
     // check write permission for /data/system/
     IFile* path;
     Boolean canWrite;
@@ -321,7 +323,7 @@ ECode CPrivacyPersistenceAdapter::PurgeSettings(
 void CPrivacyPersistenceAdapter::CreateDatabase()
 {
     // todo Synchronized
-
+    LOGD("\t + CPrivacyPersistenceAdapter::CreateDatabase()");
     sqlite3* db = NULL;
     char* errMsg;
     if (SQLITE_OK != sqlite3_open(mDBFileName, &db)) {
