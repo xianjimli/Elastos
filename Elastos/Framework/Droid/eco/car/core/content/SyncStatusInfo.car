@@ -1,8 +1,122 @@
 
 module
 {
-    [deprecated]
+    const SyncStatusInfo_VERSION = 2;
+    
     interface ISyncStatusInfo{
-       
+    
+        GetLastFailureMesgAsInt(
+            [in] Int32 def,
+            [out] Int32* msg);
+        
+        DescribeContents(
+            [out] Int32* result);
+            
+        SetPeriodicSyncTime(
+            [in] Int32 index,
+            [in] Int64 when);
+         
+        GetPeriodicSyncTime(
+            [in] Int32 index,
+            [out] Int64* time);
+            
+        RemovePeriodicSyncTime(
+            [in] Int32 index);
+    
+        GetAuthorityId(
+            [out] Int32* authorityId);
+            
+        GetTotalElapsedTime(
+            [out] Int64* totalElapsedTime);
+            
+        SetTotalElapsedTime(
+            [in] Int64 totalElapsedTime);
+            
+        GetNumSyncs(
+            [out] Int32* numSyncs);
+            
+        SetNumSyncs(
+            [in] Int32 numSyncs);
+            
+        GetNumSourcePoll(
+            [out] Int32* numSourcePoll);
+            
+        SetNumSourcePoll(
+            [in] Int32 numSourcePoll);
+            
+        GetNumSourceServer(
+            [out] Int32* numSourceServer);
+            
+        SetNumSourceServer(
+            [in] Int32 numSourceServer);
+            
+        GetNumSourceLocal(
+            [out] Int32* numSourceLocal);
+            
+        SetNumSourceLocal(
+            [in] Int32 numSourceLocal);
+            
+        GetNumSourceUser(
+            [out] Int32* numSourceUser);
+            
+        SetNumSourceUser(
+            [in] Int32 numSourceUser);
+            
+        GetNumSourcePeriodic(
+            [out] Int32* numSourcePeriodic);
+            
+        SetNumSourcePeriodic(
+            [in] Int32 numSourcePeriodic);
+            
+        GetLastSuccessSource(
+            [out] Int32* lastSuccessSource);
+            
+        SetLastSuccessSource(
+            [in] Int32 lastSuccessSource);
+            
+        GetLastFailureSource(
+            [out] Int32* lastFailureSource);
+            
+        SetLastFailureSource(
+            [in] Int32 lastFailureSource);
+            
+        GetLastSuccessTime(
+            [out] Int64* lastSuccessTime);
+            
+        SetLastSuccessTime(
+            [in] Int64 lastSuccessTime);
+            
+        GetLastFailureTime(
+            [out] Int64* lastFailureTime);
+            
+        SetLastFailureTime(
+            [in] Int64 lastFailureTime);
+            
+        GetInitialFailureTime(
+            [out] Int64* initialFailureTime);
+            
+        SetInitialFailureTime(
+            [in] Int64 initialFailureTime);
+            
+        GetLastFailureMesg(
+            [out] String* lastFailureMesg);
+            
+        SetLastFailureMesg(
+            [in] String lastFailureMesg);
+            
+        GetPending(
+            [out] Boolean* pending);
+            
+        SetPending(
+            [in] Boolean pending);
+            
+        GetInitialize(
+            [out] Boolean* initialize);
+            
+        SetInitialize(
+            [in] Boolean initialize);
+            
+        GetperiodicSyncTimes(
+            [out] IObjectContainer** periodicSyncTimes);
     }
 }

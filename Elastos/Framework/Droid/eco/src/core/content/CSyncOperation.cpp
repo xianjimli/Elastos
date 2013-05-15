@@ -82,6 +82,22 @@ ECode CSyncOperation::SetSyncSource(
     return NOERROR;
 }
 
+ECode CSyncOperation::GetPendingOperation(
+    /* [out] */ ISyncStorageEnginePendingOperation** pendingOperation)
+{
+    VALIDATE_NOT_NULL(pendingOperation);
+
+    *pendingOperation = this->pendingOperation;
+    return NOERROR;
+}
+
+ECode CSyncOperation::SetPendingOperation(
+    /* [in] */ ISyncStorageEnginePendingOperation* pendingOperation)
+{
+    this->pendingOperation = pendingOperation;
+    return NOERROR;
+}
+
 ECode CSyncOperation::GetAuthority(
     /* [out] */ String* authority)
 {
