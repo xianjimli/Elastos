@@ -126,7 +126,32 @@ module
             [in] IBundle* extras,
             [in] Int64 delayInMs);
             
-            interface ISyncOperation;
+        interface ISyncOperation;
+    }
+    
+    class CSyncInfo {
+        constructor(
+            [in] IParcel* parcel);
+        
+        constructor(
+            [in] Int32 authorityId,
+            [in] IAccount* account, 
+            [in] String authority,
+            [in] Int64 startTime);
+            
+        interface ISyncInfo;
+        interface IParcelable; 
+    }
+    
+    class CSyncStatusInfo {
+        constructor(
+            [in] IParcel* parcel);
+        
+        constructor(
+            [in] Int32 authorityId);
+            
+        interface ISyncStatusInfo;
+        interface IParcelable; 
     }
     
     interface IOnAccountsUpdateListener;

@@ -271,7 +271,7 @@ ECode CSyncResult::ReadFromParcel(
 
     source->ReadInt64(&delayUntil);
 
-    ((CSyncStats*)stats)->WriteToParcel(source);
+    CSyncStats::New(source, (ISyncStats**)&stats);
 
     return NOERROR;
 }

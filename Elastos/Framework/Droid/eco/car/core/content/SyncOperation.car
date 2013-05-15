@@ -46,10 +46,10 @@ module
         SetExpedited(
             [in] Boolean expedited);
             
-        //GetPendingOperation(
-        //    [out] ISyncStorageEnginePendingOperation** pendingOperation);
+        GetPendingOperation(
+            [out] ISyncStorageEnginePendingOperation** pendingOperation);
             
-        //SetPendingOperation(
-        //    [in] ISyncStorageEnginePendingOperation* pendingOperation);
+        SetPendingOperation(
+            [in] ISyncStorageEnginePendingOperation* pendingOperation);
     }
 }

@@ -29,6 +29,12 @@ public:
     CARAPI SetSyncSource(
         /* [in] */ Int32 syncSource);
 
+    CARAPI GetPendingOperation(
+        /* [out] */ ISyncStorageEnginePendingOperation** pendingOperation);
+
+    CARAPI SetPendingOperation(
+        /* [in] */ ISyncStorageEnginePendingOperation* pendingOperation);
+
     CARAPI GetAuthority(
         /* [out] */ String* authority);
 
@@ -81,7 +87,7 @@ public:
     /*const*/ String key;
     Int64 earliestRunTime;
     Boolean expedited;
-//    AutoPtr<ISyncStorageEnginePendingOperation> pendingOperation;
+    AutoPtr<ISyncStorageEnginePendingOperation> pendingOperation;
 
 private:
     void RemoveFalseExtra(String extraName);
