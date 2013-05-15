@@ -43,6 +43,11 @@ public:
     CARAPI WriteToParcel(
         /* [in] */ IParcel* dest);
 
+    CARAPI GetCapsuleName(
+        /*[out] */ String* capsuleName);
+
+    CARAPI GetID(
+        /*[out] */ Int32* id);
 private:
     CARAPI_(String) GetRandomLat();
 

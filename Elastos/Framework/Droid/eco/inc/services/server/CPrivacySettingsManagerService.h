@@ -45,6 +45,7 @@ public:
 
 private:
     AutoPtr<IContext> mContext;
+    IPrivacyPersistenceAdapter* mPersistence;
 };
 
 #endif // __CPRIVACYSETTINGSMANAGERSERVICE_H__

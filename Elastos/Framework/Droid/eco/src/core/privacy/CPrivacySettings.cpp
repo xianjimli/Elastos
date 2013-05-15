@@ -141,3 +141,16 @@ String CPrivacySettings::GetRandomLon()
     // return longitude.setScale(6, BigDecimal.ROUND_HALF_UP) + "";
     return String("121.28");
 }
+
+ECode CPrivacySettings::GetCapsuleName(
+    String* capsuleName)
+{
+    *capsuleName = mCapsuleName;
+    return NOERROR;
+}
+
+ECode CPrivacySettings::GetID(
+    /*[out] */ Int32* id)
+{
+    *id = mId;
+}

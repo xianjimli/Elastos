@@ -17,8 +17,8 @@ public:
         /* [out] */ IPrivacySettings ** ppPrivacySettings);
 
     CARAPI SaveSettings(
-        /* [in] */ IPrivacySettings * pS,
-        /* [out] */ Boolean * pResult);
+        /* [in] */ IPrivacySettings* settings,
+        /* [out] */ Boolean * result);
 
     CARAPI DeleteSettings(
         /* [in] */ const String& packageName,
@@ -35,6 +35,7 @@ private:
     void CreateDatabase();
     void UpgradeDatabase(Int32 curVersion);
     sqlite3* GetReadableDatabase();
+    sqlite3* GetWritableDatabase();
 
     void CreateSettingsDir();
     Int32 GetVersion();
@@ -51,6 +52,7 @@ private:
     static Int32 mReadingThreadsCount;
 
     sqlite3*        mSqlDB;
+    sqlite3*        mSqlDBW;
     IContext*       mContext;
 };
 

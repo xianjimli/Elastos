@@ -1,6 +1,7 @@
 
 #include "privacy/CPrivacyPersistenceAdapter.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include "privacy/CPrivacySettings.h"
 
 Int32 CPrivacyPersistenceAdapter::mReadingThreadsCount = 0;
@@ -58,6 +59,32 @@ const char* CPrivacyPersistenceAdapter::mInsetVersionStr = "INSERT OR REPLACE IN
                                                            "(_id, version) " \
                                                            "VALUES (1, 2);";
 
+static char* intToStr(Int32 number)
+{
+    char* str = (char*)malloc(sizeof(char) * 25);
+    Int32 index = 0;
+
+    if (0 == number) {
+        str[index++] = 0X30;
+    }
+
+    while (number != 0) {
+        str[index++] = number % 10 + 0X30;
+        number /= 10;
+    }
+
+    str[index] = '\0';
+
+    char temp;
+    for (int i = 0; i < index / 2; ++i) {
+        temp = str[i];
+        str[i] = str[index - 1 - i];
+        str[index - 1 - i] = temp;
+    }
+
+    return str;
+}
+
 CPrivacyPersistenceAdapter::CPrivacyPersistenceAdapter()
 : mSqlDB(NULL), mContext(NULL)
 {
@@ -66,7 +93,9 @@ CPrivacyPersistenceAdapter::CPrivacyPersistenceAdapter()
 ECode CPrivacyPersistenceAdapter::constructor(
     /* [in] */ IContext * pContext)
 {
-    mContext = pContext;
+    mContext    = pContext;
+    mSqlDB      = NULL;
+    mSqlDBW     = NULL;
 
     // check write permission for /data/system/
     IFile* path;
@@ -187,11 +216,90 @@ ECode CPrivacyPersistenceAdapter::GetSettings(
 }
 
 ECode CPrivacyPersistenceAdapter::SaveSettings(
-    /* [in] */ IPrivacySettings * pS,
-    /* [out] */ Boolean * pResult)
+    /* [in] */ IPrivacySettings* settings,
+    /* [out] */ Boolean * result)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    // todo: Synchronization
+    *result = true;
+    if (NULL == settings) {
+        *result = false;
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
+    }
+
+    String packageName;
+    settings->GetCapsuleName(&packageName);
+    if (packageName.GetLength() <= 0) {
+        printf("%s ERROR: try to saving a privacy with an invalid capsule name\n",
+               LOG_TAG);
+        *result = false;
+        return NOERROR;
+    }
+
+    sqlite3* db = GetWritableDatabase();    assert(NULL != db);
+    String sqlTxt;
+    char* errMsg;
+    Int32 ID;
+    settings->GetID(&ID);
+    char* idStr = intToStr(ID);
+    Int32 lGPSSetting;
+    settings->GetLocationGpsSetting((Byte*)&lGPSSetting);
+    char* GPSSettingStr = intToStr(lGPSSetting);
+    String lat, lon;
+    settings->GetLocationGpsLat(&lat);
+    settings->GetLocationGpsLon(&lon);
+
+    if (ID >= 0) {
+        // Note: Use a negative value to identify that this is a value from DB
+        sqlTxt.AppendFormat("update settings set locationGpsSetting=%s,locationGpsLat='%s',locationGpsLon='%s' where _id='%'",
+                GPSSettingStr, lat.string(), lon.string(), idStr);
+        if (SQLITE_OK != sqlite3_exec(db, sqlTxt, NULL, NULL, &errMsg)) {
+            printf("%s ERROR: Update db fail: %s", LOG_TAG, errMsg);
+            *result = false;
+            return NOERROR;
+        }
+    } else {
+        sqlTxt.AppendFormat("%s%s%s", "select * from settings where packageName='",
+                                  packageName.string(), "'");
+        char** queryResult;
+        int row, column;
+        if (SQLITE_OK != sqlite3_get_table(db, sqlTxt.string(), &queryResult,
+                                              &row, &column, &errMsg)) {
+            printf("%s ERROR: querying where %s from settings fail by %s",
+                   LOG_TAG, packageName.string(), errMsg);
+            *result = false;
+            return NOERROR;
+        }
+
+        String secSqlTxt;
+        if (1 == row) {
+            secSqlTxt.AppendFormat("update settings set locationGpsSetting=%s,locationGpsLat='%s',locationGpsLon='%s' where _id='%'",
+                   GPSSettingStr, lat.string(), lon.string(), idStr);
+            if (SQLITE_OK != sqlite3_exec(db, secSqlTxt, NULL, NULL, &errMsg)) {
+               printf("%s ERROR: create settings table fail: %s", LOG_TAG, errMsg);
+               *result = false;
+               return NOERROR;
+            }
+        } else if (0 == row) {
+            secSqlTxt.AppendFormat("INSERT INTO settings (packageName, locationGpsSetting, locationGpsLat, locationGpsLon)  VALUES (%s, %s, %s, %s);",
+                                    packageName.string(), lat.string(), lon.string());
+            if (SQLITE_OK != sqlite3_exec(db, secSqlTxt, NULL, NULL, &errMsg)) {
+                printf("%s ERROR: create settings table fail: %s", LOG_TAG, errMsg);
+                *result = false;
+                return NOERROR;
+            }
+       } else if (row > 1) {
+           printf("%s ERROR: duplicated entry for package name: %s", LOG_TAG, packageName.string());
+           *result = false;
+           return NOERROR;
+       } else {
+           // error message
+           printf("%s ERROR: No opeation for this state: %s", LOG_TAG, packageName.string());
+           *result = false;
+           return NOERROR;
+       }
+    }
+
+    return NOERROR;
 }
 
 ECode CPrivacyPersistenceAdapter::DeleteSettings(
@@ -239,6 +347,16 @@ sqlite3* CPrivacyPersistenceAdapter::GetReadableDatabase() {
     if (NULL == mSqlDB) {
         if (SQLITE_OK == sqlite3_open_v2(mDBFileName, &mSqlDB, SQLITE_OPEN_READONLY, NULL)) {
            return mSqlDB;
+        }
+    }
+
+    return NULL;
+}
+
+sqlite3* CPrivacyPersistenceAdapter::GetWritableDatabase() {
+    if (NULL == mSqlDBW) {
+        if (SQLITE_OK == sqlite3_open_v2(mDBFileName, &mSqlDBW, SQLITE_OPEN_READWRITE, NULL)) {
+            return mSqlDBW;
         }
     }
 
