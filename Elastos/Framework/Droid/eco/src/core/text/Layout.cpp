@@ -243,8 +243,8 @@ ECode Layout::SpannedEllipsizer::SubSequence(
             (ICharSequence**)&tmp);
     AutoPtr<ISpannable> ret;
     FAIL_RETURN(CSpannableString::New(tmp, (ISpannable**)&ret));
-    TextUtils::CopySpansFrom(mSpanned, start, end,
-            EIID_IInterface, ret, 0);
+    InterfaceID id = EIID_IInterface;
+    TextUtils::CopySpansFrom(mSpanned, start, end, &id, ret, 0);
 
     TextUtils::Recycle(&buf);
     *subcsq = (ICharSequence*)ret.Get();

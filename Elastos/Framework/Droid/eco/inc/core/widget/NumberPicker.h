@@ -334,10 +334,23 @@ private:
     static CARAPI_(const ArrayOf<Char32>*) InitDigitCharacters();
 
     class NumberPickerInputFilter
+            : public IInputFilter
+            , public ElRefBase
     {
     public:
         NumberPickerInputFilter(
             /* [in] */ NumberPicker* host);
+
+        UInt32 AddRef();
+
+        UInt32 Release();
+
+        PInterface Probe(
+            /* [in] */ REIID riid);
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface* pObject,
+            /* [in] */ InterfaceID* pIID);
 
         CARAPI Filter(
             /* [in] */ ICharSequence* source,
@@ -395,7 +408,7 @@ private:
     AutoPtr<IRunnable> mRunnable;
 
     AutoPtr<IEditText> mText;
-    //AutoPtr<IInputFilter> mNumberInputFilter;
+    AutoPtr<IInputFilter> mNumberInputFilter;
 
     ArrayOf<String>* mDisplayedValues;
 

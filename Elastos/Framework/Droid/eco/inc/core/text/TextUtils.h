@@ -215,7 +215,7 @@ public:
         /* [in] */ ISpanned* source,
         /* [in] */ Int32 start,
         /* [in] */ Int32 end,
-        /* [in] */ InterfaceID kind,
+        /* [in] */ InterfaceID* kind,
         /* [in] */ ISpannable* dest,
         /* [in] */ Int32 destoff);
 

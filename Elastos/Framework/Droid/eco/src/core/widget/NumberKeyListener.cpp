@@ -7,6 +7,36 @@
 
 using namespace Elastos::Core;
 
+PInterface NumberKeyListener::Probe(
+    /* [in]  */ REIID riid)
+{
+    if (riid == EIID_IInterface) {
+        return (PInterface)(IInputFilter*)this;
+    }
+    else if (riid == EIID_IInputFilter) {
+        return (IInputFilter*)this;
+    }
+
+    return NULL;
+}
+
+UInt32 NumberKeyListener::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 NumberKeyListener::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode NumberKeyListener::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
 Int32 NumberKeyListener::Lookup(
     /* [in] */ IKeyEvent* event,
     /* [in] */ ISpannable* content)

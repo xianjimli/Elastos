@@ -33,6 +33,8 @@ SOURCES += CEditableFactory.cpp
 SOURCES += CNoCopySpan.cpp
 SOURCES += CClipboardManager.cpp
 SOURCES += CSelectionHelper.cpp
+SOURCES += CAllCaps.cpp
+SOURCES += CLengthFilter.cpp
 
 LIBRARIES += method/method.lib
 #LIBRARIES += method/format.lib

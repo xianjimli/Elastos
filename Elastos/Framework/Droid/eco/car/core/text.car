@@ -20,6 +20,7 @@ module
     merge("text/ClipboardManager.car");
     merge("text/IClipboard.car");
     merge("text/Selection.car");
+    merge("text/InputFilter.car");
     merge("text/style/ParagraphStyle.car");
     merge("text/style/LineBackgroundSpan.car");
     merge("text/style/AlignmentSpan.car");
@@ -310,5 +311,24 @@ module
 
     singleton class CSelectionHelper {
         interface ISelectionHelper;
+    }
+
+    /**
+     * This filter will capitalize all the lower case letters that are added
+     * through edits.
+     */
+    class CAllCaps {
+        interface IInputFilter;
+    }
+
+    /**
+     * This filter will constrain edits not to make the length of the text
+     * greater than the specified length.
+     */
+    class CLengthFilter {
+        constructor(
+            [in] Int32 max);
+
+        interface IInputFilter;
     }
 }

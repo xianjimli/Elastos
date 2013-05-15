@@ -1,6 +1,7 @@
 
 #include "widget/NumberPicker.h"
 #include "os/CApartment.h"
+#include <elastos/AutoFree.h>
 
 const ArrayOf<Char32>* NumberPicker::InitDigitCharacters()
 {
@@ -360,8 +361,10 @@ void NumberPicker::Init(
 
     LongClickListener* longClickListener = new LongClickListener(this);
 
-    //InputFilter inputFilter = new NumberPickerInputFilter();
-    //mNumberInputFilter = new NumberRangeKeyListener();
+    AutoPtr<IInputFilter> inputFilter =
+            (IInputFilter*)(new NumberPickerInputFilter(this))->Probe(EIID_IInputFilter);
+    mNumberInputFilter =
+            (IInputFilter*)(new NumberRangeKeyListener(this))->Probe(EIID_IInputFilter);
 
     mIncrementButton = (INumberPickerButton*)
             FindViewById(0x010201fa/*R.id.increment*/).Get();
@@ -381,7 +384,10 @@ void NumberPicker::Init(
 
     mText = (IEditText*)FindViewById(0x010201fb/*R.id.timepicker_input*/).Get();
     mText->SetOnFocusChangeListener((IViewOnFocusChangeListener*)focusListener);
-    //mText->SetFilters(new InputFilter[] {inputFilter});
+    // AutoPtr<IObjectContainer> container;
+    // CObjectContainer::New((IObjectContainer**)&container);
+    // container->Add(inputFilter);
+    // mText->SetFilters(container);
     mText->SetRawInputType(InputType_TYPE_CLASS_NUMBER);
 
     if (!IsEnabled()) {
@@ -647,6 +653,36 @@ NumberPicker::NumberPickerInputFilter::NumberPickerInputFilter(
         : mHost(host)
 {}
 
+PInterface NumberPicker::NumberPickerInputFilter::Probe(
+    /* [in]  */ REIID riid)
+{
+    if (riid == EIID_IInterface) {
+        return (PInterface)(IInputFilter*)this;
+    }
+    else if (riid == EIID_IInputFilter) {
+        return (IInputFilter*)this;
+    }
+
+    return NULL;
+}
+
+UInt32 NumberPicker::NumberPickerInputFilter::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 NumberPicker::NumberPickerInputFilter::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode NumberPicker::NumberPickerInputFilter::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
 ECode NumberPicker::NumberPickerInputFilter::Filter(
     /* [in] */ ICharSequence* source,
     /* [in] */ Int32 start,
@@ -658,10 +694,10 @@ ECode NumberPicker::NumberPickerInputFilter::Filter(
 {
     VALIDATE_NOT_NULL(cs);
 
-    // if (mHost->mDisplayedValues == NULL) {
-    //     return mHost->mNumberInputFilter->Filter(
-    //                 source, start, end, dest, dstart, dend, cs);
-    // }
+    if (mHost->mDisplayedValues == NULL) {
+        return mHost->mNumberInputFilter->Filter(
+                    source, start, end, dest, dstart, dend, cs);
+    }
     AutoPtr<ICharSequence> filtered, destCs1, destCs2;
     source->SubSequence(start, end, (ICharSequence**)&filtered);
     dest->SubSequence(0, dstart, (ICharSequence**)&destCs1);

@@ -3,13 +3,28 @@
 #define __NUMBERKEYLISTENER_H__
 
 #include "text/method/BaseKeyListener.h"
+#include <elastos/ElRefBase.h>
 
 /**
  * For numeric text entry
  */
-class NumberKeyListener : public BaseKeyListener
+class NumberKeyListener
+        : public BaseKeyListener
+        , public IInputFilter
+        , public ElRefBase
 {
 public:
+    UInt32 AddRef();
+
+    UInt32 Release();
+
+    PInterface Probe(
+        /* [in] */ REIID riid);
+
+    CARAPI GetInterfaceID(
+        /* [in] */ IInterface* pObject,
+        /* [in] */ InterfaceID* pIID);
+
     virtual CARAPI Filter(
         /* [in] */ ICharSequence* source,
         /* [in] */ Int32 start,
