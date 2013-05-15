@@ -102,19 +102,19 @@ module
     * InputStream with versions that pass all requests to the contained input stream. Subclasses of FilterInputStream may further
     * override some of these methods and may also provide additional methods and fields.
     * 
-    * @implements com.elastos.IInputStream
+    * @implements com::elastos::IInputStream
     *
     * <strong>Direct Known Subclasses:</strong>
-    * - @ref com.elastos.CBufferedInputStream
-    * - @ref com.elastos.CCheckedInputStream
-    * - @ref com.elastos.CCipherInputStream
-    * - @ref com.elastos.CDataInputStream
-    * - @ref com.elastos.CDeflaterInputStream
-    * - @ref com.elastos.CDigestInputStream
-    * - @ref com.elastos.CInflaterInputStream
-    * - @ref com.elastos.CLineNumberInputStream,
-    * - @ref com.elastos.CProgressMonitorInputStream
-    * - @ref com.elastos.CPushbackInputStream
+    * - @ref com::elastos::CBufferedInputStream
+    * - @ref com::elastos::CCheckedInputStream
+    * - @ref com::elastos::CCipherInputStream
+    * - @ref com::elastos::CDataInputStream
+    * - @ref com::elastos::CDeflaterInputStream
+    * - @ref com::elastos::CDigestInputStream
+    * - @ref com::elastos::CInflaterInputStream
+    * - @ref com::elastos::CLineNumberInputStream,
+    * - @ref com::elastos::CProgressMonitorInputStream
+    * - @ref com::elastos::CPushbackInputStream
     *
     * @since Elastos 1.0
     * @todo  http://docs.oracle.com/javase/6/docs/api/java/io/FilterInputStream.html
@@ -142,9 +142,9 @@ module
     * past the bytes read. If the random access file is created in read/write mode, then output operations are also available; output operations write bytes starting at the file pointer and advance the file pointer past the bytes written. Output operations that write past the current end of the implied array cause the array to be extended. The file pointer can be read by the getFilePointer method and set by the seek method.
     * It is generally true of all the reading routines in this class that if end-of-file is reached before the desired number of bytes has been read, an EOFException (which is a kind of IOException) is thrown. If any byte cannot be read for any reason other than end-of-file, an IOException other than EOFException is thrown. In particular, an IOException may be thrown if the stream has been closed.
     * 
-    * @implements com.elastos.IRandomAccessFile
-    * @implements com.elastos.IDataInput
-    * @implements com.elastos.IDataOutput
+    * @implements com::elastos::IRandomAccessFile
+    * @implements com::elastos::IDataInput
+    * @implements com::elastos::IDataOutput
     *
     *
     * @since Elastos 1.0
@@ -163,7 +163,7 @@ module
         * if read access to the file is allowed. If the mode allows writing, the security manager's checkWrite method is
         * also called with the name argument as its argument to see if write access to the file is allowed.
         *
-        * @sa com.elastos.ISecurityManager::CheckRead()
+        * @sa com::elastos::ISecurityManager::CheckRead()
         * 
         * @param file    the file object.
         * @param mode    the access mode, as described @ref mode
@@ -207,7 +207,7 @@ module
         * If there is a security manager, its checkRead method is called with the pathname of the file argument as its argument to see if read
         * access to the file is allowed. If the mode allows writing, the security manager's checkWrite method is also called with the path argument to see if write access to the file is allowed.
         * 
-        * @sa com.elastos.ISecurityManager::CheckRead()
+        * @sa com::elastos::ISecurityManager::CheckRead()
         * 
         * @param fileName     the system-dependent filename.
         * @param mode    the access mode, as described above.
@@ -233,8 +233,8 @@ module
     * is refilled as necessary from the contained input stream, many bytes at a time. The mark operation remembers a point in the input stream and the
     * reset operation causes all the bytes read since the most recent mark operation to be reread before new bytes are taken from the contained input stream.
     * 
-    * @implements com.elastos.ICloseable
-    * @implements com.elastos.IBufferedInputStream
+    * @implements com::elastos::ICloseable
+    * @implements com::elastos::IBufferedInputStream
     *
     * @since Elastos 1.0
     * @todo  http://docs.oracle.com/javase/6/docs/api/java/io/BufferedInputStream.html
@@ -277,9 +277,9 @@ module
     * The class FilterOutputStream itself simply overrides all methods of OutputStream with versions that pass all requests to the underlying
     * output stream. Subclasses of FilterOutputStream may further override some of these methods as well as provide additional methods and fields.
     * 
-    * @implements com.elastos.ICloseable
-    * @implements com.elastos.IFlushable
-    * @implements com.elastos.IFilterOutputStream
+    * @implements com::elastos::ICloseable
+    * @implements com::elastos::IFlushable
+    * @implements com::elastos::IFilterOutputStream
     *
     * @since Elastos 1.0
     * @todo  http://docs.oracle.com/javase/6/docs/api/java/io/FilterOutputStream.html
@@ -300,9 +300,9 @@ module
     * The class implements a buffered output stream. By setting up such an output stream, an application can write bytes to the underlying output stream without
     * necessarily causing a call to the underlying system for each byte written.
     * 
-    * @implements com.elastos.ICloseable
-    * @implements com.elastos.IFlushable
-    * @implements com.elastos.IBufferedOutputStream
+    * @implements com::elastos::ICloseable
+    * @implements com::elastos::IFlushable
+    * @implements com::elastos::IBufferedOutputStream
     *
     * @since Elastos 1.0
     * @todo  http://docs.oracle.com/javase/6/docs/api/java/io/BufferedOutputStream.html
@@ -337,10 +337,10 @@ module
     * A ByteArrayInputStream contains an internal buffer that contains bytes that may be read from the stream. An internal counter keeps track of the next byte to be supplied by the read method.
     * Closing a ByteArrayInputStream has no effect. The methods in this class can be called after the stream has been closed without generating an IOException.
     * 
-    * @implements com.elastos.ICloseable
-    * @implements com.elastos.IByteArrayInputStream
+    * @implements com::elastos::ICloseable
+    * @implements com::elastos::IByteArrayInputStream
     * 
-    * @sa com.elastos.StringBufferInputStream
+    * @sa com::elastos::StringBufferInputStream
     *
     * @since Elastos 1.0
     * @todo  http://docs.oracle.com/javase/6/docs/api/java/io/ByteArrayInputStream.html
@@ -378,9 +378,9 @@ module
     * The data can be retrieved using toByteArray() and toString().
     * Closing a ByteArrayOutputStream has no effect. The methods in this class can be called after the stream has been closed without generating an IOException.
     * 
-    * @implements com.elastos.ICloseable
-    * @implements com.elastos.IFlushable
-    * @implements com.elastos.IByteArrayOutputStream
+    * @implements com::elastos::ICloseable
+    * @implements com::elastos::IFlushable
+    * @implements com::elastos::IByteArrayOutputStream
     *
     * @since Elastos 1.0
     * @todo  http://docs.oracle.com/javase/6/docs/api/java/io/ByteArrayOutputStream.html
@@ -433,68 +433,75 @@ module
     * Instances of this class may or may not denote an actual file-system object such as a file or a directory. If it does denote such an object then that object resides in a partition. A partition is an operating system-specific portion of storage for a file system. A single storage device (e.g. a physical disk-drive, flash memory, CD-ROM) may contain multiple partitions. The object, if any, will reside on the partition named by some ancestor of the absolute form of this pathname.
     * 
     * A file system may implement restrictions to certain operations on the actual file-system object, such as reading, writing, and executing. These restrictions are collectively known as access permissions. The file system may have multiple sets of access permissions on a single object. For example, one set may apply to the object's owner, and another may apply to all other users. The access permissions on an object may cause some methods in this class to fail.
-    * 
     * Instances of the File class are immutable; that is, once created, the abstract pathname represented by a File object will never change.
     * 
-    * @implements com.elastos.ISerializable
-    * @implements com.elastos.IComparable
-    * @implements com.elastos.IFile
+    * An "abstract" representation of a file system entity identified by a pathname. The pathname may be absolute (relative to the root directory
+    * of the file system) or relative to the current directory in which the program is running.
+    * 
+    * The actual file referenced by a CFile may or may not exist. It may also, despite the name CFile, be a directory or other non-regular file.
+    * 
+    * This class provides limited functionality for getting/setting file permissions, file type, and last modified time.
+    * 
+    * On Elastos strings are converted to UTF-8 byte sequences when sending filenames to the operating system, and byte sequences returned by
+    * the operating system are converted to strings by decoding them as UTF-8 byte sequences.
+    * 
+    * @implements com::elastos::ISerializable
+    * @implements com::elastos::IComparable
+    * @implements com::elastos::IFile
     *
     * @since Elastos 1.0
     * @todo  http://docs.oracle.com/javase/6/docs/api/java/io/File.html
+    * @todo  http://developer.android.com/reference/java/io/File.html
     */
     class CFile {
-        /**
-         * Constructs a new file using the specified directory and name.
-         *
-         * @param dir
-         *            the directory where the file is stored.
-         * @param name
-         *            the file's name.
-         * @throws NullPointerException
-         *             if  name is  null.
-         */
+      /**
+        * @brief Constructs a new file using the specified directory and name.
+        *
+        * @param dir   the directory where the file is stored.
+        * @param name  the file's name.
+        * @return ECode = NOERROR(0) if success, elas as follows:
+        * Value | Meaning |
+        * :-|:------------|
+        * NullPointerException | if  name is  null.
+        */
         constructor(
             [in] IFile* dir,
             [in] String name);
 
         /**
-         * Constructs a new file using the specified path.
+         * @brief Constructs a new file using the specified path.
          *
-         * @param path
-         *            the path to be used for the file.
+         * @param path     the path to be used for the file.
          */
         constructor(
             [in] String path);
 
-        /**
-         * Constructs a new File using the specified directory path and file name,
-         * placing a path separator between the two.
+       /**
+         * @brief Constructs a new File using the specified directory path and file name, placing a path separator between the two.
          *
-         * @param dirPath
-         *            the path to the directory where the file is stored.
-         * @param name
-         *            the file's name.
-         * @throws NullPointerException
-         *             if  name is  null.
+         * @param dirPath      the path to the directory where the file is stored.
+         * @param name         the file's name.
+         * @return ECode = NOERROR(0) if success, elas as follows:
+         * Value | Meaning |
+         * :-|:------------|
+         * NullPointerException | if  name is  null.
          */
         constructor(
             [in] String dirPath,
             [in] String name);
 
         /**
-         * Constructs a new File using the path of the specified URI.  uri}
-         * needs to be an absolute and hierarchical Unified Resource Identifier with
-         * file scheme and non-empty path component, but with undefined authority,
-         * query or fragment components.
+         * @brief Constructs a new File using the path of the specified URI.  uri needs to be an absolute and hierarchical Unified Resource Identifier with
+         * file scheme and non-empty path component, but with undefined authority, query or fragment components.
          *
-         * @param uri
-         *            the Unified Resource Identifier that is used to construct this
-         *            file.
-         * @throws IllegalArgumentException
-         *             if  uri does not comply with the conditions above.
-         * @see #toURI
-         * @see java.net.URI
+         * @param uri   the Unified Resource Identifier that is used to construct this file.
+         * @return ECode = NOERROR(0) if success, elas as follows:
+         * Value | Meaning |
+         * :-|:------------|
+         * IllegalArgumentException | if uri does not comply with the conditions above.
+         * 
+         * @sa com::elastos::CtoURI
+         * @sa com::elastos::CURI
          */
 //        constructor(
 //            [in] IURI* uri);
@@ -505,7 +512,7 @@ module
    /**
     * Utilities for File manipulation.
     * 
-    * @implements com.elastos.IFileHelper
+    * @implements com::elastos::IFileHelper
     *
     * @since Elastos 1.0
     * @todo  http://docs.oracle.com/cd/E18150_01/javadocs/DevelopmentKit/com/stc/connector/framework/util/FileHelper.html
@@ -519,7 +526,7 @@ module
     * an open socket, or another source or sink of bytes. The main practical use for a file descriptor is to create a FileInputStream or FileOutputStream to contain it.
     * Applications should not create their own file descriptors.
     * 
-    * @implements com.elastos.IFileDescriptor
+    * @implements com::elastos::IFileDescriptor
     *
     * @since Elastos 1.0
     * @todo  http://docs.oracle.com/javase/6/docs/api/java/io/FileDescriptor.html
@@ -532,8 +539,8 @@ module
     * A FileInputStream obtains input bytes from a file in a file system. What files are available depends on the host environment.
     * FileInputStream is meant for reading streams of raw bytes such as image data. For reading streams of characters, consider using FileReader.
     * 
-    * @implements com.elastos.IFileInputStream
-    * @implements com.elastos.ICloseable
+    * @implements com::elastos::IFileInputStream
+    * @implements com::elastos::ICloseable
     *
     * @since Elastos 1.0
     * @todo  http://docs.oracle.com/javase/6/docs/api/index.html?java/io/FileInputStream.html
@@ -594,12 +601,12 @@ module
     * IFileOutputStream (or other file-writing object) at a time. In such situations the constructors in this class will fail if the file involved is already open.
     * IFileOutputStream is meant for writing streams of raw bytes such as image data. For writing streams of characters, consider using FileWriter.
     * 
-    * @implements com.elastos.IFileOutputStream
-    * @implements com.elastos.ICloseable
+    * @implements com::elastos::IFileOutputStream
+    * @implements com::elastos::ICloseable
     *
-    * @sa com.elastos.IFile
-    * @sa com.elastos.IFileDescriptor
-    * @sa com.elastos.IFileInputStream
+    * @sa com::elastos::IFile
+    * @sa com::elastos::IFileDescriptor
+    * @sa com::elastos::IFileInputStream
     *
     * @since Elastos 1.0
     * @todo  http://docs.oracle.com/javase/1.4.2/docs/api/java/io/FileOutputStream.html
@@ -703,10 +710,10 @@ module
     * An application uses a data output stream to write data that can later be read by a data input stream.
     * IDataInputStream is not necessarily safe for multithreaded access. Thread safety is optional and is the responsibility of users of methods in this class.
     * 
-    * @implements com.elastos.IDataInput
-    * @implements com.elastos.IDataInputStream
+    * @implements com::elastos::IDataInput
+    * @implements com::elastos::IDataInputStream
     *
-    * @sa com.elastos.IDataOutputStream
+    * @sa com::elastos::IDataOutputStream
     *
     * @since Elastos 1.0
     * @todo  http://docs.oracle.com/javase/6/docs/api/java/io/DataInputStream.html
@@ -737,10 +744,10 @@ module
     * A data output stream lets an application write primitive Java data types to an output stream in a portable way.
     * An application can then use a data input stream to read the data back in.
     * 
-    * @implements com.elastos.IDataOutput
-    * @implements com.elastos.IDataOutputStream
+    * @implements com::elastos::IDataOutput
+    * @implements com::elastos::IDataOutputStream
     *
-    * @sa com.elastos.IDataInputStream
+    * @sa com::elastos::IDataInputStream
     *
     * @since Elastos 1.0
     * @todo  http://docs.oracle.com/javase/6/docs/api/java/io/DataOutputStream.html
@@ -803,10 +810,10 @@ module
     * The data can be retrieved using toCharArray() and toString().
     * Note: Invoking close() on this class has no effect, and methods of this class can be called after the stream has closed without generating an IOException.
 
-    * @implements com.elastos.ICharArrayWriter
-    * @implements com.elastos.ICloseable
-    * @implements com.elastos.IFlushable
-    * @implements com.elastos.IAppendable
+    * @implements com::elastos::ICharArrayWriter
+    * @implements com::elastos::ICloseable
+    * @implements com::elastos::IFlushable
+    * @implements com::elastos::IAppendable
     *
     * @since Elastos 1.0
     * @todo  http://docs.oracle.com/javase/6/docs/api/java/io/CharArrayWriter.html
