@@ -8,50 +8,51 @@
 #include <elastos/Mutex.h>
 #include <elastos/AutoFree.h>
 
+#include <elastos/HashMap.h>
+
 class CacheLoader;
 
-class LoadListener : public ElRefBase// extends Handler implements EventHandler 
+class LoadListener : public ElRefBase, public IApartment//implements EventHandler 
 {
+private:    
+    class Msg : public ElRefBase
+    {
+    public:
+        Int32 message;
+        AutoPtr<IParcel> params;
+    };
 public:
     // =========================================================================
     // Public functions
     // =========================================================================
 
-	static CARAPI_(LoadListener*) GetLoadListener(
-		/* [in] */ IContext* context,
-		/* [in] */ IBrowserFrame* frame, 
-		/* [in] */ const String& url, 
-		/* [in] */ Int32 nativeLoader,
-		/* [in] */ Boolean synchronous, 
-		/* [in] */ Boolean isMainPageLoader,
-		/* [in] */ Boolean isMainResource, 
-		/* [in] */ Boolean userGesture, 
-		/* [in] */ Int64 postIdentifier,
-		/* [in] */ const String& username, 
-		/* [in] */ const String& password);
+    static CARAPI_(LoadListener*) GetLoadListener(
+        /* [in] */ IContext* context,
+        /* [in] */ IBrowserFrame* frame, 
+        /* [in] */ const String& url, 
+        /* [in] */ Int32 nativeLoader,
+        /* [in] */ Boolean synchronous, 
+        /* [in] */ Boolean isMainPageLoader,
+        /* [in] */ Boolean isMainResource, 
+        /* [in] */ Boolean userGesture, 
+        /* [in] */ Int64 postIdentifier,
+        /* [in] */ const String& username, 
+        /* [in] */ const String& password);
 
-	static CARAPI_(Int32) GetNativeLoaderCount();
+    static CARAPI_(Int32) GetNativeLoaderCount();
 
     LoadListener(
-    	/* [in] */ IContext* context, 
-    	/* [in] */ IBrowserFrame* frame, 
-    	/* [in] */ const String& url,
-    	/* [in] */ Int32 nativeLoader, 
-    	/* [in] */ Boolean synchronous, 
-    	/* [in] */ Boolean isMainPageLoader,
-    	/* [in] */ Boolean isMainResource, 
-    	/* [in] */ Boolean userGesture, 
-    	/* [in] */ Int64 postIdentifier,
-    	/* [in] */ const String& username, 
-    	/* [in] */ const String& password);
-
-
-    /*
-     * This message handler is to facilitate communication between the network
-     * thread and the browser thread.
-     */
-	virtual CARAPI_(void) HandleMessage(
-		/* [in] */ IMessage* msg);
+        /* [in] */ IContext* context, 
+        /* [in] */ IBrowserFrame* frame, 
+        /* [in] */ const String& url,
+        /* [in] */ Int32 nativeLoader, 
+        /* [in] */ Boolean synchronous, 
+        /* [in] */ Boolean isMainPageLoader,
+        /* [in] */ Boolean isMainResource, 
+        /* [in] */ Boolean userGesture, 
+        /* [in] */ Int64 postIdentifier,
+        /* [in] */ const String& username, 
+        /* [in] */ const String& password);
 
     /**
      * @return The loader's BrowserFrame.
@@ -66,7 +67,7 @@ public:
     /**
      * @return True iff the load has been cancelled
      */
-	virtual CARAPI_(Boolean) Cancelled();
+    virtual CARAPI_(Boolean) Cancelled();
 
     /**
      * Parse the headers sent from the server.
@@ -74,8 +75,8 @@ public:
      * IMPORTANT: as this is called from network thread, can't call native
      * directly
      */
-	virtual CARAPI_(void) Headers(
-		/* [in] */ IHeaders* headers);
+    virtual CARAPI_(void) Headers(
+        /* [in] */ IHeaders* headers);
 
 
 
@@ -90,11 +91,11 @@ public:
      * IMPORTANT: as this is called from network thread, can't call native
      * directly
      */
-	virtual CARAPI_(void) Status(
-		/* [in] */ Int32 majorVersion, 
-		/* [in] */ Int32 minorVersion,
-		/* [in] */ Int32 code, /* Status-Code value */ 
-		/* [in] */ const String& reasonPhrase);
+    virtual CARAPI_(void) Status(
+        /* [in] */ Int32 majorVersion, 
+        /* [in] */ Int32 minorVersion,
+        /* [in] */ Int32 code, /* Status-Code value */ 
+        /* [in] */ const String& reasonPhrase);
 
 
 
@@ -109,8 +110,8 @@ public:
      * @param certificate The SSL certifcate or null if the request
      * was not secure
      */
-	virtual CARAPI_(void) Certificate(
-		/* [in] */ ISslCertificate* certificate);
+    virtual CARAPI_(void) Certificate(
+        /* [in] */ ISslCertificate* certificate);
 
     /**
      * Implementation of error handler for EventHandler.
@@ -120,9 +121,9 @@ public:
      * IMPORTANT: as this is called from network thread, can't call native
      * directly
      */
-	virtual CARAPI_(void) Error(
-		/* [in] */ int id, 
-		/* [in] */ const String& description);
+    virtual CARAPI_(void) Error(
+        /* [in] */ int id, 
+        /* [in] */ const String& description);
 
     /**
      * Add data to the internal collection of data. This function is used by
@@ -134,9 +135,9 @@ public:
      * XXX: Unlike the other network thread methods, this method can do the
      * work of decoding the data and appending it to the data builder.
      */
-	virtual CARAPI_(void) Data(
-		/* [in] */ ArrayOf<Byte>& data, 
-		/* [in] */ Int32 length);
+    virtual CARAPI_(void) Data(
+        /* [in] */ ArrayOf<Byte>& data, 
+        /* [in] */ Int32 length);
 
     /**
      * Event handler's endData call. Send a message to the handler notifying
@@ -144,13 +145,13 @@ public:
      * IMPORTANT: as this is called from network thread, can't call native
      * directly
      */
-	virtual CARAPI_(void) EndData();
+    virtual CARAPI_(void) EndData();
 
     /* This method is called from CacheLoader when the initial request is
      * serviced by the Cache. */
     /* package */ 
     virtual CARAPI_(void) SetCacheLoader(
-    	/* [in] */ CacheLoader* c);
+        /* [in] */ CacheLoader* c);
 
     /**
      * Check the cache for the current URL, and load it if it is valid.
@@ -159,7 +160,7 @@ public:
      * @return true if cached response is used.
      */
     virtual CARAPI_(Boolean) CheckCache(
-    	/* [in] */ IObjectStringMap* headers);
+        /* [in] */ IObjectStringMap* headers);
 
     /**
      * SSL certificate error callback. Handles SSL error(s) on the way up
@@ -167,14 +168,14 @@ public:
      * IMPORTANT: as this is called from network thread, can't call native
      * directly
      */
-	virtual CARAPI_(Boolean) HandleSslErrorRequest(
-		/* [in] */ ISslError* error);
+    virtual CARAPI_(Boolean) HandleSslErrorRequest(
+        /* [in] */ ISslError* error);
 
     /**
      * @return HTTP authentication realm or null if none.
      */
     virtual CARAPI_(void) Realm(
-        /* [out] */ String& str);
+        /* [out] */ String* str);
 
     /**
      * Returns true iff an HTTP authentication problem has
@@ -192,19 +193,19 @@ public:
      * (the user has already provided their feedback).
      */
     virtual CARAPI_(void) HandleSslErrorResponse(
-    	/* [in] */ Boolean proceed);
+        /* [in] */ Boolean proceed);
 
     /**
      * Uses user-supplied credentials to restart a request. If the credentials
      * are null, cancel the request.
      */
     virtual CARAPI_(void) HandleAuthResponse(
-    	/* [in] */ const String& username, 
-    	/* [in] */ const String& password);
+        /* [in] */ const String& username, 
+        /* [in] */ const String& password);
 
     virtual CARAPI_(void) MakeAuthResponse(
-    	/* [in] */ const String& username, 
-    	/* [in] */ const String& password);
+        /* [in] */ const String& username, 
+        /* [in] */ const String& password);
 
     /**
      * This is called when a request can be satisfied by the cache, however,
@@ -215,15 +216,15 @@ public:
      * @param postData
      */
     virtual CARAPI_(void) SetRequestData(
-    	/* [in] */ const String& method, 
-    	/* [in] */ IObjectStringMap* headers, 
-    	/* [in] */ ArrayOf<Byte>& postData);
+        /* [in] */ const String& method, 
+        /* [in] */ IObjectStringMap* headers, 
+        /* [in] */ ArrayOf<Byte>& postData);
 
     /**
      * @return The current URL associated with this load.
      */
     virtual CARAPI_(void) Url(
-        /* [out] */ String& str);
+        /* [out] */ String* str);
 
     /**
      * @return The current WebAddress associated with this load.
@@ -234,18 +235,20 @@ public:
      * @return URL hostname (current URL).
      */
     virtual CARAPI_(void) Host(
-        /* [out] */ String& str);
+        /* [out] */ String* str);
 
     /**
      * @return The original URL associated with this load.
      */
     virtual CARAPI_(void) OriginalUrl(
-        /* [out] */ String& str);
+        /* [out] */ String* str);
 
     virtual CARAPI_(Int64) PostIdentifier();
 
     virtual CARAPI_(void) AttachRequestHandle(
-    	/* [in] */ /*RequestHandle* requestHandle*/);
+        /* [in] */ /*RequestHandle* requestHandle*/);
+
+    virtual CARAPI_(void) DetachRequestHandle();
 
     /*
      * This function is called from native WebCore code to
@@ -262,8 +265,8 @@ public:
      * URL.
      */
     static CARAPI_(Boolean) WillLoadFromCache(
-    	/* [in] */ const String& url, 
-    	/* [in] */ Int64 identifier);
+        /* [in] */ const String& url, 
+        /* [in] */ Int64 identifier);
 
     /*
      * Reset the cancel flag. This is used when we are resuming a stopped
@@ -274,10 +277,10 @@ public:
     virtual CARAPI_(void) ResetCancel();
 
     virtual CARAPI_(void) MimeType(
-        /* [out] */ String& str);
+        /* [out] */ String* str);
 
     virtual CARAPI_(void) TransferEncoding(
-        /* [out] */ String& str);
+        /* [out] */ String* str);
 
     /*
      * Return the size of the content being downloaded. This represents the
@@ -304,56 +307,158 @@ public:
      * we pause reading from the request. Called directly from the WebCore thread.
      */
     virtual CARAPI_(void) PauseLoad(
-    	/* [in] */ Boolean pause);
+        /* [in] */ Boolean pause);
 
     
     /**
      * Sets the current URL associated with this load.
      */
     virtual CARAPI_(void) SetUrl(
-    	/* [in] */ const String& url);
+        /* [in] */ const String& url);
 
    /**
      * Cycle through our messages for synchronous loads.
      */
     /* package */ 
-	virtual CARAPI_(void) LoadSynchronousMessages();
+    virtual CARAPI_(void) LoadSynchronousMessages();
 
     /* package */ 
     virtual CARAPI_(void) ParseContentTypeHeader(
-    	/* [in] */ const String& contentType);
+        /* [in] */ const String& contentType);
+
+public:
+    CARAPI_(PInterface) Probe(
+        /* [in] */ REIID riid);
+
+    CARAPI_(UInt32) AddRef();
+
+    CARAPI_(UInt32) Release();
+
+    CARAPI GetInterfaceID(
+        /* [in] */ IInterface* Object,
+        /* [out] */ InterfaceID* iID);
+
+public:
+    //IApartment
+    CARAPI Start(
+        /* [in] */ ApartmentAttr attr);
+
+    CARAPI Finish();
+
+    CARAPI PostCppCallback(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [in] */ IParcel* params,
+        /* [in] */ Int32 id);
+
+    CARAPI PostCppCallbackAtTime(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [in] */ IParcel* params,
+        /* [in] */ Int32 id,
+        /* [in] */ Millisecond64 uptimeMillis);
+
+    CARAPI PostCppCallbackDelayed(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [in] */ IParcel* params,
+        /* [in] */ Int32 id,
+        /* [in] */ Millisecond64 delayMillis);
+
+    CARAPI PostCppCallbackAtFrontOfQueue(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [in] */ IParcel* params,
+        /* [in] */ Int32 id);
+
+    CARAPI RemoveCppCallbacks(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func);
+
+    CARAPI RemoveCppCallbacksEx(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [in] */ Int32 id);
+
+    CARAPI HasCppCallbacks(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [out] */ Boolean* result);
+
+    CARAPI HasCppCallbacksEx(
+        /* [in] */ Handle32 target,
+        /* [in] */ Handle32 func,
+        /* [in] */ Int32 id,
+        /* [out] */ Boolean* result);
+
+    CARAPI SendMessage(
+        /* [in] */ Int32 message,
+        /* [in] */ IParcel* params);
+public:
+    //MSG_CONTENT_HEADERS
+    void HandleMsgContentHeaders(
+        /* [in] */ IHeaders* headers);
+
+    //MSG_CONTENT_DATA
+    void HandleMsgContentData();
+
+    //MSG_CONTENT_FINISHED
+    void HandleMsgContentFinished();
+
+    //MSG_CONTENT_ERROR
+    void HandleMsgContentError(
+        /* [in] */ Int32 arg1, 
+        /* [in] */ String obj);
+
+    //MSG_LOCATION_CHANGED
+    void HandleMsgLocationChanged();
+
+    //MSG_LOCATION_CHANGED_REQUEST
+    void HandleMsgLocationChangedRequest();
+
+    //MSG_STATUS
+    void HandleMsgStatus(
+        /* [in] */ IObjectStringMap* obj);
+
+    //MSG_SSL_CERTIFICATE
+    void HandleMsgSslCertificate(
+        /* [in] */ ISslCertificate* obj);
+
+    //MSG_SSL_ERROR
+    void HandleMsgSslError(
+        /* [in] */ ISslError* obj);
 
 public:
     Int64 mContentLength; // Content length of the incoming data
 
 private:
 
-	// Handle the status callback on the WebCore thread.
+    // Handle the status callback on the WebCore thread.
     CARAPI_(void) HandleStatus(
-		/* [in] */ Int32 major, 
-		/* [in] */ Int32 minor, 
-		/* [in] */ Int32 code, 
-		/* [in] */ const String& reason);
+        /* [in] */ Int32 major, 
+        /* [in] */ Int32 minor, 
+        /* [in] */ Int32 code, 
+        /* [in] */ const String& reason);
 
     // Handle the certificate on the WebCore thread.
     CARAPI_(void) HandleCertificate(
-		/* [in] */ ISslCertificate* certificate);
+        /* [in] */ ISslCertificate* certificate);
 
     // Handle the error on the WebCore thread.
     CARAPI_(void) HandleError(
-		/* [in] */ Int32 id, 
-		/* [in] */ const String& description);
+        /* [in] */ Int32 id, 
+        /* [in] */ const String& description);
 
     // Handle the end of data.
     CARAPI_(void) HandleEndData();
 
     // Handle the ssl error on the WebCore thread.
     CARAPI_(void) HandleSslError(
-		/* [in] */ ISslError* error);
+        /* [in] */ ISslError* error);
 
-	// Does the header parsing work on the WebCore thread.
+    // Does the header parsing work on the WebCore thread.
     CARAPI_(void) HandleHeaders(
-		/* [in] */ IHeaders* headers);
+        /* [in] */ IHeaders* headers);
 
     // Commit the headers if the status code is not a redirect.
     CARAPI_(void) CommitHeadersCheckRedirect();
@@ -385,7 +490,7 @@ private:
      * @return errorDescription.
      */
     CARAPI_(void) GetErrorDescription(
-        /* [out] */ String& str);
+        /* [out] */ String* str);
 
     /**
      * Cancel a request.
@@ -409,8 +514,9 @@ private:
      * strongest one. If there are several schemes of the same
      * strength, we pick the one that comes first.
      */
-//    CARAPI_(HttpAuthHeader) ParseAuthHeader(
-//		/* [in] */ CString header);
+    CARAPI ParseAuthHeader(
+        /* [in] */ String header//,
+        /* [out] */ /*IHttpAuthHeader** httpAuthHeader*/);
 
     /**
      * If the content is a redirect or not modified we should not send
@@ -422,7 +528,7 @@ private:
     CARAPI_(Boolean) IgnoreCallbacks();
 
 
-	/**
+    /**
      * We keep a count of refs to the nativeLoader so we do not create
      * so many LoadListeners that the GREFs blow up
      */
@@ -440,15 +546,16 @@ private:
      * guess MIME type based on the file extension.
      */
     CARAPI_(void) GuessMimeTypeFromExtension(
-		/* [in] */ const String& url,
-        /* [out] */ String& str);
+        /* [in] */ const String& url,
+        /* [out] */ String* str);
 
     /**
      * Either send a message to ourselves or queue the message if this is a
      * synchronous load.
      */
     CARAPI_(void) SendMessageInternal(
-		/* [in] */ IMessage* msg);
+        /* [in] */ Int32 message,
+        /* [in] */ IParcel *params);
 
     //=========================================================================
     // native functions
@@ -466,12 +573,12 @@ private:
      * @return The native response pointer.
      */
     CARAPI_(Int32) NativeCreateResponse(
-    	/* [in] */ const String& url, 
-    	/* [in] */ Int32 statusCode,
-    	/* [in] */ const String& statusText, 
-    	/* [in] */ const String& mimeType, 
-    	/* [in] */ Int64 expectedLength,
-    	/* [in] */ const String& encoding);
+        /* [in] */ const String& url, 
+        /* [in] */ Int32 statusCode,
+        /* [in] */ const String& statusText, 
+        /* [in] */ const String& mimeType, 
+        /* [in] */ Int64 expectedLength,
+        /* [in] */ const String& encoding);
 
     /**
      * Add a response header to the native object.
@@ -480,16 +587,16 @@ private:
      * @param val String value.
      */
     CARAPI_(void) NativeSetResponseHeader(
-		/* [in] */ Int32 nativeResponse, 
-		/* [in] */ const String& key,
-		/* [in] */ const String& val);
+        /* [in] */ Int32 nativeResponse, 
+        /* [in] */ const String& key,
+        /* [in] */ const String& val);
 
     /**
      * Dispatch the response.
      * @param nativeResponse The native pointer.
      */
     CARAPI_(void) NativeReceivedResponse(
-		/* [in] */ Int32 nativeResponse);
+        /* [in] */ Int32 nativeResponse);
 
     /**
      * Add data to the loader.
@@ -497,8 +604,8 @@ private:
      * @param length Number of objects in data.
      */
     CARAPI_(void) NativeAddData(
-		/* [in] */ const ArrayOf<Byte>& data, 
-		/* [in] */ Int32 length);
+        /* [in] */ const ArrayOf<Byte>& data, 
+        /* [in] */ Int32 length);
 
     /**
      * Tell the loader it has finished.
@@ -513,10 +620,10 @@ private:
      * @return The new url that the resource redirected to.
      */
     CARAPI_(void) NativeRedirectedToUrl(
-		/* [in] */ const String& baseUrl,
-		/* [in] */ const String& redirectTo, 
-		/* [in] */ Int32 nativeResponse,
-        /* [out] */ String& str);
+        /* [in] */ const String& baseUrl,
+        /* [in] */ const String& redirectTo, 
+        /* [in] */ Int32 nativeResponse,
+        /* [out] */ String* str);
 
     /**
      * Tell the loader there is error
@@ -525,58 +632,65 @@ private:
      * @param failingUrl The url that failed.
      */
     CARAPI_(void) NativeError(
-		/* [in] */ Int32 id, 
-		/* [in] */ const String& desc, 
-		/* [in] */ const String& failingUrl);
+        /* [in] */ Int32 id, 
+        /* [in] */ const String& desc, 
+        /* [in] */ const String& failingUrl);
+private:    
+    /*
+     * This message handler is to facilitate communication between the network
+     * thread and the browser thread.
+     */
+    virtual CARAPI_(void) HandleMessage(
+        /* [in] */ Msg* msg);
 
 private:
 
-	// This is the same regex that DOMImplementation uses to check for xml
+    // This is the same regex that DOMImplementation uses to check for xml
     // content. Use this to check if another Activity wants to handle the
     // content before giving it to webkit.
-	static const CString XML_MIME_TYPE;// =
+    static const CString XML_MIME_TYPE;// =
        //     "^[\\w_\\-+~!$\\^{}|.%'`#&*]+/" +
        //     "[\\w_\\-+~!$\\^{}|.%'`#&*]+\\+xml$";
 
-	/**
+    /**
      * Parses the content-type header.
      * The first part only allows '-' if it follows x or X.
      */
-//	static const Pattern CONTENT_TYPE_PATTERN;// =
+//    static const Pattern CONTENT_TYPE_PATTERN;// =
         //    Pattern.compile("^((?:[xX]-)?[a-zA-Z\\*]+/[\\w\\+\\*-]+[\\.[\\w\\+-]+]*)$");
 
     // This count is transferred from RequestHandle to LoadListener when
     // loading from the cache so that we can detect redirect loops that switch
     // between the network and the cache.
-	Int32 mCacheRedirectCount;
+    Int32 mCacheRedirectCount;
 
-	static const CString LOGTAG;// = "webkit";
+    static const CString LOGTAG;// = "webkit";
 
     // Messages used internally to communicate state between the
     // Network thread and the WebCore thread.
-	static const Int32 MSG_CONTENT_HEADERS = 100;
-	static const Int32 MSG_CONTENT_DATA = 110;
-	static const Int32 MSG_CONTENT_FINISHED = 120;
-	static const Int32 MSG_CONTENT_ERROR = 130;
-	static const Int32 MSG_LOCATION_CHANGED = 140;
-	static const Int32 MSG_LOCATION_CHANGED_REQUEST = 150;
-	static const Int32 MSG_STATUS = 160;
-	static const Int32 MSG_SSL_CERTIFICATE = 170;
-	static const Int32 MSG_SSL_ERROR = 180;
+    static const Int32 MSG_CONTENT_HEADERS = 100;
+    static const Int32 MSG_CONTENT_DATA = 110;
+    static const Int32 MSG_CONTENT_FINISHED = 120;
+    static const Int32 MSG_CONTENT_ERROR = 130;
+    static const Int32 MSG_LOCATION_CHANGED = 140;
+    static const Int32 MSG_LOCATION_CHANGED_REQUEST = 150;
+    static const Int32 MSG_STATUS = 160;
+    static const Int32 MSG_SSL_CERTIFICATE = 170;
+    static const Int32 MSG_SSL_ERROR = 180;
 
     // Standard HTTP status codes in a more representative format
-	static const Int32 HTTP_OK = 200;
-	static const Int32 HTTP_PARTIAL_CONTENT = 206;
-	static const Int32 HTTP_MOVED_PERMANENTLY = 301;
-	static const Int32 HTTP_FOUND = 302;
-	static const Int32 HTTP_SEE_OTHER = 303;
-	static const Int32 HTTP_NOT_MODIFIED = 304;
-	static const Int32 HTTP_TEMPORARY_REDIRECT = 307;
-	static const Int32 HTTP_AUTH = 401;
-	static const Int32 HTTP_NOT_FOUND = 404;
-	static const Int32 HTTP_PROXY_AUTH = 407;
+    static const Int32 HTTP_OK = 200;
+    static const Int32 HTTP_PARTIAL_CONTENT = 206;
+    static const Int32 HTTP_MOVED_PERMANENTLY = 301;
+    static const Int32 HTTP_FOUND = 302;
+    static const Int32 HTTP_SEE_OTHER = 303;
+    static const Int32 HTTP_NOT_MODIFIED = 304;
+    static const Int32 HTTP_TEMPORARY_REDIRECT = 307;
+    static const Int32 HTTP_AUTH = 401;
+    static const Int32 HTTP_NOT_FOUND = 404;
+    static const Int32 HTTP_PROXY_AUTH = 407;
 
-	static /*IHashMap*/AutoPtr<IObjectStringMap> sCertificateTypeMap;
+    static /*IHashMap*/AutoPtr<IObjectStringMap> sCertificateTypeMap;
     /*static {
         sCertificateTypeMap = new HashMap<String, String>();
         sCertificateTypeMap.put("application/x-x509-ca-cert", CertTool.CERT);
@@ -584,55 +698,58 @@ private:
         sCertificateTypeMap.put("application/x-pkcs12", CertTool.PKCS12);
     }*/
 
-	static Int32 sNativeLoaderCount;
+    static Int32 sNativeLoaderCount;
 
-	/*const*/ IByteArrayBuilder* mDataBuilder;
+    /*const*/ AutoPtr<IByteArrayBuilder> mDataBuilder;
     Core::Threading::Mutex       mDataBuilderMutex;
 
-	String                 mUrl;
-	AutoPtr<IWebAddress>   mUri;
-	Boolean                mPermanent;
-	String                 mOriginalUrl;
-	AutoPtr<IContext>      mContext;
-	AutoPtr<IBrowserFrame> mBrowserFrame;
-	Int32                  mNativeLoader;
-	String                 mMimeType;
-	String                 mEncoding;
-	String                 mTransferEncoding;
-	Int32                  mStatusCode;
-	String                 mStatusText;
+    String                 mUrl;
+    AutoPtr<IWebAddress>   mUri;
+    Boolean                mPermanent;
+    String                 mOriginalUrl;
+    AutoPtr<IContext>      mContext;
+    AutoPtr<IBrowserFrame> mBrowserFrame;
+    Int32                  mNativeLoader;
+    String                 mMimeType;
+    String                 mEncoding;
+    String                 mTransferEncoding;
+    Int32                  mStatusCode;
+    String                 mStatusText;
 
-	Boolean                mCancelled;  // The request has been cancelled.
-	Boolean                mAuthFailed;  // indicates that the prev. auth failed
-	CacheLoader*           mCacheLoader;
-	Boolean                mFromCache;
-//	HttpAuthHeader         mAuthHeader;
-	Int32                  mErrorID;
-	String                 mErrorDescription;
-	AutoPtr<ISslError>     mSslError;
-//	RequestHandle          mRequestHandle;
-//	RequestHandle          mSslErrorRequestHandle;
-	Int64                  mPostIdentifier;
+    Boolean                mCancelled;  // The request has been cancelled.
+    Boolean                mAuthFailed;  // indicates that the prev. auth failed
+    AutoPtr<CacheLoader>   mCacheLoader;
+    Boolean                mFromCache;
+//    HttpAuthHeader         mAuthHeader;
+    Int32                  mErrorID;
+    String                 mErrorDescription;
+    AutoPtr<ISslError>     mSslError;
+//    RequestHandle          mRequestHandle;
+//    RequestHandle          mSslErrorRequestHandle;
+    Int64                  mPostIdentifier;
 
     // Request data. It is only valid when we are doing a load from the
     // cache. It is needed if the cache returns a redirect
-	String mMethod;
-	AutoPtr<IObjectStringMap> mRequestHeaders;
-	AutoFree<ArrayOf<Byte> > mPostData;
+    String mMethod;
+    AutoPtr<IObjectStringMap> mRequestHeaders;
+    AutoFree<ArrayOf<Byte> > mPostData;
     // Flag to indicate that this load is synchronous.
-	Boolean mSynchronous;
-//	Vector<Message> mMessageQueue;
+    Boolean mSynchronous;
+    Vector< AutoPtr<Msg> > mMessageQueue;
 
     // Does this loader correspond to the main-frame top-level page?
-	Boolean mIsMainPageLoader;
+    Boolean mIsMainPageLoader;
     // Does this loader correspond to the main content (as opposed to a supporting resource)
-	/*const*/ Boolean mIsMainResourceLoader;
-	/*const*/ Boolean mUserGesture;
+    /*const*/ Boolean mIsMainResourceLoader;
+    /*const*/ Boolean mUserGesture;
 
-	AutoPtr<IHeaders> mHeaders;
+    AutoPtr<IHeaders> mHeaders;
 
-	const String mUsername;
-	const String mPassword;
+    const String mUsername;
+    const String mPassword;
+
+private:
+    AutoPtr<IApartment> mApartment;
 
 };
 

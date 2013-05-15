@@ -15,9 +15,8 @@ CarClass(CPluginManager)
 {
 public:
     /* static */
-    CARAPI GetInstance(
-        /* [in] */ IContext * context,
-        /* [out] */ IPluginManager ** instance);
+    static CARAPI_(IPluginManager*) GetInstance(
+        /* [in] */ IContext * context);
 
     /* public */
     CARAPI RefreshPlugins(

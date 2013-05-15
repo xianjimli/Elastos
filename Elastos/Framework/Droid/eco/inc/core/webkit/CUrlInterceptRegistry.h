@@ -12,49 +12,44 @@
 #include <elastos/List.h>
 #include <elastos/AutoPtr.h>
 
-
-
 CarClass(CUrlInterceptRegistry)
 {
 public:
     /*public*/
     /*static*/ 
-    CARAPI SetUrlInterceptDisabled(
+    static CARAPI SetUrlInterceptDisabled(
         /* [in] */ Boolean disabled);
 
     /*public*/
     /*static*/ 
-    CARAPI UrlInterceptDisabled(
-        /* [out] */ Boolean * flag);
+    static CARAPI_(Boolean) UrlInterceptDisabled();
 
     /*public*/
     /*static*/ 
-    CARAPI RegisterHandler(
-        /* [in] */ IUrlInterceptHandler * handler,
-        /* [out] */ Boolean *flag);
+    static CARAPI_(Boolean) RegisterHandler(
+        /* [in] */ IUrlInterceptHandler * handler);
 
     /*public*/
     /*static*/ 
-    CARAPI UnregisterHandler(
-        /* [in] */ IUrlInterceptHandler * handler,
-        /* [out] */ Boolean * flag);
+    static CARAPI_(Boolean) UnregisterHandler(
+        /* [in] */ IUrlInterceptHandler * handler);
 
     /*public*/
     /*static*/ 
-    CARAPI GetSurrogate(
+    static CARAPI GetSurrogate(
         /* [in] */ CString url,
         /* [in] */ IObjectStringMap * headers,
         /* [out] */ ICacheManagerCacheResult ** result);
 
     /*public*/
     /*static*/ 
-    CARAPI GetPluginData(
+    static CARAPI GetPluginData(
         /* [in] */ CString url,
         /* [in] */ IObjectStringMap * headers,
         /* [out] */ IPluginData ** data);
 
 private:
-    /*static*/ CARAPI GetHandlers(
+    static CARAPI GetHandlers(
         /* [out] */ List< AutoPtr<IUrlInterceptHandler> > ** linkedList );
 
 private:
@@ -63,6 +58,8 @@ private:
     static Boolean sDisabled;   // = false;
 
     static List< AutoPtr<IUrlInterceptHandler> > * sHandlerList;
+
+    static Core::Threading::Mutex mMutexClass;
 };
 
 #endif // __CURLINTERCEPTREGISTRY_H__

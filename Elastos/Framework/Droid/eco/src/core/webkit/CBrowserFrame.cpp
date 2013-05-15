@@ -28,10 +28,8 @@ ECode CBrowserFrame::LoadUrl(
 
     mLoadInitFromJava = TRUE;
       
-    AutoPtr<IURLUtil> urlUtil;
-    CURLUtil::AcquireSingleton((IURLUtil**)&urlUtil);
     Boolean flag = FALSE;
-    urlUtil->IsJavaScriptUrl(url, &flag);
+    flag = CURLUtil::IsJavaScriptUrl(url);
 
     if (flag) {
         // strip off the scheme and evaluate the string

@@ -398,10 +398,10 @@ CARAPI_(void) HttpAuthHandler::ProcessNextLoader()
 
         String hostname;
         loader->ProxyAuthenticate() ?
-            mNetwork->GetProxyHostname(hostname) : loader->Host(hostname);
+            mNetwork->GetProxyHostname(hostname) : loader->Host(&hostname);
 
         String realm;
-        loader->Realm(realm);
+        loader->Realm(&realm);
 
 //        proxy->OnReceivedHttpAuthRequest(this, hostname, realm);
     }

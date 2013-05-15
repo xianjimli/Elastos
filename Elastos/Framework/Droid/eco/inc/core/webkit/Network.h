@@ -10,7 +10,9 @@
 
 class HttpAuthHandler;
 
-class Network {
+class Network : public ElRefBase {
+public:
+    friend class LoadListener; 
 
 public:
     /**

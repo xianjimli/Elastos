@@ -1,7 +1,11 @@
 
 module
 {
-    interface IURLUtil {
+    interface IURLUtil{
+
+    }
+
+    interface IURLUtilHelper {
 
         /**
          * Cleans up (if possible) user-entered web addresses
@@ -18,7 +22,7 @@ module
 
         Decode(
            [in] ArrayOf<Byte> url,
-           [out] ArrayOf<Byte> outUrl);
+           [out, callee] ArrayOf<Byte>* outUrl);
 
         /**
          * @return True iff the url is an asset file.

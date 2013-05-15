@@ -2204,15 +2204,15 @@ void WebViewCore::Initialize()
     mSettings -> SyncSettingsAndCreateHandler(mBrowserFrame);
     // Create the handler and transfer messages for the IconDatabase
     AutoPtr<CWebIconDatabase> webIconDatabaseT;
-    webIconDatabaseT;// = CWebIconDatabase::GetInstance();
+    webIconDatabaseT=NULL;// = CWebIconDatabase::GetInstance();
     webIconDatabaseT -> CreateHandler();
     // Create the handler for WebStorage
     AutoPtr<CWebStorage> webStorageT;
-    webStorageT; /*= CWebStorage::GetInstance();*/
+    webStorageT=NULL; /*= CWebStorage::GetInstance();*/
     webStorageT -> CreateHandler();
     // Create the handler for GeolocationPermissions.
     AutoPtr<CGeolocationPermissions> geolocationPermissionsT;
-    geolocationPermissionsT; /*= CGeolocationPermissions::GetInstance();*/
+    geolocationPermissionsT=NULL; /*= CGeolocationPermissions::GetInstance();*/
     geolocationPermissionsT -> CreateHandler();
     // The transferMessages call will transfer all pending messages to the
     // WebCore thread handler.
@@ -2458,6 +2458,7 @@ void WebViewCore::PopulateVisitedLinks()
         /* [in] */ IInterface* value)
         {
             mWebViewCore -> SendMessage(EventHub::POPULATE_VISITED_LINKS, (IInterface*)value);
+            return NOERROR;
         };
 
         WvcValueCallback(
@@ -4052,10 +4053,12 @@ void WebViewCore::NativeUpdateFrameCacheIfLoading()
 {}
 
 /*native*/
-CARAPI_(String&) WebViewCore::NativeRequestLabel(
+CARAPI_(String) WebViewCore::NativeRequestLabel(
 	/* [in] */ Int32 framePtr, 
 	/* [in] */ Int32 nodePtr)
-{}
+{//=0(virtual)
+    return String(NULL);
+}
 
 /**
 * Scroll the focused textfield to (xPercent, y) in document space
@@ -4340,7 +4343,9 @@ CARAPI_(Boolean) WebViewCore::NativeValidNodeAndBounds(
 	/* [in] */ Int32 frame, 
 	/* [in] */ Int32 node,
 	/* [in] */ IRect* bounds)
-{}
+{//=0(virtual)
+    return FALSE;
+}
 
 WebViewCore::~WebViewCore()
 {

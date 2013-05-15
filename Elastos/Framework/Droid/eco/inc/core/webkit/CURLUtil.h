@@ -8,119 +8,102 @@
 CarClass(CURLUtil)
 {
 public:
-    /* public *?
+    /* public */
     /* static */
-    CARAPI GuessUrl(
-        /* [in] */ const String& inUrl,
-        /* [out] */ String * outUrl);
+    static CARAPI_(String) GuessUrl(
+        /* [in] */ const String& inUrl);
 
     /* public */
     /* static */
-    CARAPI ComposeSearchUrl(
+    static CARAPI_(String) ComposeSearchUrl(
         /* [in] */ const String& inQuery,
         /* [in] */ const String& strTemplate,
-        /* [in] */ const String& queryPlaceHolder,
-        /* [out] */ String * url);
+        /* [in] */ const String& queryPlaceHolder);
 
     /* public */
     /* static */
-    CARAPI Decode(
+    static CARAPI Decode(
         /* [in] */ const ArrayOf<Byte> & url,
-        /* [out] */ ArrayOf<Byte> * outUrl);
+        /* [out] */ ArrayOf<Byte>** outUrl);
 
     /* public */
     /* static */
-    CARAPI IsAssetUrl(
-        /* [in] */ const String& url,
-        /* [out] */ Boolean * flag);
+    static CARAPI_(Boolean) IsAssetUrl(
+        /* [in] */ const String& url);
 
     /* public */
     /* static */
-    CARAPI IsResourceUrl(
-        /* [in] */ const String& url,
-        /* [out] */ Boolean * flag);
+    static CARAPI_(Boolean) IsResourceUrl(
+        /* [in] */ const String& url);
 
     /* public */
     /* static */
-    CARAPI IsCookielessProxyUrl(
-        /* [in] */ const String& url,
-        /* [out] */ Boolean * flag);
+    static CARAPI_(Boolean) IsCookielessProxyUrl(
+        /* [in] */ const String& url);
 
     /* public */
     /* static */
-    CARAPI IsFileUrl(
-        /* [in] */ const String& url,
-        /* [out] */ Boolean * flag);
+    static CARAPI_(Boolean) IsFileUrl(
+        /* [in] */ const String& url);
 
     /* public */
     /* static */
-    CARAPI IsAboutUrl(
-        /* [in] */ const String& url,
-        /* [out] */ Boolean * flag);
+    static CARAPI_(Boolean) IsAboutUrl(
+        /* [in] */ const String& url);
 
     /* public */
     /* static */
-    CARAPI IsDataUrl(
-        /* [in] */ const String& url,
-        /* [out] */ Boolean * flag);
+    static CARAPI_(Boolean) IsDataUrl(
+        /* [in] */ const String& url);
 
     /* public */
     /* static */
-    CARAPI IsJavaScriptUrl(
-        /* [in] */ const String& url,
-        /* [out] */ Boolean * flag);
+    static CARAPI_(Boolean) IsJavaScriptUrl(
+        /* [in] */ const String& url);
 
     /* public */
     /* static */
-    CARAPI IsHttpUrl(
-        /* [in] */ const String& url,
-        /* [out] */ Boolean * flag);
+    static CARAPI_(Boolean) IsHttpUrl(
+        /* [in] */ const String& url);
 
     /* public */
     /* static */
-    CARAPI IsHttpsUrl(
-        /* [in] */ const String& url,
-        /* [out] */ Boolean * flag);
+    static CARAPI_(Boolean) IsHttpsUrl(
+        /* [in] */ const String& url);
 
     /* public */
     /* static */
-    CARAPI IsNetworkUrl(
-        /* [in] */ const String& url,
-        /* [out] */ Boolean * flag);
+    static CARAPI_(Boolean) IsNetworkUrl(
+        /* [in] */ const String& url);
 
     /* public */
     /* static */
-    CARAPI IsContentUrl(
-        /* [in] */ const String& url,
-        /* [out] */ Boolean * flag);
+    static CARAPI_(Boolean) IsContentUrl(
+        /* [in] */ const String& url);
 
     /* public */
     /* static */
-    CARAPI IsValidUrl(
-        /* [in] */ const String& url,
-        /* [out] */ Boolean * flag);
+    static CARAPI_(Boolean) IsValidUrl(
+        /* [in] */ const String& url);
 
     /* public */
     /* static */
-    CARAPI StripAnchor(
-        /* [in] */ const String& url,
-        /* [out] */ String * outUrl);
+    static CARAPI_(String) StripAnchor(
+        /* [in] */ const String& url);
 
     /* public */
     /* static */
-    CARAPI GuessFileName(
+    static CARAPI_(String) GuessFileName(
         /* [in] */ const String& url,
         /* [in] */ const String& contentDisposition,
-        /* [in] */ const String& mimeType,
-        /* [out] */ String * name);
+        /* [in] */ const String& mimeType);
 
     /**
     * @return True iff the url is correctly URL encoded
     */
     /* package(hide) */
-    static CARAPI VerifyURLEncoding(
-        /* [in] */ String url,
-        /* [out] */ Boolean * retVal);
+    static CARAPI_(Boolean) VerifyURLEncoding(
+        /* [in] */ String url);
 
     /*
     * Parse the Content-Disposition HTTP Header. The format of the header
@@ -132,14 +115,12 @@ public:
     * consistent behaviour with other browsers, we allow unquoted values too.
     */
     /* package(hide) */
-    static CARAPI ParseContentDisposition(
-        /* [in] */ String contentDisposition,
-        /* [out] */ String * retVal);
+    static CARAPI_(String) ParseContentDisposition(
+        /* [in] */ String contentDisposition);
 
 private:    
-    static CARAPI ParseHex(
-        /* [in] */ Byte b,
-        /* [out] */ Int32* retVal);
+    static CARAPI_(Int32) ParseHex(
+        /* [in] */ Byte b);
 
 public:
     // to refer to bar.png under your package's asset/foo/ directory, use

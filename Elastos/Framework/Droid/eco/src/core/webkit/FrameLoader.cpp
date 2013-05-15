@@ -35,10 +35,8 @@ CARAPI_(void) FrameLoader::SetReferrer(
 	/* [in] */ const String& ref)
 {
 	// only set referrer for http or https
-	AutoPtr<IURLUtil> URL;
 	Boolean bFlag = FALSE;
-	CURLUtil::AcquireSingleton((IURLUtil**)&URL);
-	URL->IsNetworkUrl(ref, &bFlag);
+	bFlag = CURLUtil::IsNetworkUrl(ref);
 
 	if (bFlag) {
 		mReferrer = ref;
@@ -85,12 +83,10 @@ CARAPI_(LoadListener*) FrameLoader::GetLoadListener() const
 CARAPI_(Boolean) FrameLoader::ExecuteLoad()
 {
 	String url;
-    mListener->Url(url);
+    mListener->Url(&url);
 
-	AutoPtr<IURLUtil> URL;
 	Boolean bFlag = FALSE;
-	CURLUtil::AcquireSingleton((IURLUtil**)&URL);
-	URL->IsNetworkUrl(url, &bFlag);
+	bFlag = CURLUtil::IsNetworkUrl(url);
 
     if (bFlag) {
         if (mSettings->GetBlockNetworkLoads()) {
@@ -141,12 +137,9 @@ CARAPI_(Boolean) FrameLoader::HandleLocalFile(
     // Attempt to decode the percent-encoded url before passing to the
     // local loaders.
     String url/*(URLUtil.decode(url.getBytes()))*/;
-    AutoPtr<IURLUtil> URL;
-    
-    CURLUtil::AcquireSingleton((IURLUtil**)&URL);
     
     Boolean bFlag = FALSE;
-    URL->IsAssetUrl(url, &bFlag);
+    bFlag = CURLUtil::IsAssetUrl(url);
     if (bFlag) {
         if (loadListener->IsSynchronous()) {
             FileLoader fileLoader(url, loadListener, FileLoader::TYPE_ASSET, TRUE);
@@ -159,7 +152,7 @@ CARAPI_(Boolean) FrameLoader::HandleLocalFile(
 //                            true)).sendToTarget();
         }
         return TRUE;
-    } else if (URL->IsResourceUrl(url, &bFlag), bFlag) {
+    } else if (bFlag=CURLUtil::IsResourceUrl(url), bFlag) {
         if (loadListener->IsSynchronous()) {
             FileLoader fileLoader(url, loadListener, FileLoader::TYPE_RES, TRUE);
             fileLoader.Load();
@@ -171,7 +164,7 @@ CARAPI_(Boolean) FrameLoader::HandleLocalFile(
 //                            true)).sendToTarget();
         }
         return TRUE;
-    } else if (URL->IsFileUrl(url, &bFlag), bFlag) {
+    } else if (bFlag=CURLUtil::IsFileUrl(url), bFlag) {
         if (loadListener->IsSynchronous()) {
             FileLoader fileLoader(url, loadListener, FileLoader::TYPE_FILE,
                     settings->GetAllowFileAccess());
@@ -185,12 +178,12 @@ CARAPI_(Boolean) FrameLoader::HandleLocalFile(
         }
         return TRUE;
     } else if (settings->GetAllowContentAccess() &&
-               (URL->IsContentUrl(url, &bFlag), &bFlag) ) {
+               (bFlag=CURLUtil::IsContentUrl(url), &bFlag) ) {
         // Send the raw url to the ContentLoader because it will do a
         // permission check and the url has to match.
         if (loadListener->IsSynchronous()) {
             String str;
-            loadListener->Url(str);
+            loadListener->Url(&str);
             ContentLoader contentLoader(str, loadListener);
             contentLoader.Load();
         } else {
@@ -201,13 +194,13 @@ CARAPI_(Boolean) FrameLoader::HandleLocalFile(
 //                    .sendToTarget();
         }
         return TRUE;
-    } else if (URL->IsDataUrl(url, &bFlag), bFlag) {
+    } else if (bFlag=CURLUtil::IsDataUrl(url), bFlag) {
         // load data in the current thread to reduce the latency
         DataLoader dataLoader(url, loadListener);
         dataLoader.Load();
 
         return TRUE;
-    } else if (URL->IsAboutUrl(url, &bFlag), bFlag) {
+    } else if (bFlag=CURLUtil::IsAboutUrl(url), bFlag) {
 //        loadListener.data(mAboutBlank.getBytes(), mAboutBlank.length());
         loadListener->EndData();
         return TRUE;
@@ -297,7 +290,7 @@ CARAPI_(Boolean) FrameLoader::HandleCache()
         case WebSettings::WS_LOAD_CACHE_ONLY:
         {
             String strUrl;
-            mListener->Url(strUrl);
+            mListener->Url(&strUrl);
             AutoPtr<ICacheManagerCacheResult> result = CCacheManager::GetCacheFile(strUrl, mListener->PostIdentifier(), NULL);
             if (result != NULL)
             {
@@ -330,7 +323,7 @@ CARAPI_(Boolean) FrameLoader::HandleCache()
             // Get the cache file name for the current URL, passing null for
             // the validation headers causes no validation to occur
             String strUrl;
-            mListener->Url(strUrl);
+            mListener->Url(&strUrl);
             AutoPtr<ICacheManagerCacheResult> result = CCacheManager::GetCacheFile(strUrl,
                     mListener->PostIdentifier(), NULL);
             if (result != NULL)

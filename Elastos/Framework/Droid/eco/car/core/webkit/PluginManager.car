@@ -19,11 +19,6 @@ module
     const PLUGIN_PERMISSION = "android.webkit.permission.PLUGIN";
 
     interface IPluginManager {
-        
-        GetInstance(
-           [in] IContext* context,
-           [out] IPluginManager** instance);
-
         /**
          * Signal the WebCore thread to refresh its list of plugins. Use this if the
          * directory contents of one of the plugin directories has been modified and
@@ -36,5 +31,11 @@ module
 
         GetPluginDirectories(
            [out] ArrayOf<String> pluginDirectories);
+    }
+
+    interface IPluginManagerHelper {        
+        GetInstance(
+           [in] IContext* context,
+           [out] IPluginManager** instance);           
     }
 }

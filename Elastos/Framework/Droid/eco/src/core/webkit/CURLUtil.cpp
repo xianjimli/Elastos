@@ -6,6 +6,7 @@
 #include <StringBuffer.h>
 #include <Uri.h>
 #include "webkit/CMimeTypeMap.h"
+#include <elastos/AutoFree.h>
 
 // to refer to bar.png under your package's asset/foo/ directory, use
 // "file:///android_asset/foo/bar.png".
@@ -21,60 +22,57 @@ const CString CURLUtil::LOGTAG = "webkit";
 
 //const AutoPtr<CPattern> CURLUtil::CONTENT_DISPOSITION_PATTERN = CPattern::Compile("attachment;\\s*filename\\s*=\\s*(\"?)([^\"]*)\\1\\s*$",CPattern::CASE_INSENSITIVE);
 
-
-ECode CURLUtil::ParseHex(
-        /* [in] */ Byte b,
-        /* [out] */ Int32* retVal)
+Int32 CURLUtil::ParseHex(
+        /* [in] */ Byte b)
 {
-    VALIDATE_NOT_NULL(retVal);
+    Int32 retVal;
     if (b >= '0' && b <= '9') {
-        *retVal = (b - '0');
-        return NOERROR;
+        retVal = (b - '0');
+        return retVal;
     }
     if (b >= 'A' && b <= 'F') {
-        *retVal = ((b - 'A') + 10);
-        return NOERROR;
+        retVal = ((b - 'A') + 10);
+        return retVal;
     }
     if (b >= 'a' && b <= 'f') {
-        *retVal = ((b - 'a') + 10);
-        return NOERROR;
+        retVal = ((b - 'a') + 10);
+        return retVal;
     }
 
     Utility::Logging::Logger::E(LOGTAG, String("Invalid hex char '") + b + String("'") );
-    return E_ILLEGAL_ARGUMENT_EXCEPTION;
+    return -1;//return E_ILLEGAL_ARGUMENT_EXCEPTION;
 }
 
-ECode CURLUtil::GuessUrl(
-    /* [in] */ const String& inUrl,
-    /* [out] */ String * outUrl)
+String CURLUtil::GuessUrl(
+    /* [in] */ const String& inUrl)
 {
-    VALIDATE_NOT_NULL(outUrl);
+    String outUrl;
     String retVal = inUrl;
 
     Utility::Logging::Logger::V(LOGTAG, String("guessURL before queueRequest: ") + inUrl );
 
     if(inUrl.GetLength() == 0) {
-        *outUrl = inUrl;
-        return NOERROR;
+        outUrl = inUrl;
+        return outUrl;
     }
     if(inUrl.Substring(0,6) == String("about:")) {
-        *outUrl = inUrl;
-        return NOERROR;
+        outUrl = inUrl;
+        return outUrl;
     }
     // Do not try to interpret data scheme URLs
     if (inUrl.Substring(0,5) == String("data:")) {
-        *outUrl = inUrl;
-        return NOERROR;
+        outUrl = inUrl;
+        return outUrl;
     }
     // Do not try to interpret file scheme URLs
     if (inUrl.Substring(0,5) == String("file:")) {
-        *outUrl = inUrl;
-        return NOERROR;
+        outUrl = inUrl;
+        return outUrl;
     }
     // Do not try to interpret javascript scheme URLs
     if (inUrl.Substring(0,11) == String("javascript:")) {
-        *outUrl = inUrl;
-        return NOERROR;
+        outUrl = inUrl;
+        return outUrl;
     }
 
     // bug 762454: strip period off end of url
@@ -90,8 +88,8 @@ ECode CURLUtil::GuessUrl(
         if (DebugFlags::sURL_UTIL)  {
             Utility::Logging::Logger::V(LOGTAG, String("smartUrlFilter: failed to parse url = ") + tInUrl );
         }        
-        *outUrl = retVal;
-        return ec;
+        outUrl = retVal;
+        return outUrl;
     }    
 
     // Check host
@@ -99,23 +97,22 @@ ECode CURLUtil::GuessUrl(
         // no dot: user probably entered a bare domain.  try .com
         webAddress -> mHost = String("www.") + (webAddress -> mHost) + String(".com");
     }
-    webAddress -> ToString(outUrl);
+    webAddress -> ToString(&outUrl);
     */
 
-    return NOERROR;
+    return outUrl;
 }
 
-ECode CURLUtil::ComposeSearchUrl(
+String CURLUtil::ComposeSearchUrl(
     /* [in] */ const String& inQuery,
     /* [in] */ const String& strTemplate,
-    /* [in] */ const String& queryPlaceHolder,
-    /* [out] */ String * url)
+    /* [in] */ const String& queryPlaceHolder)
 {
-    VALIDATE_NOT_NULL(url);
+    String url;
     Int32 placeHolderIndex = strTemplate.IndexOf(queryPlaceHolder);
     if (placeHolderIndex < 0) {
-        *url = String(NULL);
-        return NOERROR;
+        url = String(NULL);
+        return url;
     }
 
     String query;
@@ -126,48 +123,41 @@ ECode CURLUtil::ComposeSearchUrl(
     ECode ec = Elastos::URLEncoder::Encode(inQuery, "utf-8", &query);
     if(FAILED(ec)) {
         //JAVA:catch (UnsupportedEncodingException ex)        
-        *url = String(NULL);
-        return ec;
+        url = String(NULL);
+        return url;
     }
     */
     
     buffer += query;
     buffer += strTemplate.Substring(placeHolderIndex + queryPlaceHolder.GetLength());
 
-    *url = (const char*)buffer;
+    url = (const char*)buffer;
 
-    return NOERROR;
+    return url;
 }
 
 ECode CURLUtil::Decode(
     /* [in] */ const ArrayOf<Byte> & url,
-    /* [out] */ ArrayOf<Byte> * outUrl)
+    /* [out] */ ArrayOf<Byte> ** outUrl)
 {
     VALIDATE_NOT_NULL(outUrl);
     if(url.GetLength() == 0) {
-        outUrl = NULL;
+        *outUrl = NULL;
         return NOERROR;
     }
 
     // Create a new byte array with the same length to ensure capacity
-    ArrayOf<Byte> * tempData = ArrayOf<Byte>::Alloc(url.GetLength());
+    AutoFree< ArrayOf<Byte> > tempData = ArrayOf<Byte>::Alloc(url.GetLength());
 
     Int32 tempCount = 0;
     Int32 tHexH = 0,tHexL = 0;
-    ECode ecH,ecL;
     for(Int32 i = 0; i < url.GetLength(); i++) {
         Byte b = url[i];
         if(b == '%') {
             if(url.GetLength() - i > 2) {
-                ecH = ParseHex(url[i+1],&tHexH);
-                if( FAILED(ecH)) {
-                    return ecH;
-                }
-                ecL = ParseHex(url[i+2],&tHexL);                
-                if( FAILED(ecL)) {
-                    return ecL;
-                }
-                b = (byte) (ecH * 16 + ecL);
+                tHexH = ParseHex(url[i+1]);
+                tHexL = ParseHex(url[i+2]);
+                b = (byte) (tHexH * 16 + tHexL);
                 i += 2;
             }
             else {
@@ -179,180 +169,163 @@ ECode CURLUtil::Decode(
         }
         (*tempData)[tempCount++] = b;
     }
-    for(Int32 i = 0; i < tempCount; i++) {
-        (*outUrl)[i] = (*tempData)[i];
-    }
-    ArrayOf<Byte>::Free(tempData);
+
+    *outUrl = tempData;
+    // ArrayOf<Byte>::Free(*outUrl);
+    // *outUrl = ArrayOf<Byte>::Alloc(tempCount);
+    // for(Int32 i = 0; i < tempCount; i++) {
+    //     (**outUrl)[i] = (*tempData)[i];
+    // }
+    // //ArrayOf<Byte>::Free(tempData);
 
     return NOERROR;
 }
 
-ECode CURLUtil::IsAssetUrl(
-    /* [in] */ const String& url,
-    /* [out] */ Boolean * flag)
+Boolean CURLUtil::IsAssetUrl(
+    /* [in] */ const String& url)
 {
-    VALIDATE_NOT_NULL(flag);
-    *flag = ((NULL != url) && (url.Substring(0,String(ASSET_BASE).GetLength()) == String(ASSET_BASE) ) );
-    return NOERROR;
+    Boolean flag;
+    flag = ((NULL != url) && (url.Substring(0,String(ASSET_BASE).GetLength()) == String(ASSET_BASE) ) );
+    return flag;
 }
 
-ECode CURLUtil::IsResourceUrl(
-    /* [in] */ const String& url,
-    /* [out] */ Boolean * flag)
+Boolean CURLUtil::IsResourceUrl(
+    /* [in] */ const String& url)
 {
-    VALIDATE_NOT_NULL(flag);
-    *flag = ((NULL != url ) && (url.Substring(0,String(RESOURCE_BASE).GetLength()) == String(RESOURCE_BASE) ) );
-    return NOERROR;
+    Boolean flag;
+    flag = ((NULL != url ) && (url.Substring(0,String(RESOURCE_BASE).GetLength()) == String(RESOURCE_BASE) ) );
+    return flag;
 }
 
-ECode CURLUtil::IsCookielessProxyUrl(
-    /* [in] */ const String& url,
-    /* [out] */ Boolean * flag)
+Boolean CURLUtil::IsCookielessProxyUrl(
+    /* [in] */ const String& url)
 {
-    VALIDATE_NOT_NULL(flag);
-    *flag = ((NULL != url ) && (url.Substring(0,String(PROXY_BASE).GetLength()) == String(PROXY_BASE) ) );
-    return NOERROR;
+    Boolean flag;
+    flag = ((NULL != url ) && (url.Substring(0,String(PROXY_BASE).GetLength()) == String(PROXY_BASE) ) );
+    return flag;
 }
 
-ECode CURLUtil::IsFileUrl(
-    /* [in] */ const String& url,
-    /* [out] */ Boolean * flag)
+Boolean CURLUtil::IsFileUrl(
+    /* [in] */ const String& url)
 {
-    VALIDATE_NOT_NULL(flag);
-    *flag = (NULL != url );
-    *flag = (*flag) && (url.Substring(0,String(FILE_BASE).GetLength()) == String(FILE_BASE) );
-    *flag = (*flag) && (!(url.Substring(0,String(ASSET_BASE).GetLength()) == String(ASSET_BASE) ) );
-    *flag = (*flag) && (!(url.Substring(0,String(PROXY_BASE).GetLength()) == String(PROXY_BASE) ) );
-    return NOERROR;
+    Boolean flag;
+    flag = (NULL != url );
+    flag = (flag) && (url.Substring(0,String(FILE_BASE).GetLength()) == String(FILE_BASE) );
+    flag = (flag) && (!(url.Substring(0,String(ASSET_BASE).GetLength()) == String(ASSET_BASE) ) );
+    flag = (flag) && (!(url.Substring(0,String(PROXY_BASE).GetLength()) == String(PROXY_BASE) ) );
+    return flag;
 }
 
-ECode CURLUtil::IsAboutUrl(
-    /* [in] */ const String& url,
-    /* [out] */ Boolean * flag)
+Boolean CURLUtil::IsAboutUrl(
+    /* [in] */ const String& url)
 {
-    VALIDATE_NOT_NULL(flag);
+    Boolean flag;
     String strUrlFlag("about:");
-    *flag =  (NULL != url ) && (url.Substring(0,String(strUrlFlag).GetLength()) == String(strUrlFlag) );
-    return NOERROR;
+    flag =  (NULL != url ) && (url.Substring(0,String(strUrlFlag).GetLength()) == String(strUrlFlag) );
+    return flag;
 }
 
-ECode CURLUtil::IsDataUrl(
-    /* [in] */ const String& url,
-    /* [out] */ Boolean * flag)
+Boolean CURLUtil::IsDataUrl(
+    /* [in] */ const String& url)
 {
-    VALIDATE_NOT_NULL(flag);
+    Boolean flag;
     String strUrlFlag("data:");
-    *flag =  (NULL != url ) && (url.Substring(0,String(strUrlFlag).GetLength()) == String(strUrlFlag) );
-    return NOERROR;
+    flag =  (NULL != url ) && (url.Substring(0,String(strUrlFlag).GetLength()) == String(strUrlFlag) );
+    return flag;
 }
 
-ECode CURLUtil::IsJavaScriptUrl(
-    /* [in] */ const String& url,
-    /* [out] */ Boolean * flag)
+Boolean CURLUtil::IsJavaScriptUrl(
+    /* [in] */ const String& url)
 {
-    VALIDATE_NOT_NULL(flag);
+    Boolean flag;
     String strUrlFlag("javascript:");
-    *flag =  (NULL != url ) && (url.Substring(0,String(strUrlFlag).GetLength()) == String(strUrlFlag) );
-    return NOERROR;
+    flag =  (NULL != url ) && (url.Substring(0,String(strUrlFlag).GetLength()) == String(strUrlFlag) );
+    return flag;
 }
 
-ECode CURLUtil::IsHttpUrl(
-    /* [in] */ const String& url,
-    /* [out] */ Boolean * flag)
+Boolean CURLUtil::IsHttpUrl(
+    /* [in] */ const String& url)
 {
-    VALIDATE_NOT_NULL(flag);
-    *flag = (NULL != url);
-    *flag = (*flag) && ( url.GetLength() > 6 );
-    *flag = (*flag) && ( url.Substring(0,7).EqualsIgnoreCase("http://") );
-    return NOERROR;
+    Boolean flag;
+    flag = (NULL != url);
+    flag = (flag) && ( url.GetLength() > 6 );
+    flag = (flag) && ( url.Substring(0,7).EqualsIgnoreCase("http://") );
+    return flag;
 }
 
-ECode CURLUtil::IsHttpsUrl(
-    /* [in] */ const String& url,
-    /* [out] */ Boolean * flag)
+Boolean CURLUtil::IsHttpsUrl(
+    /* [in] */ const String& url)
 {
-    VALIDATE_NOT_NULL(flag);
-    *flag = (NULL != url);
-    *flag = (*flag) && ( url.GetLength() > 7 );
-    *flag = (*flag) && ( url.Substring(0,8).EqualsIgnoreCase("https://") );
-    return NOERROR;
+    Boolean flag;
+    flag = ( !(url.IsNull()) );
+    flag = (flag) && ( url.GetLength() > 7 );
+    flag = (flag) && ( url.Substring(0,8).EqualsIgnoreCase("https://") );
+    return flag;
 }
 
-ECode CURLUtil::IsNetworkUrl(
-    /* [in] */ const String& url,
-    /* [out] */ Boolean * flag)
+Boolean CURLUtil::IsNetworkUrl(
+    /* [in] */ const String& url)
 {
-    VALIDATE_NOT_NULL(flag);
+    Boolean flag;
     if (url == NULL || url.GetLength() == 0)  {
-        *flag = FALSE;
-        return NOERROR;
+        flag = FALSE;
+        return flag;
     }
     Boolean bHttp,bHttps;
-    IsHttpUrl(url,&bHttp);
-    IsHttpsUrl(url,&bHttps);
-    *flag =  bHttp || bHttps;
-    return NOERROR;
+    bHttp = IsHttpUrl(url);
+    bHttps = IsHttpsUrl(url);
+    flag =  bHttp || bHttps;
+    return flag;
 }
 
-ECode CURLUtil::IsContentUrl(
-    /* [in] */ const String& url,
-    /* [out] */ Boolean * flag)
+Boolean CURLUtil::IsContentUrl(
+    /* [in] */ const String& url)
 {
-    VALIDATE_NOT_NULL(flag);
+    Boolean flag;
     String strUrlFlag("content:");
-    *flag =  (NULL != url ) && (url.Substring(0,String(strUrlFlag).GetLength()) == String(strUrlFlag) );
-    return NOERROR;
+    flag =  (NULL != url ) && (url.Substring(0,String(strUrlFlag).GetLength()) == String(strUrlFlag) );
+    return flag;
 }
 
-ECode CURLUtil::IsValidUrl(
-    /* [in] */ const String& url,
-    /* [out] */ Boolean * flag)
+Boolean CURLUtil::IsValidUrl(
+    /* [in] */ const String& url)
 {
-    VALIDATE_NOT_NULL(flag);
     if (url == NULL || url.GetLength() == 0)  {
-        *flag = FALSE;
-        return NOERROR;
+        return FALSE;
     }
     Boolean bAssetUrl,bResourceUrl,bFileUrl,bAboutUrl,bHttpUrl,bHttpsUrl,bJavaScriptUrl,bContentUrl;
-    IsAssetUrl(url,&bAssetUrl);
-    IsResourceUrl(url,&bResourceUrl);
-    IsFileUrl(url,&bFileUrl);
-    IsAboutUrl(url,&bAboutUrl);
-    IsHttpUrl(url,&bHttpUrl);
-    IsHttpsUrl(url,&bHttpsUrl);
-    IsJavaScriptUrl(url,&bJavaScriptUrl);
-    IsContentUrl(url,&bContentUrl);
-    *flag = bAssetUrl || bResourceUrl || bFileUrl || bAboutUrl || bHttpUrl || bHttpsUrl || bJavaScriptUrl || bContentUrl;
-    return NOERROR;
+    bAssetUrl = IsAssetUrl(url);
+    bResourceUrl = IsResourceUrl(url);
+    bFileUrl = IsFileUrl(url);
+    bAboutUrl = IsAboutUrl(url);
+    bHttpUrl = IsHttpUrl(url);
+    bHttpsUrl = IsHttpsUrl(url);
+    bJavaScriptUrl = IsJavaScriptUrl(url);
+    bContentUrl = IsContentUrl(url);
+    return bAssetUrl || bResourceUrl || bFileUrl || bAboutUrl || bHttpUrl || bHttpsUrl || bJavaScriptUrl || bContentUrl;
 }
 
-ECode CURLUtil::StripAnchor(
-    /* [in] */ const String& url,
-    /* [out] */ String * outUrl)
+String CURLUtil::StripAnchor(
+    /* [in] */ const String& url)
 {
-    VALIDATE_NOT_NULL(outUrl);
     Int32 anchorIndex = url.IndexOf('#');
     if (anchorIndex != -1)  {
-        *outUrl = url.Substring(0, anchorIndex);
-        return NOERROR;
+        return url.Substring(0, anchorIndex);
     }
-    *outUrl = url;
-    return NOERROR;
+    return url;
 }
 
-ECode CURLUtil::GuessFileName(
+String CURLUtil::GuessFileName(
     /* [in] */ const String& url,
     /* [in] */ const String& contentDisposition,
-    /* [in] */ const String& mimeType,
-    /* [out] */ String * name)
+    /* [in] */ const String& mimeType)
 {
-    VALIDATE_NOT_NULL(name);
     String filename(NULL);
     String extension(NULL);
 
     // If we couldn't do anything with the hint, move toward the content disposition
     if (filename.IsNullOrEmpty() && (!contentDisposition.IsNullOrEmpty()) )  {        
-        ParseContentDisposition(contentDisposition,&filename);
+        filename = ParseContentDisposition(contentDisposition);
         if (!filename.IsNullOrEmpty())  {
             Int32 index = filename.LastIndexOf('/') + 1;
             if (index > 0)  {
@@ -429,69 +402,60 @@ ECode CURLUtil::GuessFileName(
         filename = filename.Substring(0, dotIndex);
     }
 
-    *name = filename + extension;    
-
-    return NOERROR;
+    return filename + extension;
 }
 
-ECode CURLUtil::VerifyURLEncoding(
-        /* [in] */ String url,
-        /* [out] */ Boolean * retVal)
+Boolean CURLUtil::VerifyURLEncoding(
+        /* [in] */ String url)
 {
-    VALIDATE_NOT_NULL(retVal);
     Int32 count = url.GetLength();
     if(count == 0) {
-        *retVal = FALSE;
-        return NOERROR;
+        return FALSE;
     }
 
     int index = url.IndexOf('%');
-    ECode ec;
-    Int32 nT=0;
     while (index >= 0 && index < count)  {
         if (index < (count - 2) )  {
-            ec = ParseHex((Byte) url.GetChar(++index),&nT);
-            ec = ParseHex((Byte) url.GetChar(++index),&nT);
-            if(FAILED(ec)) {
-                //JAVA:catch (IllegalArgumentException e)
-                *retVal = FALSE;
-                return E_ILLEGAL_ARGUMENT_EXCEPTION;
-            }
+            //JAVA:  try{
+            ParseHex((Byte) url.GetChar(++index));
+            ParseHex((Byte) url.GetChar(++index));
+            //JAVA:  }            
+            //JAVA:  catch (IllegalArgumentException e)
+            //JAVA:  {
+            //     return FALSE;
+            //     //return E_ILLEGAL_ARGUMENT_EXCEPTION;                    
+            //JAVA:  }            
         }
         else {
-            *retVal = FALSE;
-            return NOERROR;
+            return FALSE;
         }
         index = url.IndexOf('%', index + 1);
     }
-    *retVal = TRUE;
-    return NOERROR;    
+    return TRUE;    
 }
 
-ECode CURLUtil::ParseContentDisposition(
-        /* [in] */ String contentDisposition,
-        /* [out] */ String * retVal)
+String CURLUtil::ParseContentDisposition(
+        /* [in] */ String contentDisposition)
 {
-    VALIDATE_NOT_NULL(retVal);
     /*
     AutoPtr<IMatcher> m;
     CONTENT_DISPOSITION_PATTERN -> Matcher(contentDisposition,(IMatcher**)&m);
     Boolean bMatchFound;
     ECode ec = m -> Find(&bMatchFound);
     if(FAILED(ec)) {
-        retVal = NULL;
-        return ec;  //return E_ILLEGAL_STATE_EXCEPTION;
+        return NULL;
+        //return ec;  //return E_ILLEGAL_STATE_EXCEPTION;
     }
     if (bMatchFound) {
-        ec = m -> Group(retVal);
+        String retVal;
+        ec = m -> Group(&retVal);
         if(FAILED(ec)) {
-            retVal = NULL;
-            return ec;  //return E_ILLEGAL_STATE_EXCEPTION;
+            return NULL;
+            //return ec;  //return E_ILLEGAL_STATE_EXCEPTION;
         }
-        return NOERROR;
+        return retVal;
     }
-    retVal = NULL;
+    return NULL;
     */
-    return NOERROR;
 }
 

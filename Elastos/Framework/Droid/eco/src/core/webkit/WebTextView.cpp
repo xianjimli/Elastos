@@ -682,6 +682,7 @@ CARAPI WebTextView::OnEditorAction(
         default:
             break;
     }
+    return NOERROR;
 }
 
 //@Override
@@ -754,7 +755,7 @@ void WebTextView::OnTextChanged(
     // going from a textfield with a string of text to one with a smaller
     // limit on text length from registering the onTextChanged event.
     if (mPreChange == NULL || mPreChange.Equals(postChange) ||
-                (mMaxLength > -1 && mPreChange.GetLength() > mMaxLength &&
+                ( (mMaxLength > -1) && ((mPreChange.GetLength()) > mMaxLength) &&
                 mPreChange.Substring(0, mMaxLength).Equals(postChange))) {
         return;
     }
@@ -1096,7 +1097,7 @@ void WebTextView::CreateBackground()
     AutoPtr<ITextPaint> paint = GetPaint();
     Int32 flags = 0;
     paint -> GetFlags(&flags);
-    flags = flags | Paint_SUBPIXEL_TEXT_FLAG | Paint_ANTI_ALIAS_FLAG & ~Paint_DEV_KERN_TEXT_FLAG;
+    flags = (flags | Paint_SUBPIXEL_TEXT_FLAG | Paint_ANTI_ALIAS_FLAG) & (~Paint_DEV_KERN_TEXT_FLAG);
     paint -> SetFlags(flags);
     // Set the text color to black, regardless of the theme.  This ensures
     // that other applications that use embedded WebViews will properly
