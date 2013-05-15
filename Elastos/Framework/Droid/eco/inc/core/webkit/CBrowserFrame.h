@@ -87,17 +87,6 @@ public:
 
 public:
 
-    CARAPI_(PInterface) Probe(
-        /* [in] */ REIID riid);
-
-    CARAPI_(UInt32) AddRef();
-
-    CARAPI_(UInt32) Release();
-
-    CARAPI GetInterfaceID(
-        /* [in] */ IInterface *pObject,
-        /* [out] */ InterfaceID *pIID);
-
     CARAPI Start(
         /* [in] */ ApartmentAttr attr);
 
@@ -365,7 +354,7 @@ private:
      */
     CARAPI_(Int32) GetFile(
         /* [in] */ const String& uri,
-        /* [in] */ ArrayOf<Byte> buffer,
+        /* [in] */ ArrayOf<Byte>& buffer,
         /* [in] */ Int32 offset,
         /* [in] */ Int32 expectedSize) const;
 
@@ -390,7 +379,7 @@ private:
         /* [in] */ const String& url,
         /* [in] */ const String& method,
         /* [in] */ IHashMap* headers,
-        /* [in] */ ArrayOf<Byte> postData,
+        /* [in] */ ArrayOf<Byte>& postData,
         /* [in] */ Int64 postDataIdentifier,
         /* [in] */ Int32 cacheMode,
         /* [in] */ Boolean mainResource,

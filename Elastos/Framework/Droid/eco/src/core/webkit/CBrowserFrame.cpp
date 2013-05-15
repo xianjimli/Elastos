@@ -14,6 +14,42 @@
 #include "webkit/CCallbackProxy.h"
 #include "os/CApartment.h"
 
+// message ids
+// a message posted when a frame loading is completed
+const Int32 CBrowserFrame::FRAME_COMPLETED;
+// orientation change message
+const Int32 CBrowserFrame::ORIENTATION_CHANGED;
+// a message posted when the user decides the policy
+const Int32 CBrowserFrame::POLICY_FUNCTION;
+
+// Note: need to keep these in sync with FrameLoaderTypes.h in native
+const Int32 CBrowserFrame::FRAME_LOADTYPE_STANDARD;
+const Int32 CBrowserFrame::FRAME_LOADTYPE_BACK;
+const Int32 CBrowserFrame::FRAME_LOADTYPE_FORWARD;
+const Int32 CBrowserFrame::FRAME_LOADTYPE_INDEXEDBACKFORWARD;
+const Int32 CBrowserFrame::FRAME_LOADTYPE_RELOAD;
+const Int32 CBrowserFrame::FRAME_LOADTYPE_RELOADALLOWINGSTALEDATA;
+const Int32 CBrowserFrame::FRAME_LOADTYPE_SAME;
+const Int32 CBrowserFrame::FRAME_LOADTYPE_REDIRECT;
+const Int32 CBrowserFrame::FRAME_LOADTYPE_REPLACE;
+
+// XXX: Must match PolicyAction in FrameLoaderTypes.h in webcore
+const Int32 CBrowserFrame::POLICY_USE;
+const Int32 CBrowserFrame::POLICY_IGNORE;
+
+const Int32 CBrowserFrame::MAX_OUTSTANDING_REQUESTS;
+
+// These ids need to be in sync with enum rawResId in PlatformBridge.h
+const Int32 CBrowserFrame::NODOMAIN;
+const Int32 CBrowserFrame::LOADERROR;
+const Int32 CBrowserFrame::DRAWABLEDIR;
+const Int32 CBrowserFrame::FILE_UPLOAD_LABEL;
+const Int32 CBrowserFrame::RESET_LABEL;
+const Int32 CBrowserFrame::SUBMIT_LABEL;
+
+// A progress threshold to switch from history Picture to live Picture
+const Int32 CBrowserFrame::TRANSITION_SWITCH_THRESHOLD;
+
 const CString CBrowserFrame::LOGTAG("webkit");
 
 AutoPtr<JWebCoreJavaBridge> CBrowserFrame::sJavaBridge;
@@ -657,7 +693,7 @@ CARAPI_(Int32) CBrowserFrame::GetFileSize(
  */
 CARAPI_(Int32) CBrowserFrame::GetFile(
     /* [in] */ const String& uri,
-    /* [in] */ ArrayOf<Byte> buffer,
+    /* [in] */ ArrayOf<Byte>& buffer,
     /* [in] */ Int32 offset,
     /* [in] */ Int32 expectedSize) const
 {}
@@ -683,7 +719,7 @@ CARAPI_(AutoPtr<LoadListener>) CBrowserFrame::StartLoadingResource(
     /* [in] */ const String& url,
     /* [in] */ const String& method,
     /* [in] */ IHashMap* headers,
-    /* [in] */ ArrayOf<Byte> postData,
+    /* [in] */ ArrayOf<Byte>& postData,
     /* [in] */ Int64 postDataIdentifier,
     /* [in] */ Int32 cacheMode,
     /* [in] */ Boolean mainResource,
@@ -893,22 +929,6 @@ CARAPI_(AutoPtr<IHashMap>) CBrowserFrame::GetFormTextData() const
 
 CARAPI_(void) CBrowserFrame::NativeOrientationChanged(
     /* [in] */ Int32 orientation)
-{}
-
-
-CARAPI_(PInterface) CBrowserFrame::Probe(
-    /* [in] */ REIID riid)
-{}
-
-CARAPI_(UInt32) CBrowserFrame::AddRef()
-{}
-
-CARAPI_(UInt32) CBrowserFrame::Release()
-{}
-
-ECode CBrowserFrame::GetInterfaceID(
-    /* [in] */ IInterface *pObject,
-    /* [out] */ InterfaceID *pIID)
 {}
 
 /*******************************Message************************************/
