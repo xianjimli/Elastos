@@ -5,6 +5,7 @@ INCLUDES += $(MAKEDIR)/../../../inc/Elastos/common;
 INCLUDES += $(MAKEDIR)/../../../inc/Elastos/Net;
 INCLUDES += $(MAKEDIR)/../../../inc/Elastos/Security;
 INCLUDES += $(MAKEDIR)/../../../inc/Elastos/Net/Apache/Protocol/File;
+INCLUDES += $(MAKEDIR)/../../../inc/Elastos/Net/Apache/Protocol/Ftp;
 #INCLUDES += $(MAKEDIR)/../../../inc/Elastos/IO;
 
 VPATH := $(MAKEDIR)/../Security

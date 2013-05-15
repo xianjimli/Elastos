@@ -1,1 +1,2 @@
 DIRS = File 
+DIRS += Ftp

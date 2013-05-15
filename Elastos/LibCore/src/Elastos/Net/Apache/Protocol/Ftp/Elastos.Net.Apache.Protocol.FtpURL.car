@@ -1,0 +1,32 @@
+module
+{
+    merge("../../../../../../car/Elastos/Net/Apache/Protocol/Ftp/IFtpHandler.car");
+    merge("../../../../../../car/Elastos/Net/Apache/Protocol/Ftp/IFtpURLConnection.car");
+    merge("../../../../../../car/Elastos/Net/Apache/Protocol/Ftp/IFtpURLInputStream.car");
+
+    class CFtpURLConnection {
+        constructor(
+            [in] IURL* url);
+
+        constructor(
+            [in] IURL* url,
+            [in] IProxy* proxy);
+
+        interface IFtpURLConnection;
+    }
+
+
+    class CFtpHandler {
+        constructor();
+
+        interface IFtpHandler;
+    }
+
+    class CFtpURLInputStream {
+        constructor(
+            [in] IInputStream* is,
+            [in] ISocket* controlSocket);
+
+        interface IFtpURLInputStream;
+    }
+}
