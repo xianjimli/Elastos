@@ -107,6 +107,14 @@ module
     interface IMockGeolocation;
   }
 
+  class CHttpAuthHandler {
+      interface IHttpAuthHandler;
+  }
+
+  singleton class CHttpAuthHandlerHelper {
+      interface IHttpAuthHandlerHelper;
+  }
+
   class CPlugin {
     constructor(
        [in] String name,
@@ -137,6 +145,10 @@ module
     interface IPluginManager;
   }
 
+  singleton class CPluginManagerHelper {
+    interface IPluginManagerHelper;
+  }
+
   class CSslErrorHandler {
     interface ISslErrorHandler;
   }
@@ -145,8 +157,16 @@ module
     interface IURLUtil;
   }
 
+  singleton class CURLUtilHelper {
+    interface IURLUtilHelper;
+  }
+
   class CUrlInterceptRegistry {
     interface IUrlInterceptRegistry;
+  }
+
+  singleton class CUrlInterceptRegistryHelper {
+    interface IUrlInterceptRegistryHelper;
   }
 
   class CWebBackForwardList {

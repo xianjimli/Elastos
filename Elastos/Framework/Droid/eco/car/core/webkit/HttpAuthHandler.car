@@ -14,8 +14,8 @@ module
          * @param password The password to use for authentication
          */
         Proceed(
-           [in] CString username, 
-           [in] CString password);
+           [in] String username, 
+           [in] String password);
 
         /**
          * Cancel the authorization request
@@ -31,16 +31,19 @@ module
          */
         UseHttpAuthUsernamePassword(
            [out] Boolean* flag);
+        
+    }
 
+    interface IHttpAuthHandlerHelper {
         /**
          * Informs the WebView of a new set of credentials.
          * @hide Pending API council review
          */
         OnReceivedCredentials(
            [in] Handle32 loader, /* ILoadListener */
-           [in] CString host, 
-           [in] CString realm, 
-           [in] CString username, 
-           [in] CString password);
+           [in] String host, 
+           [in] String realm, 
+           [in] String username, 
+           [in] String password);
     }
 }

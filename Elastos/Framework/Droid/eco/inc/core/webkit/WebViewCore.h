@@ -1524,7 +1524,7 @@ private:
     CARAPI_(void) NativeUpdateFrameCacheIfLoading();
 
     /*native*/
-    CARAPI_(String&) NativeRequestLabel(
+    CARAPI_(String) NativeRequestLabel(
         /* [in] */ Int32 framePtr, 
         /* [in] */ Int32 nodePtr);
 

@@ -26,34 +26,34 @@ const AutoFree < ArrayOf < AutoPtr <ISignature> > > CPluginManager::SIGNATURES =
 
 Core::Threading::Mutex CPluginManager::mMutexClass;
 
-ECode CPluginManager::GetInstance(
-    /* [in] */ IContext * context,
-    /* [out] */ IPluginManager ** instance)
+IPluginManager* CPluginManager::GetInstance(
+    /* [in] */ IContext * context)
 {
-    VALIDATE_NOT_NULL(instance);
     Mutex::Autolock lock(mMutexClass);
     
     if(sInstance == NULL) {
         if(context == NULL) {
             //throw new IllegalStateException("First call to PluginManager need a valid context.");
-            return E_ILLEGAL_STATE_EXCEPTION;
+            //return E_ILLEGAL_STATE_EXCEPTION;
+            return NULL;
         }
         AutoPtr<IContext> contextT;
         ECode ec = context->GetApplicationContext((IContext**)&contextT);
         if(FAILED(ec)) {
-            return ec;
+            //return ec;
+            return NULL;
         }
 
         sInstance = new CPluginManager();
-        ((CPluginManager *)sInstance) -> InitInstance(contextT.Get());   //CPluginManager::New(contextT, instance);     //CPluginManager::NewByFriend((CPluginManager**)&sInstance);   
+        ((CPluginManager *)sInstance) -> InitInstance(contextT.Get());    //CPluginManager::New(contextT, (CPluginManager**)&instance);     //CPluginManager::NewByFriend((CPluginManager**)&sInstance);   
 
-        *instance = sInstance;        
+        return sInstance;        
     }
     else {
-        *instance = sInstance;        
+        return sInstance;        
     }
-
-    return NOERROR;
+    
+    return NULL;
 }
 
 ECode CPluginManager::InitInstance(

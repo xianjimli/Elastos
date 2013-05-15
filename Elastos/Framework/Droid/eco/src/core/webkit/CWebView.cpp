@@ -2485,13 +2485,9 @@ ECode CWebView::PostUrl(
     /* [in] */ const String& url,
     /* [in] */ const ArrayOf<Byte> & postData)
 {
-    IURLUtil* urlUtil = NULL;
-    CURLUtil::AcquireSingleton(&urlUtil);
     Boolean bFlag = FALSE;
 
-    assert(urlUtil != NULL);
-
-    urlUtil->IsNetworkUrl(url, &bFlag);
+    bFlag = CURLUtil::IsNetworkUrl(url);
     if (bFlag) {
         SwitchOutDrawHistory();
         WebViewCore::PostUrlData* arg = new WebViewCore::PostUrlData();

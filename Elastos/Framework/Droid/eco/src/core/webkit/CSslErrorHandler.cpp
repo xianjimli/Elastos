@@ -112,7 +112,7 @@ ECode CSslErrorHandler::HandleSslErrorRequest(
     Core::Threading::Mutex::Autolock lock(_m_syncLock);
     if (DebugFlags::sSSL_ERROR_HANDLER)  {
         String strUrl;
-        loader -> Url(/*&*/strUrl);
+        loader -> Url(&strUrl);
         Utility::Logging::Logger::V(LOGTAG, String("SslErrorHandler.handleSslErrorRequest(): ") 
             + String("url=") + strUrl + "\n");
     }
@@ -135,7 +135,7 @@ ECode CSslErrorHandler::CheckSslPrefTable(
     Core::Threading::Mutex::Autolock lock(_m_syncLock);
     ECode ec;
     /*const*/ String host;
-    loader -> Host(/*&*/host);
+    loader -> Host(&host);
     /*const*/ Int32 primary = 0;
     //ec = error -> GetPrimaryError(&primary);
 
@@ -274,7 +274,7 @@ ECode CSslErrorHandler::HandleSslErrorResponse(
     if (DebugFlags::sSSL_ERROR_HANDLER) 
     {
         String strUrl;
-        loader -> Url(/*&*/strUrl);
+        loader -> Url(&strUrl);
         String strProceed;
         Utility::Logging::Logger::V(LOGTAG, String("SslErrorHandler::HandleSslErrorResponse():") 
             + String(" proceed: ") + strProceed.FromBoolean(proceed) 
@@ -289,7 +289,7 @@ ECode CSslErrorHandler::HandleSslErrorResponse(
             Int32 primary = 0;
             //error -> GetPrimaryError(&primary);
             String host;
-            loader -> Host(/*&*/host);
+            loader -> Host(&host);
 
             if (DebugFlags::sSSL_ERROR_HANDLER) 
             {
