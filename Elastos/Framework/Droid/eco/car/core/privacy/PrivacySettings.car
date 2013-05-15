@@ -72,5 +72,11 @@ module
 
         SetLocationGpsLon(
             [in] String longitude);
+        
+        GetCapsuleName(
+            [out] String* capsuleName);
+        
+        GetID(
+            [out] Int32* id);
     }
 }
