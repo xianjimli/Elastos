@@ -1,0 +1,51 @@
+module
+{
+    merge("../../../../../car/Elastos/Net/Extend/ISocketFactory.car");
+    merge("../../../../../car/Elastos/Net/Extend/IServerSocketFactory.car");
+    merge("../../../../../car/Elastos/Net/Extend/IDefaultSocketFactory.car");
+    merge("../../../../../car/Elastos/Net/Extend/IDefaultServerSocketFactory.car");
+    merge("../../../../../car/Elastos/Net/Extend/SSL/ISSLEngine.car");
+    merge("../../../../../car/Elastos/Net/Extend/SSL/ISSLParameters.car");
+    merge("../../../../../car/Elastos/Net/Extend/SSL/ISSLSessionContext.car");
+    merge("../../../../../car/Elastos/Net/Extend/SSL/ISSLSession.car");
+    merge("../../../../../car/Elastos/Net/Extend/SSL/ISSLContext.car");
+    merge("../../../../../car/Elastos/Net/Extend/SSL/IHostnameVerifier.car");
+    merge("../../../../../car/Elastos/Net/Extend/SSL/ISSLServerSocket.car");
+    merge("../../../../../car/Elastos/Net/Extend/SSL/ISSLSocket.car");
+    merge("../../../../../car/Elastos/Net/Extend/SSL/ISSLSocketFactory.car");
+    merge("../../../../../car/Elastos/Net/Extend/SSL/ISSLServerSocketFactory.car");
+    merge("../../../../../car/Elastos/Net/Extend/SSL/IDefaultSSLSocketFactory.car");
+    merge("../../../../../car/Elastos/Net/Extend/SSL/IDefaultSSLServerSocketFactory.car");
+
+    class CSSLContext {
+        constructor();
+
+        interface ISSLContext;
+    }
+
+    class CDefaultSSLSocketFactory {
+        constructor(
+            [in] String mes);
+
+        interface IDefaultSSLSocketFactory;
+    }
+
+    class CDefaultSSLServerSocketFactory {
+        constructor(
+            [in] String mes);
+
+        interface IDefaultSSLServerSocketFactory;
+    }
+
+    class CDefaultSocketFactory {
+        constructor();
+
+        interface IDefaultSocketFactory;
+    }
+
+    class CDefaultServerSocketFactory {
+        constructor();
+
+        interface IDefaultServerSocketFactory;
+    }
+}

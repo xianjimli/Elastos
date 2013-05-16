@@ -1,0 +1,26 @@
+module
+{
+    merge("../../../../../../car/Elastos/Net/Apache/Protocol/Http/IHttpHandler.car");
+    merge("../../../../../../car/Elastos/Net/Apache/Protocol/Http/IHttpURLConnectionImpl.car");
+
+    class CHttpURLConnectionImpl {
+        constructor(
+            [in] IURL* url,
+            [in] Int32 port);
+
+        constructor(
+            [in] IURL* url,
+            [in] Int32 port,
+            [in] IProxy* proxy);
+
+        interface IHttpURLConnectionImpl;
+    }
+
+
+    class CHttpHandler {
+        constructor();
+
+        interface IHttpHandler;
+    }
+
+}

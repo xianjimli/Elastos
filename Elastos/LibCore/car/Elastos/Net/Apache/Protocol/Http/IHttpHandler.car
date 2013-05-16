@@ -1,0 +1,6 @@
+module
+{
+    interface IHttpHandler extends IURLStreamHandler
+    {
+    }
+}

@@ -56,6 +56,8 @@ module
     merge("../../../car/Elastos/Net/INetGlobalInit.car");
     merge("./Apache/Protocol/File/Elastos.Net.Apache.Protocol.FileURL.car");
     merge("./Apache/Protocol/Ftp/Elastos.Net.Apache.Protocol.FtpURL.car");
+    merge("./Apache/Protocol/Http/Elastos.Net.Apache.Protocol.HttpURL.car");
+    merge("./Extend/SSL/Elastos.Net.Extend.SSL.car");
 
     class CInet4Address {
         constructor(
