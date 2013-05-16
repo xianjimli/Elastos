@@ -222,7 +222,7 @@ private:
 
 private:
     //static ArrayOf<AutoPtr<IInputFilter> >* NO_FILTERS = new InputFilter[0];
-    //ArrayOf<AutoPtr<IInputFilter> >* mFilters = NO_FILTERS;
+    AutoPtr<IObjectContainer> mFilters;
 
     ArrayOf<Char32>* mText;
     Int32 mGapStart;

@@ -1081,14 +1081,14 @@ module
          *
          * @attr ref android.R.styleable#TextView_maxLength
          */
-        //SetFilters(
-        //    [in] ArrayOf<IInputFilter*> filters);
+        SetFilters(
+            [in] IObjectContainer* filters);
 
         /**
          * Returns the current list of input filters.
          */
-        //GetFilters(
-        //    [out, callee] ArrayOf<IInputFilter*>* filters);
+        GetFilters(
+            [out] IObjectContainer** filters);
 
         /**
          * Return the number of lines of text, or 0 if the internal Layout has not

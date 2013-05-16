@@ -335,6 +335,12 @@
         /* [in] */ ICharSequence * pError,                                  \
         /* [in] */ IDrawable * pIcon);                                      \
                                                                             \
+    CARAPI SetFilters(                                                      \
+        /* [in] */ IObjectContainer* filters);                              \
+                                                                            \
+    CARAPI GetFilters(                                                      \
+        /* [out] */ IObjectContainer** filters);                            \
+                                                                            \
     CARAPI GetLineCount(                                                    \
         /* [out] */ Int32 * pCount);                                        \
                                                                             \
@@ -1213,6 +1219,24 @@ ECode className::SetErrorEx(                                                    
     /* [in] */ IDrawable * pIcon)                                                               \
 {                                                                                               \
     return superClass::SetError(pError, pIcon);                                                 \
+}                                                                                               \
+                                                                                                \
+ECode className::SetFilters(                                                                    \
+    /* [in] */ IObjectContainer* filters)                                                       \
+{                                                                                               \
+    return superClass::SetFilters(filters);                                                     \
+}                                                                                               \
+                                                                                                \
+ECode className::GetFilters(                                                                    \
+    /* [out] */ IObjectContainer** filters)                                                     \
+{                                                                                               \
+    VALIDATE_NOT_NULL(filters);                                                                 \
+    *filters = superClass::GetFilters();                                                        \
+    if (*filters) {                                                                             \
+        (*filters)->AddRef();                                                                   \
+    }                                                                                           \
+                                                                                                \
+    return NOERROR;                                                                             \
 }                                                                                               \
                                                                                                 \
 ECode className::GetLineCount(                                                                  \
