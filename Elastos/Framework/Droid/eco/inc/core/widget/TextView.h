@@ -1562,6 +1562,20 @@ public:
      *
      * @attr ref android.R.styleable#TextView_maxLength
      */
+    virtual CARAPI SetFilters(
+        /* [in] */ IObjectContainer* filters);
+
+    /**
+     * Returns the current list of input filters.
+     */
+    virtual CARAPI_(AutoPtr<IObjectContainer>) GetFilters();
+
+    /**
+     * Sets the list of input filters that will be used if the buffer is
+     * Editable.  Has no effect otherwise.
+     *
+     * @attr ref android.R.styleable#TextView_maxLength
+     */
     //virtual CARAPI_(void) SetFilters(
     //    /* [in] */ InputFilter[] filters);
 
@@ -2216,6 +2230,14 @@ private:
      * Sets the list of input filters on the specified Editable,
      * and includes mInput in the list if it is an InputFilter.
      */
+    CARAPI SetFilters(
+        /* [in] */ IEditable* e,
+        /* [in] */ IObjectContainer* filters);
+
+    /**
+     * Sets the list of input filters on the specified Editable,
+     * and includes mInput in the list if it is an InputFilter.
+     */
     //CARAPI_(void) SetFilters(
     //    /* [in] */ Editable e,
     //    /* [in] */ InputFilter[] filters);
@@ -2634,9 +2656,9 @@ private:
 
     AutoPtr<IBoringLayout> mSavedLayout, mSavedHintLayout;
 
-    /*static final InputFilter[] NO_FILTERS = new InputFilter[0];
-    InputFilter[] mFilters = NO_FILTERS;
-    static final Spanned EMPTY_SPANNED = new SpannedString("");*/
+    //static const AutoPtr<IObjectContainer> NO_FILTERS;
+    AutoPtr<IObjectContainer> mFilters;
+    /*static final Spanned EMPTY_SPANNED = new SpannedString("");*/
 
     static const Int32 EXTRACT_NOTHING;
     static const Int32 EXTRACT_UNKNOWN;

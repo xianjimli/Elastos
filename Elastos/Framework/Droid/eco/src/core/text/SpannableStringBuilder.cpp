@@ -34,6 +34,8 @@ SpannableStringBuilder::SpannableStringBuilder()
     if (EMPTY_CS == NULL) {
         EMPTY_CS = CreateEmptyCs();
     }
+
+    ASSERT_SUCCEEDED(CObjectContainer::New((IObjectContainer**)&mFilters));
 }
 
 SpannableStringBuilder::~SpannableStringBuilder()
@@ -457,17 +459,22 @@ AutoPtr<IEditable> SpannableStringBuilder::Replace(
     /* [in] */ Int32 tbstart,
     /* [in] */ Int32 tbend)
 {
-    //Int32 filtercount = mFilters.GetLength;
-    //for (Int32 i = 0; i < filtercount; i++) {
-    //    CharSequence repl = mFilters[i].filter(tb, tbstart, tbend,
-    //                                           this, start, end);
+    AutoPtr<IObjectEnumerator> enumerator;
+    mFilters->GetObjectEnumerator((IObjectEnumerator**)&enumerator);
+    Boolean hasNext;
+    while(enumerator->MoveNext(&hasNext), hasNext) {
+        AutoPtr<IInputFilter> f;
+        enumerator->Current((IInterface**)&f);
+        AutoPtr<ICharSequence> repl;
+        f->Filter(tb, tbstart, tbend, (ISpanned*)this->Probe(EIID_ISpanned),
+                start, end, (ICharSequence**)&repl);
 
-    //    if (repl != NULL) {
-    //        tb = repl;
-    //        tbstart = 0;
-    //        tbend = repl.GetLength();
-    //    }
-    //}
+        if (repl != NULL) {
+            tb = repl;
+            tbstart = 0;
+            repl->GetLength(&tbend);
+        }
+    }
 
     if (end == start && tbstart == tbend) {
         return (IEditable*)this->Probe(EIID_IEditable);
@@ -1265,19 +1272,24 @@ Int32 SpannableStringBuilder::GetTextWidths(
 ECode SpannableStringBuilder::SetFilters(
     /* [in] */ IObjectContainer* filters)
 {
-    //if (filters == NULL) {
-    //    return E_ILLEGAL_ARGUMENT_EXCEPTION;
-    //}
+    if (filters == NULL) {
+       return E_ILLEGAL_ARGUMENT_EXCEPTION;
+    }
 
-    //mFilters = filters;
-    return E_NOT_IMPLEMENTED;
+    mFilters = filters;
+    return NOERROR;
 }
 
 // Documentation from interface
 ECode SpannableStringBuilder::GetFilters(
     /* [out] */ IObjectContainer** filters)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(filters);
+    *filters = mFilters;
+    if (*filters) {
+        (*filters)->AddRef();
+    }
+    return NOERROR;
 }
 
 ECode SpannableStringBuilder::Init()

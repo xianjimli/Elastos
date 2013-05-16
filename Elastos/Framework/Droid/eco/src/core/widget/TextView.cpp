@@ -106,6 +106,7 @@
 #include "text/Selection.h"
 #include "text/CEditableFactory.h"
 #include "text/CSpannableFactory.h"
+#include "text/CLengthFilter.h"
 #include "text/method/MetaKeyKeyListener.h"
 #include "text/method/TextKeyListener.h"
 #include "view/CKeyEvent.h"
@@ -1336,6 +1337,7 @@ TextView::TextView()
     , mHighlightPathBogus(TRUE)
     , mScroller(NULL)
 {
+    ASSERT_SUCCEEDED(CObjectContainer::New((IObjectContainer**)&mFilters));
 }
 
 TextView::TextView(
@@ -1600,7 +1602,7 @@ void TextView::SetKeyListenerOnly(
     if (mInput != NULL && !(IEditable::Probe(mText)))
         SetText(mText);
 
-    //SetFilters(IEditable::Probe(mText), mFilters);
+    SetFilters(IEditable::Probe(mText), mFilters);
 }
 
 /**
@@ -3343,7 +3345,7 @@ ECode TextView::SetText(
         AutoPtr<IEditable> t;
         mEditableFactory->NewEditable(text, (IEditable**)&t);
         text = t;
-        //setFilters(t, mFilters);
+        SetFilters(t, mFilters);
         AutoPtr<ILocalInputMethodManager> imm = CLocalInputMethodManager::PeekInstance();
         if (imm != NULL) {
             imm->RestartInput((IView*)this->Probe(EIID_IView));
@@ -4273,47 +4275,48 @@ void TextView::RestartMarqueeIfNeeded()
 //    }
 }
 
-/**
- * Sets the list of input filters that will be used if the buffer is
- * Editable.  Has no effect otherwise.
- *
- * @attr ref android.R.styleable#TextView_maxLength
- */
-//void TextView::SetFilters(InputFilter[] filters) {
-//    if (filters == NULL) {
+ECode TextView::SetFilters(
+    /* [in] */ IObjectContainer* filters)
+{
+    if (filters == NULL) {
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
 //        throw new IllegalArgumentException();
-//    }
-//
-//    mFilters = filters;
-//
-//    if (mText instanceof Editable) {
-//        setFilters(IEditable::Probe(mText), filters);
-//    }
-//}
+    }
+    mFilters = filters;
+    if (mText && mText->Probe(EIID_IEditable) != NULL) {
+        return SetFilters(IEditable::Probe(mText), filters);
+    }
 
-/**
- * Sets the list of input filters on the specified Editable,
- * and includes mInput in the list if it is an InputFilter.
- */
-//private void setFilters(Editable e, InputFilter[] filters) {
-//    if (mInput instanceof InputFilter) {
-//        InputFilter[] nf = new InputFilter[filters.length + 1];
-//
-//        System.arraycopy(filters, 0, nf, 0, filters.length);
-//        nf[filters.length] = (InputFilter) mInput;
-//
-//        e.setFilters(nf);
-//    } else {
-//        e.setFilters(filters);
-//    }
-//}
+    return NOERROR;
+}
 
-/**
-    * Returns the current list of input filters.
-    */
-//public InputFilter[] getFilters() {
-//    return mFilters;
-//}
+ECode TextView::SetFilters(
+    /* [in] */ IEditable* e,
+    /* [in] */ IObjectContainer* filters)
+{
+    if (mInput && mInput->Probe(EIID_IInputFilter) != NULL) {
+        AutoPtr<IObjectContainer> nf;
+        CObjectContainer::New((IObjectContainer**)&nf);
+        AutoPtr<IObjectEnumerator> enumerator;
+        filters->GetObjectEnumerator((IObjectEnumerator**)&enumerator);
+        Boolean hasNext;
+        while(enumerator->MoveNext(&hasNext), hasNext) {
+            AutoPtr<IInputFilter> obj;
+            enumerator->Current((IInterface**)&obj);
+            nf->Add(obj);
+        }
+        nf->Add((IInputFilter*)mInput->Probe(EIID_IInputFilter));
+        return e->SetFilters(nf);
+    }
+    else {
+        return e->SetFilters(filters);
+    }
+}
+
+AutoPtr<IObjectContainer> TextView::GetFilters()
+{
+   return mFilters;
+}
 
 /////////////////////////////////////////////////////////////////////////
 
@@ -9591,11 +9594,19 @@ ECode TextView::InitFromAttributes(
         SetShadowLayer(r, dx, dy, shadowcolor);
     }
 
-//    if (maxlength >= 0) {
-//        setFilters(new InputFilter[] { new InputFilter.LengthFilter(maxlength) });
-//    } else {
-//        setFilters(NO_FILTERS);
-//    }
+    if (maxlength >= 0) {
+        AutoPtr<IInputFilter> lenFilter;
+        CLengthFilter::New(maxlength, (IInputFilter**)&lenFilter);
+        AutoPtr<IObjectContainer> container;
+        ASSERT_SUCCEEDED(CObjectContainer::New((IObjectContainer**)&container));
+        container->Add(lenFilter);
+        SetFilters(container);
+    }
+    else {
+        AutoPtr<IObjectContainer> container;
+        ASSERT_SUCCEEDED(CObjectContainer::New((IObjectContainer**)&container));
+        SetFilters(container);
+    }
 
     SetText(text, bufferType);
     if (hint != NULL) SetHint(hint);
