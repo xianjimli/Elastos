@@ -1,0 +1,20 @@
+module
+{
+    interface IHostnameVerifier {
+        /**
+         * Verifies that the specified hostname is allowed within the specified SSL
+         * session.
+         *
+         * @param hostname
+         *            the hostname.
+         * @param session
+         *            the SSL session of the connection.
+         * @return {@code true} if the specified hostname is allowed, otherwise
+         *         {@code false}.
+         */
+        Verify(
+            [in] String hostname,
+            [in] ISSLSession* session,
+            [out] Boolean* veri);
+    }
+}

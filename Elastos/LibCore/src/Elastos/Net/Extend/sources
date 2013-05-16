@@ -1,0 +1,13 @@
+TARGET_NAME = Elastos.Net.Extend
+TARGET_TYPE = lib
+
+INCLUDES += $(MAKEDIR)/../../../../inc/Elastos/Net/Extend;
+INCLUDES += $(MAKEDIR)/../../../../inc/Elastos/Net;
+INCLUDES += $(TARGET_OBJ_PATH)/../
+INCLUDES += $(MAKEDIR)/../../../../inc/Elastos/common;
+
+
+LIBRARIES += ./SSL/Elastos.Net.Extend.SSL.lib
+
+SOURCES += CDefaultServerSocketFactory.cpp
+SOURCES += CDefaultSocketFactory.cpp

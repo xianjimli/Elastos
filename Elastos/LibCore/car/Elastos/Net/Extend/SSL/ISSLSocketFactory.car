@@ -1,0 +1,6 @@
+module
+{
+    interface ISSLSocketFactory extends ISocketFactory
+    {
+    }
+}

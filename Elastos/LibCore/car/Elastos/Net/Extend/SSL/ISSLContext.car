@@ -1,0 +1,119 @@
+module
+{
+    interface ISSLContext {
+        /**
+        * Returns the name of the secure socket protocol of this instance.
+        *
+        * @return the name of the secure socket protocol of this instance.
+        */
+        GetProtocol(
+            [out] String* protocol);
+
+        /**
+        * Returns the provider of this {@code SSLContext} instance.
+        *
+        * @return the provider of this {@code SSLContext} instance.
+        */
+        //public final Provider getProvider();
+
+        /**
+        * Initializes this {@code SSLContext} instance. All of the arguments are
+        * optional, and the security providers will be searched for the required
+        * implementations of the needed algorithms.
+        *
+        * @param km
+        *            the key sources or {@code null}.
+        * @param tm
+        *            the trust decision sources or {@code null}.
+        * @param sr
+        *            the randomness source or {@code null.}
+        * @throws KeyManagementException
+        *             if initializing this instance fails.
+        */
+        //Init(KeyManager[] km, TrustManager[] tm, SecureRandom sr);
+
+        /**
+        * Returns a socket factory for this instance.
+        *
+        * @return a socket factory for this instance.
+        */
+        GetSocketFactory(
+            [out] ISocketFactory** factory);
+
+        /**
+         * Returns a server socket factory for this instance.
+         *
+         * @return a server socket factory for this instance.
+         */
+        GetServerSocketFactory(
+            [out] IServerSocketFactory** factory);
+
+        /**
+         * Creates an {@code SSLEngine} instance from this context.
+         *
+         * @return an {@code SSLEngine} instance from this context.
+         * @throws UnsupportedOperationException
+         *             if the provider does not support the operation.
+         */
+        CreateSSLEngine(
+            [out] ISSLEngine** engine);
+
+        /**
+        * Creates an {@code SSLEngine} instance from this context with the
+        * specified hostname and port.
+        *
+        * @param peerHost
+        *            the name of the host
+        * @param peerPort
+        *            the port
+        * @return an {@code SSLEngine} instance from this context.
+        * @throws UnsupportedOperationException
+        *             if the provider does not support the operation.
+        */
+        CreateSSLEngineEx(
+            [in] String peerHost,
+            [in] Int32 peerPort,
+            [out] ISSLEngine** engine);
+
+        /**
+         * Returns the SSL session context that encapsulates the set of SSL sessions
+         * that can be used for handshake of server-side SSL sockets.
+         *
+         * @return the SSL server session context for this context or {@code null}
+         *         if the underlying provider does not provide an implementation of
+         *         the {@code SSLSessionContext} interface.
+         */
+        GetServerSessionContext(
+            [out] ISSLSessionContext** context);
+
+         /**
+         * Returns the SSL session context that encapsulates the set of SSL sessions
+         * that can be used for handshake of client-side SSL sockets.
+         *
+         * @return the SSL client session context for this context or {@code null}
+         *         if the underlying provider does not provide an implementation of
+         *         the {@code SSLSessionContext} interface.
+         */
+        GetClientSessionContext(
+            [out] ISSLSessionContext** context);
+
+        /**
+         * Returns the default SSL handshake parameters for SSLSockets
+         * created by this SSLContext.
+         *
+         * @throws UnsupportedOperationException
+         * @since 1.6
+         */
+        GetDefaultSSLParameters(
+            [out] ISSLParameters** para);
+        /**
+         * Returns SSL handshake parameters for SSLSockets that includes
+         * all supported cipher suites and protocols.
+         *
+         * @throws UnsupportedOperationException
+         * @since 1.6
+         */
+        GetSupportedSSLParameters(
+            [out] ISSLParameters** para);
+    }
+}
