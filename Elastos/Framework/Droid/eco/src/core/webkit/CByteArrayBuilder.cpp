@@ -144,6 +144,13 @@ CARAPI CByteArrayBuilder::Chunk::ChunkRelease()
 PInterface CByteArrayBuilder::Chunk::Probe(
     /* [in] */ REIID riid)
 {
+    if (riid == EIID_IInterface) {
+        return (PInterface)(IByteArrayBuilderChunk*)this;
+    }
+    else if (riid == EIID_IByteArrayBuilderChunk) {
+        return (IByteArrayBuilderChunk*)this;
+    }
+
     return NULL;
 }
 
@@ -161,5 +168,14 @@ ECode CByteArrayBuilder::Chunk::GetInterfaceID(
     /* [in] */ IInterface* Object,
     /* [out] */ InterfaceID* IID)
 {
-    return NOERROR;
+    if (IID == NULL) {
+        return E_INVALID_ARGUMENT;
+    }
+
+    if (Object == (IInterface*)(IByteArrayBuilderChunk*)this) {
+        *IID = EIID_IByteArrayBuilderChunk;
+    }
+    else {
+        return E_INVALID_ARGUMENT;
+    }
 }

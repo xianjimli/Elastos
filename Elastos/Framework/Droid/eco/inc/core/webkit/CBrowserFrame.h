@@ -354,7 +354,7 @@ private:
      */
     CARAPI_(Int32) GetFile(
         /* [in] */ const String& uri,
-        /* [in] */ ArrayOf<Byte>& buffer,
+        /* [in] */ ArrayOf<Byte>* buffer,
         /* [in] */ Int32 offset,
         /* [in] */ Int32 expectedSize) const;
 

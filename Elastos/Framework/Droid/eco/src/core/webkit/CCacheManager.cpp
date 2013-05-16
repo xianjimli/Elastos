@@ -978,5 +978,4 @@ ECode CCacheManager::CacheResult::GetInterfaceID(
     else {
         return E_INVALID_ARGUMENT;
     }
-    return NOERROR;
 }

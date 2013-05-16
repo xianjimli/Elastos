@@ -3,6 +3,7 @@
 #include "webkit/CCookieManager.h"
 #include "webkit/CCookieSyncManager.h"
 #include "os/Runnable.h"
+#include "webkit/DebugFlags.h"
 
 using namespace Core;
 
@@ -344,9 +345,9 @@ ECode CCookieManager::RemoveSessionCookie()
                 }
             }
 
-            ICookieSyncManager* csm = NULL;
-            CCookieSyncManager::AcquireSingleton(&csm);
-            ((CCookieSyncManager*)csm)->ClearSessionCookies();
+            AutoPtr<ICookieSyncManager> csm = NULL;
+            CCookieSyncManager::AcquireSingleton((ICookieSyncManager**)&csm);
+            ((CCookieSyncManager*)(csm.Get()))->ClearSessionCookies();
         }
 
     private:
@@ -535,7 +536,7 @@ CARAPI_(void) CCookieManager::DeleteLRUDomain(
             Vector<AutoPtr<Cookie> >* list = NULL;
             mCookieMap->Get((*cookieLists)[i], (IInterface**)&list);
 
-//            if (DebugFlags.COOKIE_MANAGER)
+            if (DebugFlags::sCOOKIE_MANAGER)
             {
                 Int32 _size = list->GetSize();
                 for (Int32 j = 0; j < _size; j++)
@@ -553,7 +554,7 @@ CARAPI_(void) CCookieManager::DeleteLRUDomain(
                     if (count >= MAX_RAM_COOKIES_COUNT) break;
                 }
             }
-//            else
+            else
             {
                 count += list->GetSize();
             }

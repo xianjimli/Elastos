@@ -125,8 +125,6 @@ public:
         String crossDomain;
 
         // these fields are NOT saved to the database
-        //IInputStream* inStream;
-        //IOutputStream* outStream;
         AutoPtr<IFileInputStream> inStream;
         AutoPtr<IFileOutputStream> outStream;
         AutoPtr<IFile> outFile;

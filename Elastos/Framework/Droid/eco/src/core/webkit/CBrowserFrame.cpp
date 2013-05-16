@@ -154,7 +154,6 @@ ECode CBrowserFrame::ExternalRepresentation(
     /* [in] */ IParcel* param)
 {
     VALIDATE_NOT_NULL(target);
-//    VALIDATE_NOT_NULL(param);
 
     String str;
     ExternalRepresentation(str);
@@ -171,7 +170,6 @@ ECode CBrowserFrame::DocumentAsText(
     /* [in] */ IParcel* param)
 {
     VALIDATE_NOT_NULL(target);
- //   VALIDATE_NOT_NULL(param);
 
     String str;
     DocumentAsText(str);
@@ -186,8 +184,6 @@ ECode CBrowserFrame::HandleUrl(
     /* [in] */ const String& url,
     /* [out] */ Boolean* outFlag)
 {
-//    VALIDATE_NOT_NULL(outFlag);
-
     if (mLoadInitFromJava == TRUE && outFlag) {
         *outFlag = FALSE;
         return NOERROR;
@@ -220,20 +216,20 @@ ECode CBrowserFrame::AddJavascriptInterface(
     /* [in] */ IInterface* obj,
     /* [in] */ const String& interfaceName)
 {
-/*    if (mJSInterfaceMap == NULL)
+    if (mJSInterfaceMap == NULL)
     {
-        mJSInterfaceMap = new HashMap<String, Object>();
+        //mJSInterfaceMap = new HashMap<String, Object>();
+        CObjectStringMap::New((IObjectStringMap**)&mJSInterfaceMap);
     }
-
+#if 0
     if (mJSInterfaceMap.containsKey(interfaceName))
     {
         mJSInterfaceMap.remove(interfaceName);
     }
+#endif
+    mJSInterfaceMap->Put(interfaceName, obj);
 
-    mJSInterfaceMap.put(interfaceName, obj);
-*/
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CBrowserFrame::NativeDestroyFrame()
@@ -504,7 +500,7 @@ ECode CBrowserFrame::ConfigCallback::OnConfigurationChanged(
 
 ECode CBrowserFrame::ConfigCallback::OnLowMemory()
 {
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 /**
@@ -680,7 +676,22 @@ CARAPI_(void) CBrowserFrame::WindowObjectCleared(
  */
 CARAPI_(Int32) CBrowserFrame::GetFileSize(
     /* [in] */ const String& uri) const
-{}
+{
+    Int32 size = 0;
+    //try {
+        //InputStream stream = mContext.getContentResolver().openInputStream(Uri.parse(uri));
+        AutoPtr<IInputStream> stream;
+        AutoPtr<IContentResolver> contentResolver;
+        AutoPtr<IUri> _uri;
+        mContext->GetContentResolver((IContentResolver**)&contentResolver);
+        Uri::Parse(uri, (IUri**)&_uri);
+        contentResolver->OpenInputStream(_uri, (IInputStream**)&stream);
+        //size = stream.available();
+        stream->Available(&size);
+        stream->Close();
+    //} catch (Exception e) {}
+    return size;
+}
 
 /**
  * Called by JNI.  Given a URI, a buffer, and an offset into the buffer,
@@ -693,10 +704,38 @@ CARAPI_(Int32) CBrowserFrame::GetFileSize(
  */
 CARAPI_(Int32) CBrowserFrame::GetFile(
     /* [in] */ const String& uri,
-    /* [in] */ ArrayOf<Byte>& buffer,
+    /* [in] */ ArrayOf<Byte>* buffer,
     /* [in] */ Int32 offset,
     /* [in] */ Int32 expectedSize) const
-{}
+{
+    Int32 size = 0;
+    //try {
+        //InputStream stream = mContext.getContentResolver().openInputStream(Uri.parse(uri));
+        AutoPtr<IInputStream> stream;
+        AutoPtr<IContentResolver> contentResolver;
+        AutoPtr<IUri> _uri;
+        mContext->GetContentResolver((IContentResolver**)&contentResolver);
+        Uri::Parse(uri, (IUri**)&_uri);
+        contentResolver->OpenInputStream(_uri, (IInputStream**)&stream);
+        //size = stream.available();
+        stream->Available(&size);
+        if (size <= expectedSize && buffer != NULL
+                && buffer->GetLength() - offset >= size) {
+            stream->ReadBufferEx(offset, size, buffer, NULL);
+        } else {
+            size = 0;
+        }
+        stream->Close();
+    //} catch (java.io.FileNotFoundException e) {
+    //    Log.e(LOGTAG, "FileNotFoundException:" + e);
+    //    size = 0;
+    //} catch (java.io.IOException e2) {
+    //    Log.e(LOGTAG, "IOException: " + e2);
+    //    size = 0;
+    //}
+
+    return size;
+}
 
 /**
  * Start loading a resource.
@@ -727,7 +766,112 @@ CARAPI_(AutoPtr<LoadListener>) CBrowserFrame::StartLoadingResource(
     /* [in] */ Boolean synchronous,
     /* [in] */ const String& username,
     /* [in] */ const String& password)
-{}
+{
+#if 0
+    PerfChecker checker = new PerfChecker();
+
+    if (mSettings->GetCacheMode() != WebSettings::WS_LOAD_DEFAULT) {
+        cacheMode = mSettings->GetCacheMode();
+    }
+
+    if (method == "POST") {
+        // Don't use the cache on POSTs when issuing a normal POST
+        // request.
+        if (cacheMode == WebSettings::WS_LOAD_NORMAL) {
+            cacheMode = WebSettings::WS_LOAD_NO_CACHE;
+        }
+        if (mSettings->GetSavePassword() && HasPasswordField()) {
+            //try {
+                if (DebugFlags::BROWSER_FRAME) {
+                    Assert.assertNotNull(mCallbackProxy.getBackForwardList()
+                            .getCurrentItem());
+                }
+                WebAddress uri = new WebAddress(mCallbackProxy
+                        .getBackForwardList().getCurrentItem().getUrl());
+                String schemePlusHost = uri.mScheme + uri.mHost;
+                String[] ret = getUsernamePassword();
+                // Has the user entered a username/password pair and is
+                // there some POST data
+                if (ret != null && postData != null && 
+                        ret[0].length() > 0 && ret[1].length() > 0) {
+                    // Check to see if the username & password appear in
+                    // the post data (there could be another form on the
+                    // page and that was posted instead.
+                    String postString = new String(postData);
+                    if (postString.contains(URLEncoder.encode(ret[0])) &&
+                            postString.contains(URLEncoder.encode(ret[1]))) {
+                        String[] saved = mDatabase.getUsernamePassword(
+                                schemePlusHost);
+                        if (saved != null) {
+                            // null username implies that user has chosen not to
+                            // save password
+                            if (saved[0] != null) {
+                                // non-null username implies that user has
+                                // chosen to save password, so update the 
+                                // recorded password
+                                mDatabase.setUsernamePassword(
+                                        schemePlusHost, ret[0], ret[1]);
+                            }
+                        } else {
+                            // CallbackProxy will handle creating the resume
+                            // message
+                            mCallbackProxy.onSavePassword(schemePlusHost, ret[0], 
+                                    ret[1], null);
+                        }
+                    }
+                }
+            } catch (ParseException ex) {
+                // if it is bad uri, don't save its password
+            }
+            
+        }
+    }
+
+    // is this resource the main-frame top-level page?
+    boolean isMainFramePage = mIsMainFrame;
+
+    if (DebugFlags.BROWSER_FRAME) {
+        Log.v(LOGTAG, "startLoadingResource: url=" + url + ", method="
+                + method + ", postData=" + postData + ", isMainFramePage="
+                + isMainFramePage + ", mainResource=" + mainResource
+                + ", userGesture=" + userGesture);
+    }
+
+    // Create a LoadListener
+    LoadListener loadListener = LoadListener.getLoadListener(mContext,
+            this, url, loaderHandle, synchronous, isMainFramePage,
+            mainResource, userGesture, postDataIdentifier, username, password);
+
+    mCallbackProxy.onLoadResource(url);
+
+    if (LoadListener.getNativeLoaderCount() > MAX_OUTSTANDING_REQUESTS) {
+        // send an error message, so that loadListener can be deleted
+        // after this is returned. This is important as LoadListener's 
+        // nativeError will remove the request from its DocLoader's request
+        // list. But the set up is not done until this method is returned.
+        loadListener.error(
+                android.net.http.EventHandler.ERROR, mContext.getString(
+                        com.android.internal.R.string.httpErrorTooManyRequests));
+        return loadListener;
+    }
+
+    FrameLoader loader = new FrameLoader(loadListener, mSettings, method);
+    loader.setHeaders(headers);
+    loader.setPostData(postData);
+    // Set the load mode to the mode used for the current page.
+    // If WebKit wants validation, go to network directly.
+    loader.setCacheMode(headers.containsKey("If-Modified-Since")
+            || headers.containsKey("If-None-Match") ? 
+                    WebSettings.LOAD_NO_CACHE : cacheMode);
+    // Set referrer to current URL?
+    if (!loader.executeLoad()) {
+        checker.responseAlert("startLoadingResource fail");
+    }
+    checker.responseAlert("startLoadingResource succeed");
+
+    return !synchronous ? loadListener : null;
+#endif
+}
 
 /**
  * Set the progress for the browser activity.  Called by native code.
