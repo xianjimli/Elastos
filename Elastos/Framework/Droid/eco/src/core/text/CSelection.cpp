@@ -1,9 +1,9 @@
 
 #include "ext/frameworkdef.h"
-#include "text/CSelectionHelper.h"
+#include "text/CSelection.h"
 #include "text/Selection.h"
 
-ECode CSelectionHelper::GetSelectionStart(
+ECode CSelection::GetSelectionStart(
     /* [in] */ ICharSequence* text,
     /* [out] */ Int32* start)
 {
@@ -14,7 +14,7 @@ ECode CSelectionHelper::GetSelectionStart(
     return NOERROR;
 }
 
-ECode CSelectionHelper::GetSelectionEnd(
+ECode CSelection::GetSelectionEnd(
     /* [in] */ ICharSequence* text,
     /* [out] */ Int32* end)
 {
@@ -25,7 +25,7 @@ ECode CSelectionHelper::GetSelectionEnd(
     return NOERROR;
 }
 
-ECode CSelectionHelper::SetSelection(
+ECode CSelection::SetSelection(
     /* [in] */ ISpannable* text,
     /* [in] */ Int32 start,
     /* [in] */ Int32 stop)
@@ -35,7 +35,7 @@ ECode CSelectionHelper::SetSelection(
     return NOERROR;
 }
 
-ECode CSelectionHelper::SetSelection2(
+ECode CSelection::SetSelection2(
     /* [in] */ ISpannable* text,
     /* [in] */ Int32 index)
 {
@@ -44,7 +44,7 @@ ECode CSelectionHelper::SetSelection2(
     return NOERROR;
 }
 
-ECode CSelectionHelper::SelectAll(
+ECode CSelection::SelectAll(
     /* [in] */ ISpannable* text)
 {
     Selection::SelectAll(text);
@@ -52,7 +52,7 @@ ECode CSelectionHelper::SelectAll(
     return NOERROR;
 }
 
-ECode CSelectionHelper::ExtendSelection(
+ECode CSelection::ExtendSelection(
     /* [in] */ ISpannable* text,
     /* [in] */ Int32 index)
 {
@@ -61,7 +61,7 @@ ECode CSelectionHelper::ExtendSelection(
     return NOERROR;
 }
 
-ECode CSelectionHelper::RemoveSelection(
+ECode CSelection::RemoveSelection(
     /* [in] */ ISpannable* text)
 {
     Selection::RemoveSelection(text);
@@ -69,7 +69,7 @@ ECode CSelectionHelper::RemoveSelection(
     return NOERROR;
 }
 
-ECode CSelectionHelper::MoveUp(
+ECode CSelection::MoveUp(
     /* [in] */ ISpannable* text,
     /* [in] */ ILayout* layout,
     /* [out] */ Boolean* result)
@@ -80,7 +80,7 @@ ECode CSelectionHelper::MoveUp(
     return NOERROR;
 }
 
-ECode CSelectionHelper::MoveDown(
+ECode CSelection::MoveDown(
     /* [in] */ ISpannable* text,
     /* [in] */ ILayout* layout,
     /* [out] */ Boolean* result)
@@ -91,7 +91,7 @@ ECode CSelectionHelper::MoveDown(
     return NOERROR;
 }
 
-ECode CSelectionHelper::MoveLeft(
+ECode CSelection::MoveLeft(
     /* [in] */ ISpannable* text,
     /* [in] */ ILayout* layout,
     /* [out] */ Boolean* result)
@@ -102,7 +102,7 @@ ECode CSelectionHelper::MoveLeft(
     return NOERROR;
 }
 
-ECode CSelectionHelper::MoveRight(
+ECode CSelection::MoveRight(
     /* [in] */ ISpannable* text,
     /* [in] */ ILayout* layout,
     /* [out] */ Boolean* result)
@@ -113,7 +113,7 @@ ECode CSelectionHelper::MoveRight(
     return NOERROR;
 }
 
-ECode CSelectionHelper::ExtendUp(
+ECode CSelection::ExtendUp(
     /* [in] */ ISpannable* text,
     /* [in] */ ILayout* layout,
     /* [out] */ Boolean* result)
@@ -124,7 +124,7 @@ ECode CSelectionHelper::ExtendUp(
     return NOERROR;
 }
 
-ECode CSelectionHelper::ExtendDown(
+ECode CSelection::ExtendDown(
     /* [in] */ ISpannable* text,
     /* [in] */ ILayout* layout,
     /* [out] */ Boolean* result)
@@ -135,7 +135,7 @@ ECode CSelectionHelper::ExtendDown(
     return NOERROR;
 }
 
-ECode CSelectionHelper::ExtendLeft(
+ECode CSelection::ExtendLeft(
     /* [in] */ ISpannable* text,
     /* [in] */ ILayout* layout,
     /* [out] */ Boolean* result)
@@ -146,7 +146,7 @@ ECode CSelectionHelper::ExtendLeft(
     return NOERROR;
 }
 
-ECode CSelectionHelper::ExtendRight(
+ECode CSelection::ExtendRight(
     /* [in] */ ISpannable* text,
     /* [in] */ ILayout* layout,
     /* [out] */ Boolean* result)
@@ -157,7 +157,7 @@ ECode CSelectionHelper::ExtendRight(
     return NOERROR;
 }
 
-ECode CSelectionHelper::ExtendToLeftEdge(
+ECode CSelection::ExtendToLeftEdge(
     /* [in] */ ISpannable* text,
     /* [in] */ ILayout* layout,
     /* [out] */ Boolean* result)
@@ -168,7 +168,7 @@ ECode CSelectionHelper::ExtendToLeftEdge(
     return NOERROR;
 }
 
-ECode CSelectionHelper::ExtendToRightEdge(
+ECode CSelection::ExtendToRightEdge(
     /* [in] */ ISpannable* text,
     /* [in] */ ILayout* layout,
     /* [out] */ Boolean* result)
@@ -179,7 +179,7 @@ ECode CSelectionHelper::ExtendToRightEdge(
     return NOERROR;
 }
 
-ECode CSelectionHelper::MoveToLeftEdge(
+ECode CSelection::MoveToLeftEdge(
     /* [in] */ ISpannable* text,
     /* [in] */ ILayout* layout,
     /* [out] */ Boolean* result)
@@ -190,7 +190,7 @@ ECode CSelectionHelper::MoveToLeftEdge(
     return NOERROR;
 }
 
-ECode CSelectionHelper::MoveToRightEdge(
+ECode CSelection::MoveToRightEdge(
     /* [in] */ ISpannable* text,
     /* [in] */ ILayout* layout,
     /* [out] */ Boolean* result)
@@ -201,7 +201,7 @@ ECode CSelectionHelper::MoveToRightEdge(
     return NOERROR;
 }
 
-ECode CSelectionHelper::GetSelectionStartObject(
+ECode CSelection::GetSelectionStartObject(
     /* [out] */ IInterface** start)
 {
     VALIDATE_NOT_NULL(start);
@@ -212,7 +212,7 @@ ECode CSelectionHelper::GetSelectionStartObject(
     return NOERROR;
 }
 
-ECode CSelectionHelper::GetSelectionEndObject(
+ECode CSelection::GetSelectionEndObject(
     /* [out] */ IInterface** end)
 {
     VALIDATE_NOT_NULL(end);

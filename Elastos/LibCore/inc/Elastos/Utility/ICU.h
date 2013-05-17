@@ -3,6 +3,7 @@
 #define __ICU_H__
 
 #include "Elastos.Utility_server.h"
+#include "LocaleData.h"
 #include <elastos/AutoPtr.h>
 
 class ICU
@@ -100,6 +101,11 @@ public:
     static CARAPI_(String) GetISO3Language(
         /* [in] */ const String& locale);
 
+    /* pacakge */
+    static CARAPI_(Boolean) InitLocaleDataImpl(
+        /* [in] */ const String& locale,
+        /* [in] */ LocaleData* result);
+
 private:
     static CARAPI GetAvailableBreakIteratorLocalesNative(
         /* [out, callee] */ ArrayOf<String>** locales);
@@ -122,9 +128,6 @@ private:
     static CARAPI_(ArrayOf<String>*) GetISOLanguagesNative();
 
     static CARAPI_(ArrayOf<String>*) GetISOCountriesNative();
-
-    /* pacakge */
-    // static native boolean initLocaleDataImpl(String locale, LocaleData result);
 
 private:
     /**

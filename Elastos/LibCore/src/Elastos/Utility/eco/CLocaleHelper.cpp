@@ -1,6 +1,8 @@
 
+#include "cmdef.h"
 #include "CLocaleHelper.h"
-#include "Locale.h"
+
+
 /**
  * Returns the system's installed locales. This array always includes {@code
  * Locale.US}, and usually several others. Most locale-sensitive classes
@@ -18,7 +20,9 @@
 ECode CLocaleHelper::GetAvailableLocales(
     /* [out] */ ArrayOf<ILocale*>** locales)
 {
-    return Locale::GetAvailableLocales(locales);
+    VALIDATE_NOT_NULL(locales);
+
+    return CLocale::GetAvailableLocales(locales);
 }
 
 /**
@@ -29,9 +33,14 @@ ECode CLocaleHelper::GetAvailableLocales(
  * Instead, use this method to look it up for each use.
  */
 ECode CLocaleHelper::GetDefault(
-    /* [out] */ ILocale** defaultLocale)
+    /* [out] */ ILocale** locale)
 {
-    return Locale::GetDefault(defaultLocale);
+    VALIDATE_NOT_NULL(locale);
+
+    AutoPtr<ILocale> l = CLocale::GetDefault();
+    *locale = l;
+    (*locale)->AddRef();
+    return NOERROR;
 }
 
 /**
@@ -43,7 +52,9 @@ ECode CLocaleHelper::GetDefault(
 ECode CLocaleHelper::GetISOCountries(
     /* [out] */ ArrayOf<String>** codes)
 {
-    return Locale::GetISOCountries(codes);
+    VALIDATE_NOT_NULL(codes);
+
+    return CLocale::GetISOCountries(codes);
 }
 
 /**
@@ -55,7 +66,9 @@ ECode CLocaleHelper::GetISOCountries(
 ECode CLocaleHelper::GetISOLanguages(
     /* [out] */ ArrayOf<String>** codes)
 {
-    return Locale::GetISOLanguages(codes);
+    VALIDATE_NOT_NULL(codes);
+
+    return CLocale::GetISOLanguages(codes);
 }
 
 /**
@@ -69,5 +82,5 @@ ECode CLocaleHelper::GetISOLanguages(
 ECode CLocaleHelper::SetDefault(
     /* [in] */ ILocale* locale)
 {
-    return Locale::SetDefault(locale);
+    return CLocale::SetDefault(locale);
 }

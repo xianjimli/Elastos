@@ -64,12 +64,6 @@ public:
      */
     CARAPI SetDefault(
         /* [in] */ ILocale* locale);
-
-private:
-    // Initialize a default which is used during static
-    // initialization of the default for the platform.
-    static AutoPtr<CLocale> sDefaultLocale;// = new Locale();
 };
 
 #endif //__CLOCALEHELPER_H__
-

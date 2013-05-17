@@ -1,104 +1,99 @@
 
-#include "CNumberFormatHelper.h"
-#include <elastos/AutoPtr.h>
 #include "cmdef.h"
+#include "CNumberFormatHelper.h"
+#include "NumberFormat.h"
+
 
 ECode CNumberFormatHelper::GetAvailableLocales(
-    /* [out, callee] */ ArrayOf<ILocale *> ** locales)
+    /* [out, callee] */ ArrayOf<ILocale*>** locales)
 {
-    AutoPtr<IICUHelper> ICUHelper;
-    FAIL_RETURN(CICUHelper::AcquireSingleton((IICUHelper **)&ICUHelper));
-    return ICUHelper->GetAvailableNumberFormatLocales(locales);
+    VALIDATE_NOT_NULL(locales);
+
+    return NumberFormat::GetAvailableLocales(locales);
 }
 
 ECode CNumberFormatHelper::GetCurrencyInstance(
-    /* [out] */ INumberFormat ** instance)
+    /* [out] */ INumberFormat** instance)
 {
-    AutoPtr<ILocaleHelper> localeHelper;
-    CLocaleHelper::AcquireSingleton((ILocaleHelper**)&localeHelper);
-    AutoPtr<ILocale> locale;
-    FAIL_RETURN(localeHelper->GetDefault((ILocale**)&locale));
-    return GetCurrencyInstanceEx(locale, instance);
+    VALIDATE_NOT_NULL(instance);
+
+    return NumberFormat::GetCurrencyInstance(instance);
 }
 
 ECode CNumberFormatHelper::GetCurrencyInstanceEx(
-    /* [in] */ ILocale * locale,
-    /* [out] */ INumberFormat ** instance)
+    /* [in] */ ILocale* locale,
+    /* [out] */ INumberFormat** instance)
 {
-    assert(0);
-    //return getInstance(LocaleData.get(locale).currencyPattern, locale);
-    return NOERROR;
+    VALIDATE_NOT_NULL(instance);
+
+    return NumberFormat::GetCurrencyInstance(locale, instance);
 }
 
 ECode CNumberFormatHelper::GetIntegerInstance(
-    /* [out] */ INumberFormat ** instance)
+    /* [out] */ INumberFormat** instance)
 {
-    AutoPtr<ILocaleHelper> pLocaleHelper;
-    CLocaleHelper::AcquireSingleton((ILocaleHelper**)&pLocaleHelper);
-    AutoPtr<ILocale> pLocale;
-    pLocaleHelper->GetDefault((ILocale**)&pLocale);
-    return GetIntegerInstanceEx(pLocale, instance);
+    VALIDATE_NOT_NULL(instance);
+
+    return NumberFormat::GetIntegerInstance(instance);
 }
 
 ECode CNumberFormatHelper::GetIntegerInstanceEx(
-    /* [in] */ ILocale * locale,
-    /* [out] */ INumberFormat ** instance)
+    /* [in] */ ILocale* locale,
+    /* [out] */ INumberFormat** instance)
 {
-    assert(0);
-    //NumberFormat result = getInstance(LocaleData.get(locale).integerPattern, locale);
-    //result.setParseIntegerOnly(true);
-    //return result;
-    return NOERROR;
+    VALIDATE_NOT_NULL(instance);
+
+    return NumberFormat::GetIntegerInstance(locale, instance);
 }
 
 ECode CNumberFormatHelper::GetInstance(
-    /* [out] */ INumberFormat ** instance)
+    /* [out] */ INumberFormat** instance)
 {
-    return GetNumberInstance(instance);
+    VALIDATE_NOT_NULL(instance);
+
+    return NumberFormat::GetInstance(instance);
 }
 
 ECode CNumberFormatHelper::GetInstanceEx(
-    /* [in] */ ILocale * locale,
-    /* [out] */ INumberFormat ** instance)
+    /* [in] */ ILocale* locale,
+    /* [out] */ INumberFormat** instance)
 {
-    return GetNumberInstanceEx(locale, instance);
+    VALIDATE_NOT_NULL(instance);
+
+    return NumberFormat::GetInstance(locale, instance);
 }
 
 ECode CNumberFormatHelper::GetNumberInstance(
-    /* [out] */ INumberFormat ** instance)
+    /* [out] */ INumberFormat** instance)
 {
-    AutoPtr<ILocaleHelper> localeHelper;
-    CLocaleHelper::AcquireSingleton((ILocaleHelper**)&localeHelper);
-    AutoPtr<ILocale> locale;
-    FAIL_RETURN(localeHelper->GetDefault((ILocale**)&locale));
-    return GetNumberInstanceEx(locale, instance);
+    VALIDATE_NOT_NULL(instance);
+
+    return NumberFormat::GetNumberInstance(instance);
 }
 
 ECode CNumberFormatHelper::GetNumberInstanceEx(
-    /* [in] */ ILocale * locale,
-    /* [out] */ INumberFormat ** instance)
+    /* [in] */ ILocale* locale,
+    /* [out] */ INumberFormat** instance)
 {
-    assert(0);
-//    return getInstance(LocaleData.get(locale).numberPattern, locale);
-    return NOERROR;
+    VALIDATE_NOT_NULL(instance);
+
+    return NumberFormat::GetNumberInstance(locale, instance);
 }
 
 ECode CNumberFormatHelper::GetPercentInstance(
-    /* [out] */ INumberFormat ** instance)
+    /* [out] */ INumberFormat** instance)
 {
-    AutoPtr<ILocaleHelper> localeHelper;
-    CLocaleHelper::AcquireSingleton((ILocaleHelper**)&localeHelper);
-    AutoPtr<ILocale> locale;
-    FAIL_RETURN(localeHelper->GetDefault((ILocale**)&locale));
-    return GetPercentInstanceEx(locale, instance);
+    VALIDATE_NOT_NULL(instance);
+
+    return NumberFormat::GetPercentInstance(instance);
 }
 
 ECode CNumberFormatHelper::GetPercentInstanceEx(
-    /* [in] */ ILocale * locale,
-    /* [out] */ INumberFormat ** instance)
+    /* [in] */ ILocale* locale,
+    /* [out] */ INumberFormat** instance)
 {
-    assert(0);
-//    return getInstance(LocaleData.get(locale).percentPattern, locale);
-    return NOERROR;
+    VALIDATE_NOT_NULL(instance);
+
+    return NumberFormat::GetPercentInstance(instance);
 }
 

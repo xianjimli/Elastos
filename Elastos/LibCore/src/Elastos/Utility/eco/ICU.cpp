@@ -517,3 +517,130 @@ ArrayOf<String>* ICU::GetISOCountriesNative()
 {
     return ToStringArray(Locale::getISOCountries());
 }
+
+Boolean ICU::InitLocaleDataImpl(
+    /* [in] */ const String& locale,
+    /* [in] */ LocaleData* result)
+{
+    // ScopedUtfChars localeName(env, locale);
+    // UErrorCode status = U_ZERO_ERROR;
+    // ScopedResourceBundle root(ures_open(NULL, localeName.c_str(), &status));
+    // if (U_FAILURE(status)) {
+    //     LOGE("Error getting ICU resource bundle: %s", u_errorName(status));
+    //     status = U_ZERO_ERROR;
+    //     return JNI_FALSE;
+    // }
+
+    // ScopedResourceBundle calendar(ures_getByKey(root.get(), "calendar", NULL, &status));
+    // if (U_FAILURE(status)) {
+    //     LOGE("Error getting ICU calendar resource bundle: %s", u_errorName(status));
+    //     return JNI_FALSE;
+    // }
+
+    // ScopedResourceBundle gregorian(ures_getByKey(calendar.get(), "gregorian", NULL, &status));
+    // if (U_FAILURE(status)) {
+    //     LOGE("Error getting ICU gregorian resource bundle: %s", u_errorName(status));
+    //     return JNI_FALSE;
+    // }
+
+    // int firstDayVals[] = { 0, 0 };
+    // if (getDayIntVector(env, gregorian.get(), firstDayVals)) {
+    //     setIntegerField(env, localeData, "firstDayOfWeek", firstDayVals[0]);
+    //     setIntegerField(env, localeData, "minimalDaysInFirstWeek", firstDayVals[1]);
+    // }
+
+    // setStringArrayField(env, localeData, "amPm", getAmPmMarkers(env, gregorian.get()));
+    // setStringArrayField(env, localeData, "eras", getEras(env, gregorian.get()));
+
+    // ScopedResourceBundle dayNames(ures_getByKey(gregorian.get(), "dayNames", NULL, &status));
+    // ScopedResourceBundle monthNames(ures_getByKey(gregorian.get(), "monthNames", NULL, &status));
+
+    // // Get the regular month and weekday names.
+    // jobjectArray longMonthNames = getNames(env, monthNames.get(), true, REGULAR, LONG);
+    // jobjectArray shortMonthNames = getNames(env, monthNames.get(), true, REGULAR, SHORT);
+    // jobjectArray longWeekdayNames = getNames(env, dayNames.get(), false, REGULAR, LONG);
+    // jobjectArray shortWeekdayNames = getNames(env, dayNames.get(), false, REGULAR, SHORT);
+    // setStringArrayField(env, localeData, "longMonthNames", longMonthNames);
+    // setStringArrayField(env, localeData, "shortMonthNames", shortMonthNames);
+    // setStringArrayField(env, localeData, "longWeekdayNames", longWeekdayNames);
+    // setStringArrayField(env, localeData, "shortWeekdayNames", shortWeekdayNames);
+
+    // // Get the stand-alone month and weekday names. If they're not available (as they aren't for
+    // // English), we reuse the regular names. If we returned null to Java, the usual fallback
+    // // mechanisms would come into play and we'd end up with the bogus stand-alone names from the
+    // // root locale ("1" for January, and so on).
+    // jobjectArray longStandAloneMonthNames = getNames(env, monthNames.get(), true, STAND_ALONE, LONG);
+    // if (longStandAloneMonthNames == NULL) {
+    //     longStandAloneMonthNames = longMonthNames;
+    // }
+    // jobjectArray shortStandAloneMonthNames = getNames(env, monthNames.get(), true, STAND_ALONE, SHORT);
+    // if (shortStandAloneMonthNames == NULL) {
+    //     shortStandAloneMonthNames = shortMonthNames;
+    // }
+    // jobjectArray longStandAloneWeekdayNames = getNames(env, dayNames.get(), false, STAND_ALONE, LONG);
+    // if (longStandAloneWeekdayNames == NULL) {
+    //     longStandAloneWeekdayNames = longWeekdayNames;
+    // }
+    // jobjectArray shortStandAloneWeekdayNames = getNames(env, dayNames.get(), false, STAND_ALONE, SHORT);
+    // if (shortStandAloneWeekdayNames == NULL) {
+    //     shortStandAloneWeekdayNames = shortWeekdayNames;
+    // }
+    // setStringArrayField(env, localeData, "longStandAloneMonthNames", longStandAloneMonthNames);
+    // setStringArrayField(env, localeData, "shortStandAloneMonthNames", shortStandAloneMonthNames);
+    // setStringArrayField(env, localeData, "longStandAloneWeekdayNames", longStandAloneWeekdayNames);
+    // setStringArrayField(env, localeData, "shortStandAloneWeekdayNames", shortStandAloneWeekdayNames);
+
+    // ScopedResourceBundle dateTimePatterns(ures_getByKey(gregorian.get(), "DateTimePatterns", NULL, &status));
+    // if (U_SUCCESS(status)) {
+    //     setStringField(env, localeData, "fullTimeFormat", dateTimePatterns.get(), 0);
+    //     setStringField(env, localeData, "longTimeFormat", dateTimePatterns.get(), 1);
+    //     setStringField(env, localeData, "mediumTimeFormat", dateTimePatterns.get(), 2);
+    //     setStringField(env, localeData, "shortTimeFormat", dateTimePatterns.get(), 3);
+    //     setStringField(env, localeData, "fullDateFormat", dateTimePatterns.get(), 4);
+    //     setStringField(env, localeData, "longDateFormat", dateTimePatterns.get(), 5);
+    //     setStringField(env, localeData, "mediumDateFormat", dateTimePatterns.get(), 6);
+    //     setStringField(env, localeData, "shortDateFormat", dateTimePatterns.get(), 7);
+    // }
+    // status = U_ZERO_ERROR;
+
+    // ScopedResourceBundle numberElements(ures_getByKey(root.get(), "NumberElements", NULL, &status));
+    // if (U_SUCCESS(status) && ures_getSize(numberElements.get()) >= 11) {
+    //     setCharField(env, localeData, "zeroDigit", numberElements.get(), 4);
+    //     setCharField(env, localeData, "digit", numberElements.get(), 5);
+    //     setCharField(env, localeData, "decimalSeparator", numberElements.get(), 0);
+    //     setCharField(env, localeData, "groupingSeparator", numberElements.get(), 1);
+    //     setCharField(env, localeData, "patternSeparator", numberElements.get(), 2);
+    //     setCharField(env, localeData, "percent", numberElements.get(), 3);
+    //     setCharField(env, localeData, "perMill", numberElements.get(), 8);
+    //     setCharField(env, localeData, "monetarySeparator", numberElements.get(), 0);
+    //     setCharField(env, localeData, "minusSign", numberElements.get(), 6);
+    //     setStringField(env, localeData, "exponentSeparator", numberElements.get(), 7);
+    //     setStringField(env, localeData, "infinity", numberElements.get(), 9);
+    //     setStringField(env, localeData, "NaN", numberElements.get(), 10);
+    // }
+    // status = U_ZERO_ERROR;
+
+    // jstring internationalCurrencySymbol = getIntCurrencyCode(env, locale);
+    // jstring currencySymbol = NULL;
+    // if (internationalCurrencySymbol != NULL) {
+    //     currencySymbol = ICU_getCurrencySymbolNative(env, NULL, locale, internationalCurrencySymbol);
+    // } else {
+    //     internationalCurrencySymbol = env->NewStringUTF("XXX");
+    // }
+    // if (currencySymbol == NULL) {
+    //     // This is the UTF-8 encoding of U+00A4 (CURRENCY SIGN).
+    //     currencySymbol = env->NewStringUTF("\xc2\xa4");
+    // }
+    // setStringField(env, localeData, "currencySymbol", currencySymbol);
+    // setStringField(env, localeData, "internationalCurrencySymbol", internationalCurrencySymbol);
+
+    // ScopedResourceBundle numberPatterns(ures_getByKey(root.get(), "NumberPatterns", NULL, &status));
+    // if (U_SUCCESS(status) && ures_getSize(numberPatterns.get()) >= 3) {
+    //     setStringField(env, localeData, "numberPattern", numberPatterns.get(), 0);
+    //     setStringField(env, localeData, "currencyPattern", numberPatterns.get(), 1);
+    //     setStringField(env, localeData, "percentPattern", numberPatterns.get(), 2);
+    // }
+
+    // return JNI_TRUE;
+    return FALSE;
+}

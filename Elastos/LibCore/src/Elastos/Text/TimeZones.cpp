@@ -25,11 +25,11 @@ static ArrayOf<String> * sInitTimeZones()
     return array;
 }
 
-const AutoPtr<ILocale> TimeZones::CachedTimeZones::mLocale = sInitLocale();
+const AutoPtr<ILocale> TimeZones::CachedTimeZones::mLocale = NULL;//sInitLocale();
 
-const ArrayOf<ArrayOf<String> * > * TimeZones::CachedTimeZones::mNames = sInitNames();
+const ArrayOf<ArrayOf<String> * > * TimeZones::CachedTimeZones::mNames = NULL;//sInitNames();
 
-const ArrayOf<String> * TimeZones::mAvailableTimeZones = sInitTimeZones();
+const ArrayOf<String> * TimeZones::mAvailableTimeZones = NULL; //sInitTimeZones();
 
 ECode TimeZones::Clone2dStringArray(
     /* [in] */ const ArrayOf<ArrayOf<String> * > * array,

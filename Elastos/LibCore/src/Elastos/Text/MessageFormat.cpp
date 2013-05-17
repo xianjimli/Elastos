@@ -3,10 +3,12 @@
 #include "CDateFormatHelper.h"
 
 
-static AutoPtr<IMessageFormatField> sInit(const String& name) {
-    AutoPtr<IMessageFormatField> field;
-    CMessageFormatField::NewByFriend(name, (CMessageFormatField**)&field);
-    return field.Get();
+static AutoPtr<IMessageFormatField> sInit(const String& name)
+{
+    // AutoPtr<IMessageFormatField> field;
+    // CMessageFormatField::NewByFriend(name, (CMessageFormatField**)&field);
+    // return field.Get();
+    return NULL;
 }
 
 const AutoPtr<IMessageFormatField> MessageFormat::MessageFormatField::ARGUMENT

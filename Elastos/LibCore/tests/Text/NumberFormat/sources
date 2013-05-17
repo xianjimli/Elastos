@@ -1,5 +1,5 @@
 
-TARGET_NAME = NumberFormat
+TARGET_NAME = testNumberFormat
 TARGET_TYPE = ecx
 
 IMPORTS = Elastos.Text.eco
@@ -8,7 +8,7 @@ INCLUDES += $(MAKEDIR)/../../../inc/Elastos/common;
 INCLUDES += $(MAKEDIR)/../../../inc/Elastos/Text;
 INCLUDES += $(MAKEDIR)/../../../inc/Elastos/Core/eco/elastos;
 
-SOURCES = test.cpp
+#SOURCES = test.cpp
 SOURCES += main.cpp
 
 LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.lib

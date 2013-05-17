@@ -9,7 +9,7 @@ const Byte CGregorianCalendar::mDaysInMonth[] = { 31, 28, 31, 30, 31, 30, 31, 31
 const Int32 CGregorianCalendar::mDaysInYear[] = { 0, 31, 59, 90, 120, 151, 181,
             212, 243, 273, 304, 334 };
 
-const Int64 CGregorianCalendar::mDefaultGregorianCutover = -12219292800000l;
+const Int64 CGregorianCalendar::mDefaultGregorianCutover = -12219292800000ll;
 
 Int32 CGregorianCalendar::mMaximums[] = { 1, 292278994, 11, 53, 6, 31,
             366, 7, 6, 1, 11, 23, 59, 59, 999, 14 * 3600 * 1000, 7200000 };
@@ -859,10 +859,8 @@ ECode CGregorianCalendar::ComputeTime()
 ECode CGregorianCalendar::constructor()
 {
     ITimeZone  *timezone;
-    ILocale *locale;
     TimeZone::GetDefault((ITimeZone**) &timezone);
-    Locale::GetDefault((ILocale**) &locale);
-    constructor((ITimeZone*)timezone, (ILocale*)locale);
+    constructor((ITimeZone*)timezone, CLocale::GetDefault());
     return NOERROR;
 }
 
@@ -878,9 +876,7 @@ ECode CGregorianCalendar::constructor(
 ECode CGregorianCalendar::constructor(
     /* [in] */ ITimeZone* timezone)
 {
-    ILocale *locale;
-    Locale::GetDefault((ILocale**) &locale);
-    constructor(timezone, (ILocale *)locale);
+    constructor(timezone, CLocale::GetDefault());
     return NOERROR;
 }
 

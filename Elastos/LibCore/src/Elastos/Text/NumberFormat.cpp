@@ -7,9 +7,10 @@
 
 static AutoPtr<INumberFormatField> sInit(const String& name)
 {
-    AutoPtr<CNumberFormatField> field;
-    CNumberFormatField::NewByFriend(name, (CNumberFormatField**)&field);
-    return field.Get();
+    // AutoPtr<CNumberFormatField> field;
+    // CNumberFormatField::NewByFriend(name, (CNumberFormatField**)&field);
+    // return field.Get();
+    return NULL;
 }
 
 const AutoPtr<INumberFormatField> NumberFormat::Field::SIGN = sInit(String("sign"));

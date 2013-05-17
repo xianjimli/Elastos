@@ -7,9 +7,11 @@
 
 static AutoPtr<IAttributedCharacterIteratorAttribute> sInit(const String& name)
 {
-    AutoPtr<CAttributedCharacterIteratorAttribute> attribute;
-    CAttributedCharacterIteratorAttribute::NewByFriend(name, (CAttributedCharacterIteratorAttribute**)&attribute);
-    return attribute.Get();
+    // AutoPtr<CAttributedCharacterIteratorAttribute> attribute;
+    // CAttributedCharacterIteratorAttribute::NewByFriend(name, (CAttributedCharacterIteratorAttribute**)&attribute);
+    // return attribute.Get();
+
+    return NULL;
 }
 
 const AutoPtr<IAttributedCharacterIteratorAttribute> AttributedCharacterIteratorAttribute::INPUT_METHOD_SEGMENT =

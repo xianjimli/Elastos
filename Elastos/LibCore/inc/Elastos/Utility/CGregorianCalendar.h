@@ -4,10 +4,8 @@
 
 #include "_CGregorianCalendar.h"
 #include "Calendar.h"
-#include <elastos.h>
 #include "TimeZone.h"
 #include "CTimeZone.h"
-#include "Locale.h"
 #include "CLocale.h"
 
 using namespace Elastos;

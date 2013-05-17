@@ -1,29 +1,63 @@
 #ifndef __LOCALEDATA_H__
 #define __LOCALEDATA_H__
 
-//#include "Elastos.IO.h"
-#include <elastos.h>
 #include "cmdef.h"
-#include "CLocale.h"
+#include <Elastos.Utility_server.h>
 #include <elastos/HashMap.h>
+#include <elastos/ElRefBase.h>
+#include <elastos/AutoPtr.h>
+#include <elastos/Mutex.h>
 
 using namespace Elastos;
+using namespace Elastos::Core::Threading;
 
-class LocaleData
+class LocaleData : public ElRefBase, public ILocaleData
 {
+public:
+    ~LocaleData();
 
-    // A cache for the locale-specific data.
+    CARAPI_(PInterface) Probe(
+            /* [in]  */ REIID riid);
+
+    CARAPI_(UInt32) AddRef();
+
+    CARAPI_(UInt32) Release();
+
+    CARAPI GetInterfaceID(
+        /* [in] */ IInterface *pObject,
+        /* [out] */ InterfaceID *pIID);
+
+    static CARAPI_(AutoPtr<ILocaleData>) Get(
+        /* [in] */ ILocale* locale);
+
+    CARAPI_(String) ToString();
+
+    CARAPI GetDateFormat(
+        /* [in] */ Int32 style,
+        /* [out] */ String* format);
+
+    CARAPI GetTimeFormat(
+        /* [in] */ Int32 style,
+        /* [out] */ String* format);
+
 private:
-    static HashMap<String, LocaleData*> *mLocaleDataCache;
     LocaleData();
+
+    static CARAPI_(AutoPtr<LocaleData>) MakeLocaleData(
+        /* [in] */ ILocale* locale);
+
+    CARAPI_(void) OverrideWithDataFrom(
+        /* [in] */ ILocaleData* overrides);
+
+    static CARAPI_(AutoPtr<ILocaleData>) InitLocaleData(
+        /* [in] */ ILocale* locale);
 
 public:
     // Used by Calendar.
-    Int32 mFirstDayOfWeek;
-    Int32 mMinimalDaysInFirstWeek;
+    AutoPtr<IInteger32> mFirstDayOfWeek;
+    AutoPtr<IInteger32> mMinimalDaysInFirstWeek;
 
     // Used by DateFormatSymbols.
-
     ArrayOf<String>* mAmPm;
     ArrayOf<String>* mEras;
 
@@ -37,7 +71,6 @@ public:
     ArrayOf<String>* mLongStandAloneWeekdayNames;
     ArrayOf<String>* mShortStandAloneWeekdayNames;
 
-public:
     String mFullTimeFormat;
     String mLongTimeFormat;
     String mMediumTimeFormat;
@@ -71,26 +104,10 @@ public:
     String mCurrencyPattern;
     String mPercentPattern;
 
-public:
-    static LocaleData* Get(
-                        /* [in] */ ILocale* locale);
-
-    String ToString();
-
-    String GetDateFormat(
-                        /* [in] */ Int32 style);
-
-    String GetTimeFormat(
-                        /* [in] */ Int32 style);
+    // A cache for the locale-specific data.
 private:
-    static LocaleData* MakeLocaleData(
-                        /* [in] */ ILocale* locale);
-
-    void OverrideWithDataFrom(
-                        /* [in] */ LocaleData* overrides);
-
-    static LocaleData* InitLocaleData(
-                        /* [in] */ ILocale* locale);
+    static HashMap< String, AutoPtr<LocaleData> > sLocaleDataCache;
+    static Mutex sLocaleDataCacheLock;
 };
 
 #endif //__LOCALEDATA_H__

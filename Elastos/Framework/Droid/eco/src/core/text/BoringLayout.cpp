@@ -207,7 +207,7 @@ void BoringLayout::Init(
 {
     Int32 spacing;
 
-    mDirect = String(NULL);
+    mDirect = NULL;
 
     IObject* obj = IObject::Probe(source);
     if (obj != NULL) {
@@ -218,7 +218,6 @@ void BoringLayout::Init(
             source->ToString(&mDirect);
         }
     }
-
 
     mPaint = paint;
 

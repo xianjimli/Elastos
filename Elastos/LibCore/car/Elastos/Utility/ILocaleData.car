@@ -10,4 +10,13 @@ module
             [in] Int32 style,
             [out] String* format);
     }
+
+    interface ILocaleDataHelper {
+        /**
+         * Returns a shared LocaleData for the given locale.
+         */
+        Get(
+            [in] ILocale* locale,
+            [out] ILocaleData** localeData);
+    }
 }

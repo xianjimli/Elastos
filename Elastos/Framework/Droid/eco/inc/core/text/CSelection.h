@@ -1,10 +1,10 @@
 
-#ifndef __CSELECTIONHELPER_H__
-#define __CSELECTIONHELPER_H__
+#ifndef __CSELECTION_H__
+#define __CSELECTION_H__
 
-#include "_CSelectionHelper.h"
+#include "_CSelection.h"
 
-CarClass(CSelectionHelper)
+CarClass(CSelection)
 {
 public:
     CARAPI GetSelectionStart(

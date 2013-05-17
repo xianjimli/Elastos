@@ -47,6 +47,10 @@ public:
     CARAPI GetYear(
         /* [out] */ Int32* year);
 
+    static CARAPI Parse(
+        /* [in] */ const String& string,
+        /* [out] */ Int64* time);
+
     CARAPI SetDate(
         /* [in] */ Int32 day);
 
@@ -77,6 +81,9 @@ public:
     CARAPI ToString(
         /* [out] */ String* str);
 
+    // static long UTC(int year, int month, int day, int hour, int minute,
+    //         int second)
+
     CARAPI constructor();
 
     CARAPI constructor(
@@ -106,8 +113,23 @@ public:
         /* [in] */ const String& string);
 
 private:
-    // TODO: Add your private member variables here.
+    static CARAPI_(Int32) Parse(
+        /* [in] */ const String& string,
+        /* [in] */ const ArrayOf<String>& array);
+
+    CARAPI_(String) ToTwoDigits(
+        /* [in] */ Int32 n);
+
+    // private static int zone(String text)
+
+private:
+    // Used by parse()
+    static Int32 sCreationYear;
+
     Int64 mMilliseconds;
+
+    static const CString sDayOfWeekNames[];
+    static const CString sMonthNames[];
 };
 
 #endif // __CDATE_H__

@@ -23,7 +23,6 @@ SOURCES = Elastos.Utility.car
 SOURCES += CObjectEnumerator.cpp
 SOURCES += CObjectContainer.cpp
 SOURCES += CLocale.cpp
-SOURCES += Locale.cpp
 SOURCES += CLocaleHelper.cpp
 SOURCES += CDate.cpp
 SOURCES += CObjectStringMap.cpp

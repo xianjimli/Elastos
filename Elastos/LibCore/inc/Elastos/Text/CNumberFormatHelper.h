@@ -8,45 +8,42 @@ CarClass(CNumberFormatHelper)
 {
 public:
     CARAPI GetAvailableLocales(
-        /* [out, callee] */ ArrayOf<ILocale *> ** locales);
+        /* [out, callee] */ ArrayOf<ILocale*>** locales);
 
     CARAPI GetCurrencyInstance(
-        /* [out] */ INumberFormat ** instance);
+        /* [out] */ INumberFormat** instance);
 
     CARAPI GetCurrencyInstanceEx(
-        /* [in] */ ILocale * locale,
-        /* [out] */ INumberFormat ** instance);
+        /* [in] */ ILocale* locale,
+        /* [out] */ INumberFormat** instance);
 
     CARAPI GetIntegerInstance(
-        /* [out] */ INumberFormat ** instance);
+        /* [out] */ INumberFormat** instance);
 
     CARAPI GetIntegerInstanceEx(
-        /* [in] */ ILocale * locale,
-        /* [out] */ INumberFormat ** instance);
+        /* [in] */ ILocale* locale,
+        /* [out] */ INumberFormat** instance);
 
     CARAPI GetInstance(
-        /* [out] */ INumberFormat ** instance);
+        /* [out] */ INumberFormat** instance);
 
     CARAPI GetInstanceEx(
-        /* [in] */ ILocale * locale,
-        /* [out] */ INumberFormat ** instance);
+        /* [in] */ ILocale* locale,
+        /* [out] */ INumberFormat** instance);
 
     CARAPI GetNumberInstance(
-        /* [out] */ INumberFormat ** instance);
+        /* [out] */ INumberFormat** instance);
 
     CARAPI GetNumberInstanceEx(
-        /* [in] */ ILocale * locale,
-        /* [out] */ INumberFormat ** instance);
+        /* [in] */ ILocale* locale,
+        /* [out] */ INumberFormat** instance);
 
     CARAPI GetPercentInstance(
-        /* [out] */ INumberFormat ** instance);
+        /* [out] */ INumberFormat** instance);
 
     CARAPI GetPercentInstanceEx(
-        /* [in] */ ILocale * locale,
-        /* [out] */ INumberFormat ** instance);
-
-private:
-    // TODO: Add your private member variables here.
+        /* [in] */ ILocale* locale,
+        /* [out] */ INumberFormat** instance);
 };
 
 #endif // __CNUMBERFORMATHELPER_H__

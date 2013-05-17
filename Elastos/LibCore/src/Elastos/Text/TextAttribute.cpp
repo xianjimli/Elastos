@@ -2,10 +2,12 @@
 #include "CTextAttribute.h"
 
 static AutoPtr<ITextAttribute> sInit(
-    /* [in] */ const String& name) {
-    AutoPtr<CTextAttribute> attribute;
-    CTextAttribute::NewByFriend(name, (CTextAttribute**)&attribute);
-    return attribute.Get();
+    /* [in] */ const String& name)
+{
+    // AutoPtr<CTextAttribute> attribute;
+    // CTextAttribute::NewByFriend(name, (CTextAttribute**)&attribute);
+    // return attribute.Get();
+    return NULL;
 }
 
 const AutoPtr<ITextAttribute> TextAttribute::BACKGROUND = sInit(String("background") );
@@ -116,7 +118,7 @@ ECode TextAttribute::Init(
     /* [in] */ String name)
 {
     AttributedCharacterIteratorAttribute::Init(name);
-    AutoPtr<ITextAttribute> attribute = reinterpret_cast<ITextAttribute * >(this->Probe(EIID_ITextAttribute)); 
+    AutoPtr<ITextAttribute> attribute = reinterpret_cast<ITextAttribute * >(this->Probe(EIID_ITextAttribute));
     Pair<String, AutoPtr<ITextAttribute> > value(name, attribute);
     attrMap->Insert(value);
     return NOERROR;

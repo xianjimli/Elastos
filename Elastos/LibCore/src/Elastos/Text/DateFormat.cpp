@@ -7,9 +7,10 @@
 
 static AutoPtr<IDateFormatField> sInit(const String& name, Int32 value)
 {
-    AutoPtr<CDateFormatField> field;
-    CDateFormatField::NewByFriend(name, value, (CDateFormatField**)&field);
-    return field.Get();
+    // AutoPtr<CDateFormatField> field;
+    // CDateFormatField::NewByFriend(name, value, (CDateFormatField**)&field);
+    // return field.Get();
+    return NULL;
 }
 
 const AutoPtr<IDateFormatField> DateFormat::Field::ERA

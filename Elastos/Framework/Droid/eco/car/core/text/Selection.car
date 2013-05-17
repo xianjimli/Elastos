@@ -9,7 +9,7 @@ module
      * Utility class for manipulating cursors and selections in CharSequences.
      * A cursor is a selection where the start and end are at the same offset.
      */
-    interface ISelectionHelper {
+    interface ISelection {
 
         /*
          * Retrieving the selection
@@ -176,7 +176,6 @@ module
         /*
          * Public constants
          */
-
         GetSelectionStartObject(
             [out] IInterface** start);
 

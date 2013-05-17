@@ -1,79 +1,112 @@
-#include "LocaleData.h"
-#include "Locale.h"
-#include "ICU.h"
 
-HashMap<String, LocaleData*>* LocaleData::mLocaleDataCache = new HashMap<String, LocaleData*>();
+#include "LocaleData.h"
+#include "CLocale.h"
+// #include "ICU.h"
+
+HashMap< String, AutoPtr<LocaleData> > LocaleData::sLocaleDataCache(11);
+Mutex LocaleData::sLocaleDataCacheLock;
 
 LocaleData::LocaleData()
+    : mAmPm(NULL)
+    , mEras(NULL)
+    , mLongMonthNames(NULL)
+    , mShortMonthNames(NULL)
+    , mLongStandAloneMonthNames(NULL)
+    , mShortStandAloneMonthNames(NULL)
+    , mLongWeekdayNames(NULL)
+    , mShortWeekdayNames(NULL)
+    , mLongStandAloneWeekdayNames(NULL)
+    , mShortStandAloneWeekdayNames(NULL)
+{}
+
+LocaleData::~LocaleData()
 {
+    FREE_ARRAY_OF_STRING(mAmPm);
+    FREE_ARRAY_OF_STRING(mEras);
+    FREE_ARRAY_OF_STRING(mLongMonthNames);
+    FREE_ARRAY_OF_STRING(mShortMonthNames);
+    FREE_ARRAY_OF_STRING(mLongStandAloneMonthNames);
+    FREE_ARRAY_OF_STRING(mShortStandAloneMonthNames);
+    FREE_ARRAY_OF_STRING(mLongWeekdayNames);
+    FREE_ARRAY_OF_STRING(mShortWeekdayNames);
+    FREE_ARRAY_OF_STRING(mLongStandAloneWeekdayNames);
+    FREE_ARRAY_OF_STRING(mShortStandAloneWeekdayNames);
 }
 
-LocaleData* LocaleData::Get(ILocale *locale)
+PInterface LocaleData::Probe(
+    /* [in]  */ REIID riid)
 {
+    if (riid == EIID_IInterface) {
+        return (PInterface)(ILocaleData*)this;
+    }
+    else if (riid == EIID_ILocaleData) {
+        return (ILocaleData*)this;
+    }
+
+    return NULL;
+}
+
+UInt32 LocaleData::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 LocaleData::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode LocaleData::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{
+    if (pIID == NULL) {
+        return E_INVALID_ARGUMENT;
+    }
+
+    if (pObject == (IInterface*)(ILocaleData*)this) {
+        *pIID = EIID_ILocaleData;
+    }
+    else {
+        return E_INVALID_ARGUMENT;
+    }
+
+    return NOERROR;
+}
+
+AutoPtr<ILocaleData> LocaleData::Get(
+    /* [in] */ ILocale* _locale)
+{
+    AutoPtr<ILocale> locale = _locale;
     if (locale == NULL) {
-        Locale::GetDefault((ILocale**) &locale);
+        locale = CLocale::GetDefault();
     }
+    String localeName;
+    locale->ToString(&localeName);
+    {
+        Mutex::Autolock lock(&sLocaleDataCacheLock);
 
-    String localeName = ((CLocale*)locale)->ToString();
-
-//    synchronized (localeDataCache) {
-    LocaleData* localeData = (*mLocaleDataCache)[localeName];
-    if (localeData != NULL) {
-        return localeData;
+        HashMap< String, AutoPtr<LocaleData> >::Iterator it =
+                sLocaleDataCache.Find(localeName);
+        if (it != sLocaleDataCache.End()) {
+            return (ILocaleData*)it->mSecond.Get();
+        }
     }
-//    }
+    AutoPtr<LocaleData> newLocaleData = MakeLocaleData(locale);
+    {
+        Mutex::Autolock lock(&sLocaleDataCacheLock);
 
-    LocaleData* newLocaleData = MakeLocaleData(locale);
-//    synchronized (localeDataCache) {
-    localeData = (*mLocaleDataCache)[localeName];
-    if (localeData != NULL) {
-        return localeData;
+        HashMap< String, AutoPtr<LocaleData> >::Iterator it =
+                sLocaleDataCache.Find(localeName);
+        if (it != sLocaleDataCache.End()) {
+            return it->mSecond;
+        }
+        sLocaleDataCache[localeName] = newLocaleData;
+        return (ILocaleData*)newLocaleData.Get();
     }
-
-    (*mLocaleDataCache)[localeName] = newLocaleData;
-//    mLocaleDataCache->Put(localeName, newLocaleData);
-    return newLocaleData;
-//    }
 }
 
-String LocaleData::ToString()
-{
-}
-
-String LocaleData::GetDateFormat(
-    /* [in] */ Int32 style)
-{
-//    switch (style) {
-//    case DateFormat.SHORT:
-//        return shortDateFormat;
-//    case DateFormat.MEDIUM:
-//        return mediumDateFormat;
-//    case DateFormat.LONG:
-//        return longDateFormat;
-//    case DateFormat.FULL:
-//        return fullDateFormat;
-//    }
-    return String();
-}
-
-
-String LocaleData::GetTimeFormat(
-    /* [in] */ Int32 style)
-{
-    switch (style) {
-//    case DateFormat.SHORT:
-//        return shortTimeFormat;
-//    case DateFormat.MEDIUM:
-//        return mediumTimeFormat;
-//    case DateFormat.LONG:
-//        return longTimeFormat;
-//    case DateFormat.FULL:
-//        return fullTimeFormat;
-    }
-    return String();
-}
-
-LocaleData* LocaleData::MakeLocaleData(
+AutoPtr<LocaleData> LocaleData::MakeLocaleData(
     /* [in] */ ILocale* locale)
 {
     String language;
@@ -84,61 +117,117 @@ LocaleData* LocaleData::MakeLocaleData(
     locale->GetVariant(&variant);
     // Start with data from the parent (next-most-specific) locale...
     LocaleData* result = new LocaleData();
-
-    AutoPtr<ILocale> loc;
+    AutoPtr<ILocale> l;
     if (!variant.IsEmpty()) {
-        CLocale::New(language, country, String(""), (ILocale**)&loc);
-        result->OverrideWithDataFrom(Get((ILocale *)loc));
-    } else if (!country.IsEmpty()) {
-        CLocale::New(language, String(""), String(""), (ILocale**)&loc);
-        result->OverrideWithDataFrom(Get((ILocale *)loc));
-    } else if(!language.IsEmpty()) {
-        //result->OverrideWithDataFrom(Get((ILocale*)((CLocale *)Locale)-?ROOT));
+        CLocale::New(language, country, String(""), (ILocale**)&l);
+        result->OverrideWithDataFrom(Get(l));
+    }
+    else if (!country.IsEmpty()) {
+        CLocale::New(language, String(""), String(""), (ILocale**)&l);
+        result->OverrideWithDataFrom(Get(l));
+    }
+    else if(!language.IsEmpty()) {
+        result->OverrideWithDataFrom(Get(NULL/*CLocale::ROOT*/));
     }
     // Override with data from this locale.
     result->OverrideWithDataFrom(InitLocaleData(locale));
     return result;
 }
 
+String LocaleData::ToString()
+{
+    return String("LocaleData");
+    // return "LocaleData[" +
+    //             "firstDayOfWeek=" + firstDayOfWeek + "," +
+    //             "minimalDaysInFirstWeek=" + minimalDaysInFirstWeek + "," +
+    //             "amPm=" + Arrays.toString(amPm) + "," +
+    //             "eras=" + Arrays.toString(eras) + "," +
+    //             "longMonthNames=" + Arrays.toString(longMonthNames) + "," +
+    //             "shortMonthNames=" + Arrays.toString(shortMonthNames) + "," +
+    //             "longStandAloneMonthNames=" + Arrays.toString(longStandAloneMonthNames) + "," +
+    //             "shortStandAloneMonthNames=" + Arrays.toString(shortStandAloneMonthNames) + "," +
+    //             "longWeekdayNames=" + Arrays.toString(longWeekdayNames) + "," +
+    //             "shortWeekdayNames=" + Arrays.toString(shortWeekdayNames) + "," +
+    //             "longStandAloneWeekdayNames=" + Arrays.toString(longStandAloneWeekdayNames) + "," +
+    //             "shortStandAloneWeekdayNames=" + Arrays.toString(shortStandAloneWeekdayNames) + "," +
+    //             "fullTimeFormat=" + fullTimeFormat + "," +
+    //             "longTimeFormat=" + longTimeFormat + "," +
+    //             "mediumTimeFormat=" + mediumTimeFormat + "," +
+    //             "shortTimeFormat=" + shortTimeFormat + "," +
+    //             "fullDateFormat=" + fullDateFormat + "," +
+    //             "longDateFormat=" + longDateFormat + "," +
+    //             "mediumDateFormat=" + mediumDateFormat + "," +
+    //             "shortDateFormat=" + shortDateFormat + "," +
+    //             "zeroDigit=" + zeroDigit + "," +
+    //             "digit=" + digit + "," +
+    //             "decimalSeparator=" + decimalSeparator + "," +
+    //             "groupingSeparator=" + groupingSeparator + "," +
+    //             "patternSeparator=" + patternSeparator + "," +
+    //             "percent=" + percent + "," +
+    //             "perMill=" + perMill + "," +
+    //             "monetarySeparator=" + monetarySeparator + "," +
+    //             "minusSign=" + minusSign + "," +
+    //             "exponentSeparator=" + exponentSeparator + "," +
+    //             "infinity=" + infinity + "," +
+    //             "NaN=" + NaN + "," +
+    //             "currencySymbol=" + currencySymbol + "," +
+    //             "internationalCurrencySymbol=" + internationalCurrencySymbol + "," +
+    //             "numberPattern=" + numberPattern + "," +
+    //             "integerPattern=" + integerPattern + "," +
+    //             "currencyPattern=" + currencyPattern + "," +
+    //             "percentPattern=" + percentPattern + "]";
+}
 
 void LocaleData::OverrideWithDataFrom(
-    /* [in] */ LocaleData* overrides)
+    /* [in] */ ILocaleData* _overrides)
 {
-    if (!overrides->mFirstDayOfWeek) {
+    LocaleData* overrides = (LocaleData*)_overrides;
+
+    if (overrides->mFirstDayOfWeek != NULL) {
         mFirstDayOfWeek = overrides->mFirstDayOfWeek;
     }
-    if (!overrides->mMinimalDaysInFirstWeek) {
+    if (overrides->mMinimalDaysInFirstWeek != NULL) {
         mMinimalDaysInFirstWeek = overrides->mMinimalDaysInFirstWeek;
     }
     if (overrides->mAmPm != NULL) {
-        mAmPm = overrides->mAmPm;
+        FREE_ARRAY_OF_STRING(mAmPm);
+        CLONE_ARRAY_OF_STRING(mAmPm, overrides->mAmPm);
     }
     if (overrides->mEras != NULL) {
-        mEras = overrides->mEras;
+        FREE_ARRAY_OF_STRING(mEras);
+        CLONE_ARRAY_OF_STRING(mEras, overrides->mEras);
     }
     if (overrides->mLongMonthNames != NULL) {
-        mLongMonthNames = overrides->mLongMonthNames;
+        FREE_ARRAY_OF_STRING(mLongMonthNames);
+        CLONE_ARRAY_OF_STRING(mLongMonthNames, overrides->mLongMonthNames);
     }
     if (overrides->mShortMonthNames != NULL) {
-        mShortMonthNames = overrides->mShortMonthNames;
+        FREE_ARRAY_OF_STRING(mShortMonthNames);
+        CLONE_ARRAY_OF_STRING(mShortMonthNames, overrides->mShortMonthNames);
     }
     if (overrides->mLongStandAloneMonthNames != NULL) {
-        mLongStandAloneMonthNames = overrides->mLongStandAloneMonthNames;
+        FREE_ARRAY_OF_STRING(mLongStandAloneMonthNames);
+        CLONE_ARRAY_OF_STRING(mLongStandAloneMonthNames, overrides->mLongStandAloneMonthNames);
     }
     if (overrides->mShortStandAloneMonthNames != NULL) {
-        mShortStandAloneMonthNames = overrides->mShortStandAloneMonthNames;
+        FREE_ARRAY_OF_STRING(mShortStandAloneMonthNames);
+        CLONE_ARRAY_OF_STRING(mShortStandAloneMonthNames, overrides->mShortStandAloneMonthNames);
     }
     if (overrides->mLongWeekdayNames != NULL) {
-        mLongWeekdayNames = overrides->mLongWeekdayNames;
+        FREE_ARRAY_OF_STRING(mLongWeekdayNames);
+        CLONE_ARRAY_OF_STRING(mLongWeekdayNames, overrides->mLongWeekdayNames);
     }
     if (overrides->mShortWeekdayNames != NULL) {
-        mShortWeekdayNames = overrides->mShortWeekdayNames;
+        FREE_ARRAY_OF_STRING(mShortWeekdayNames);
+        CLONE_ARRAY_OF_STRING(mShortWeekdayNames, overrides->mShortWeekdayNames);
     }
     if (overrides->mLongStandAloneWeekdayNames != NULL) {
-        mLongStandAloneWeekdayNames = overrides->mLongStandAloneWeekdayNames;
+        FREE_ARRAY_OF_STRING(mLongStandAloneWeekdayNames);
+        CLONE_ARRAY_OF_STRING(mLongStandAloneWeekdayNames, overrides->mLongStandAloneWeekdayNames);
     }
     if (overrides->mShortStandAloneWeekdayNames != NULL) {
-        mShortStandAloneWeekdayNames = overrides->mShortStandAloneWeekdayNames;
+        FREE_ARRAY_OF_STRING(mShortStandAloneWeekdayNames);
+        CLONE_ARRAY_OF_STRING(mShortStandAloneWeekdayNames, overrides->mShortStandAloneWeekdayNames);
     }
     if (!overrides->mFullTimeFormat.IsNull()) {
         mFullTimeFormat = overrides->mFullTimeFormat;
@@ -220,7 +309,55 @@ void LocaleData::OverrideWithDataFrom(
     }
 }
 
-LocaleData* LocaleData::InitLocaleData(
+ECode LocaleData::GetDateFormat(
+    /* [in] */ Int32 style,
+    /* [out] */ String* format)
+{
+    VALIDATE_NOT_NULL(format);
+
+    switch (style) {
+    case 3/*IDateFormat_SHORT*/:
+        *format = mShortDateFormat;
+        return NOERROR;
+    case 2/*IDateFormat_MEDIUM*/:
+        *format = mMediumDateFormat;
+        return NOERROR;
+    case 1/*IDateFormat_LONG*/:
+        *format = mLongDateFormat;
+        return NOERROR;
+    case 0/*IDateFormat_FULL*/:
+        *format = mFullDateFormat;
+        return NOERROR;
+    }
+    // throw new AssertionError();
+    return E_ASSERTION_ERROR;
+}
+
+ECode LocaleData::GetTimeFormat(
+    /* [in] */ Int32 style,
+    /* [out] */ String* format)
+{
+    VALIDATE_NOT_NULL(format);
+
+    switch (style) {
+    case 3/*IDateFormat_SHORT*/:
+        *format = mShortTimeFormat;
+        return NOERROR;
+    case 2/*IDateFormat_MEDIUM*/:
+        *format = mMediumTimeFormat;
+        return NOERROR;
+    case 1/*IDateFormat_LONG*/:
+        *format = mLongTimeFormat;
+        return NOERROR;
+    case 0/*IDateFormat_FULL*/:
+        *format = mFullTimeFormat;
+        return NOERROR;
+    }
+    // throw new AssertionError();
+    return E_ASSERTION_ERROR;
+}
+
+AutoPtr<ILocaleData> LocaleData::InitLocaleData(
     /* [in] */ ILocale* locale)
 {
     LocaleData* localeData = new LocaleData();
@@ -245,5 +382,5 @@ LocaleData* LocaleData::InitLocaleData(
         // accidentally eat too much.
         //localeData->mIntegerPattern = localeData->mNumberPattern.ReplaceAll("\\.[#,]*", "");
     }
-    return localeData;
+    return (ILocaleData*)localeData;
 }

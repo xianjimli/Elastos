@@ -309,8 +309,8 @@ module
         interface IParcelable;
     }
 
-    singleton class CSelectionHelper {
-        interface ISelectionHelper;
+    singleton class CSelection {
+        interface ISelection;
     }
 
     /**

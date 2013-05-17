@@ -4,17 +4,66 @@
 
 #include "_CLocale.h"
 #include <elastos/AutoPtr.h>
-#include "CICUHelper.h"
 
 CarClass(CLocale)
 {
 public:
+    CARAPI constructor();
+
+    /**
+     * Constructs a new {@code Locale} using the specified language.
+     */
+    CARAPI constructor(
+        /* [in] */ const String& language);
+
+    /**
+     * Constructs a new {@code Locale} using the specified language and country codes.
+     */
+    CARAPI constructor(
+        /* [in] */ const String& language,
+        /* [in] */ const String& country);
+
+    /**
+     * Constructs a new {@code Locale} using the specified language, country,
+     * and variant codes.
+     */
+    CARAPI constructor(
+        /* [in] */ const String& language,
+        /* [in] */ const String& country,
+        /* [in] */ const String& variant);
+
+    /**
+     * Returns the system's installed locales. This array always includes {@code
+     * Locale.US}, and usually several others. Most locale-sensitive classes
+     * offer their own {@code getAvailableLocales} method, which should be
+     * preferred over this general purpose method.
+     *
+     * @see java.text.BreakIterator#getAvailableLocales()
+     * @see java.text.Collator#getAvailableLocales()
+     * @see java.text.DateFormat#getAvailableLocales()
+     * @see java.text.DateFormatSymbols#getAvailableLocales()
+     * @see java.text.DecimalFormatSymbols#getAvailableLocales()
+     * @see java.text.NumberFormat#getAvailableLocales()
+     * @see java.util.Calendar#getAvailableLocales()
+     */
+    static CARAPI GetAvailableLocales(
+        /* [out] */ ArrayOf<ILocale*>** locales);
+
     /**
      * Returns the country code for this locale, or {@code ""} if this locale
      * doesn't correspond to a specific country.
      */
     CARAPI GetCountry(
         /* [out] */ String* country);
+
+    /**
+     * Returns the user's preferred locale. This may have been overridden for
+     * this process with {@link #setDefault}.
+     *
+     * <p>Since the user's locale changes dynamically, avoid caching this value.
+     * Instead, use this method to look it up for each use.
+     */
+    static CARAPI_(AutoPtr<ILocale>) GetDefault();
 
     /**
      * Equivalent to {@code getDisplayCountry(Locale.getDefault())}.
@@ -109,6 +158,24 @@ public:
         /* [out] */ String* language);
 
     /**
+     * Gets the list of two letter ISO country codes which can be used as the
+     * country code for a {@code Locale}.
+     *
+     * @return an array of strings.
+     */
+    static CARAPI GetISOCountries(
+        /* [out] */ ArrayOf<String>** codes);
+
+    /**
+     * Gets the list of two letter ISO language codes which can be used as the
+     * language code for a {@code Locale}.
+     *
+     * @return an array of strings.
+     */
+    static CARAPI GetISOLanguages(
+        /* [out] */ ArrayOf<String>** codes);
+
+    /**
      * Gets the language code for this {@code Locale} or the empty string of no language
      * was set.
      *
@@ -127,6 +194,17 @@ public:
         /* [out] */ String* variant);
 
     /**
+     * Overrides the default locale. This does not affect system configuration,
+     * and attempts to override the system-provided default locale may
+     * themselves be overridden by actual changes to the system configuration.
+     * Code that calls this method is usually incorrect, and should be fixed by
+     * passing the appropriate locale to each locale-sensitive method that's
+     * called.
+     */
+    static CARAPI SetDefault(
+        /* [in] */ ILocale* locale);
+
+    /**
      * Returns the string representation of this {@code Locale}. It consists of the
      * language code, country code and variant separated by underscores.
      * If the language is missing the string begins
@@ -140,39 +218,17 @@ public:
      * @return the string representation of this {@code Locale}.
      */
     //@Override
-    CARAPI_(String) ToString();
-
     CARAPI ToString(
         /* [out] */ String* str);
-
-    CARAPI constructor();
-
-    /**
-     * Constructs a new {@code Locale} using the specified language.
-     */
-    CARAPI constructor(
-        /* [in] */ const String& language);
-
-    /**
-     * Constructs a new {@code Locale} using the specified language and country codes.
-     */
-    CARAPI constructor(
-        /* [in] */ const String& language,
-        /* [in] */ const String& country);
-
-    /**
-     * Constructs a new {@code Locale} using the specified language, country,
-     * and variant codes.
-     */
-    CARAPI constructor(
-        /* [in] */ const String& language,
-        /* [in] */ const String& country,
-        /* [in] */ const String& variant);
 
 private:
     CARAPI_(String) ToNewString();
 
 private:
+    // Initialize a default which is used during static
+    // initialization of the default for the platform.
+    static AutoPtr<ILocale> sDefaultLocale;
+
     String mCountryCode;
     String mLanguageCode;
     String mVariantCode;
