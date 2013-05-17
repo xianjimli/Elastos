@@ -107,7 +107,7 @@ private:
      * that have SSL-related problems and process errors one by one in the
      * order they were received.
      */
-    static const char * LOGTAG;// = "network";
+    static const CString LOGTAG;// = "network";
 
     /**
      * Queue of loaders that experience SSL-related problems.
@@ -124,7 +124,7 @@ private:
     const LoadListener* mLoadListener;
 
     // Message id for handling the response
-    static const Int32 HANDLE_RESPONSE;// = 100;
+    static const Int32 HANDLE_RESPONSE = 100;
 };
 
 #endif //__SSLERRORHANDLER_H__

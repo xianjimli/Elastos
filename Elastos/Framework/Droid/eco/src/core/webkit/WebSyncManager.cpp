@@ -9,11 +9,11 @@
 const CString WebSyncManager::LOGTAG = "websync";
 
 // message code for sync message
-const Int32 WebSyncManager::SYNC_MESSAGE = 101;
+const Int32 WebSyncManager::SYNC_MESSAGE;
 // time delay in millisec for a sync (now) message
-const Int32 WebSyncManager::SYNC_NOW_INTERVAL = 100; // 100 millisec
+const Int32 WebSyncManager::SYNC_NOW_INTERVAL;
 // time delay in millisec for a sync (later) message
-const Int32 WebSyncManager::SYNC_LATER_INTERVAL = 5 * 60 * 1000; // 5 minutes
+const Int32 WebSyncManager::SYNC_LATER_INTERVAL;
 
 /*****************************WebSyncManager::SyncHandler*****************************/
 PInterface WebSyncManager::SyncHandler::Probe(

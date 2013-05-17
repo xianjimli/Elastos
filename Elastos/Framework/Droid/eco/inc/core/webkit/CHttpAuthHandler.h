@@ -189,8 +189,8 @@ private:
     Core::Threading::Mutex        mLoaderQueueMutex;
 
     // Message id for handling the user response
-    static const Int32 AUTH_PROCEED;// = 100;
-    static const Int32 AUTH_CANCEL;// = 200;
+    static const Int32 AUTH_PROCEED = 100;
+    static const Int32 AUTH_CANCEL = 200;
 
 private:
     AutoPtr<IApartment> mApartment;

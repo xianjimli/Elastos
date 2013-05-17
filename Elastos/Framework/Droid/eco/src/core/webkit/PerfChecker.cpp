@@ -1,6 +1,8 @@
 
 #include "webkit/PerfChecker.h"
 
+const Int64 PerfChecker::mResponseThreshold;
+
 PerfChecker::PerfChecker()
 {
 	if (FALSE) {

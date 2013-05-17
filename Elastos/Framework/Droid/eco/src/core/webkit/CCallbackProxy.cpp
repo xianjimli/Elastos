@@ -7,6 +7,51 @@
 
 const CString CCallbackProxy::LOGTAG("CallbackProxy");
 
+// Message Ids
+const Int32 CCallbackProxy::PAGE_STARTED;
+const Int32 CCallbackProxy::RECEIVED_ICON;
+const Int32 CCallbackProxy::RECEIVED_TITLE;
+const Int32 CCallbackProxy::OVERRIDE_URL;
+const Int32 CCallbackProxy::AUTH_REQUEST;
+const Int32 CCallbackProxy::SSL_ERROR;
+const Int32 CCallbackProxy::PROGRESS;
+const Int32 CCallbackProxy::UPDATE_VISITED;
+const Int32 CCallbackProxy::LOAD_RESOURCE;
+const Int32 CCallbackProxy::CREATE_WINDOW;
+const Int32 CCallbackProxy::CLOSE_WINDOW;
+const Int32 CCallbackProxy::SAVE_PASSWORD;
+const Int32 CCallbackProxy::JS_ALERT;
+const Int32 CCallbackProxy::JS_CONFIRM;
+const Int32 CCallbackProxy::JS_PROMPT;
+const Int32 CCallbackProxy::JS_UNLOAD;
+const Int32 CCallbackProxy::ASYNC_KEYEVENTS;
+const Int32 CCallbackProxy::DOWNLOAD_FILE;
+const Int32 CCallbackProxy::REPORT_ERROR;
+const Int32 CCallbackProxy::RESEND_POST_DATA;
+const Int32 CCallbackProxy::PAGE_FINISHED;
+const Int32 CCallbackProxy::REQUEST_FOCUS;
+const Int32 CCallbackProxy::SCALE_CHANGED;
+const Int32 CCallbackProxy::RECEIVED_CERTIFICATE;
+const Int32 CCallbackProxy::SWITCH_OUT_HISTORY;
+const Int32 CCallbackProxy::EXCEEDED_DATABASE_QUOTA;
+const Int32 CCallbackProxy::REACHED_APPCACHE_MAXSIZE;
+const Int32 CCallbackProxy::JS_TIMEOUT;
+const Int32 CCallbackProxy::ADD_MESSAGE_TO_CONSOLE;
+const Int32 CCallbackProxy::GEOLOCATION_PERMISSIONS_SHOW_PROMPT;
+const Int32 CCallbackProxy::GEOLOCATION_PERMISSIONS_HIDE_PROMPT;
+const Int32 CCallbackProxy::RECEIVED_TOUCH_ICON_URL;
+const Int32 CCallbackProxy::GET_VISITED_HISTORY;
+const Int32 CCallbackProxy::OPEN_FILE_CHOOSER;
+const Int32 CCallbackProxy::ADD_HISTORY_ITEM;
+const Int32 CCallbackProxy::HISTORY_INDEX_CHANGED;
+const Int32 CCallbackProxy::AUTH_CREDENTIALS;
+
+// Message triggered by the client to resume execution
+const Int32 CCallbackProxy::NOTIFY;
+
+// Performance probe
+const Boolean CCallbackProxy::PERF_PROBE;
+
 ECode CCallbackProxy::SetWebViewClient(
     /* [in] */ IWebViewClient* client)
 {

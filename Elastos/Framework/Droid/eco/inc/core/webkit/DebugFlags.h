@@ -34,26 +34,27 @@
      */
     class DebugFlags 
     {
-        public: static const Boolean sBROWSER_FRAME = FALSE;
-        public: static const Boolean sCACHE_MANAGER = FALSE;
-        public: static const Boolean sCALLBACK_PROXY = FALSE;
-        public: static const Boolean sCOOKIE_MANAGER = FALSE;
-        public: static const Boolean sCOOKIE_SYNC_MANAGER = FALSE;
-        public: static const Boolean sDRAG_TRACKER = FALSE;
-        public: static const CString sDRAG_TRACKER_LOGTAG;// = "skia";
-        public: static const Boolean sFRAME_LOADER = FALSE;
-        public: static const Boolean sJ_WEB_CORE_JAVA_BRIDGE = FALSE;// HIGHLY VERBOSE
-        public: static const Boolean sLOAD_LISTENER = FALSE;
-        public: static const Boolean sNETWORK = FALSE;
-        public: static const Boolean sSSL_ERROR_HANDLER = FALSE;
-        public: static const Boolean sSTREAM_LOADER = FALSE;
-        public: static const Boolean sURL_UTIL = FALSE;
-        public: static const Boolean sWEB_BACK_FORWARD_LIST = FALSE;
-        public: static const Boolean sWEB_SETTINGS = FALSE;
-        public: static const Boolean sWEB_SYNC_MANAGER = FALSE;
-        public: static const Boolean sWEB_TEXT_VIEW = FALSE;
-        public: static const Boolean sWEB_VIEW = FALSE;
-        public: static const Boolean sWEB_VIEW_CORE = FALSE;
+    public:
+        static const Boolean sBROWSER_FRAME = FALSE;
+        static const Boolean sCACHE_MANAGER = FALSE;
+        static const Boolean sCALLBACK_PROXY = FALSE;
+        static const Boolean sCOOKIE_MANAGER = FALSE;
+        static const Boolean sCOOKIE_SYNC_MANAGER = FALSE;
+        static const Boolean sDRAG_TRACKER = FALSE;
+        static const CString sDRAG_TRACKER_LOGTAG;// = "skia";
+        static const Boolean sFRAME_LOADER = FALSE;
+        static const Boolean sJ_WEB_CORE_JAVA_BRIDGE = FALSE;// HIGHLY VERBOSE
+        static const Boolean sLOAD_LISTENER = FALSE;
+        static const Boolean sNETWORK = FALSE;
+        static const Boolean sSSL_ERROR_HANDLER = FALSE;
+        static const Boolean sSTREAM_LOADER = FALSE;
+        static const Boolean sURL_UTIL = FALSE;
+        static const Boolean sWEB_BACK_FORWARD_LIST = FALSE;
+        static const Boolean sWEB_SETTINGS = FALSE;
+        static const Boolean sWEB_SYNC_MANAGER = FALSE;
+        static const Boolean sWEB_TEXT_VIEW = FALSE;
+        static const Boolean sWEB_VIEW = FALSE;
+        static const Boolean sWEB_VIEW_CORE = FALSE;
     };
 
 //};

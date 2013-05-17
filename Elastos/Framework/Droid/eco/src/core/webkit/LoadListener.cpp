@@ -32,6 +32,34 @@ const CString XML_MIME_TYPE("^[\\w_\\-+~!$\\^{}|.%'`#&*]+/[\\w_\\-+~!$\\^{}|.%'`
 
 const CString LoadListener::LOGTAG("webkit");
 
+// Messages used internally to communicate state between the
+// Network thread and the WebCore thread.
+const Int32 LoadListener::MSG_CONTENT_HEADERS;
+const Int32 LoadListener::MSG_CONTENT_DATA;
+const Int32 LoadListener::MSG_CONTENT_FINISHED;
+const Int32 LoadListener::MSG_CONTENT_ERROR;
+const Int32 LoadListener::MSG_LOCATION_CHANGED;
+const Int32 LoadListener::MSG_LOCATION_CHANGED_REQUEST;
+const Int32 LoadListener::MSG_STATUS;
+const Int32 LoadListener::MSG_SSL_CERTIFICATE;
+const Int32 LoadListener::MSG_SSL_ERROR;
+
+// Standard HTTP status codes in a more representative format
+const Int32 LoadListener::HTTP_OK;
+const Int32 LoadListener::HTTP_PARTIAL_CONTENT;
+const Int32 LoadListener::HTTP_MOVED_PERMANENTLY;
+const Int32 LoadListener::HTTP_FOUND;
+const Int32 LoadListener::HTTP_SEE_OTHER;
+const Int32 LoadListener::HTTP_NOT_MODIFIED;
+const Int32 LoadListener::HTTP_TEMPORARY_REDIRECT;
+const Int32 LoadListener::HTTP_AUTH;
+const Int32 LoadListener::HTTP_NOT_FOUND;
+const Int32 LoadListener::HTTP_PROXY_AUTH;
+
+AutoPtr<IObjectStringMap> LoadListener::sCertificateTypeMap;
+
+Int32 LoadListener::sNativeLoaderCount;
+
 CARAPI_(LoadListener*) LoadListener::GetLoadListener(
     /* [in] */ IContext* context,
     /* [in] */ IBrowserFrame* frame, 

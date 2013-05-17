@@ -217,7 +217,7 @@ private:
      * This contains a list of 2nd-level domains that aren't allowed to have
      * wildcards when combined with country-codes. For example: [.co.uk].
      */
-    const static String BAD_COUNTRY_2LDS[];/* =
+    const static CString BAD_COUNTRY_2LDS[];/* =
           { "ac", "co", "com", "ed", "edu", "go", "gouv", "gov", "info",
             "lg", "ne", "net", "or", "org" };*/
 

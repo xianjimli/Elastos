@@ -13,6 +13,12 @@ Int32 HTML5Audio::PAUSED      =  6;
 Int32 HTML5Audio::STOPPED     = -2;
 Int32 HTML5Audio::ERROR       = -1;
 
+// Timer thread -> UI thread
+const Int32 HTML5Audio::TIMEUPDATE;
+
+// The spec says the timer should fire every 250 ms or less.
+const Int32 HTML5Audio::TIMEUPDATE_PERIOD;
+
 /**
  * @param nativePtr is the C++ pointer to the MediaPlayerPrivate object.
  */

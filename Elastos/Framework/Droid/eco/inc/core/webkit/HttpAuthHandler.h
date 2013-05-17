@@ -232,8 +232,8 @@ private:
     Core::Threading::Mutex       mSyncLock;
 
     // Message id for handling the user response
-	static const int AUTH_PROCEED = 100;
-	static const int AUTH_CANCEL = 200;
+	static const Int32 AUTH_PROCEED = 100;
+	static const Int32 AUTH_CANCEL = 200;
 
     AutoPtr<IApartment> mApartment;
 };

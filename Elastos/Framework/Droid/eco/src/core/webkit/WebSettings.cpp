@@ -29,6 +29,43 @@ const CString WebSettings::DOUBLE_TAP_TOAST_COUNT = "double_tap_toast_count";
 AutoPtr<ILocale> WebSettings::sLocale;
 Mutex WebSettings::sLockForLocaleSettings;
 
+
+/**
+ * Default cache usage pattern  Use with {@link #setCacheMode}.
+ */
+const Int32 WebSettings::WS_LOAD_DEFAULT;
+
+/**
+ * Normal cache usage pattern  Use with {@link #setCacheMode}.
+ */
+const Int32 WebSettings::WS_LOAD_NORMAL;
+
+/**
+ * Use cache if content is there, even if expired (eg, history nav)
+ * If it is not in the cache, load from network.
+ * Use with {@link #setCacheMode}.
+ */
+const Int32 WebSettings::WS_LOAD_CACHE_ELSE_NETWORK;
+
+/**
+ * Don't use the cache, load from network
+ * Use with {@link #setCacheMode}.
+ */
+const Int32 WebSettings::WS_LOAD_NO_CACHE;
+
+/**
+ * Don't use the network, load from cache only.
+ * Use with {@link #setCacheMode}.
+ */
+const Int32 WebSettings::WS_LOAD_CACHE_ONLY;
+
+// Message id for syncing
+const Int32 WebSettings::WsEventHandler::SYNC;
+// Message id for setting priority
+const Int32 WebSettings::WsEventHandler::PRIORITY;
+// Message id for writing double-tap toast count
+const Int32 WebSettings::WsEventHandler::SET_DOUBLE_TAP_TOAST_COUNT;
+
 /*****************************WebSettings::WsEventHandler::WsEhHandler*****************************/
 PInterface WebSettings::WsEventHandler::WsEhHandler::Probe(
     /* [in] */ REIID riid)

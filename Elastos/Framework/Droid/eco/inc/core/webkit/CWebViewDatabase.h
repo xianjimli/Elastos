@@ -317,7 +317,7 @@ private:
     // 9 -> 10 Update httpauth table UNIQUE
     static const Int32 CACHE_DATABASE_VERSION = 4;
 
-    static const char* mTableNames[];// = {
+    static const CString mTableNames[];// = {
     //    "cookies", "password", "formurl", "formdata", "httpauth"
     //};
 

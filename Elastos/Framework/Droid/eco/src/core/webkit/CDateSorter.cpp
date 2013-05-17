@@ -3,6 +3,8 @@
 
 const CString CDateSorter::LOGTAG("webkit");
 
+const Int32 CDateSorter::NUM_DAYS_AGO;
+
 ECode CDateSorter::GetIndex(
     /* [in] */ Int64 time,
     /* [out] */ Int32* outLastDay)

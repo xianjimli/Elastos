@@ -152,11 +152,11 @@ protected:
 
 private:
     // message code for sync message
-    static const Int32 SYNC_MESSAGE;// = 101;
+    static const Int32 SYNC_MESSAGE = 101;
     // time delay in millisec for a sync (now) message
-    static const Int32 SYNC_NOW_INTERVAL;// = 100; // 100 millisec
+    static const Int32 SYNC_NOW_INTERVAL = 100; // 100 millisec
     // time delay in millisec for a sync (later) message
-    static const Int32 SYNC_LATER_INTERVAL;// = 5 * 60 * 1000; // 5 minutes
+    static const Int32 SYNC_LATER_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
     // thread for syncing
     AutoPtr<IThread> mSyncThread;

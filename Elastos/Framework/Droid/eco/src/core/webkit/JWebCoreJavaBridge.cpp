@@ -10,6 +10,13 @@ const CString JWebCoreJavaBridge::LOGTAG("webkit-timers");
 AutoPtr<IWebView> JWebCoreJavaBridge::sCurrentMainWebView = NULL;
 Core::Threading::Mutex JWebCoreJavaBridge::mutexClass;
 
+const Int32 JWebCoreJavaBridge::REFRESH_PLUGINS;
+
+// Identifier for the timer message.
+const Int32 JWebCoreJavaBridge::TIMER_MESSAGE;
+// ID for servicing functionptr queue
+const Int32 JWebCoreJavaBridge::FUNCPTR_MESSAGE;
+
 JWebCoreJavaBridge::JWebCoreJavaBridge()
 {
 	NativeConstructor();

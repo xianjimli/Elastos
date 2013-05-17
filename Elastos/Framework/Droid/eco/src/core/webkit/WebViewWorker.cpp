@@ -12,6 +12,23 @@ Map<AutoPtr<LoadListener>, AutoPtr<ICacheManagerCacheResult> > WebViewWorker::mC
 Boolean WebViewWorker::sCacheTickersBlocked;
 Mutex WebViewWorker::mMutexClass;
 
+// message ids
+const Int32 WebViewWorker::MSG_ADD_STREAMLOADER;
+const Int32 WebViewWorker::MSG_ADD_HTTPLOADER;
+const Int32 WebViewWorker::MSG_CREATE_CACHE;
+const Int32 WebViewWorker::MSG_UPDATE_CACHE_ENCODING;
+const Int32 WebViewWorker::MSG_APPEND_CACHE;
+const Int32 WebViewWorker::MSG_SAVE_CACHE;
+const Int32 WebViewWorker::MSG_REMOVE_CACHE;
+const Int32 WebViewWorker::MSG_TRIM_CACHE;
+const Int32 WebViewWorker::MSG_CLEAR_CACHE;
+const Int32 WebViewWorker::MSG_CACHE_TRANSACTION_TICKER;
+const Int32 WebViewWorker::MSG_PAUSE_CACHE_TRANSACTION;
+const Int32 WebViewWorker::MSG_RESUME_CACHE_TRANSACTION;
+
+// trigger transaction once a minute
+const Int32 WebViewWorker::CACHE_TRANSACTION_TICKER_INTERVAL;
+
 WebViewWorker::WebViewWorker(
 	/* [in] */ /*Looper* looper*/)//:Handler(looper)
 {    

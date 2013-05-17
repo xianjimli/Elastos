@@ -9,6 +9,17 @@ const CString CGeolocationPermissions::ORIGIN("origin");
 const CString CGeolocationPermissions::CALLBACK("callback");
 const CString CGeolocationPermissions::ALLOWED("allowed");
 
+// Message ids
+const Int32 CGeolocationPermissions::GET_ORIGINS;
+const Int32 CGeolocationPermissions::GET_ALLOWED;
+const Int32 CGeolocationPermissions::CLEAR;
+const Int32 CGeolocationPermissions::ALLOW;
+const Int32 CGeolocationPermissions::CLEAR_ALL;
+
+// Message ids on the UI thread
+const Int32 CGeolocationPermissions::RETURN_ORIGINS;
+const Int32 CGeolocationPermissions::RETURN_ALLOWED;
+
 ECode CGeolocationPermissions::GetInstance(
     /* [out] */ IGeolocationPermissions** instance)
 {

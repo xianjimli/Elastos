@@ -2,6 +2,11 @@
 #include "os/CApartment.h"
 //#include "net/http/CHeaders.h"
 
+const Int32 StreamLoader::MSG_STATUS;
+const Int32 StreamLoader::MSG_HEADERS;
+const Int32 StreamLoader::MSG_DATA;
+const Int32 StreamLoader::MSG_END;
+
 StreamLoader::StreamLoader(
         /* [in] */ /*const*/ LoadListener * loadListener)
 {

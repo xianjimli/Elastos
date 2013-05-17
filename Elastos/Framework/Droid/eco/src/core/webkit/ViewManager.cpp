@@ -6,6 +6,8 @@
 #include "view/CSurfaceView.h"
 #include <elastos/Math.h>
 
+const Int32 ViewManager::MAX_SURFACE_DIMENSION;
+
 PInterface ViewManager::ChildView::Runnable::Probe(
     /* [in] */ REIID riid)
 {

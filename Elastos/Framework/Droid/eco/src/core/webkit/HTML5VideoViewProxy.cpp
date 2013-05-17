@@ -10,6 +10,27 @@
 #include "net/Uri.h"
 #include "webkit/CWebView.h"
 
+// Logging tag.
+const CString HTML5VideoViewProxy::LOGTAG("HTML5VideoViewProxy");
+
+// Message Ids for WebCore thread -> UI thread communication.
+const Int32 HTML5VideoViewProxy::PLAY;
+const Int32 HTML5VideoViewProxy::SEEK;
+const Int32 HTML5VideoViewProxy::PAUSE;
+const Int32 HTML5VideoViewProxy::ERROR;
+const Int32 HTML5VideoViewProxy::LOAD_DEFAULT_POSTER;
+
+// Message Ids to be handled on the WebCore thread
+const Int32 HTML5VideoViewProxy::PREPARED;
+const Int32 HTML5VideoViewProxy::ENDED;
+const Int32 HTML5VideoViewProxy::POSTER_FETCHED;
+const Int32 HTML5VideoViewProxy::PAUSED;
+
+const CString HTML5VideoViewProxy::COOKIE("Cookie");
+
+// Timer thread -> UI thread
+const Int32 HTML5VideoViewProxy::TIMEUPDATE;
+
 // A bunch event listeners for our VideoView
 // MediaPlayer.OnPreparedListener
 ECode HTML5VideoViewProxy::OnPrepared(

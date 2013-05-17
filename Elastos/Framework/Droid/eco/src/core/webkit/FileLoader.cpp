@@ -5,6 +5,13 @@
 
 const CString FileLoader::LOGTAG("webkit");
 
+// used for files under asset directory
+const Int32 FileLoader::TYPE_ASSET;
+// used for files under res directory
+const Int32 FileLoader::TYPE_RES;
+// generic file
+const Int32 FileLoader::TYPE_FILE;
+
 /**
  * Construct a FileLoader with the file URL specified as the content
  * source.

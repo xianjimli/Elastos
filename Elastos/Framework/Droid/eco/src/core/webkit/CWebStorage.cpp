@@ -14,6 +14,20 @@ const CString CWebStorage::CALLBACK("callback");
 const CString CWebStorage::USAGE("usage");
 const CString CWebStorage::QUOTA("quota");
 
+// Message ids
+const Int32 CWebStorage::UPDATE;
+const Int32 CWebStorage::SET_QUOTA_ORIGIN;
+const Int32 CWebStorage::DELETE_ORIGIN;
+const Int32 CWebStorage::DELETE_ALL;
+const Int32 CWebStorage::GET_ORIGINS;
+const Int32 CWebStorage::GET_USAGE_ORIGIN;
+const Int32 CWebStorage::GET_QUOTA_ORIGIN;
+
+// Message ids on the UI thread
+const Int32 CWebStorage::RETURN_ORIGINS;
+const Int32 CWebStorage::RETURN_USAGE_ORIGIN;
+const Int32 CWebStorage::RETURN_QUOTA_ORIGIN;
+
 CWebStorage* CWebStorage::sWebStorage = NULL;
 
 ECode CWebStorage::CreateUIHandler()

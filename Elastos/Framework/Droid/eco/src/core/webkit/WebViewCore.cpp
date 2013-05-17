@@ -33,8 +33,8 @@
 #include "os/CBundle.h"
 #include "webkit/CWebView.h"
 
-const CString WebViewCore::THREAD_NAME = "WebViewCoreThread";
-const CString WebViewCore::LOGTAG = "webcore";
+const CString WebViewCore::THREAD_NAME("WebViewCoreThread");
+const CString WebViewCore::LOGTAG("webcore");
 
 const Int32 WebViewCore::ZOOM_BITS = Paint_FILTER_BITMAP_FLAG | Paint_DITHER_FLAG | Paint_SUBPIXEL_TEXT_FLAG;
 const Int32 WebViewCore::SCROLL_BITS = Paint_FILTER_BITMAP_FLAG | Paint_DITHER_FLAG;
@@ -106,6 +106,111 @@ AutoPtr<IApartment> WebViewCore::sWebCoreHandler;
 Boolean WebViewCore::mRepaintScheduled = FALSE;
 
 Core::Threading::Mutex WebViewCore::mMutexClass;
+
+
+// mAction of TouchEventData can be MotionEvent.getAction() which uses the
+// last two bytes or one of the following values
+const Int32 WebViewCore::ACTION_LONGPRESS;
+const Int32 WebViewCore::ACTION_DOUBLETAP;
+
+// Message Ids
+const Int32 WebViewCore::EventHub::REQUEST_LABEL;
+const Int32 WebViewCore::EventHub::UPDATE_FRAME_CACHE_IF_LOADING;
+const Int32 WebViewCore::EventHub::SCROLL_TEXT_INPUT;
+const Int32 WebViewCore::EventHub::LOAD_URL;
+const Int32 WebViewCore::EventHub::STOP_LOADING;
+const Int32 WebViewCore::EventHub::RELOAD;
+const Int32 WebViewCore::EventHub::KEY_DOWN;
+const Int32 WebViewCore::EventHub::KEY_UP;
+const Int32 WebViewCore::EventHub::VIEW_SIZE_CHANGED;
+const Int32 WebViewCore::EventHub::GO_BACK_FORWARD;
+const Int32 WebViewCore::EventHub::SET_SCROLL_OFFSET;
+const Int32 WebViewCore::EventHub::RESTORE_STATE;
+const Int32 WebViewCore::EventHub::PAUSE_TIMERS;
+const Int32 WebViewCore::EventHub::RESUME_TIMERS;
+const Int32 WebViewCore::EventHub::CLEAR_CACHE;
+const Int32 WebViewCore::EventHub::CLEAR_HISTORY;
+const Int32 WebViewCore::EventHub::SET_SELECTION;
+const Int32 WebViewCore::EventHub::REPLACE_TEXT;
+const Int32 WebViewCore::EventHub::PASS_TO_JS;
+const Int32 WebViewCore::EventHub::SET_GLOBAL_BOUNDS;
+const Int32 WebViewCore::EventHub::UPDATE_CACHE_AND_TEXT_ENTRY;
+const Int32 WebViewCore::EventHub::CLICK;
+const Int32 WebViewCore::EventHub::SET_NETWORK_STATE;
+const Int32 WebViewCore::EventHub::DOC_HAS_IMAGES;
+const Int32 WebViewCore::EventHub::DELETE_SELECTION;
+const Int32 WebViewCore::EventHub::LISTBOX_CHOICES;
+const Int32 WebViewCore::EventHub::SINGLE_LISTBOX_CHOICE;
+const Int32 WebViewCore::EventHub::MESSAGE_RELAY;
+const Int32 WebViewCore::EventHub::SET_BACKGROUND_COLOR;
+const Int32 WebViewCore::EventHub::SET_MOVE_FOCUS;
+const Int32 WebViewCore::EventHub::SAVE_DOCUMENT_STATE;
+
+const Int32 WebViewCore::EventHub::WEBKIT_DRAW;
+const Int32 WebViewCore::EventHub::SYNC_SCROLL;
+const Int32 WebViewCore::EventHub::POST_URL;
+const Int32 WebViewCore::EventHub::SPLIT_PICTURE_SET;
+const Int32 WebViewCore::EventHub::CLEAR_CONTENT;
+
+// UI nav messages
+const Int32 WebViewCore::EventHub::SET_MOVE_MOUSE;
+const Int32 WebViewCore::EventHub::SET_MOVE_MOUSE_IF_LATEST;
+const Int32 WebViewCore::EventHub::REQUEST_CURSOR_HREF;
+const Int32 WebViewCore::EventHub::ADD_JS_INTERFACE;
+const Int32 WebViewCore::EventHub::LOAD_DATA;
+
+// motion
+const Int32 WebViewCore::EventHub::TOUCH_UP;
+// message used to pass UI touch events to WebCore
+const Int32 WebViewCore::EventHub::TOUCH_EVENT;
+
+// Used to tell the focus controller not to draw the blinking cursor,
+// based on whether the WebView has focus and whether the WebView's
+// cursor matches the webpage's focus.
+const Int32 WebViewCore::EventHub::SET_ACTIVE;
+
+// lifecycle activities for just this DOM (unlike pauseTimers, which
+// is global)
+const Int32 WebViewCore::EventHub::ON_PAUSE;
+const Int32 WebViewCore::EventHub::ON_RESUME;
+const Int32 WebViewCore::EventHub::FREE_MEMORY;
+const Int32 WebViewCore::EventHub::VALID_NODE_BOUNDS;
+
+// Network-based messaging
+const Int32 WebViewCore::EventHub::CLEAR_SSL_PREF_TABLE;
+
+// Test harness messages
+const Int32 WebViewCore::EventHub::REQUEST_EXT_REPRESENTATION;
+const Int32 WebViewCore::EventHub::REQUEST_DOC_AS_TEXT;
+
+// debugging
+const Int32 WebViewCore::EventHub::DUMP_DOMTREE;
+const Int32 WebViewCore::EventHub::DUMP_RENDERTREE;
+const Int32 WebViewCore::EventHub::DUMP_NAVTREE;
+const Int32 WebViewCore::EventHub::DUMP_V8COUNTERS;
+
+const Int32 WebViewCore::EventHub::SET_JS_FLAGS;
+// Geolocation
+const Int32 WebViewCore::EventHub::GEOLOCATION_PERMISSIONS_PROVIDE;
+
+const Int32 WebViewCore::EventHub::POPULATE_VISITED_LINKS;
+
+const Int32 WebViewCore::EventHub::HIDE_FULLSCREEN;
+
+const Int32 WebViewCore::EventHub::SET_NETWORK_TYPE;
+
+// navigator.isApplicationInstalled()
+const Int32 WebViewCore::EventHub::ADD_PACKAGE_NAMES;
+const Int32 WebViewCore::EventHub::ADD_PACKAGE_NAME;
+const Int32 WebViewCore::EventHub::REMOVE_PACKAGE_NAME;
+
+// private message ids
+const Int32 WebViewCore::EventHub::DESTROY;
+
+// Message id for initializing a new WebViewCore.
+const Int32 WebViewCore::WebCoreThread::INITIALIZE;
+const Int32 WebViewCore::WebCoreThread::REDUCE_PRIORITY;
+const Int32 WebViewCore::WebCoreThread::RESUME_PRIORITY;
 
 /*****************************WebViewCore::DrawData*****************************/
 WebViewCore::DrawData::DrawData()

@@ -18,6 +18,7 @@ const CString FrameLoader::mAboutBlank("<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML
 
 const CString FrameLoader::LOGTAG("webkit");
 
+const Int32 FrameLoader::URI_PROTOCOL;
 
 FrameLoader::FrameLoader(
 	/* [in] */ LoadListener* listener, 

@@ -7,6 +7,8 @@
 
 using namespace Core;
 
+ICookieManager* CCookieManager::sRef;
+
 const CString CCookieManager::LOGTAG("webkit");
 
 const CString CCookieManager::DOMAIN("domain");
@@ -42,6 +44,41 @@ const Byte CCookieManager::QUOTATION = '\"';
 const Int32 CCookieManager::SECURE_LENGTH = 0;// = SECURE.length();
 
 const Int32 CCookieManager::HTTP_ONLY_LENGTH = 0;// = HTTP_ONLY.length();
+
+// RFC2109 defines 4k as maximum size of a cookie
+const Int32 CCookieManager::MAX_COOKIE_LENGTH;
+
+// RFC2109 defines 20 as max cookie count per domain. As we track with base
+// domain, we allow 50 per base domain
+const Int32 CCookieManager::MAX_COOKIE_COUNT_PER_BASE_DOMAIN;
+
+// RFC2109 defines 300 as max count of domains. As we track with base
+// domain, we set 200 as max base domain count
+const Int32 CCookieManager::MAX_DOMAIN_COUNT;
+
+// max cookie count to limit RAM cookie takes less than 100k, it is based on
+// average cookie entry size is less than 100 bytes
+const Int32 CCookieManager::MAX_RAM_COOKIES_COUNT;
+
+//  max domain count to limit RAM cookie takes less than 100k,
+const Int32 CCookieManager::MAX_RAM_DOMAIN_COUNT;
+
+/**
+ * This contains a list of 2nd-level domains that aren't allowed to have
+ * wildcards when combined with country-codes. For example: [.co.uk].
+ */
+const CString CCookieManager::BAD_COUNTRY_2LDS[] =
+      { "ac", "co", "com", "ed", "edu", "go", "gouv", "gov", "info",
+        "lg", "ne", "net", "or", "org" };
+
+const Byte CCookieManager::Cookie::MODE_NEW;
+
+const Byte CCookieManager::Cookie::MODE_NORMAL;
+
+const Byte CCookieManager::Cookie::MODE_DELETED;
+
+const Byte CCookieManager::Cookie::MODE_REPLACED;
+
 
 ECode CCookieManager::GetInstance(
     /* [out] */ ICookieManager** instance)

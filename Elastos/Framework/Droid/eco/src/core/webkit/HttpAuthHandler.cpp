@@ -5,6 +5,10 @@
 
 const CString HttpAuthHandler::LOGTAG("network");
 
+// Message id for handling the user response
+const Int32 HttpAuthHandler::AUTH_PROCEED;
+const Int32 HttpAuthHandler::AUTH_CANCEL;
+
 /**
  * Creates a new HTTP authentication handler with an empty
  * loader queue

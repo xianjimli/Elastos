@@ -5,6 +5,15 @@ const CString CWebIconDatabase::LOGTAG("WebIconDatabase");
 
 CWebIconDatabase* CWebIconDatabase::sIconDatabase(NULL);
 
+// Message ids
+const Int32 CWebIconDatabase::EventHandler::OPEN;
+const Int32 CWebIconDatabase::EventHandler::CLOSE;
+const Int32 CWebIconDatabase::EventHandler::REMOVE_ALL;
+const Int32 CWebIconDatabase::EventHandler::REQUEST_ICON;
+const Int32 CWebIconDatabase::EventHandler::RETAIN_ICON;
+const Int32 CWebIconDatabase::EventHandler::RELEASE_ICON;
+const Int32 CWebIconDatabase::EventHandler::BULK_REQUEST_ICON;
+
 ECode CWebIconDatabase::Open(
     /* [in] */ CString path)
 {

@@ -111,6 +111,25 @@ Int32 CWebViewDatabase::mCacheCrossDomainColIndex;
 
 Int32 CWebViewDatabase::mCacheTransactionRefcount;
 
+const Int32 CWebViewDatabase::DATABASE_VERSION;
+
+const Int32 CWebViewDatabase::CACHE_DATABASE_VERSION;
+
+const CString CWebViewDatabase::mTableNames[] = {
+        "cookies", "password", "formurl", "formdata", "httpauth"
+    };
+
+// Table ids (they are index to mTableNames)
+const Int32 CWebViewDatabase::TABLE_COOKIES_ID;
+
+const Int32 CWebViewDatabase::TABLE_PASSWORD_ID;
+
+const Int32 CWebViewDatabase::TABLE_FORMURL_ID;
+
+const Int32 CWebViewDatabase::TABLE_FORMDATA_ID;
+
+const Int32 CWebViewDatabase::TABLE_HTTPAUTH_ID;
+
 ECode CWebViewDatabase::GetInstance(
     /* [in] */ IContext* context,
     /* [out] */ IWebViewDatabase** instance)

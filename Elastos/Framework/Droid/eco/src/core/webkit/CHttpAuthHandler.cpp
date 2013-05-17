@@ -2,9 +2,12 @@
 #include "webkit/CHttpAuthHandler.h"
 #include "os/CApartment.h"
 #include "webkit/CBrowserFrame.h"
+
 const CString CHttpAuthHandler::LOGTAG = "network";
-const Int32 CHttpAuthHandler::AUTH_PROCEED = 100;
-const Int32 CHttpAuthHandler::AUTH_CANCEL = 200;
+
+const Int32 CHttpAuthHandler::AUTH_PROCEED;
+const Int32 CHttpAuthHandler::AUTH_CANCEL;
+
 CHttpAuthHandler::construct(
     /* [in] */ Network * network)
 {
