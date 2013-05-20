@@ -841,23 +841,44 @@ module
         interface ICharArrayWriter;
     }
 
+   /**
+    * Wraps an existing Reader and buffers the input. Expensive interaction with the underlying reader is minimized, since most (smaller)
+    * requests can be satisfied by accessing the buffer alone. The drawback is that some extra space is required to hold the buffer
+    * and that copying takes place when filling that buffer, but this is usually outweighed by the performance benefits.
+    *
+    * A typical application pattern for the class looks like this:
+    * @code{.cpp}
+    * BufferedReader buf = new BufferedReader(new FileReader("file.car"));
+    * @endcode
+    *
+    * @implements com::elastos::IBufferedReader
+    *
+    * @sa com::elastos::CBufferedWriter
+    *
+    * <strong>Direct Known Subclasses:</strong>
+    * - @ref com::elastos::CLineNumberReader
+    *
+    * @since Elastos 1.0
+    * @todo  http://docs.oracle.com/javase/6/docs/api/java/io/BufferedReader.html
+    */
     class CBufferedReader {
         /**
-        * Constructs a new BufferedReader, providing in with a buffer
-        * of 8192 characters.
+        * Constructs a new BufferedReader, providing in with a buffer of 8192 characters.
         *
-        * @param rin the Reader the buffer reads from.
+        * @param rin the IReader the buffer reads from.
         */
         constructor(
             [in] IReader* rin);
 
         /**
-        * Constructs a new BufferedReader providing in} with size} characters
-        * of buffer.
+        * Constructs a new BufferedReader providing in} with size} characters of buffer.
         *
-        * @param in the InputStream} the buffer reads from.
+        * @param rin the IReader the buffer reads from.
         * @param size the size of buffer in characters.
-        * @throws IllegalArgumentException if size <= 0
+        * @return ECode = NOERROR(0) if success, elas as follows:
+        * Value | Meaning |
+        * :-|:------------|
+        * IllegalArgumentException | if size <= 0
         */
         constructor(
             [in] IReader* rin,
@@ -866,12 +887,32 @@ module
         interface IBufferedReader;
     }
 
+   /**
+    * Wraps an existing Writer and buffers the output. Expensive interaction with the underlying reader is minimized,
+    * since most (smaller) requests can be satisfied by accessing the buffer alone. The drawback is that some extra space is required
+    * to hold the buffer and that copying takes place when filling that buffer, but this is usually outweighed by the performance benefits.
+    *
+    * A typical application pattern for the class looks like this:
+    * @code{.cpp}
+    * BufferedWriter buf = new BufferedWriter(new FileWriter("file.car"));
+    * @endcode
+    *
+    *
+    * @implements com::elastos::IBufferedWriter
+    *
+    * @sa com::elastos::CBufferedReader
+    *
+    * <strong>Direct Known Subclasses:</strong>
+    * - @ref com::elastos::CLineNumberWriter
+    *
+    * @since Elastos 1.0
+    * @todo  http://docs.oracle.com/javase/6/docs/api/java/io/BufferedWriter.html
+    */
     class CBufferedWriter {
         /**
-         * Constructs a new BufferedWriter providing out} with a buffer
-         * of 8192 bytes.
+         * Constructs a new BufferedWriter providing out} with a buffer of 8192 bytes.
          *
-         * @param out the Writer} the buffer writes to.
+         * @param wout the IWriter the buffer writes to.
          */
         constructor(
             [in] IWriter* wout);
@@ -880,9 +921,12 @@ module
          * Constructs a new BufferedWriter providing out} with size} bytes
          * of buffer.
          *
-         * @param out the OutputStream} the buffer writes to.
+         * @param out the IWriter the buffer writes to.
          * @param size the size of buffer in bytes.
-         * @throws IllegalArgumentException if size <= 0
+         * @return ECode = NOERROR(0) if success, elas as follows:
+         * Value | Meaning |
+         * :-|:------------|
+         * IllegalArgumentException | if size <= 0
          */
         constructor(
             [in] IWriter* wout,
@@ -891,16 +935,26 @@ module
         interface IBufferedWriter;
     }
 
+   /**
+    * A specialized InputStream that reads bytes from a String in a sequential manner.
+    *
+    * @since Elastos 1.0
+    * @todo  http://docs.oracle.com/javase/6/docs/api/java/io/StringBufferInputStream.html
+    */
     class CStringBufferInputStream {
         /**
-         * Construct a new StringBufferInputStream} with str} as
-         * source. The size of the stream is set to the length()} of the
-         * string.
+         * Construct a new StringBufferInputStream with str as source. The size of the stream is set to the length of the string.
          *
-         * @param str
-         *            the source string for this stream.
-         * @throws NullPointerException
-         *             if str is null
+         * @param str  the source string for this stream.
+         * @return ECode = NOERROR(0) if success, elas as follows:
+         * Value | Meaning |
+         * :-|:------------|
+         * NullPointerException | if str is null
+         *
+         * @todo Fields
+         *   -  String buffer The source string containing the data to read.
+         *   -  int count The total number of characters in the source string.
+         *   -  int pos The current position within the source string.
          */
         constructor(
             [in] String str);
