@@ -847,7 +847,7 @@ module
     * and that copying takes place when filling that buffer, but this is usually outweighed by the performance benefits.
     *
     * A typical application pattern for the class looks like this:
-    * @code{.cpp}
+    * @code
     * BufferedReader buf = new BufferedReader(new FileReader("file.car"));
     * @endcode
     *
@@ -893,10 +893,9 @@ module
     * to hold the buffer and that copying takes place when filling that buffer, but this is usually outweighed by the performance benefits.
     *
     * A typical application pattern for the class looks like this:
-    * @code{.cpp}
+    * @code
     * BufferedWriter buf = new BufferedWriter(new FileWriter("file.car"));
     * @endcode
-    *
     *
     * @implements com::elastos::IBufferedWriter
     *
@@ -938,6 +937,8 @@ module
    /**
     * A specialized InputStream that reads bytes from a String in a sequential manner.
     *
+    * @implements com::elastos::IStringBufferInputStream
+    *
     * @since Elastos 1.0
     * @todo  http://docs.oracle.com/javase/6/docs/api/java/io/StringBufferInputStream.html
     */
@@ -962,16 +963,25 @@ module
         interface IStringBufferInputStream;
     }
 
+   /**
+    * Wraps an existing InputStream and counts the line terminators encountered while reading the data. Line numbering starts at 0.
+    * Recognized line terminator sequences are '\r', '\n' and "\r\n". When using read, line terminator sequences are always translated into '\n'.
+    *
+    * @implements com::elastos::ILineNumberInputStream
+    *
+    * @since Elastos 1.0
+    * @todo  http://docs.oracle.com/javase/7/docs/api/java/io/LineNumberInputStream.html
+    *        java.io.LineNumberInputStream
+    */
     class CLineNumberInputStream {
         /**
-         * Constructs a new LineNumberInputStream on the InputStream
+         * Constructs a new LineNumberInputStream on the IInputStream
          * in Line numbers are counted for all data read from this stream.
          *
          * <p><strong>Warning:</strong> passing a null source creates an invalid
          * LineNumberInputStream All operations on such a stream will fail.
          *
-         * @param in
-         *            The non-null input stream to count line numbers.
+         * @param in   The non-null input stream to count line numbers.
          */
         constructor(
             [in] IInputStream* is);
@@ -979,24 +989,33 @@ module
         interface ILineNumberInputStream;
     }
 
+   /**
+    * Wraps an existing Reader and counts the line terminators encountered while reading the data.
+    * The line number starts at 0 and is incremented any time '\r', '\n' or "\r\n" is read. 
+    * The class has an internal buffer for its data. The size of the buffer defaults to 8 KB.
+    *
+    * @implements com::elastos::ILineNumberReader
+    *
+    * @since Elastos 1.0
+    * @todo  http://docs.oracle.com/javase/6/docs/api/java/io/LineNumberReader.html
+    *    	 java.io.LineNumberReader
+    */
     class CLineNumberReader {
         /**
          * Constructs a new LineNumberReader on the Reader in The internal
          * buffer gets the default size (8 KB).
          *
-         * @param in
-         *            the Reader that is buffered.
+         * @param ir   the IReader that is buffered.
          */
         constructor(
             [in] IReader* ir);
+
         /**
          * Constructs a new LineNumberReader on the Reader in The size of
          * the internal buffer is specified by the parameter size
          *
-         * @param in
-         *            the Reader that is buffered.
-         * @param size
-         *            the size of the buffer to allocate.
+         * @param ir    the Reader that is buffered.
+         * @param size  the size of the buffer to allocate.
          * @throws IllegalArgumentException
          *             if size <= 0
          */
@@ -1007,6 +1026,17 @@ module
         interface ILineNumberReader;
     }
 
+   /**
+    * Wraps an existing InputStream and adds functionality to "push back" bytes that have been read, so that they can be read again. 
+    * Parsers may find this useful. The number of bytes which may be pushed back can be specified during construction. 
+    * If the buffer of pushed back bytes is empty, bytes are read from the underlying input stream.
+    *
+    * @implements com::elastos::IPushbackInputStream
+    *
+    * @since Elastos 1.0
+    * @todo  http://docs.oracle.com/javase/6/docs/api/java/io/PushbackInputStream.html
+    *    	 java.io.PushbackInputStream
+    */
     class CPushbackInputStream {
         /**
          * Constructs a new PushbackInputStream} with the specified input
@@ -1030,12 +1060,12 @@ module
          * PushbackInputStream All read operations on such a stream will
          * fail.
          *
-         * @param in
-         *            the source input stream.
-         * @param size
-         *            the size of the pushback buffer.
-         * @throws IllegalArgumentException
-         *             if size} is negative.
+         * @param is    the source input stream.
+         * @param size  the size of the pushback buffer.
+         * @return ECode = NOERROR(0) if success, elas as follows:
+         * Value | Meaning |
+         * :-|:------------|
+         * IllegalArgumentException | if size is negative.
          */
         constructor(
             [in] IInputStream* is,
@@ -1044,27 +1074,38 @@ module
         interface IPushbackInputStream;
     }
 
+   /**
+    * Wraps an existing Reader and adds functionality to "push back" characters that have been read, so that they can be read again.
+    * Parsers may find this useful. The number of characters which may be pushed back can be specified during construction. 
+    * If the buffer of pushed back bytes is empty, characters are read from the underlying reader.
+    *
+    * @implements com::elastos::IPushbackReader
+    *
+    * @since Elastos 1.0
+    * @todo  
+    *    	 java.io.PushbackReader
+    */
     class CPushbackReader {
         /**
-         * Constructs a new PushbackReader} with the specified reader as
+         * Constructs a new PushbackReader with the specified reader as
          * source. The size of the pushback buffer is set to the default value of 1
          * character.
          *
-         * @param in
+         * @param ir
          *            the source reader.
          */
         constructor(
             [in] IReader* ir);
         /**
-         * Constructs a new PushbackReader} with in} as source reader.
+         * Constructs a new PushbackReader with in} as source reader.
          * The size of the pushback buffer is set to size
          *
-         * @param in
-         *            the source reader.
-         * @param size
-         *            the size of the pushback buffer.
-         * @throws IllegalArgumentException
-         *             if size} is negative.
+         * @param ir     the source reader.
+         * @param size   the size of the pushback buffer.
+         * @return ECode = NOERROR(0) if success, elas as follows:
+         * Value | Meaning |
+         * :-|:------------|
+         * IllegalArgumentException | if size is negative.
          */
         constructor(
             [in] IReader* ir,
@@ -1073,6 +1114,15 @@ module
         interface IPushbackReader;
     }
 
+   /**
+    * Legacy security code; do not use.
+    *
+    * @implements com::elastos::IFilePermission
+    *
+    * @since Elastos 1.0
+    * @todo  
+    *    	 java.io.FilePermission
+    */
     class CFilePermission {
         /**
          * Constructs a new FilePermission with the path and actions specified.
@@ -1096,21 +1146,40 @@ module
         interface IFilePermission;
     }
 
+   /**
+    * 
+    *
+    * @implements com::elastos::IFilePermissionCollection
+    *
+    * @since Elastos 1.0
+    * @todo  
+    *    	 java.io.FilePermissionCollection
+    */
     class CFilePermissionCollection {
         interface IFilePermissionCollection;
     }
 
+   /**
+    * Concatenates two or more existing InputStreams. Reads are taken from the first stream until it ends, 
+    * then the next stream is used, until the last stream returns end of file.
+    *
+    * @implements com::elastos::IInputStream
+    *
+    * @since Elastos 1.0
+    * @todo  
+    *    	 java.io.InputStream
+    */
     class CSequenceInputStream {
         /**
-         * Constructs a new SequenceInputStream} using the two streams
-         * s1} and s2} as the sequence of streams to read from.
+         * Constructs a new SequenceInputStream using the two streams
+         * s1 and s2 as the sequence of streams to read from.
          *
-         * @param s1
-         *            the first stream to get bytes from.
-         * @param s2
-         *            the second stream to get bytes from.
-         * @throws NullPointerException
-         *             if s1} is null
+         * @param s1  the first stream to get bytes from.
+         * @param s2  the second stream to get bytes from.
+         * @return ECode = NOERROR(0) if success, elas as follows:
+         * Value | Meaning |
+         * :-|:------------|
+         * NullPointerException | if s1 is null
          */
         constructor(
             [in] IInputStream *s1,
@@ -1118,13 +1187,14 @@ module
 
         /**
          * Constructs a new SequenceInputStream using the elements returned from
-         * Enumeration e} as the stream sequence. The instances returned by
-         * e.nextElement()} must be of type {@link InputStream
+         * Enumeration e as the stream sequence. The instances returned by
+         * e.nextElement must be of type InputStream
          *
-         * @param e
-         *            the enumeration of InputStreams} to get bytes from.
-         * @throws NullPointerException
-         *             if any of the elements in e} is null
+         * @param e   the enumeration of InputStreams to get bytes from.
+         * @return ECode = NOERROR(0) if success, elas as follows:
+         * Value | Meaning |
+         * :-|:------------|
+         * NullPointerException | if any of the elements in e is null
          */
         constructor(
             [in] IObjectEnumerator* e);
@@ -1132,34 +1202,170 @@ module
         interface IInputStream;
     }
 
+   /**
+    * 
+    *
+    * @implements com::elastos::ICharsetHelper
+    *
+    * @since Elastos 1.0
+    * @todo  
+    *    	 java.io.
+    */
     singleton class CCharsetHelper {
         interface ICharsetHelper;
     }
 
+   /**
+    * 
+    *
+    * @implements com::elastos::ICharsets
+    *
+    * @since Elastos 1.0
+    * @todo  
+    *    	 java.io.
+    */
     singleton class CCharsets {
         interface ICharsets;
     }
 
+   /**
+    * Used to indicate the result of encoding/decoding. There are four types of results:
+    * -# UNDERFLOW indicates that all input has been processed but more input is required. It is represented by the unique object CoderResult.UNDERFLOW.
+    * -# OVERFLOW indicates an insufficient output buffer size. It is represented by the unique object CoderResult.OVERFLOW.
+    * -# A malformed-input error indicates that an unrecognizable sequence of input units has been encountered. Get an instance of this type of result by calling CoderResult.malformedForLength(int) with the length of the malformed-input.
+    * -# An unmappable-character error indicates that a sequence of input units can not be mapped to the output charset. Get an instance of this type of result by calling CoderResult.unmappableForLength(int) with the input sequence size indicating the identity of the unmappable character.
+    *
+    * @implements com::elastos::ICoderResult
+    *
+    * @since Elastos 1.0
+    * @todo  
+    *    	 java.nio.charset.CoderResult
+    */
     class CCoderResult {
         interface ICoderResult;
     }
 
+   /**
+    * 
+    *
+    * @implements com::elastos::ICoderResultHelper
+    *
+    * @since Elastos 1.0
+    * @todo  
+    *    	 java.io.
+    */
     singleton class CCoderResultHelper {
         interface ICoderResultHelper;
     }
 
+   /**
+    * Used to indicate what kind of actions to take in case of encoding/decoding errors. Currently three actions are defined: IGNORE, REPLACE and REPORT.
+    *
+    * @implements com::elastos::ICodingErrorAction
+    *
+    * @since Elastos 1.0
+    * @todo  
+    *    	 	java.nio.charset.CodingErrorAction
+    */
     class CCodingErrorAction {
         interface ICodingErrorAction;
     }
 
+   /**
+    * 
+    *
+    * @implements com::elastos::IModifiedUtf8
+    *
+    * @since Elastos 1.0
+    * @todo  
+    *    	 java.io.
+    */
     singleton class CModifiedUtf8 {
         interface IModifiedUtf8;
     }
 
+   /**
+    * 
+    *
+    * @implements com::elastos::INativeConverter
+    *
+    * @since Elastos 1.0
+    * @todo  
+    *    	 java.io.
+    */
     singleton class CNativeConverter {
         interface INativeConverter;
     }
 
+   /**
+    * A charset is a named mapping between Unicode characters and byte sequences. Every Charset can decode, converting a byte sequence into a sequence of characters, and some can also encode, converting a sequence of characters into a byte sequence. Use the method canEncode() to find out whether a charset supports both.
+    * 
+    * <strong>Characters</strong>
+    * 
+    * In the context of this class, character always refers to a Java character: a Unicode code point in the range U+0000 to U+FFFF. (Java represents supplementary characters using surrogates.) Not all byte sequences will represent a character, and not all characters can necessarily be represented by a given charset. The method contains(Charset) can be used to determine whether every character representable by one charset can also be represented by another (meaning that a lossless transformation is possible from the contained to the container).
+    * 
+    * <strong>Encodings</strong>
+    * 
+    * There are many possible ways to represent Unicode characters as byte sequences. See <a href="http://www.unicode.org/reports/tr17/">UTR#17: Unicode Character Encoding Model</a> for detailed discussion.
+    * 
+    * The most important mappings capable of representing every character are the Unicode Transformation Format (UTF) charsets. Of those, UTF-8 and the UTF-16 family are the most common. UTF-8 (described in <a href="http://www.ietf.org/rfc/rfc3629.txt">RFC 3629</a>) encodes a character using 1 to 4 bytes. UTF-16 uses exactly 2 bytes per character (potentially wasting space, but allowing efficient random access into BMP text), and UTF-32 uses exactly 4 bytes per character (trading off even more space for efficient random access into text that includes supplementary characters).
+    * 
+    * UTF-16 and UTF-32 encode characters directly, using their code point as a two- or four-byte integer. This means that any given UTF-16 or UTF-32 byte sequence is either big- or little-endian. To assist decoders, Unicode includes a special byte order mark (BOM) character U+FEFF used to determine the endianness of a sequence. The corresponding byte-swapped code point U+FFFE is guaranteed never to be assigned. If a UTF-16 decoder sees 0xfe, 0xff, for example, it knows it's reading a big-endian byte sequence, while 0xff, 0xfe, would indicate a little-endian byte sequence.
+    * 
+    * UTF-8 can contain a BOM, but since the UTF-8 encoding of a character always uses the same byte sequence, there is no information about endianness to convey. Seeing the bytes corresponding to the UTF-8 encoding of U+FEFF (0xef, 0xbb, 0xbf) would only serve to suggest that you're reading UTF-8. Note that BOMs are decoded as the U+FEFF character, and will appear in the output character sequence. This means that a disadvantage to including a BOM in UTF-8 is that most applications that use UTF-8 do not expect to see a BOM. (This is also a reason to prefer UTF-8: it's one less complication to worry about.)
+    * 
+    * Because a BOM indicates how the data that follows should be interpreted, a BOM should occur as the first character in a character sequence.
+    * 
+    * See the <a href="http://unicode.org/faq/utf_bom.html#BOM">Byte Order Mark (BOM) FAQ</a> for more about dealing with BOMs.
+    * 
+    * <strong>Endianness and BOM behavior</strong>
+    * 
+    * The following tables show the endianness and BOM behavior of the UTF-16 variants.
+    * 
+    * This table shows what the encoder writes. "BE" means that the byte sequence is big-endian, "LE" means little-endian. "BE BOM" means a big-endian BOM (that is, 0xfe, 0xff).
+    * Charset | Encoder writes |
+    * :-|:------------|
+    * UTF-16BE | BE, no BOM
+    * UTF-16LE | LE, no BOM
+    * UTF-16 | BE, with BE BOM
+    *
+    * The next table shows how each variant's decoder behaves when reading a byte sequence. The exact meaning of "failure" in the table is dependent on the CodingErrorAction supplied to malformedInputAction(), so "BE, failure" means "the byte sequence is treated as big-endian, and a little-endian BOM triggers the malformedInputAction".
+    * The phrase "includes BOM" means that the output includes the U+FEFF byte order mark character.
+    * Charset | BE BOM | LE BOM | No BOM
+    * :-------|:-------|:-------|:-------|
+    * UTF-16BE | BE, includes BOM | BE, failure | BE
+    * UTF-16LE | LE, failure | LE, includes BOM |	LE
+    * UTF-16 | BE | LE | BE
+    *
+    * <strong>Charset names</strong>
+    *
+    * A charset has a canonical name, returned by name(). Most charsets will also have one or more aliases, returned by aliases(). A charset can be looked up by canonical name or any of its aliases using forName(String).
+    *
+    * <strong>Guaranteed-available charsets</strong>
+    *
+    * The following charsets are available on every Java implementation:
+    * - ISO-8859-1
+    * - US-ASCII
+    * - UTF-16
+    * - UTF-16BE
+    * - UTF-16LE
+    * - UTF-8
+    *
+    * All of these charsets support both decoding and encoding. The charsets whose names begin "UTF" can represent all characters, as mentioned above. The "ISO-8859-1" and "US-ASCII" charsets can only represent small subsets of these characters. Except when required to do otherwise for compatibility, new code should use one of the UTF charsets listed above. The platform's default charset is UTF-8. (This is in contrast to some older implementations, where the default charset depended on the user's locale.)
+    *
+    * Most implementations will support hundreds of charsets. Use availableCharsets() or isSupported(String) to see what's available. If you intend to use the charset if it's available, just call forName(String) and catch the exceptions it throws if the charset isn't available.
+    *
+    * Additional charsets can be made available by configuring one or more charset providers through provider configuration files. Such files are always named as "java.nio.charset.spi.CharsetProvider" and located in the "META-INF/services" directory of one or more classpaths. The files should be encoded in "UTF-8". Each line of their content specifies the class name of a charset provider which extends CharsetProvider. A line should end with '\\r', '\\n' or '\\r\\n'. 
+    * Leading and trailing whitespace is trimmed. Blank lines, and lines (after trimming) starting with "#" which are regarded as comments, are both ignored. Duplicates of names already found are also ignored. Both the configuration files and the provider classes will be loaded using the thread context class loader.
+    *
+    * Although class is thread-safe, the @ref com::elastos::CCharsetDecoder and @ref com::elastos::CCharsetEncoder instances it returns are inherently stateful.
+    * 
+    * @implements com::elastos::ICharset
+    *
+    * @since Elastos 1.0
+    * @todo  
+    *    	 java.nio.charset.Charset
+    */
     class CCharsetICU {
         constructor(
             [in] String canonicalName,
@@ -1169,10 +1375,51 @@ module
         interface ICharset;
     }
 
+   /**
+    * Transforms a sequence of 16-bit Java characters to a byte sequence in some encoding.
+    * The input character sequence is a CharBuffer and the output byte sequence is a ByteBuffer.
+    * 
+    * Use encode(CharBuffer) to encode an entire CharBuffer to a new ByteBuffer, or encode(CharBuffer, ByteBuffer, boolean) for more control. 
+    * When using the latter method, the entire operation proceeds as follows:
+    * -# Invoke reset() to reset the encoder if this instance has been used before.
+    * -# Invoke encode with the endOfInput parameter set to false until additional input is not needed (as signaled by the return value). The input buffer must be filled and the output buffer must be flushed between invocations.
+    * The encode method will convert as many characters as possible, and the process won't stop until the input buffer has been exhausted, the output buffer has been filled, or an error has occurred. A CoderResult instance will be returned to indicate the current state. The caller should fill the input buffer, flush the output buffer, or recovering from an error and try again, accordingly.
+    * -# Invoke encode for the last time with endOfInput set to true.
+    * -# Invoke flush(ByteBuffer) to flush remaining output.
+    *
+    * There are two classes of encoding error: malformed input signifies that the input character sequence is not legal, while unmappable character signifies that the input is legal but cannot be mapped to a byte sequence (because the charset cannot represent the character, for example).
+    * 
+    * Errors can be handled in three ways. The default is to report the error to the caller. The alternatives are to ignore the error or replace the problematic input with the byte sequence returned by replacement(). The disposition for each of the two kinds of error can be set independently using the onMalformedInput(CodingErrorAction) and onUnmappableCharacter(CodingErrorAction) methods.
+    * 
+    * The default replacement bytes depend on the charset but can be overridden using the replaceWith(byte[]) method.
+    * 
+    * This class is abstract and encapsulates many common operations of the encoding process for all charsets. Encoders for a specific charset should extend this class and need only to implement the encodeLoop method for basic encoding. If a subclass maintains internal state, it should also override the implFlush and implReset methods.
+    * 
+    * This class is not thread-safe.
+    *
+    * @implements com::elastos::ICharsetEncoder
+    * @sa com::elastos::CCharset
+    * @sa com::elastos::CCharsetDecoder
+    *
+    * @since Elastos 1.0
+    * @todo  
+    *    	 	java.nio.charset.CharsetEncoder
+    */
     class CCharsetEncoderICU {
         interface ICharsetEncoder;
     }
 
+   /**
+    * A class for turning a byte stream into a character stream. Data read from the source input stream is converted into characters 
+    * by either a default or a provided character converter. The default encoding is taken from the "file.encoding" system property. 
+    * InputStreamReader contains a buffer of bytes read from the source stream and converts these into characters as needed. The buffer size is 8K.
+    *
+    * @implements com::elastos::IInputStreamReader
+    *
+    * @since Elastos 1.0
+    * @todo  
+    *    	 java.io.InputStreamReader
+    */
     class CInputStreamReader {
         /**
          * Constructs a new InputStreamReader} on the {@link InputStream}
@@ -1180,8 +1427,7 @@ module
          * specified in the "file.encoding" property and falls back to ISO 8859_1
          * (ISO-Latin-1) if the property doesn't exist.
          *
-         * @param in
-         *            the input stream from which to read characters.
+         * @param is   the input stream from which to read characters.
          */
         constructor(
             [in] IInputStream* is);
@@ -1192,14 +1438,13 @@ module
          * identified by name by enc If the encoding cannot be found, an
          * UnsupportedEncodingException error is thrown.
          *
-         * @param in
-         *            the InputStream from which to read characters.
-         * @param enc
-         *            identifies the character converter to use.
-         * @throws NullPointerException
-         *             if enc} is null
-         * @throws UnsupportedEncodingException
-         *             if the encoding specified by enc} cannot be found.
+         * @param is   the InputStream from which to read characters.
+         * @param enc  identifies the character converter to use.
+         * @return ECode = NOERROR(0) if success, elas as follows:
+         * Value | Meaning |
+         * :-|:------------|
+         * NullPointerException | if enc is null
+         * UnsupportedEncodingException | if the encoding specified by enc cannot be found.
          */
         constructor(
             [in] IInputStream* is,
@@ -1235,6 +1480,15 @@ module
         interface IInputStreamReader;
     }
 
+   /**
+    * 
+    *
+    * @implements com::elastos::IOutputStreamWriter
+    *
+    * @since Elastos 1.0
+    * @todo  
+    *    	 java.io.OutputStreamWriter
+    */
     class COutputStreamWriter {
         /**
          * Constructs a new OutputStreamWriter using out} as the target
@@ -1253,14 +1507,13 @@ module
          * encoding. If the encoding cannot be found, an
          * UnsupportedEncodingException error is thrown.
          *
-         * @param out
-         *            the target stream to write converted bytes to.
-         * @param enc
-         *            the string describing the desired character encoding.
-         * @throws NullPointerException
-         *             if enc} is null
-         * @throws UnsupportedEncodingException
-         *             if the encoding specified by enc} cannot be found.
+         * @param out   the target stream to write converted bytes to.
+         * @param enc   the string describing the desired character encoding.
+         * @return ECode = NOERROR(0) if success, elas as follows:
+         * Value | Meaning |
+         * :-|:------------|
+         * NullPointerException | if enc is null
+         * UnsupportedEncodingException | if the encoding specified by enc cannot be found.
          */
         constructor(
             [in] IOutputStream* os,
@@ -1297,6 +1550,19 @@ module
         interface IOutputStreamWriter;
     }
 
+   /**
+    * A specialized Reader that reads from a file in the file system. All read requests made by calling methods in this class are directly
+    * forwarded to the equivalent function of the underlying operating system. Since this may induce some performance penalty, 
+    * in particular if many small read requests are made, a FileReader is often wrapped by a BufferedReader.
+    *
+    * @implements com::elastos::IInputStreamReader
+    * @sa com::elastos::CBufferedReader
+    * @sa com::elastos::CFileWriter
+    *
+    * @since Elastos 1.0
+    * @todo  
+    *    	 java.io.InputStreamReader
+    */
     class CFileReader {
         /**
          * Constructs a new FileReader on the given file
@@ -1323,10 +1589,11 @@ module
         /**
          * Construct a new FileReader on the given file named filename
          *
-         * @param filename
-         *            an absolute or relative path specifying the file to open.
-         * @throws FileNotFoundException
-         *             if there is no file named filename
+         * @param filename   an absolute or relative path specifying the file to open.
+         * @return ECode = NOERROR(0) if success, elas as follows:
+         * Value | Meaning |
+         * :-|:------------|
+         * FileNotFoundException | if there is no file named filename
          */
         constructor(
             [in] String filename);
@@ -1334,6 +1601,18 @@ module
         interface IInputStreamReader;
     }
 
+   /**
+    * A specialized Writer that writes to a file in the file system. All write requests made by calling methods in this class are directly forwarded
+    * to the equivalent function of the underlying operating system. Since this may induce some performance penalty, 
+    * in particular if many small write requests are made, a FileWriter is often wrapped by a BufferedWriter.
+    *
+    * @implements com::elastos::IOutputStreamWriter
+    * @sa com::elastos::CBufferedWriter
+    * @sa com::elastos::CFileReader
+    * @since Elastos 1.0
+    * @todo  
+    *    	 java.io.OutputStreamWriter
+    */
     class CFileWriter {
         /**
          * Creates a FileWriter using the File file
@@ -1401,6 +1680,16 @@ module
         interface IOutputStreamWriter;
     }
 
+   /**
+    * A specialized Reader that reads characters from a String in a sequential manner.
+    *
+    * @implements com::elastos::IStringReader
+    * @sa com::elastos::CStringWriter
+    *
+    * @since Elastos 1.0
+    * @todo  
+    *    	 java.io.StringReader
+    */
     class CStringReader {
         /**
          * Construct a new StringReader} with str} as source. The size
@@ -1416,6 +1705,17 @@ module
         interface IStringReader;
     }
 
+   /**
+    * A specialized Writer that writes characters to a StringBuffer in a sequential manner, appending them in the process. 
+    * The result can later be queried using the StringWriter(int) or toString() methods.
+    *
+    * @implements com::elastos::IStringWriter
+    * @sa com::elastos::CStringReader
+    * 
+    * @since Elastos 1.0
+    * @todo  
+    *    	 java.io.StringWriter
+    */
     class CStringWriter {
         /**
          * Constructs a new StringWriter} which has a {@link StringBuffer}
@@ -1440,32 +1740,70 @@ module
         interface IStringWriter;
     }
 
+   /**
+    * 
+    *
+    * @implements com::elastos::IByteBufferHelper
+    *
+    * @since Elastos 1.0
+    * @todo  
+    *    	 java.io.ByteBufferHelper
+    */
     singleton class CByteBufferHelper {
         interface IByteBufferHelper;
     }
     
+   /**
+    * 
+    *
+    * @implements com::elastos::ICharBufferHelper
+    *
+    * @since Elastos 1.0
+    * @todo  
+    *    	 java.io.CharBufferHelper
+    */
     singleton class CCharBufferHelper {
         constructor();
         
         interface ICharBufferHelper;
     }
 	
+   /**
+    * This class provides several utilities to get I/O streams from channels.
+    *
+    * @implements com::elastos::IChannels
+    *
+    * @since Elastos 1.0
+    * @todo  
+    *    	 	java.nio.channels.Channels
+    */
 	singleton class CChannels {
 		constructor();
 		
 		interface IChannels;
 	}
 
+   /**
+    * Wraps either an existing OutputStream or an existing Writer and provides convenience methods for printing common data types in a human readable format. 
+    * No ECode is thrown by this class. Instead, callers should use checkError() to see if a problem has occurred in this writer.
+    *
+    * @implements com::elastos::IPrintWriter
+    *
+    * @since Elastos 1.0
+    * @todo  
+    *    	 java.io.PrintWriter
+    */
     class CPrintWriter {
         /**
          * Constructs a new PrintWriter} with out} as its target
          * stream. By default, the new print writer does not automatically flush its
          * contents to the target stream when a newline is encountered.
          *
-         * @param out
-         *            the target output stream.
-         * @throws NullPointerException
-         *             if out} is null
+         * @param outs    the target output stream.
+         * @return ECode = NOERROR(0) if success, elas as follows:
+         * Value | Meaning |
+         * :-|:------------|
+         * NullPointerException | if outs is null
          */
         constructor(
             [in] IOutputStream* outs);
@@ -1476,13 +1814,12 @@ module
          * automatically flushes its contents to the target stream when a newline is
          * encountered.
          *
-         * @param out
-         *            the target output stream.
-         * @param autoflush
-         *            indicates whether contents are flushed upon encountering a
-         *            newline sequence.
-         * @throws NullPointerException
-         *             if out} is null
+         * @param outs        the target output stream.
+         * @param autoflush   indicates whether contents are flushed upon encountering a newline sequence.
+         * @return ECode = NOERROR(0) if success, elas as follows:
+         * Value | Meaning |
+         * :-|:------------|
+         * NullPointerException | if outs is null
          */
         constructor(
             [in] IOutputStream* outs, 
@@ -1609,16 +1946,28 @@ module
         interface IPrintWriter;
     }
 
+   /**
+    * Wraps an existing OutputStream and provides convenience methods for writing common data types in a human readable format. 
+    * This is not to be confused with DataOutputStream which is used for encoding common data types so that they can be read back in. 
+    * No ECode is thrown by this class. Instead, callers should use checkError() to see if a problem has occurred in this stream.
+    *
+    * @implements com::elastos::IPrintStream
+    *
+    * @since Elastos 1.0
+    * @todo  
+    *    	 java.io.PrintStream
+    */
     class CPrintStream {
         /**
          * Constructs a new PrintStream} with out} as its target
          * stream. By default, the new print stream does not automatically flush its
          * contents to the target stream when a newline is encountered.
          *
-         * @param out
-         *            the target output stream.
-         * @throws NullPointerException
-         *             if out} is null
+         * @param outs   the target output stream.
+         * @return ECode = NOERROR(0) if success, elas as follows:
+         * Value | Meaning |
+         * :-|:------------|
+         * NullPointerException | if outs is null
          */
         constructor(
             [in] IOutputStream* outs);
