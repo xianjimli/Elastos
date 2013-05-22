@@ -56,8 +56,9 @@ public:
     CARAPI SetDelayUntil(
         /* [in] */ Int64 delayUntil);
 
-    CARAPI GetPeriodicSyncs(
-        /* [out] */ IObjectContainer** periodicSyncs);
+    //CARAPI GetPeriodicSyncs(
+    //    /* [out] */ IObjectContainer** periodicSyncs);
+    List<Pair<AutoPtr<IBundle>, Int64> >* GetPeriodicSyncs();    
 
     CARAPI constructor(
         /* [in] */ IAccount* account,

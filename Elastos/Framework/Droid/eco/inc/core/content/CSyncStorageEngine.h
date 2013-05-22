@@ -6,12 +6,41 @@
 #endif
 
 #include "_CSyncStorageEngine.h"
+#include "ext/frameworkext.h"
 #include <elastos/AutoPtr.h>
 #include <elastos/HashMap.h>
 #include <elastos/List.h>
 #include <elastos/ElRefBase.h>
 #include <elastos/etl_pair.h>
 #include "utils/SparseArray.h"
+#include "content/CSyncStorageEngineHelper.h"
+#include <elastos/Mutex.h>
+
+using namespace Elastos;
+using namespace Elastos::Core;
+
+_ELASTOS_NAMESPACE_BEGIN
+
+template<> struct Hash< AutoPtr<IAccount> >
+{
+    size_t operator()(AutoPtr<IAccount> name) const
+    {
+        assert(name != NULL);
+        return (size_t)name.Get();
+    }
+};
+
+template<> struct EqualTo< AutoPtr<IAccount> >
+{
+    Boolean operator()(const AutoPtr<IAccount>& x,
+                         const AutoPtr<IAccount>& y) const
+    {
+        assert(x != NULL && y != NULL);
+        return x.Get() == y.Get();
+    }
+};
+
+_ELASTOS_NAMESPACE_END
 
 CarClass(CSyncStorageEngine)
 {
@@ -41,6 +70,8 @@ CarClass(CSyncStorageEngine)
     };
 
 public:
+    friend class CSyncStorageEngineHelper;
+
     CSyncStorageEngine();
 
     ~CSyncStorageEngine();
@@ -125,7 +156,7 @@ public:
         /* [in] */ const String& authority);
 
     CARAPI GetAuthority(
-        /* [in] */ Int32 authoriyId,
+        /* [in] */ Int32 authorityId,
         /* [out] */ ISyncStorageEngineAuthorityInfo** authorityInfo);
 
     CARAPI IsSyncActive(
@@ -209,10 +240,9 @@ public:
         /* [in] */ IContext* context,
         /* [in] */ IFile* dataDir);
 
-    CARAPI_(void) GetBackoff(
+    Pair<Int64, Int64>* GetBackoff(
         /* [in] */ IAccount* account,
-        /* [in] */ const String& providerName,
-        /* [out] */ Pair<Int64, Int64>** pairs);
+        /* [in] */ const String& providerName);
 
 public:
 
@@ -295,9 +325,18 @@ private:
     CARAPI MaybeMigrateSettingsForRenamedAuthorities(
         /* [out] */ Boolean* result);
 
-    //TODO: private AuthorityInfo parseAuthority(XmlPullParser parser, int version)
-    //TODO: private Pair<Bundle, Long> parsePeriodicSync(XmlPullParser parser, AuthorityInfo authority)
-    //TODO: private void parseExtra(XmlPullParser parser, Pair<Bundle, Long> periodicSync)
+    CARAPI ParseAuthority(
+        /* [in] */ IXmlPullParser* parser,
+        /* [in] */ Int32 version,
+        /* [out] */ ISyncStorageEngineAuthorityInfo** authority);
+
+    Pair<AutoPtr<IBundle>, Int64>* ParsePeriodicSync(
+        /* [in] */ IXmlPullParser* parser,
+        /* [in] */ ISyncStorageEngineAuthorityInfo* authority);
+        
+    void ParseExtra(
+        /* [in] */ IXmlPullParser* parser,
+        /* [in] */ Pair<AutoPtr<IBundle>, Int64>* periodicSync);
 
     /**
      * Write all account information to the account file.
@@ -387,11 +426,11 @@ private:
     // Primary list of all syncable authorities.  Also our global lock.
     SparseArray* mAuthorities;
 
-    HashMap<IAccount*, CSyncStorageEngine::AccountInfo*>* mAccounts;
-    List<ISyncStorageEnginePendingOperation*>* mPendingOperations;
+    HashMap<AutoPtr<IAccount>, AutoPtr<CSyncStorageEngine::AccountInfo> >* mAccounts;
+    List<AutoPtr<ISyncStorageEnginePendingOperation> >* mPendingOperations;
     AutoPtr<ISyncInfo> mCurrentSync;
     SparseArray* mSyncStatus;
-    List<ISyncStorageEngineSyncHistoryItem*>* mSyncHistory;
+    List<AutoPtr<ISyncStorageEngineSyncHistoryItem> >* mSyncHistory;
     AutoPtr<IRemoteCallbackList> mChangeListeners;
     Int32 mNextAuthorityId;
 
@@ -434,7 +473,7 @@ private:
     Int32 mNumPendingFinished;
     Int32 mNextHistoryId;
     Boolean mMasterSyncAutomatically;
-
+    Mutex mAuthoritiesLock;
 };
 
 #endif // __CSYNCSTORAGEENGINE_H__

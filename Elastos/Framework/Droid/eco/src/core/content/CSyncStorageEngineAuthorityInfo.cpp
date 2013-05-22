@@ -1,5 +1,7 @@
 
 #include "content/CSyncStorageEngineAuthorityInfo.h"
+#include "ext/frameworkdef.h"
+#include "os/CBundle.h"
 
 CSyncStorageEngineAuthorityInfo::CSyncStorageEngineAuthorityInfo()
     : mPeriodicSyncs(NULL)
@@ -16,85 +18,105 @@ CSyncStorageEngineAuthorityInfo::~CSyncStorageEngineAuthorityInfo()
 ECode CSyncStorageEngineAuthorityInfo::GetAccount(
     /* [out] */ IAccount** account)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(account);
+    *account = mAccount;
+    return NOERROR;
 }
 
 ECode CSyncStorageEngineAuthorityInfo::GetAuthority(
     /* [out] */ String* authority)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(authority);
+    *authority = mAuthority;
+    return NOERROR;
 }
 
 ECode CSyncStorageEngineAuthorityInfo::GetIdent(
     /* [out] */ Int32* ident)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(ident);
+    *ident = mIdent;
+    return NOERROR;
 }
 
 ECode CSyncStorageEngineAuthorityInfo::GetEnabled(
     /* [out] */ Boolean* enabled)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(enabled);
+    *enabled = mEnabled;
+    return NOERROR;
 }
 
 ECode CSyncStorageEngineAuthorityInfo::SetEnabled(
     /* [in] */ Boolean enabled)
 {
-    return E_NOT_IMPLEMENTED;
+    mEnabled = enabled;
+    return NOERROR;
 }
 
 ECode CSyncStorageEngineAuthorityInfo::GetSyncable(
     /* [out] */ Int32* syncable)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(syncable);
+    *syncable = mSyncable;
+    return NOERROR;
 }
 
 ECode CSyncStorageEngineAuthorityInfo::SetSyncable(
     /* [in] */ Int32 syncable)
 {
-    return E_NOT_IMPLEMENTED;
+    mSyncable = syncable;
+    return NOERROR;
 }
 
 ECode CSyncStorageEngineAuthorityInfo::GetBackoffTime(
     /* [out] */ Int64* backoffTime)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(backoffTime);
+    *backoffTime = mBackoffTime;
+    return NOERROR;
 }
 
 ECode CSyncStorageEngineAuthorityInfo::SetBackoffTime(
     /* [in] */ Int64 backoffTime)
 {
-    return E_NOT_IMPLEMENTED;
+    mBackoffTime = backoffTime;
+    return NOERROR;
 }
 
 ECode CSyncStorageEngineAuthorityInfo::GetBackoffDelay(
     /* [out] */ Int64* backoffDelay)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(backoffDelay);
+    *backoffDelay = mBackoffDelay;
+    return NOERROR;
 }
 
 ECode CSyncStorageEngineAuthorityInfo::SetBackoffDelay(
     /* [in] */ Int64 backoffDelay)
 {
-    return E_NOT_IMPLEMENTED;
+    mBackoffDelay = backoffDelay;
+    return NOERROR;
 }
 
 ECode CSyncStorageEngineAuthorityInfo::GetDelayUntil(
     /* [out] */ Int64* delayUntil)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(delayUntil);
+    *delayUntil = mDelayUntil;
+    return NOERROR;
 }
 
 ECode CSyncStorageEngineAuthorityInfo::SetDelayUntil(
     /* [in] */ Int64 delayUntil)
 {
-    return E_NOT_IMPLEMENTED;
+    mDelayUntil = delayUntil;
+    return NOERROR;
 }
 
-ECode CSyncStorageEngineAuthorityInfo::GetPeriodicSyncs(
-    /* [out] */ IObjectContainer** periodicSyncs)
+List<Pair<AutoPtr<IBundle>, Int64> >* CSyncStorageEngineAuthorityInfo::GetPeriodicSyncs()
 {
-    return E_NOT_IMPLEMENTED;
+    return mPeriodicSyncs;
 }
 
 ECode CSyncStorageEngineAuthorityInfo::constructor(
@@ -102,6 +124,18 @@ ECode CSyncStorageEngineAuthorityInfo::constructor(
     /* [in] */ const String& authority,
     /* [in] */ Int32 ident)
 {
-    return E_NOT_IMPLEMENTED;
+    mAccount = account;
+    mAuthority = authority;
+    mIdent = ident;
+    mEnabled = FALSE; // SYNC_ENABLED_DEFAULT = false;
+    mSyncable = -1; // default to "unknown"
+    mBackoffTime = -1; // if < 0 then we aren't in backoff mode
+    mBackoffDelay = -1; // if < 0 then we aren't in backoff mode
+    mPeriodicSyncs = new List<Pair<AutoPtr<IBundle>, Int64> >();
+    AutoPtr<IBundle> newBundle;
+    FAIL_RETURN(CBundle::New((IBundle**)&newBundle));
+    Pair<AutoPtr<IBundle>, Int64> newPair(newBundle, 60 * 60 * 24); // DEFAULT_POLL_FREQUENCY_SECONDS = 60 * 60 * 24; // One day
+    mPeriodicSyncs->PushBack(newPair);
+    return NOERROR;
 }
 

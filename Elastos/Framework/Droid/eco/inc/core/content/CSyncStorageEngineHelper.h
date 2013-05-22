@@ -3,6 +3,7 @@
 #define __CSYNCSTORAGEENGINEHELPER_H__
 
 #include "_CSyncStorageEngineHelper.h"
+#include <elastos/AutoPtr.h>
 
 CarClass(CSyncStorageEngineHelper)
 {
