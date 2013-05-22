@@ -17,8 +17,8 @@ module
             [in] ILocalCapsuleManager* cm,
             [out] ICharSequence** des);
 
-        //GetDescription(
-        //    [out] String* des);
+        GetDescription(
+            [out] String* des);
 
         GetDescriptionRes(
             [out] Int32* desRes);

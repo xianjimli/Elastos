@@ -454,8 +454,10 @@ String String::FromBoolean(Boolean value)
 
 String String::FromDouble(Double value)
 {
-    //todo: not implemented;
-    return String(NULL);
+    char str[32];
+
+    sprintf(str, "%20.10f", value);
+    return String(str, strlen(str));
 }
 
 _ELASTOS_NAMESPACE_END

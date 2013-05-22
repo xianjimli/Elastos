@@ -19,6 +19,10 @@ module
     merge("os/storage/IMountShutdownObserver.car");
     merge("os/storage/IObbActionListener.car");
     merge("os/storage/IMountService.car");
+    merge("os/storage/OnObbStateChangeListener.car");
+    merge("os/storage/StorageEventListener.car");
+    merge("os/storage/StorageVolume.car");
+    merge("os/storage/StorageManager.car");
     merge("os/Handler.car");
     merge("os/Message.car");
     merge("os/BatteryManager.car");
@@ -41,6 +45,22 @@ module
 
     class CClassLoader {
         interface IClassLoader;
+    }
+
+    class COnObbStateChangeListener {
+        interface IOnObbStateChangeListener;
+    }
+
+    class CStorageEventListener {
+        interface IStorageEventListener;
+    }
+
+    class CStorageVolume {
+        interface IStorageVolume;
+    }
+
+    class CStorageManager {
+        interface IStorageManager;
     }
 
     class CParcelFileDescriptor {

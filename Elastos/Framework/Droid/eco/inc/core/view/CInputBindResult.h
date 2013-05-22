@@ -18,6 +18,12 @@ public:
     CARAPI GetIIMSession(
         /* [out] */ IInputMethodSession** session);
 
+    CARAPI GetId(
+        /* [out] */ String* id);
+
+    CARAPI GetSequence(
+        /* [out] */ Int32* sequence);
+
     CARAPI ReadFromParcel(
         /* [in] */ IParcel *source);
 

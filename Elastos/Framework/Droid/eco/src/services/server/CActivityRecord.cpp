@@ -10,34 +10,30 @@ using namespace Elastos::Utility::Logging;
 
 
 CActivityRecord::CActivityRecord() :
-    mRealActivity(NULL),
-//    Taskaffinity = null;
-//    Statenotneeded = false;
-    mBaseDir(NULL),
-    mResDir(NULL),
-    mDataDir(NULL),
-    mCapsuleName(NULL),
-    mProcessName(NULL),
+    mSendResult(FALSE),
+    mStateNotNeeded(FALSE),
     mFullscreen(TRUE),
+    mComponentSpecified(FALSE),
     mIsHomeActivity(FALSE),
+    mTask(NULL),
     mApp(NULL),
     mState(ActivityState_INITIALIZING),
     mFrontOfTask(FALSE),
-//    launchFailed = false;
+    mLaunchFailed(FALSE),
     mHaveState(FALSE),
     mStopped(FALSE),
     mDelayedResume(FALSE),
     mFinishing(FALSE),
     mConfigDestroy(FALSE),
-//    keysPaused = false;
+    mKeysPaused(FALSE),
     mInHistory(FALSE),
-//    persistent = false;
-//    visible = true;
-//    waitingVisible = false;
+    mVisible(TRUE),
+    mWaitingVisible(FALSE),
     mNowVisible(FALSE),
     mThumbnailNeeded(FALSE),
-//    idle = false;
-    mHasBeenLaunched(FALSE)
+    mIdle(FALSE),
+    mHasBeenLaunched(FALSE),
+    mFrozenBeforeDestroy(FALSE)
 {}
 
 CActivityRecord::~CActivityRecord()
@@ -173,6 +169,7 @@ ECode CActivityRecord::Init(
             mIsHomeActivity = FALSE;
         }
     }
+
     return NOERROR;
 }
 

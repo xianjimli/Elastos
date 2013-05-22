@@ -58,7 +58,7 @@ ECode CContentProviderClient::BulkInsert(
 ECode CContentProviderClient::Delete(
     /* [in] */ IUri* uri,
     /* [in] */ const String& selection,
-    /* [in] */ const ArrayOf<String>& selectionArgs,
+    /* [in] */ ArrayOf<String>* selectionArgs,
     /* [out] */ Int32* rowsAffected)
 {
     VALIDATE_NOT_NULL(uri);
@@ -71,7 +71,7 @@ ECode CContentProviderClient::Update(
     /* [in] */ IUri* uri,
     /* [in] */ IContentValues* values,
     /* [in] */ const String& selection,
-    /* [in] */ const ArrayOf<String>& selectionArgs,
+    /* [in] */ ArrayOf<String>* selectionArgs,
     /* [out] */ Int32* rowsAffected)
 {
     VALIDATE_NOT_NULL(uri);

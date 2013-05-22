@@ -156,7 +156,7 @@ ECode CWindowSession::GetDisplayFrame(
 ECode CWindowSession::FinishDrawing(
     /* [in] */ IInnerWindow* window)
 {
-    // mWMService->FinishDrawingWindow(this, window);
+    mWMService->FinishDrawingWindow(this, window);
     return NOERROR;
 }
 

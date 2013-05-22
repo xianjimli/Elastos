@@ -1125,16 +1125,16 @@ ECode CRemoteParcel::WriteArrayOf(
 }
 
 ECode CRemoteParcel::WriteArrayOfCString(
-    /* [in] */ const ArrayOf<CString> & array)
+    /* [in] */ ArrayOf<CString>* array)
 {
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CRemoteParcel::WriteArrayOfString(
-    /* [in] */ const ArrayOf<String> & array)
+    /* [in] */ ArrayOf<String>* array)
 {
-    Int32 size = sizeof(UInt32) + sizeof(CarQuintet) + array.m_size;
-    return WriteValue((PVoid)&array, Type_ArrayOfString, size);
+    Int32 size = array != NULL ? sizeof(UInt32) + sizeof(CarQuintet) + array->m_size : sizeof(UInt32);
+    return WriteValue((PVoid)array, Type_ArrayOfString, size);
 }
 
 ECode CRemoteParcel::WriteBufferOf(

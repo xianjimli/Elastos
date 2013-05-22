@@ -1087,31 +1087,31 @@ ECode CCallbackParcel::WriteArrayOf(
 }
 
 ECode CCallbackParcel::WriteArrayOfCString(
-    /* [in] */ const ArrayOf<CString> & array)
+    /* [in] */ ArrayOf<CString>* array)
 {
-    Int32 size = sizeof(CarQuintet) + array.m_size;
-    Int32 len = array.GetLength();
+    Int32 size = sizeof(CarQuintet) + array->m_size;
+    Int32 len = array->GetLength();
 
     for (Int32 i = 0; i < len; i++) {
-        if(!array[i].IsNull())
-            size += strlen(array[i]) + 1;
+        if(!(*array)[i].IsNull())
+            size += strlen((*array)[i]) + 1;
     }
 
-    return WriteValue((PVoid)&array, Type_ArrayOfCString, size);
+    return WriteValue((PVoid)array, Type_ArrayOfCString, size);
 }
 
 ECode CCallbackParcel::WriteArrayOfString(
-    /* [in] */ const ArrayOf<String> & array)
+    /* [in] */ ArrayOf<String>* array)
 {
-    Int32 size = sizeof(CarQuintet) + array.m_size;
-    Int32 len = array.GetLength();
+    Int32 size = sizeof(CarQuintet) + array->m_size;
+    Int32 len = array->GetLength();
 
     for (Int32 i = 0; i < len; i++) {
-        if(!array[i].IsNull())
-            size += strlen(array[i]) + 1;
+        if(!(*array)[i].IsNull())
+            size += strlen((*array)[i]) + 1;
     }
 
-    return WriteValue((PVoid)&array, Type_ArrayOfString, size);
+    return WriteValue((PVoid)array, Type_ArrayOfString, size);
 }
 
 ECode CCallbackParcel::WriteBufferOf(

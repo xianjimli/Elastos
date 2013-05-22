@@ -744,6 +744,10 @@ private:
 
     CARAPI_(AutoPtr<ILocalLocationManager>) GetLocationManager();
 
+    // BEGIN privacy-added
+    CARAPI_(AutoPtr<IPrivacySettingsManager>) GetPrivacySettingsManager();
+    // END privacy-added
+
     CARAPI GetDataDirFile(
         /* [out] */ IFile** dirFile);
 
@@ -783,6 +787,9 @@ private:
     AutoPtr<ILayoutInflater> mLayoutInflater;
 
     AutoPtr<IClipboardManager> mClipboardManager;
+    // BEGIN privacy-added
+    static AutoPtr<IPrivacySettingsManager> sPrivacySettingsManager;
+    // END privacy-added
 
     Mutex mSync;
 

@@ -562,7 +562,7 @@ ECode ContentResolver::BulkInsert(
 ECode ContentResolver::Delete(
     /* [in] */ IUri* uri,
     /* [in] */ const String& selection,
-    /* [in] */ const ArrayOf<String>& selectionArgs,
+    /* [in] */ ArrayOf<String>* selectionArgs,
     /* [out] */ Int32* rowsAffected)
 {
     VALIDATE_NOT_NULL(rowsAffected);
@@ -728,7 +728,7 @@ ECode ContentResolver::Update(
     /* [in] */ IUri* uri,
     /* [in] */ IContentValues* values,
     /* [in] */ const String& selection,
-    /* [in] */ const ArrayOf<String>& selectionArgs,
+    /* [in] */ ArrayOf<String>* selectionArgs,
     /* [out] */ Int32* rowsAffected)
 {
     VALIDATE_NOT_NULL(rowsAffected);

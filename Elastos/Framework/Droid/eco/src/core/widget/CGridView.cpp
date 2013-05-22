@@ -1588,6 +1588,20 @@ ECode CGridView::SetOverScrollMode(
     return E_NOT_IMPLEMENTED;
 }
 
+ECode CGridView::GetTag(
+    /* [out] */ IInterface** tag)
+{
+    // TODO: Add your code here
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CGridView::SetTag(
+    /* [in] */ IInterface* tag)
+{
+    // TODO: Add your code here
+    return E_NOT_IMPLEMENTED;
+}
+
 ECode CGridView::GetDescendantFocusability(
     /* [out] */ Int32 * pFocusability)
 {

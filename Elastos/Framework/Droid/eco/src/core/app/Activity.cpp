@@ -471,6 +471,17 @@ ECode Activity::SetWindowAdded(
     return NOERROR;
 }
 
+ECode Activity::IsWindowAdded(
+    /* [out] */ Boolean* added)
+{
+    if (!added) {
+        return E_INVALID_ARGUMENT;
+    }
+
+    *added = mWindowAdded;
+    return NOERROR;
+}
+
 ECode Activity::GetWindowManagerEx(
     /* [out] */ ILocalWindowManager** mgr)
 {

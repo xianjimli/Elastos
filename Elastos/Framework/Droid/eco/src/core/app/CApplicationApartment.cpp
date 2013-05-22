@@ -1614,43 +1614,52 @@ ECode CApplicationApartment::HandleDestroyActivity(
 {
     ActivityClientRecord* r = PerformDestroyActivity(token, finishing,
             configChanges, getNonConfigInstance);
-    UNUSED(r);
-//    if (r != NULL) {
-//        WindowManager wm = r.activity.getWindowManager();
-//        View v = r.activity.mDecor;
-//        if (v != null) {
-//            if (r.activity.mVisibleFromServer) {
-//                mNumVisibleActivities--;
-//            }
-//            IBinder wtoken = v.getWindowToken();
-//            if (r.activity.mWindowAdded) {
-//                wm.removeViewImmediate(v);
-//            }
-//            if (wtoken != null) {
-//                WindowManagerImpl.getDefault().closeAll(wtoken,
-//                        r.activity.getClass().getName(), "Activity");
-//            }
-//            r.activity.mDecor = null;
-//        }
-//        WindowManagerImpl.getDefault().closeAll(token,
-//                r.activity.getClass().getName(), "Activity");
-//
-//        // Mocked out contexts won't be participating in the normal
-//        // process lifecycle, but if we're running with a proper
-//        // ApplicationContext we need to have it tear down things
-//        // cleanly.
-//        Context c = r.activity.getBaseContext();
-//        if (c instanceof ContextImpl) {
-//            ((ContextImpl) c).scheduleFinalCleanup(
-//                    r.activity.getClass().getName(), "Activity");
-//        }
-//    }
+    if (r != NULL) {
+        AutoPtr<ILocalWindowManager> wm;
+        r->mActivity->GetWindowManagerEx((ILocalWindowManager**)&wm);
+        AutoPtr<IView> v;
+        r->mActivity->GetDecorView((IView**)&v);
+        if (v != NULL) {
+            // if (r->mActivity.mVisibleFromServer) {
+            //    mNumVisibleActivities--;
+            // }
+            AutoPtr<IBinder> wtoken;
+            v->GetWindowToken((IBinder**)&wtoken);
+            Boolean isAdded = TRUE;
+            r->mActivity->IsWindowAdded(&isAdded);
+            if (isAdded) {
+                wm->RemoveViewImmediate(v);
+            }
+
+            if (wtoken != NULL) {
+                CWindowManagerImpl::GetDefault()->CloseAll(wtoken,
+                    String("")/*r.activity.getClass().getName()*/, String("Activity"));
+            }
+            r->mActivity->SetDecorView(NULL);
+        }
+
+        CWindowManagerImpl::GetDefault()->CloseAll(token,
+            String("")/*r.activity.getClass().getName()*/, String("Activity"));
+
+        // Mocked out contexts won't be participating in the normal
+        // process lifecycle, but if we're running with a proper
+        // ApplicationContext we need to have it tear down things
+        // cleanly.
+        AutoPtr<IContext> c;
+        r->mActivity->GetBaseContext((IContext**)&c);
+        if (IContextImpl::Probe(c)) {
+           ((CContextImpl*)c.Get())->ScheduleFinalCleanup(
+                String("")/*r.activity.getClass().getName()*/, String("Activity"));
+        }
+    }
+
     if (finishing) {
         AutoPtr<IActivityManager> amService;
         ActivityManagerNative::GetDefault((IActivityManager**)&amService);
         ECode ec = amService->ActivityDestroyed(token);
         UNUSED(ec);
     }
+
     return NOERROR;
 }
 

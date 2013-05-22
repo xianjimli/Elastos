@@ -1,6 +1,9 @@
 
 #include "ext/frameworkdef.h"
 #include "privacy/CPrivacySettings.h"
+#include <elastos/Math.h>
+
+using namespace Elastos::Core;
 
 
 ECode CPrivacySettings::constructor()
@@ -129,7 +132,12 @@ String CPrivacySettings::GetRandomLat()
     // if (lat > 90) latitude = new BigDecimal(lat - 90);
     // else latitude = new BigDecimal(-lat);
     // return latitude.setScale(6, BigDecimal.ROUND_HALF_UP) + "";
-    return String("31.13");
+
+    Double lat = Math::Random() * 180;
+    if (lat > 90) lat -= 90;
+    else lat = -lat;
+    String latStr = String::FromDouble(lat);
+    return latStr.Substring(0, latStr.IndexOf(".") + 3);
 }
 
 String CPrivacySettings::GetRandomLon()
@@ -139,7 +147,12 @@ String CPrivacySettings::GetRandomLon()
     // if (lon > 180) longitude = new BigDecimal(lon - 180);
     // else longitude = new BigDecimal(-lon);
     // return longitude.setScale(6, BigDecimal.ROUND_HALF_UP) + "";
-    return String("121.28");
+
+    Double lon = Math::Random() * 360;
+    if (lon > 180) lon -= 180;
+    else lon = -lon;
+    String lonStr = String::FromDouble(lon);
+    return lonStr.Substring(0, lonStr.IndexOf(".") + 3);
 }
 
 ECode CPrivacySettings::GetCapsuleName(

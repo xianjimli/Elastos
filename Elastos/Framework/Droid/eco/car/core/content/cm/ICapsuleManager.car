@@ -261,6 +261,11 @@ module
         InstallCapsuleEx2(
             [in] String path);
 
+        //TODO: for Android apk install
+        InstallCapsuleEx3(
+            [in] String path,
+            [out] IComponentName** info);
+
         FinishCapsuleInstall(
             [in] Int32 token);
 

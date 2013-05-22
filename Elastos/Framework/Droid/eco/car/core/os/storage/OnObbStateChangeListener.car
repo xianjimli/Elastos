@@ -1,0 +1,15 @@
+module
+{
+    interface IOnObbStateChangeListener {
+       /**
+	 * Called when an OBB has changed states.
+	 * 
+	 * @param path path to the OBB file the state change has happened on
+	 * @param state the current state of the OBB
+         */
+	OnObbStateChange(
+            [in] CString path,
+            [in] Int32 state);
+    }
+}
+

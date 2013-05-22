@@ -7,8 +7,9 @@ module
     interface IAssetFileDescriptor;
     interface IUri;
 
+    [deprecated]
     interface IContentProviderClient {
-    
+
         /** see {@link ContentProvider#query} */
         Query(
             [in] IUri* uri,
@@ -17,29 +18,29 @@ module
             [in] ArrayOf<String> selectionArgs,
             [in] String sortOrder,
             [out] ICursor** cursor);
-            
+
         /** see {@link ContentProvider#getType} */
         GetType(
             [in] IUri* uri,
             [out] String* type);
-            
+
         /** see {@link ContentProvider#insert} */
         Insert(
             [in] IUri* uri,
             [in] IContentValues* initialValues,
             [out] IUri** insertedItemUri);
-            
+
         /** see {@link ContentProvider#bulkInsert} */
         BulkInsert(
             [in] IUri* uri,
             [in] ArrayOf<IContentValues*> initialValues,
             [out] Int32* number);
-            
+
         /** see {@link ContentProvider#delete} */
         Delete(
             [in] IUri* uri,
             [in] String selection,
-            [in] ArrayOf<String> selectionArgs,
+            [in] ArrayOf<String>* selectionArgs,
             [out] Int32* rowsAffected);
 
         /** see {@link ContentProvider#update} */
@@ -47,7 +48,7 @@ module
             [in] IUri* uri,
             [in] IContentValues* values,
             [in] String selection,
-            [in] ArrayOf<String> selectionArgs,
+            [in] ArrayOf<String>* selectionArgs,
             [out] Int32* rowsAffected);
 
         /** see {@link ContentProvider#openFile} */
@@ -67,7 +68,7 @@ module
         //ApplyBatch(
         //    [in] IObjectContainer* operations,
         //    [out] ArrayOf<IContentProviderResult*>* result);
-        
+
         /**
          * Call this to indicate to the system that the associated {@link ContentProvider} is no
          * longer needed by this {@link ContentProviderClient}.
@@ -87,6 +88,6 @@ module
          */
         GetLocalContentProvider(
             [out] IContentProvider** contentProvider);
-    
+
     }
 }

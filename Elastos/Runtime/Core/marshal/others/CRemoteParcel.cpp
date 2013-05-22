@@ -1171,13 +1171,13 @@ ECode CRemoteParcel::WriteArrayOf(
 }
 
 ECode CRemoteParcel::WriteArrayOfCString(
-    /* [in] */ const ArrayOf<CString> & array)
+    /* [in] */ ArrayOf<CString>* array)
 {
     return E_NOT_IMPLEMENTED;
 }
 
 ECode CRemoteParcel::WriteArrayOfString(
-    /* [in] */ const ArrayOf<String> & array)
+    /* [in] */ ArrayOf<String>* array)
 {
     return E_NOT_IMPLEMENTED;
 }

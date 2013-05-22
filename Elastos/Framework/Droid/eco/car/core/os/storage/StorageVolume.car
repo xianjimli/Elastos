@@ -1,0 +1,117 @@
+/**
+package android.os.storage;
+
+import android.content.Context;
+import android.os.Parcel;
+import android.os.Parcelable;
+ */
+module
+{
+    interface IContext;
+    interface IParcelable;
+    interface IObjectContainer;
+
+    interface IStorageVolume {
+
+	/**
+	* Returns the mount path for the volume.
+	* @return the mount path
+	*/
+	GetPath(
+            [out] CString* mPath);
+
+	SetPath(
+            [in] CString path,
+            [out] CString* mPath);
+
+	/**
+	* Returns a user visible description of the volume.
+	*
+	* @return the volume description
+	*/
+	GetDescription(
+            [in] IContext* context,
+            [out] CString* desc);
+
+	GetDescriptionId(
+            [out] Int32* mDescriptionId);
+
+	/**
+	* Returns true if the volume is removable.
+	*
+	* @return is removable
+	*/
+	IsRemovable(
+            [out] Boolean* mRemovable);
+
+	/**
+	* Returns true if the volume is emulated.
+	*
+	* @return is removable
+	*/
+	IsEmulated(
+            [out] Boolean* mEmulated);
+
+	/**
+	* Returns the MTP storage ID for the volume.
+	* this is also used for the storage_id column in the media provider.
+	*
+	* @return MTP storage ID
+	*/
+	GetStorageId(
+            [out] Int32* mStorageId);
+
+	/**
+	* Do not call this unless you are MountService
+	*/
+	SetStorageId(
+            [in] Int32 index);
+
+	/**
+	* Number of megabytes of space to leave unallocated by MTP.
+	* MTP will subtract this value from the free space it reports back
+	* to the host via GetStorageInfo, and will not allow new files to
+	* be added via MTP if there is less than this amount left free in the storage.
+	* If MTP has dedicated storage this value should be zero, but if MTP is
+	* sharing storage with the rest of the system, set this to a positive value
+	* to ensure that MTP activity does not result in the storage being
+	* too close to full.
+	*
+	* @return MTP reserve space
+	*/
+	GetMtpReserveSpace(
+            [out] Int32* mMtpReserveSpace);
+
+	/**
+	* Returns true if this volume can be shared via USB mass storage.
+	* @return whether mass storage is allowed
+	*/
+	AllowMassStorage(
+            [out] Boolean* mAllowMassStorage);
+
+	/**
+	* Returns maximum file size for the volume, or zero if it is unbounded.
+	* @return maximum file size
+	*/
+	GetMaxFileSize(
+            [out] Int64* mMaxFileSize);
+
+	Equals(
+            [in] IObjectContainer* obj,
+            [out] Boolean* equ);
+
+	HashCode(
+            [out] Int32* code);
+
+	ToString(
+            [out] CString* str);
+
+	DescribeContents(
+            [out] Int32* contents);
+
+	WriteToParcel(
+            [in] IParcel* parcel,
+            [in] Int32 flags);
+    }
+}
+

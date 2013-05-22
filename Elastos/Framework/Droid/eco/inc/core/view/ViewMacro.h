@@ -707,7 +707,13 @@
         /* [out] */ Int32* mode);                                       \
                                                                         \
     CARAPI SetOverScrollMode(                                           \
-        /* [in] */ Int32 overScrollMode);
+        /* [in] */ Int32 overScrollMode);                               \
+                                                                        \
+    CARAPI SetTag(                                                      \
+        /* [in] */ IInterface* tag);                                    \
+                                                                        \
+    CARAPI GetTag(                                                      \
+        /* [out] */ IInterface** tag);
 
 
 #define IVIEW_METHODS_IMPL(className, superClass, overRideClass)        \
@@ -2444,7 +2450,7 @@ ECode className::PerformHapticFeedbackEx(                               \
 }                                                                       \
                                                                         \
 ECode className::OnCloseSystemDialogs(                                  \
-    /* [in] */ const String& reason)                                           \
+    /* [in] */ const String& reason)                                    \
 {                                                                       \
     return superClass::OnCloseSystemDialogs(reason);                    \
 }                                                                       \
@@ -2469,6 +2475,24 @@ ECode className::SetOverScrollMode(                                     \
     /* [in] */ Int32 overScrollMode)                                    \
 {                                                                       \
     return superClass::SetOverScrollMode(overScrollMode);               \
+}                                                                       \
+                                                                        \
+ECode className::SetTag(                                                \
+    /* [in] */ IInterface* tag)                                         \
+{                                                                       \
+    return superClass::SetTag(tag);                                     \
+}                                                                       \
+                                                                        \
+ECode className::GetTag(                                                \
+    /* [in] */ IInterface** tag)                                        \
+{                                                                       \
+    VALIDATE_NOT_NULL(tag);                                             \
+    *tag = superClass::GetTag();                                        \
+    if (*tag != NULL) {                                                 \
+        (*tag)->AddRef();                                               \
+    }                                                                   \
+                                                                        \
+    return NOERROR;                                                     \
 }
 
 #define IVIEWGROUP_METHODS_DECL()                                       \

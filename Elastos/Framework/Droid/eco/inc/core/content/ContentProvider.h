@@ -126,14 +126,14 @@ public:
         virtual CARAPI Delete(
             /* [in] */ IUri* uri,
             /* [in] */ const String& selection,
-            /* [in] */ const ArrayOf<String> & selectionArgs,
+            /* [in] */ ArrayOf<String>* selectionArgs,
             /* [out] */ Int32* number);
 
         virtual CARAPI Update(
             /* [in] */ IUri* uri,
             /* [in] */ IContentValues* values,
             /* [in] */ const String& selection,
-            /* [in] */ const ArrayOf<String> & selectionArgs,
+            /* [in] */ ArrayOf<String>* selectionArgs,
             /* [out] */ Int32* number);
 
         virtual CARAPI OpenFile(
@@ -211,14 +211,14 @@ public:
     virtual CARAPI Delete(
         /* [in] */ IUri* uri,
         /* [in] */ const String& selection,
-        /* [in] */ const ArrayOf<String> & selectionArgs,
+        /* [in] */ ArrayOf<String>* selectionArgs,
         /* [out] */ Int32* number) = 0;
 
     virtual CARAPI Update(
         /* [in] */ IUri* uri,
         /* [in] */ IContentValues* values,
         /* [in] */ const String& selection,
-        /* [in] */ const ArrayOf<String> & selectionArgs,
+        /* [in] */ ArrayOf<String>* selectionArgs,
         /* [out] */ Int32* number) = 0;
 
     virtual CARAPI OpenFile(

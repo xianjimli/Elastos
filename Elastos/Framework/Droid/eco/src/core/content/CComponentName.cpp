@@ -167,11 +167,9 @@ ECode CComponentName::GetDescription(
 ECode CComponentName::ReadFromParcel(
     /* [in] */ IParcel *source)
 {
-    String capsuleName, className;
-
-    source->ReadString(&capsuleName);
-    if (!capsuleName.IsNull()) {
-        source->ReadString(&className);
+    source->ReadString(&mCapsule);
+    if (!mCapsule.IsNull()) {
+        source->ReadString(&mClass);
     }
 
     return NOERROR;

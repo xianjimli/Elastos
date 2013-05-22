@@ -52,3 +52,21 @@ ECode CInputBindResult::GetIIMSession(
     }
     return NOERROR;
 }
+
+ECode CInputBindResult::GetId(
+    /* [out] */ String* id)
+{
+    VALIDATE_NOT_NULL(id);
+    *id = mId;
+
+    return NOERROR;
+}
+
+ECode CInputBindResult::GetSequence(
+    /* [out] */ Int32* sequence)
+{
+    VALIDATE_NOT_NULL(sequence);
+    *sequence = mSequence;
+
+    return NOERROR;
+}

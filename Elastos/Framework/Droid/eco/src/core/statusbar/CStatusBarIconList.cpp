@@ -46,7 +46,7 @@ ECode CStatusBarIconList::ReadFromParcel(
 ECode CStatusBarIconList::WriteToParcel(
     /* [in] */ IParcel* dest)
 {
-    dest->WriteArrayOfString(*mSlots);
+    dest->WriteArrayOfString(mSlots);
     if (mIcons == NULL) {
         dest->WriteInt32(-1);
     }

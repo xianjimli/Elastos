@@ -9,6 +9,7 @@ module
     merge("server/BatteryService.car");
     merge("server/ConnectivityService.car");
     merge("server/NetStatService.car");
+    merge("server/NetworkManagementService.car");
 
     class CWindowSession {
         constructor(
@@ -25,6 +26,19 @@ module
             [in] Boolean haveInputMethod);
 
         interface IWindowManager;
+    }
+
+    class CMountService {
+        constructor(
+            [in] IContext* ctx);
+
+        interface IMountService;
+    }
+
+    class CNetworkManagementService {
+        constructor();
+
+        interface INetworkManagementService;
     }
 
     class CCapsuleManagerService {

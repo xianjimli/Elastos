@@ -2195,6 +2195,7 @@ AutoPtr<IInterface> CBundle::ReadValue(
             CParcelableStringWrapper::New(v, (ICharSequence**)&obj);
             return obj;
         }
+
         return NULL;
     }
     // case VAL_LIST:

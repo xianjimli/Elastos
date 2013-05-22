@@ -19,6 +19,8 @@ module
      */
     const ViewTreeObserver_InternalInsetsInfo_TOUCHABLE_INSETS_VISIBLE = 2;
 
+    const ViewTreeObserver_InternalInsetsInfo_TOUCHABLE_INSETS_REGION = 3;
+
     /**
      * Interface definition for a callback to be invoked when the global layout state
      * or the visibility of views within the view tree changes.

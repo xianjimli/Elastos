@@ -15,6 +15,7 @@
 #include "utils/CParcelableObjectContainer.h"
 #include "text/CClipboardManager.h"
 #include "privacy/surrogate/PrivacyLocationManager.h"
+#include "privacy/PrivacySettingsManager.h"
 #include <unistd.h>
 #include <assert.h>
 #include <Slogger.h>
@@ -26,6 +27,7 @@ using namespace Elastos::Utility::Logging;
 const char* CContextImpl::TAG  = "CContextImpl";
 Mutex CContextImpl::sSync;
 AutoPtr<ILocalLocationManager> CContextImpl::sLocationManager;
+AutoPtr<IPrivacySettingsManager> CContextImpl::sPrivacySettingsManager;
 
 ICONTEXT_METHODS_IMPL(ReceiverRestrictedContext, ContextWrapper, ContextWrapper);
 
@@ -2341,6 +2343,14 @@ ECode CContextImpl::GetSystemService(
 //        return getNfcManager();
         return E_NOT_IMPLEMENTED;
     }
+    // BEGIN privacy-added
+    else if (CString("privacy").Equals(name)) {
+        AutoPtr<IPrivacySettingsManager> privacyManager = GetPrivacySettingsManager();
+        *object = privacyManager;
+        (*object)->AddRef();
+        return NOERROR;
+    }
+    // END privacy-added
 
     return E_DOES_NOT_EXIST;
 }
@@ -2373,6 +2383,24 @@ AutoPtr<ILocalLocationManager> CContextImpl::GetLocationManager()
     }
     return sLocationManager;
 }
+
+// BEGIN privacy-added
+AutoPtr<IPrivacySettingsManager> CContextImpl::GetPrivacySettingsManager()
+{
+    {
+        Mutex::Autolock lock(&mSync);
+
+        if (sPrivacySettingsManager == NULL) {
+            AutoPtr<IServiceManager> sm;
+            CServiceManager::AcquireSingleton((IServiceManager**)&sm);
+            AutoPtr<IInterface> service;
+            sm->GetService(String("privacy"), (IInterface**)&service);
+            sPrivacySettingsManager = new PrivacySettingsManager(GetOuterContext(), IPrivacySettingsManager::Probe(service));
+        }
+    }
+    return sPrivacySettingsManager;
+}
+// END privacy-added
 
 ECode CContextImpl::Init(
     /* [in] */ LoadedCap* capsuleInfo,

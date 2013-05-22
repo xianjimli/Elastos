@@ -105,7 +105,7 @@ ECode CAccessibilityServiceInfo::WriteToParcel(
     /* [in] */ IParcel *dest)
 {
     dest->WriteInt32(mEventTypes);
-    dest->WriteArrayOfString(*mPackageNames);
+    dest->WriteArrayOfString(mPackageNames);
     dest->WriteInt32(mFeedbackType);
     dest->WriteInt64(mNotificationTimeout);
     dest->WriteInt32(mFlags);

@@ -27,6 +27,7 @@ library
         Dispose();
     }
 
+    [deprecated]
     interface IParcel {
         ReadByte(
             [out] Byte *value);
@@ -123,13 +124,13 @@ library
             [out, callee] ArrayOf<CString>* array);
 
         WriteArrayOfCString(
-            [in] ArrayOf<CString> array);
+            [in] ArrayOf<CString>* array);
 
         ReadArrayOfString(
             [out, callee] ArrayOf<String>* array);
 
         WriteArrayOfString(
-            [in] ArrayOf<String> array);
+            [in] ArrayOf<String>* array);
 
         ReadBufferOf(
             [out] Handle32 *buffer);

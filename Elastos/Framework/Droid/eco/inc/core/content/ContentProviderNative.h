@@ -40,7 +40,7 @@ public:
             /* [out] */ InterfaceID *pIID);
 
         CARAPI AsBinder(
-            /* [out] */ IBinder** binder);     
+            /* [out] */ IBinder** binder);
 
         CARAPI AttachInfo(
             /* [in] */ IContext* context,
@@ -85,14 +85,14 @@ public:
         CARAPI Delete(
             /* [in] */ IUri* uri,
             /* [in] */ const String& selection,
-            /* [in] */ const ArrayOf<String>& selectionArgs,
+            /* [in] */ ArrayOf<String>* selectionArgs,
             /* [out] */ Int32* number);
 
         CARAPI Update(
             /* [in] */ IUri* uri,
             /* [in] */ IContentValues* values,
             /* [in] */ const String& selection,
-            /* [in] */ const ArrayOf<String>& selectionArgs,
+            /* [in] */ ArrayOf<String>* selectionArgs,
             /* [out] */ Int32* number);
 
         CARAPI OpenFile(
@@ -172,7 +172,7 @@ public:
         /* [out] */ Boolean* result);
 
     CARAPI AsBinder(
-        /* [out] */ IBinder** binder); 
+        /* [out] */ IBinder** binder);
 
     virtual CARAPI BulkQuery(
         /* [in] */ IUri* uri,
@@ -187,16 +187,16 @@ public:
     virtual CARAPI Delete(
         /* [in] */ IUri* uri,
         /* [in] */ const String& selection,
-        /* [in] */ const ArrayOf<String> & selectionArgs,
+        /* [in] */ ArrayOf<String>* selectionArgs,
         /* [out] */ Int32* number);
 
     virtual CARAPI Update(
         /* [in] */ IUri* uri,
         /* [in] */ IContentValues* values,
         /* [in] */ const String& selection,
-        /* [in] */ const ArrayOf<String> & selectionArgs,
+        /* [in] */ ArrayOf<String>* selectionArgs,
         /* [out] */ Int32* number);
-        
+
 private:
     static CString TAG;
 };

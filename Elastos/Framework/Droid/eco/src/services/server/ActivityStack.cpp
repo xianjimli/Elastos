@@ -41,6 +41,12 @@ ActivityStack::ActivityStack(
     mService = service;
     mContext = context;
     mMainStack = mainStack;
+
+    AutoPtr<IApartmentHelper> helper;
+    assert(SUCCEEDED(CApartmentHelper::AcquireSingleton((IApartmentHelper**)&helper)));
+    assert(SUCCEEDED(helper->GetMainApartment((IApartment**)&mApartment))
+            && (mApartment != NULL));
+
 //    PowerManager pm =
 //        (PowerManager)context.getSystemService(Context.POWER_SERVICE);
 //    mGoingToSleep = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "ActivityManager-Sleep");
@@ -691,14 +697,23 @@ void ActivityStack::CompletePauseLocked()
             } else {
                 mStoppingActivities.PushBack(prev);
                 if (mStoppingActivities.GetSize() > 3) {
-//                    // If we already have a few activities waiting to stop,
-//                    // then give up on things going idle and start clearing
-//                    // them out.
-//                    if (DEBUG_PAUSE) Slog.v(TAG, "To many pending stops, forcing idle");
-//                    Message msg = Message.obtain();
-//                    msg.what = IDLE_NOW_MSG;
-//                    mHandler.sendMessage(msg);
-                }
+                    // If we already have a few activities waiting to stop,
+                    // then give up on things going idle and start clearing
+                    // them out.
+                    //if (DEBUG_PAUSE) Slog.v(TAG, "To many pending stops, forcing idle");
+                    void (STDCALL ActivityStack::*pHandlerFunc)(
+                        IBinder*, Boolean, IConfiguration*);
+                    pHandlerFunc = &ActivityStack::ActivityIdleInternal;
+
+                    AutoPtr<IParcel> params;
+                    CCallbackParcel::New((IParcel**)&params);
+                    params->WriteInterfacePtr(NULL);
+                    params->WriteBoolean(false);
+                    params->WriteInterfacePtr(NULL);
+
+                    mApartment->PostCppCallback(
+                        (Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);
+                    }
             }
         } else {
             if (DEBUG_PAUSE) {
@@ -2646,13 +2661,11 @@ ECode ActivityStack::StartActivityMayWait(
         newIntent->SetComponent((IComponentName*)newComponent);
 
         // Don't debug things in the system process
-        if (debug) {
-            String pName;
-            aInfo->GetProcessName(&pName);
-            if (pName.Equals("system")) {
-                mService->SetDebugApp(pName, TRUE, FALSE);
-            }
-        }
+//        if (debug) {
+//            if (!aInfo.processName.equals("system")) {
+//                mService.setDebugApp(aInfo.processName, true, false);
+//            }
+//        }
     }
 
     Mutex::Autolock lock(mService->_m_syncLock);
@@ -3354,10 +3367,10 @@ Boolean ActivityStack::FinishActivityLocked(
             r->GetDescription(&arDes);
             Slogger::V(TAG, StringBuffer("Finish not pausing: ") + arDes);
         }
-        AutoPtr<CActivityRecord> r;
+        AutoPtr<CActivityRecord> fr;
         FinishCurrentActivityLocked(r, index,
-                FINISH_AFTER_PAUSE, (CActivityRecord**)&r);
-        return r == NULL;
+                FINISH_AFTER_PAUSE, (CActivityRecord**)&fr);
+        return fr == NULL;
     } else {
         if (DEBUG_PAUSE) {
             String arDes;
@@ -3400,9 +3413,18 @@ ECode ActivityStack::FinishCurrentActivityLocked(
                 // If we already have a few activities waiting to stop,
                 // then give up on things going idle and start clearing
                 // them out.
-//                Message msg = Message.obtain();
-//                msg.what = IDLE_NOW_MSG;
-//                mHandler.sendMessage(msg);
+                void (STDCALL ActivityStack::*pHandlerFunc)(
+                    IBinder*, Boolean, IConfiguration*);
+                pHandlerFunc = &ActivityStack::ActivityIdleInternal;
+
+                AutoPtr<IParcel> params;
+                CCallbackParcel::New((IParcel**)&params);
+                params->WriteInterfacePtr(NULL);
+                params->WriteBoolean(false);
+                params->WriteInterfacePtr(NULL);
+
+                mApartment->PostCppCallback(
+                    (Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);
             }
         }
         r->mState = ActivityState_STOPPING;

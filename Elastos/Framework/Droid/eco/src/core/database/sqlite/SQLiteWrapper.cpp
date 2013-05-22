@@ -62,7 +62,7 @@ Int32 SQLiteWrapper::Update(
         /* [in] */ IUri* uri,
         /* [in] */ IContentValues* values,
         /* [in] */ const String& where,
-        /* [in] */ const ArrayOf<String>& selectionArgs)
+        /* [in] */ ArrayOf<String>* selectionArgs)
 {
     Int32 value;
     ECode ec = resolver->Update(uri, values, where, selectionArgs, &value);
@@ -79,7 +79,7 @@ Int32 SQLiteWrapper::Delete(
         /* [in] */ IContentResolver* resolver,
         /* [in] */ IUri* uri,
         /* [in] */ const String& where,
-        /* [in] */ const ArrayOf<String>& selectionArgs)
+        /* [in] */ ArrayOf<String>* selectionArgs)
 {
     Int32 value;
     ECode ec = resolver->Delete(uri, where, selectionArgs, &value);

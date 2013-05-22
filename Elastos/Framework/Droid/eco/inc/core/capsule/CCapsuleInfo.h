@@ -117,6 +117,9 @@ public:
     CARAPI SetInstallLocation(
         /* [in] */ Int32 location);
 
+    CARAPI GetRequestedPermissions(
+        /* [out, callee] */ ArrayOf<String>** permissions);
+
     CARAPI ReadFromParcel(
         /* [in] */ IParcel* source);
 

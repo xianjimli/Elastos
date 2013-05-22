@@ -2,7 +2,14 @@
 #ifndef __HH_ENVIRONMENT_H
 #define __HH_ENVIRONMENT_H
 
+#ifdef _FRAMEWORK_CORE
 #include "ext/frameworkext.h"
+#else
+#define __USE_MALLOC
+#include "Elastos.Framework.Core.h"
+#include "Elastos.IO.h"
+#endif
+
 #include <elastos/AutoPtr.h>
 
 using namespace Elastos;

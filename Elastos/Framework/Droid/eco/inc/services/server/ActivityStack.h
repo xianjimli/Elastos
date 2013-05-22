@@ -400,6 +400,8 @@ private:
     Boolean mUserLeaving;
 
     Millisecond64 mInitialStartTime;
+
+    AutoPtr<IApartment> mApartment;
 };
 
 #endif //__ACTIVITYSTACK_H__

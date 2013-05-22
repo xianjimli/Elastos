@@ -1,4 +1,5 @@
 
+#include "os/SystemProperties.h"
 #include "os/Build.h"
 
 const Int32 Build::VERSION::SDK_INT = SystemProperties::GetInt32("ro.build.version.sdk", 0);

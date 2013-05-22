@@ -82,7 +82,7 @@ ECode CApplicationContentResolver::BulkInsert(
 ECode CApplicationContentResolver::Delete(
     /* [in] */ IUri* uri,
     /* [in] */ const String& selection,
-    /* [in] */ const ArrayOf<String>& selectionArgs,
+    /* [in] */ ArrayOf<String>* selectionArgs,
     /* [out] */ Int32* rowsAffected)
 {
     return ContentResolver::Delete(uri,
@@ -161,7 +161,7 @@ ECode CApplicationContentResolver::Update(
     /* [in] */ IUri* uri,
     /* [in] */ IContentValues* values,
     /* [in] */ const String& selection,
-    /* [in] */ const ArrayOf<String>& selectionArgs,
+    /* [in] */ ArrayOf<String>* selectionArgs,
     /* [out] */ Int32* rowsAffected)
 {
     return ContentResolver::Update(uri,

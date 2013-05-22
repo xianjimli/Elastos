@@ -1649,6 +1649,11 @@ public:
     CARAPI InstallCapsuleEx2(
         /* [in] */ const String& path);
 
+    //TODO: for Android apk install
+    CARAPI InstallCapsuleEx3(
+        /* [in] */ const String& path,
+        /* [out] */ IComponentName** info);
+
     CARAPI FinishCapsuleInstall(
         /* [in] */ Int32 token);
 
@@ -2462,7 +2467,7 @@ private:
 
     static const Boolean SHOW_INFO = FALSE;
 
-    static const Boolean GET_CERTIFICATES = TRUE;
+    static const Boolean GET_CERTIFICATES = FALSE;
 
     static CString SYSTEM_PROPERTY_EFS_ENABLED;
 

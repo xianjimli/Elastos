@@ -568,6 +568,9 @@ public:
     CARAPI GetSurface(
         /* [out] */ Handle32* surface);
 
+    CARAPI SetSurface(
+        /* [in] */ Handle32 surface);
+
     CARAPI constructor(
         /* [in] */ ISurfaceSession * pS,
         /* [in] */ Int32 pid,

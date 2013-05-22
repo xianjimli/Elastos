@@ -144,6 +144,7 @@ module
             [in] Int32 id);
     }
 
+    [deprecated]
     interface IContentResolver {
 
         /** @hide */
@@ -428,7 +429,7 @@ module
         Delete(
             [in] IUri* uri,
             [in] String selection,
-            [in] ArrayOf<String> selectionArgs,
+            [in] ArrayOf<String>* selectionArgs,
             [out] Int32* rowsAffected);
 
         /**
@@ -448,7 +449,7 @@ module
             [in] IUri* uri,
             [in] IContentValues* values,
             [in] String selection,
-            [in] ArrayOf<String> selectionArgs,
+            [in] ArrayOf<String>* selectionArgs,
             [out] Int32* rowsAffected);
 
         /**
@@ -600,7 +601,7 @@ module
         // CancelSync(
         //     [in] IUri* uri);
     }
-    
+
     interface IContentResolverHelper{
         /** @hide */
         ModeToMode(
@@ -629,7 +630,7 @@ module
             [in] IAccount* account,
             [in] String authority,
             [in] IBundle *extras);
-            
+
         /**
          * Check that only values of the following types are in the Bundle:
          * <ul>
@@ -646,7 +647,7 @@ module
          */
         ValidateSyncExtrasBundle(
             [in] IBundle* extras);
-            
+
         /**
          * Cancel any active or pending syncs that match account and authority. The account and
          * authority can each independently be set to null, which means that syncs with any account
@@ -658,14 +659,14 @@ module
         CancelSync(
             [in] IAccount* account,
             [in] String authority);
-            
+
         /**
          * Get information about the SyncAdapters that are known to the system.
          * @return an array of SyncAdapters that have registered with the system
          */
         GetSyncAdapterTypes(
             [out, callee] ArrayOf<ISyncAdapterType*>* type);
-            
+
         /**
          * Check if the provider should be synced when a network tickle is received
          *
@@ -677,7 +678,7 @@ module
             [in] IAccount* account,
             [in] String authority,
             [out] Boolean* result);
-            
+
         /**
          * Set whether or not the provider is synced when it receives a network tickle.
          *
@@ -689,7 +690,7 @@ module
             [in] IAccount* account,
             [in] String authority,
             [in] Boolean sync);
-            
+
         /**
          * Specifies that a sync should be requested with the specified the account, authority,
          * and extras at the given frequency. If there is already another periodic sync scheduled
@@ -719,7 +720,7 @@ module
             [in] String authority,
             [in] IBundle* extras,
             [in] Int64 pollFrequency);
-            
+
         /**
          * Remove a periodic sync. Has no affect if account, authority and extras don't match
          * an existing periodic sync.
@@ -732,7 +733,7 @@ module
             [in] IAccount* account,
             [in] String authority,
             [in] IBundle* extras);
-            
+
         /**
          * Get the list of information about the periodic syncs for the given account and authority.
          *
@@ -744,7 +745,7 @@ module
             [in] IAccount* account,
             [in] String authority,
             [out] IObjectContainer** periodicSyncs);
-            
+
         /**
          * Check if this account/provider is syncable.
          * @return >0 if it is syncable, 0 if not, and <0 if the state isn't known yet.
@@ -753,7 +754,7 @@ module
             [in] IAccount* account,
             [in] String authority,
             [out] Int32* isSyncable);
-        
+
         /**
          * Set whether this account/provider is syncable.
          * @param syncable >0 denotes syncable, 0 means not syncable, <0 means unknown
@@ -762,7 +763,7 @@ module
             [in] IAccount* account,
             [in] String authority,
             [in] Int32 syncable);
-            
+
         /**
          * Gets the master auto-sync setting that applies to all the providers and accounts.
          * If this is false then the per-provider auto-sync setting is ignored.
@@ -771,7 +772,7 @@ module
          */
         GetMasterSyncAutomatically(
             [out] Boolean* result);
-            
+
         /**
          * Sets the master auto-sync setting that applies to all the providers and accounts.
          * If this is false then the per-provider auto-sync setting is ignored.
@@ -780,7 +781,7 @@ module
          */
         SetMasterSyncAutomatically(
             [in] Boolean sync);
-        
+
         /**
          * Returns true if there is currently a sync operation for the given
          * account or authority in the pending list, or actively being processed.
@@ -792,14 +793,14 @@ module
             [in] IAccount* account,
             [in] String authority,
             [out] Boolean* isSyncActive);
-            
+
         /**
          * If a sync is active returns the information about it, otherwise returns false.
          * @return the SyncInfo for the currently active sync or null if one is not active.
          */
         GetCurrentSync(
             [out] ISyncInfo** syncInfo);
-        
+
         /**
          * Returns the status that matches the authority.
          * @param account the account whose setting we are querying
@@ -811,7 +812,7 @@ module
             [in] IAccount* account,
             [in] String authority,
             [out] ISyncStatusInfo** syncStatusInfo);
-        
+
         /**
          * Return true if the pending status is true of any matching authorities.
          * @param account the account whose setting we are querying
@@ -822,7 +823,7 @@ module
             [in] IAccount* account,
             [in] String authority,
             [out] Boolean* isSyncPending);
-            
+
         /**
          * Request notifications when the different aspects of the SyncManager change. The
          * different items that can be requested are:
@@ -841,14 +842,14 @@ module
             [in] Int32 mask,
             [in] ISyncStatusObserver* observerCallback,
             [out] IInterface** item);
-        
+
         /**
          * Remove a previously registered status change listener.
          * @param handle the handle that was returned by {@link #addStatusChangeListener}
          */
         RemoveStatusChangeListener(
             [in] IInterface* item);
-        
+
         /** @hide */
         GetContentService(
             [out] IContentService** contentService);

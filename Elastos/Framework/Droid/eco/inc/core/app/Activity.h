@@ -368,6 +368,9 @@ public:
     CARAPI SetWindowAdded(
         /* [in] */ Boolean added);
 
+    CARAPI IsWindowAdded(
+        /* [out] */ Boolean* added);
+
     CARAPI GetWindowManagerEx(
         /* [out] */ ILocalWindowManager** mgr);
 
@@ -696,6 +699,8 @@ protected:
     CARAPI SetResult(
         /* [in] */ Int32 resultCode,
         /* [in] */ IIntent *pResultData);
+
+    CARAPI_(AutoPtr<IIntent>) GetIntent();
 
     /*protected*/
     virtual CARAPI OnTitleChanged(

@@ -83,8 +83,8 @@ public:
         /* [in] */ ILocalCapsuleManager* cm,
         /* [out] */ ICharSequence** des);
 
-    // CARAPI GetDescription(
-    //     /* [out] */ String* des);
+    CARAPI GetDescription(
+        /* [out] */ String* des);
 
     CARAPI GetGroup(
         /* [out] */ String* group);

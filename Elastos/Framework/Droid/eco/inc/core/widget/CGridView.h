@@ -713,6 +713,12 @@ public:
     CARAPI SetOverScrollMode(
         /* [in] */ Int32 overScrollMode);
 
+    CARAPI GetTag(
+        /* [out] */ IInterface** tag);
+
+    CARAPI SetTag(
+        /* [in] */ IInterface* tag);
+
     CARAPI GetDescendantFocusability(
         /* [out] */ Int32 * pFocusability);
 

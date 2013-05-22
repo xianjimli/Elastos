@@ -78,7 +78,7 @@ ECode CFeatureInfo::WriteToParcel(
 ECode CFeatureInfo::constructor()
 {
     // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CFeatureInfo::constructor(

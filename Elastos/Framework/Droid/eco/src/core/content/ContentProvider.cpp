@@ -383,7 +383,7 @@ ECode ContentProvider::Transport::ApplyBatch(
 ECode ContentProvider::Transport::Delete(
     /* [in] */ IUri* uri,
     /* [in] */ const String& selection,
-    /* [in] */ const ArrayOf<String> & selectionArgs,
+    /* [in] */ ArrayOf<String>* selectionArgs,
     /* [out] */ Int32* number)
 {
     EnforceWritePermission(uri);
@@ -397,7 +397,7 @@ ECode ContentProvider::Transport::Update(
     /* [in] */ IUri* uri,
     /* [in] */ IContentValues* values,
     /* [in] */ const String& selection,
-    /* [in] */ const ArrayOf<String> & selectionArgs,
+    /* [in] */ ArrayOf<String>* selectionArgs,
     /* [out] */ Int32* number)
 {
     EnforceWritePermission(uri);

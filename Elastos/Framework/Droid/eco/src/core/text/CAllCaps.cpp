@@ -33,7 +33,7 @@ ECode CAllCaps::Filter(
                 AutoPtr<ISpannable> sp;
                 FAIL_RETURN(CSpannableString::New(charS, (ISpannable**)&sp));
                 TextUtils::CopySpansFrom((ISpanned*)source->Probe(EIID_ISpanned),
-                        start, end, NULL, sp, 0);
+                        start, end, EIID_IInterface, sp, 0);
                 *cs = (ICharSequence*)sp->Probe(EIID_ICharSequence);
                 if (*cs != NULL) {
                     (*cs)->AddRef();

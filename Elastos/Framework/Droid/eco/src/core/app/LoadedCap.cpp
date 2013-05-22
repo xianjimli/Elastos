@@ -243,6 +243,7 @@ ECode LoadedCap::ServiceDispatcher::Validate(
 //                        " registered with differing handler (was " +
 //                        mActivityThread + " now " + activityThread + ")");
 //                }
+    assert(0);
     return E_NOT_IMPLEMENTED;
 }
 

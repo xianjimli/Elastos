@@ -247,7 +247,7 @@ ECode ViewGroup::RequestChildFocus(
     }
 
     // Unfocus us, if necessary
-    ViewGroup::UnFocus();
+    View::UnFocus();
 
     // We had a previous notion of who had focus. Clear it.
     if (mFocused.Get() != child) {

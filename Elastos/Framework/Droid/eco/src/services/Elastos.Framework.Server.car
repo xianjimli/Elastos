@@ -9,6 +9,7 @@ module
     importlib("Elastos.Core.eco");
     importlib("Elastos.IO.eco");
     importlib("Elastos.Xml.eco");
+    importlib("Elastos.Utility.Zip.eco");
     importlib("Elastos.Framework.Core.eco");
 
     merge("../../car/services/server.car");

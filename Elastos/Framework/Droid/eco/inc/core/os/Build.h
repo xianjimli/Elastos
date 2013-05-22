@@ -2,7 +2,6 @@
 #ifndef __HH_BUILD_H
 #define __HH_BUILD_H
 
-#include "os/SystemProperties.h"
 #include <elastos.h>
 using namespace Elastos;
 

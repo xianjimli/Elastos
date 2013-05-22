@@ -80,8 +80,22 @@ ECode PrivacySettingsManager::SaveSettings(
     /* [in] */ IPrivacySettings* settings,
     /* [out] */ Boolean* result)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(result);
+
+    // try { //
+        // Log.d(TAG, "saveSettings - " + settings);
+    if (mService != NULL) {
+        return mService->SaveSettings(settings, result);
+    }
+    else {
+        // Log.e(TAG, "saveSettings - PrivacySettingsManagerService is null");
+        *result = FALSE;
+        return NOERROR;
+    }
+    // } catch (RemoteException e) {
+    //     Log.e(TAG, "RemoteException insaveSettings: ", e);
+    //     return false;
+    // }
 }
 
 ECode PrivacySettingsManager::DeleteSettings(

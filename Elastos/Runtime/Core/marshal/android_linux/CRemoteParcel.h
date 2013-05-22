@@ -122,13 +122,13 @@ public:
         /* [out, callee] */ ArrayOf<CString>** ppArray);
 
     CARAPI WriteArrayOfCString(
-        /* [in] */ const ArrayOf<CString> & array);
+        /* [in] */ ArrayOf<CString>* array);
 
     CARAPI ReadArrayOfString(
         /* [out, callee] */ ArrayOf<String>** ppArray);
 
     CARAPI WriteArrayOfString(
-        /* [in] */ const ArrayOf<String> & array);
+        /* [in] */ ArrayOf<String>* array);
 
     CARAPI ReadBufferOf(
         /* [out] */ Handle32 *ppBuffer);

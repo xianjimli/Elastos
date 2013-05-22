@@ -43,7 +43,7 @@ public:
     CARAPI Delete(
         /* [in] */ IUri* uri,
         /* [in] */ const String& selection,
-        /* [in] */ const ArrayOf<String>& selectionArgs,
+        /* [in] */ ArrayOf<String>* selectionArgs,
         /* [out] */ Int32* rowsAffected);
 
     /** see {@link ContentProvider#update} */
@@ -51,7 +51,7 @@ public:
         /* [in] */ IUri* uri,
         /* [in] */ IContentValues* pValues,
         /* [in] */ const String& selection,
-        /* [in] */ const ArrayOf<String>& selectionArgs,
+        /* [in] */ ArrayOf<String>* selectionArgs,
         /* [out] */ Int32* rowsAffected);
 
     /** see {@link ContentProvider#openFile} */

@@ -303,7 +303,7 @@ ECode ContentProviderNative::ContentProviderProxy::ApplyBatch(
 ECode ContentProviderNative::ContentProviderProxy::Delete(
     /* [in] */ IUri* uri,
     /* [in] */ const String& selection,
-    /* [in] */ const ArrayOf<String>& selectionArgs,
+    /* [in] */ ArrayOf<String>* selectionArgs,
     /* [out] */ Int32* number)
 {
     VALIDATE_NOT_NULL(uri);
@@ -327,7 +327,7 @@ ECode ContentProviderNative::ContentProviderProxy::Update(
     /* [in] */ IUri* uri,
     /* [in] */ IContentValues* values,
     /* [in] */ const String& selection,
-    /* [in] */ const ArrayOf<String>& selectionArgs,
+    /* [in] */ ArrayOf<String>* selectionArgs,
     /* [out] */ Int32* number)
 {
     VALIDATE_NOT_NULL(uri);
@@ -982,7 +982,7 @@ ECode ContentProviderNative::OnTransact(
             ec = data->ReadArrayOfString((ArrayOf<String>**)&selectionArgs);
             FAILED_WITH_RETURN(ec, reply, result);
             Int32 count;
-            ec = Delete(url, selection, *selectionArgs, &count);
+            ec = Delete(url, selection, selectionArgs, &count);
             FAILED_WITH_RETURN(ec, reply, result);
             //reply.writeNoException();
             ec = reply->WriteInt32(count);
@@ -1043,7 +1043,7 @@ ECode ContentProviderNative::OnTransact(
             ec = data->ReadArrayOfString((ArrayOf<String>**)&selectionArgs);
             FAILED_WITH_RETURN(ec, reply, result);
             Int32 count;
-            ec = Update(url, values, selection, *selectionArgs, &count);
+            ec = Update(url, values, selection, selectionArgs, &count);
             FAILED_WITH_RETURN(ec, reply, result);
             //reply.writeNoException();
             ec = reply->WriteInt32(count);

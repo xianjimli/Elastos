@@ -34,17 +34,20 @@ CapsuleParser::Component<II>::Component(
     /* [in, out] */ ICapsuleItemInfo* outInfo)
 {
     ECode ec = NOERROR;
+    String name;
     mOwner = args->mOwner;
     mIntents = new List<II*>();
-    ec = args->mSa->GetNonConfigurationString(args->mNameRes, 0, &mClassName);
+    ec = args->mSa->GetNonConfigurationString(args->mNameRes, 0, &name);
     if (FAILED(ec)) {
         (*args->mOutError)[0] = (const char*)(StringBuffer(args->mTag)
                 + " does not specify android:name");
         return;
     }
 
-//        outInfo.name
-//            = buildClassName(owner.applicationInfo.packageName, name, args.outError);
+    String capsuleName;
+    mOwner->mApplicationInfo->GetCapsuleName(&capsuleName);
+    mClassName = BuildClassName(capsuleName, name, args->mOutError, mOwner->mIsAndroidAPK);
+
     outInfo->SetName(mClassName);
 //        if (outInfo.name == null) {
 //            className = null;
@@ -266,6 +269,14 @@ CapsuleParser::Activity::Activity(
 {
     mInfo = info;
     mInfo->SetApplicationInfo(args->mOwner->mApplicationInfo);
+}
+
+void CapsuleParser::Activity::SetCapsuleName(
+    /* [in] */ const String& capName)
+{
+    assert(mInfo != NULL);
+    Component<ActivityIntentInfo>::SetCapsuleName(capName);
+    mInfo->SetCapsuleName(capName);
 }
 
 CapsuleParser::Service::Service(
@@ -748,6 +759,9 @@ CapsuleParser::Capsule* CapsuleParser::ParseCapsule(
         return NULL;
     }
 
+    if (IsAndroidAPKFilename(name))
+        flags |= PARSE_IS_ANDROID_APK;
+
     // if ((flags&PARSE_CHATTY) != 0 && Config.LOGD) Log.d(
     //     TAG, "Scanning package: " + mArchiveSourcePath);
 
@@ -820,32 +834,36 @@ CapsuleParser::Capsule* CapsuleParser::ParseCapsule(
     return cap;
 }
 
-ECode CapsuleParser::BuildClassName(
+String CapsuleParser::BuildClassName(
     /* [in] */ const String& cap,
-    /* [in] */ ICharSequence* clsSeq,
+    /* [in] */ const String& cls,
     /* [in] */ ArrayOf<String>* outError,
-    /* [out] */ String* name)
+    /* [in] */ Boolean isAndroidAPK)
 {
-//      if (clsSeq == null || clsSeq->Length() <= 0) {
-//          outError[0] = "Empty class name in package " + pkg;
-//          return null;
-//      }
-//      String cls = clsSeq->ToString();
-//      char c = cls->CharAt(0);
-//      if (c == '->m') {
-//          return (pkg + cls)->Intern();
-//      }
-//      if (cls->IndexOf('->m') < 0) {
-//          StringBuilder b = new StringBuilder(pkg);
-//          b->Append('->m');
-//          b->Append(cls);
-//          return b->ToString()->Intern();
-//      }
-//      if (c >= 'a' && c <= 'z') {
-//          return cls->Intern();
-//      }
-//      outError[0] = "Bad class name " + cls + " in package " + pkg;
-    return E_NOT_IMPLEMENTED;
+    if (FALSE == isAndroidAPK)
+        return cls;
+
+    if (cls.IsNullOrEmpty()) {
+        (*outError)[0] = String("Empty class name in package ") + cap;
+        return String(NULL);
+    }
+
+    char c = cls[0];
+    if (c == '.') {
+        return cap + cls;
+    }
+    if (cls.IndexOf('.') < 0) {
+        String b = cap;
+        b.Append(".");
+        b.Append(cls);
+        return b;
+    }
+    if (c >= 'a' && c <= 'z') {
+        return cls;
+    }
+
+    (*outError)[0] = String("Bad class name ") + cls + String(" in package ") + cap;
+    return String(NULL);
 }
 
 ECode CapsuleParser::BuildProcessName(
@@ -1081,6 +1099,9 @@ ECode CapsuleParser::ParseCapsule(
     // final Package pkg = new Package(pkgName);
     const AutoPtr<Capsule> cap = new Capsule(capName);
     cap->SetCapsuleName(capName);
+    if (flags & PARSE_IS_ANDROID_APK)
+        cap->mIsAndroidAPK = TRUE;
+
     Boolean foundApp = FALSE;
 
     AutoPtr<ITypedArray> sa;
@@ -1928,11 +1949,9 @@ Boolean CapsuleParser::ParseCapsuleItemInfo(
         return FALSE;
     }
 
-    AutoPtr<ICharSequence> cs;
-    CStringWrapper::New(name, (ICharSequence**)&cs);
     String ownerCName;
     owner->mApplicationInfo->GetCapsuleName(&ownerCName);
-    BuildClassName(ownerCName, cs, outError, &name);
+    name = BuildClassName(ownerCName, name, outError, owner->mIsAndroidAPK);
     outInfo->SetName(name);
     if (name.IsNull()) {
         return FALSE;
@@ -1986,6 +2005,7 @@ Boolean CapsuleParser::ParseApplication(
     IApplicationInfo* ai = owner->mApplicationInfo;
     String capName;
     ai->GetCapsuleName(&capName);
+    Boolean isAndroidAPK = owner->mIsAndroidAPK;
 
     AutoPtr<ITypedArray> sa;
     FAIL_RETURN(res->ObtainAttributes(
@@ -1998,10 +2018,7 @@ Boolean CapsuleParser::ParseApplication(
         3 /*com.android.internal.R.styleable.AndroidManifestApplication_name*/, 0,
         &name);
     if (!name.IsNull()) {
-        AutoPtr<ICharSequence> cname;
-        CStringWrapper::New(name, (ICharSequence**)&cname);
-        String clsName;
-        BuildClassName(capName, cname.Get(), outError, &clsName);
+        String clsName = BuildClassName(capName, name, outError, isAndroidAPK);
         ai->SetClassName(clsName);
         if (clsName.IsNull()) {
             sa->Recycle();
@@ -2015,10 +2032,7 @@ Boolean CapsuleParser::ParseApplication(
         4 /*com.android.internal.R.styleable.AndroidManifestApplication_manageSpaceActivity*/, 0,
         &manageSpaceActivity);
     if (!manageSpaceActivity.IsNull()) {
-        AutoPtr<ICharSequence> ca;
-        CStringWrapper::New(manageSpaceActivity, (ICharSequence**)&ca);
-        String name;
-        BuildClassName(capName, ca.Get(), outError, &name);
+        String name = BuildClassName(capName, manageSpaceActivity, outError, isAndroidAPK);
         ai->SetManageSpaceActivityName(name);
     }
 
@@ -2039,16 +2053,11 @@ Boolean CapsuleParser::ParseApplication(
             16 /*com.android.internal.R.styleable.AndroidManifestApplication_backupAgent*/, 0,
             &backupAgent);
         if (!backupAgent.IsNull()) {
-            AutoPtr<ICharSequence> cb;
-            CStringWrapper::New(backupAgent, (ICharSequence**)&cb);
-            String agentName;
-            BuildClassName(capName, cb.Get(), outError, &agentName);
+            String agentName = BuildClassName(capName, backupAgent, outError, isAndroidAPK);
             ai->SetBackupAgentName(agentName);
             if (FALSE) {
-                String cbStr;
-                cb->ToString(&cbStr);
                 Logger::V(TAG, StringBuffer("android:backupAgent = ") + agentName
-                        + " from " + capName + "+" + cbStr);
+                        + " from " + capName + "+" + backupAgent);
             }
 
             Boolean value = FALSE;
@@ -2711,11 +2720,9 @@ ECode CapsuleParser::ParseActivityAlias(
         return E_RUNTIME_EXCEPTION;
     }
 
-    AutoPtr<ICharSequence> c;
-    CStringWrapper::New(targetActivity, (ICharSequence**)&c);
     String ownerCName;
     owner->mApplicationInfo->GetCapsuleName(&ownerCName);
-    BuildClassName(ownerCName, c.Get(), outError, &targetActivity);
+    targetActivity = BuildClassName(ownerCName, targetActivity, outError, owner->mIsAndroidAPK);
     if (targetActivity.IsNull()) {
         sa->Recycle();
         return E_RUNTIME_EXCEPTION;

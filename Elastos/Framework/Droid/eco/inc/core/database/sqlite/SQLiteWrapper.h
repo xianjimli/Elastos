@@ -31,14 +31,14 @@ public:
         /* [in] */ IUri* uri,
         /* [in] */ IContentValues* values,
         /* [in] */ const String& where,
-        /* [in] */ const ArrayOf<String>& selectionArgs);
+        /* [in] */ ArrayOf<String>* selectionArgs);
 
     static CARAPI_(Int32) Delete(
         /* [in] */ IContext* context,
         /* [in] */ IContentResolver* resolver,
         /* [in] */ IUri* uri,
         /* [in] */ const String& where,
-        /* [in] */ const ArrayOf<String>& selectionArgs);
+        /* [in] */ ArrayOf<String>* selectionArgs);
 
     static CARAPI_(AutoPtr<IUri>) Insert(
         /* [in] */ IContext* context,

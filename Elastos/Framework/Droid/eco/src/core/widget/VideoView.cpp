@@ -547,11 +547,19 @@ const Int32 VideoView::STATE_SUSPEND_UNSUPPORTED;
 
 
 VideoView::VideoView()
-    : mCurrentState(STATE_IDLE)
+    : mDuration(0)
+    , mCurrentState(STATE_IDLE)
     , mTargetState(STATE_IDLE)
+    , mVideoWidth(0)
+    , mVideoHeight(0)
+    , mSurfaceWidth(0)
+    , mSurfaceHeight(0)
+    , mCurrentBufferPercentage(0)
+    , mSeekWhenPrepared(0)
     , mCanPause(FALSE)
     , mCanSeekBack(FALSE)
     , mCanSeekForward(FALSE)
+    , mStateWhenSuspended(0)
 {
     mSizeChangedListener = new VVOnVideoSizeChangedListener(this);
     mPreparedListener = new VVOnPreparedListener(this);

@@ -81,13 +81,38 @@ ECode CCompletionInfo::GetLabel(
 ECode CCompletionInfo::ReadFromParcel(
     /* [in] */ IParcel *source)
 {
-    assert(0);
-    return E_NOT_IMPLEMENTED;
+    source->ReadInt64(&mId);
+    source->ReadInt32(&mPosition);
+    String strText, strLable;
+    source->ReadString(&strText);
+    source->ReadString(&strLable);
+
+    mText = NULL;
+    mLabel = NULL;
+
+    if (!strText.IsNull()) {
+        CStringWrapper::New(strText, (ICharSequence**)&mText);
+    }
+
+    if (!strLable.IsNull()) {
+        CStringWrapper::New(strLable, (ICharSequence**)&mLabel);
+    }
+
+    return NOERROR;
 }
 
 ECode CCompletionInfo::WriteToParcel(
     /* [in] */ IParcel *dest)
 {
-    assert(0);
-    return E_NOT_IMPLEMENTED;
+    dest->WriteInt64(mId);
+    dest->WriteInt32(mPosition);
+    String strText, strLable;
+    if (mText)
+        mText->ToString(&strText);
+    if (mLabel)
+        mLabel->ToString(&strLable);
+    dest->WriteString(strText);
+    dest->WriteString(strLable);
+
+    return NOERROR;
 }

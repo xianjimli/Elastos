@@ -162,12 +162,12 @@ ECode CPermissionGroupInfo::LoadDescription(
     return NOERROR;
 }
 
-// ECode CPermissionGroupInfo::GetDescription(
-//     /* [out] */ String* des)
-// {
-//     // TODO: Add your code here
-//     return E_NOT_IMPLEMENTED;
-// }
+ECode CPermissionGroupInfo::GetDescription(
+    /* [out] */ String* des)
+{
+    // TODO: Add your code here
+    return E_NOT_IMPLEMENTED;
+}
 
 ECode CPermissionGroupInfo::GetDescriptionRes(
     /* [out] */ Int32* desRes)

@@ -6,5 +6,11 @@ module
     interface IInputBindResult {
         GetIIMSession(
             [out] IInputMethodSession** session);
+
+        GetId(
+            [out] String* id);
+
+        GetSequence(
+            [out] Int32* sequence);
     }
 }

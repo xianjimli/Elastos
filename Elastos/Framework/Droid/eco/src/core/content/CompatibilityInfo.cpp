@@ -138,11 +138,11 @@ ECode CompatibilityInfo::Translator::TranslateRectInScreenToAppWindow(
 * Translate the location of the sub window.
 * @param params
 */
-//ECode CompatibilityInfo::Translator::TranslateLayoutParamsInAppWindowToScreen(
-//    /* [in] */ LayoutParams params)
-//{
-//    params->Scale(mApplicationScale);
-//}
+ECode CompatibilityInfo::Translator::TranslateLayoutParamsInAppWindowToScreen(
+   /* [in] */ IWindowManagerLayoutParams* params)
+{
+    params->Scale(mApplicationScale);
+}
 
 /**
 * Translate the content insets in application window to Screen. This uses
@@ -195,6 +195,14 @@ ECode CompatibilityInfo::Translator::GetTranslatedVisbileInsets(
     *rect = mVisibleInsetsBuffer;
     (*rect)->AddRef();
 
+    return NOERROR;
+}
+
+ECode CompatibilityInfo::Translator::GetApplicationInvertedScale(
+    /* [out] */ Float* appInvertedScale)
+{
+    VALIDATE_NOT_NULL(appInvertedScale);
+    *appInvertedScale = mApplicationInvertedScale;
     return NOERROR;
 }
 
@@ -569,6 +577,7 @@ ECode CompatibilityInfo::GetTranslator(
 
     *translator = IsScalingRequired()
         ? new Translator(mApplicationScale, mApplicationInvertedScale) : NULL;
+    if (*translator != NULL) (*translator)->AddRef();
 
     return NOERROR;
 }

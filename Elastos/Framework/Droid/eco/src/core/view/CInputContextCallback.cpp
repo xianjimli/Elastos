@@ -189,9 +189,12 @@ void CInputContextCallback::WaitForResultLocked()
 void CInputContextCallback::Wait(
     /* [in] */ Int64 millis)
 {
+    struct timeval now;
+    gettimeofday(&now, NULL);
+
     struct timespec timeout;
-    timeout.tv_sec = millis / 1000;
-    timeout.tv_nsec = (millis % 1000) * 1000;
+    timeout.tv_sec = now.tv_sec + millis / 1000;
+    timeout.tv_nsec = (now.tv_usec + (millis % 1000) * 1000) * 1000;
     pthread_cond_timedwait(&mWaitCond, &_m_syncLock.mMutex, &timeout);
 }
 

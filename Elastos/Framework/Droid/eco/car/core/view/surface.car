@@ -250,6 +250,9 @@ module
 
         GetSurface(
             [out] Handle32* surface);
+
+        SetSurface(
+            [in] Handle32 surface);
     }
 
     interface ISurfaceHelper {

@@ -889,7 +889,19 @@ ECode CSurface::WriteToParcel(
         return E_FAIL;
     }
 
-    android::SurfaceControl::writeSurfaceToParcel(mSurfaceControl, parcel);
+    if (mSurfaceControl != NULL) {
+        android::SurfaceControl::writeSurfaceToParcel(mSurfaceControl, parcel);
+    }
+    else {
+        if (mNativeSurface != NULL) {
+            android::Surface::writeToParcel(mNativeSurface, parcel);
+        }
+        else {
+            android::SurfaceControl::writeSurfaceToParcel(NULL, parcel);
+        }
+    }
+    SetSurfaceControl(NULL);
+    SetSurface(NULL);
 //    if (flags & PARCELABLE_WRITE_RETURN_VALUE) {
 //        setSurfaceControl(env, clazz, 0);
 //    }
@@ -1199,8 +1211,12 @@ ECode CSurface::SetTransparentRegionHint(
 ECode CSurface::SetAlpha(
     /* [in] */ Float alpha)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    android::status_t err = mSurfaceControl->setAlpha(alpha);
+    if (err < 0 && err != android::NO_INIT) {
+        //doThrow(env, "java/lang/IllegalArgumentException", NULL);
+        return E_FAIL;
+    }
+    return NOERROR;
 }
 
 ECode CSurface::SetMatrix(
@@ -1286,6 +1302,7 @@ ECode CSurface::constructor(
     }
     ECode ec = Init(pS, pid, name, display, w, h, format, flags);
     mName = name;
+
     return ec;
 }
 
@@ -1377,3 +1394,11 @@ void CSurface::SetSurface(
     mNativeSurface = surface;
 }
 #endif
+
+ECode CSurface::SetSurface(
+    /* [in] */ Handle32 surface)
+{
+    SetSurface((android::Surface*)surface);
+
+    return NOERROR;
+}

@@ -291,7 +291,7 @@ public:
     CARAPI Delete(
         /* [in] */ IUri* uri,
         /* [in] */ const String& selection,
-        /* [in] */ const ArrayOf<String>& selectionArgs,
+        /* [in] */ ArrayOf<String>* selectionArgs,
         /* [out] */ Int32* rowsAffected);
 
     /**
@@ -311,7 +311,7 @@ public:
         /* [in] */ IUri* uri,
         /* [in] */ IContentValues* values,
         /* [in] */ const String& selection,
-        /* [in] */ const ArrayOf<String>& selectionArgs,
+        /* [in] */ ArrayOf<String>* selectionArgs,
         /* [out] */ Int32* rowsAffected);
 
     /**

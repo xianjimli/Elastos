@@ -759,6 +759,13 @@ Keyboard::Keyboard(
     /* [in] */ Int32 xmlLayoutResId)
     : mShifted(FALSE)
     , mShiftKeyIndex(-1)
+    , mKeyWidth(0)
+    , mKeyHeight(0)
+    , mTotalHeight(0)
+    , mTotalWidth(0)
+    , mKeyboardMode(0)
+    , mCellWidth(0)
+    , mCellHeight(0)
     , mGridNeighbors(NULL)
 {
     ASSERT_SUCCEEDED(Init(context, xmlLayoutResId));
@@ -770,6 +777,13 @@ Keyboard::Keyboard(
     /* [in] */ Int32 modeId)
     : mShifted(FALSE)
     , mShiftKeyIndex(-1)
+    , mKeyWidth(0)
+    , mKeyHeight(0)
+    , mTotalHeight(0)
+    , mTotalWidth(0)
+    , mKeyboardMode(0)
+    , mCellWidth(0)
+    , mCellHeight(0)
     , mGridNeighbors(NULL)
 {
     ASSERT_SUCCEEDED(Init(context, xmlLayoutResId, modeId));
@@ -783,6 +797,13 @@ Keyboard::Keyboard(
     /* [in] */ Int32 horizontalPadding)
     : mShifted(FALSE)
     , mShiftKeyIndex(-1)
+    , mKeyWidth(0)
+    , mKeyHeight(0)
+    , mTotalHeight(0)
+    , mTotalWidth(0)
+    , mKeyboardMode(0)
+    , mCellWidth(0)
+    , mCellHeight(0)
     , mGridNeighbors(NULL)
 {
     // Init(context, layoutTemplateResId, characters, columns, horizontalPadding);

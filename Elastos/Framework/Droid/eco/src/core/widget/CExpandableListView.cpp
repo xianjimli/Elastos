@@ -1588,6 +1588,20 @@ ECode CExpandableListView::SetOverScrollMode(
     return E_NOT_IMPLEMENTED;
 }
 
+ECode CExpandableListView::GetTag(
+    /* [out] */ IInterface** tag)
+{
+    // TODO: Add your code here
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode CExpandableListView::SetTag(
+    /* [in] */ IInterface* tag)
+{
+    // TODO: Add your code here
+    return E_NOT_IMPLEMENTED;
+}
+
 ECode CExpandableListView::GetDescendantFocusability(
     /* [out] */ Int32 * pFocusability)
 {

@@ -5791,26 +5791,25 @@ AutoPtr<ICapsuleInfo> CCapsuleManagerService::GenerateCapsuleInfo(
     /* [in] */ CapsuleParser::Capsule* c,
     /* [in] */ Int32 flags)
 {
-    //TODO:
-    AutoPtr<ICapsuleInfo> ci;
-    CCapsuleInfo::New((ICapsuleInfo**)&ci);
-    ci->SetCapsuleName(c->mCapsuleName);
-    return ci;
+    if ((flags & CapsuleManager_GET_UNINSTALLED_CAPSULES) != 0) {
+        // The package has been uninstalled but has retained data and resources.
+        return CapsuleParser::GenerateCapsuleInfo(c, NULL, flags, 0, 0);
+    }
 
-    // if ((flags & CapsuleManager_GET_UNINSTALLED_CAPSULES) != 0) {
-    //     // The package has been uninstalled but has retained data and resources.
-    //     return CapsuleParser::GenerateCapsuleInfo(c, NULL, flags, 0, 0);
-    // }
-    // CapsuleSetting* cs = c->mExtras == NULL ?
-    //         NULL : (CapsuleSetting*)c->mExtras->Probe(EIID_CapsuleSetting);
-    // if (cs == NULL) {
-    //     return NULL;
-    // }
-    // GrantedPermissions* gp = cs->mSharedUser != NULL
-    //     ? (GrantedPermissions*)cs->mSharedUser
-    //     : (GrantedPermissions*)cs;
-    // return CapsuleParser::GenerateCapsuleInfo(c, gp->mGids, flags,
-    //         cs->mFirstInstallTime, cs->mLastUpdateTime);
+    //TODO
+    if (c->mExtras == NULL) {
+        return CapsuleParser::GenerateCapsuleInfo(c, NULL, flags, 0, 0);
+    }
+
+    CapsuleSetting* cs = (CapsuleSetting*)c->mExtras->Probe(EIID_CapsuleSetting);
+    if (cs == NULL) {
+        return NULL;
+    }
+    GrantedPermissions* gp = cs->mSharedUser != NULL
+        ? (GrantedPermissions*)cs->mSharedUser
+        : (GrantedPermissions*)cs;
+    return CapsuleParser::GenerateCapsuleInfo(c, gp->mGids, flags,
+            cs->mFirstInstallTime, cs->mLastUpdateTime);
 }
 
 ECode CCapsuleManagerService::GetCapsuleInfo(
@@ -5837,7 +5836,7 @@ ECode CCapsuleManagerService::GetCapsuleInfo(
         ci = GenerateCapsuleInfoFromSettingsLP(capsuleName, flags);
         *capInfo = ci;
     }
-    *capInfo = NULL;
+
     if (*capInfo != NULL) (*capInfo)->AddRef();
     return NOERROR;
 }
@@ -7194,6 +7193,7 @@ ECode CCapsuleManagerService::QueryIntentActivities(
         INTERFACE_ADDREF(*infos);
         return NOERROR;
     }
+
     HashMap<String, CapsuleParser::Capsule*>::Iterator cap = mCapsules.Find(capName);
     if (cap != mCapsules.End()) {
         List<AutoPtr<IResolveInfo>*>* items =
@@ -10180,6 +10180,56 @@ ECode CCapsuleManagerService::InstallCapsuleEx2(
     }
 
     return ec;
+}
+
+//TODO: for Android apk install
+ECode CCapsuleManagerService::InstallCapsuleEx3(
+    /* [in] */ const String& path,
+     /* [out] */ IComponentName** info)
+{
+    VALIDATE_NOT_NULL(info);
+    if (!IsAndroidAPKFilename(path)) return E_ILLEGAL_ARGUMENT_EXCEPTION;
+
+    AutoPtr<IFile> file;
+    FAIL_RETURN(CFile::New(path, (IFile**)&file));
+
+    Int32 scanMode = SCAN_MONITOR | SCAN_NO_PATHS;
+    if (mNoDexOpt) {
+        Slogger::W(TAG, "Running ENG build: no pre-dexopt!");
+        scanMode |= SCAN_NO_DEX;
+    }
+
+    CapsuleParser::Capsule* cap = ScanCapsuleLI(file,
+        CapsuleParser::PARSE_MUST_BE_APK, scanMode, 0);
+
+    if (cap == NULL) {
+        if (mLastScanError == CapsuleManager::INSTALL_FAILED_INVALID_APK) {
+            // Delete the apk
+            String des;
+            file->ToString(&des);
+            Slogger::D(TAG, StringBuffer("Cleaning up failed install of ") + des);
+
+            Boolean isDeleted = FALSE;
+            file->Delete(&isDeleted);
+
+            return mLastScanError;
+        } else if (mLastScanError == CapsuleManager::INSTALL_FAILED_DUPLICATE_CAPSULE) {
+            CapsuleParser cp(path);
+            cp.SetSeparateProcesses(*mSeparateProcesses);
+            CapsuleParser::Capsule* capR = cp.ParseCapsule(file, path, mMetrics, 0);
+            if (capR != NULL) {
+                CComponentName::New(capR->mCapsuleName, String(NULL), info);
+                if (*info != NULL) (*info)->AddRef();
+            }
+
+            return NOERROR;
+        }
+    }
+
+    CComponentName::New(cap->mCapsuleName, String(NULL), info);
+    if (*info != NULL) (*info)->AddRef();
+
+    return NOERROR;
 }
 
 ECode CCapsuleManagerService::InstallCapsule(

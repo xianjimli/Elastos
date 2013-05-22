@@ -130,5 +130,8 @@ module
 
         SetInstallLocation(
             [in] Int32 location);
+
+        GetRequestedPermissions(
+            [out, callee] ArrayOf<String>* permissions);
     }
 }

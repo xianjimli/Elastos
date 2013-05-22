@@ -2987,5 +2987,11 @@ module
          */
         SetOverScrollMode(
             [in] Int32 overScrollMode);
+
+        SetTag(
+            [in] IInterface* tag);
+
+        GetTag(
+            [out] IInterface** tag);
     }
 }

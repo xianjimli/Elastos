@@ -140,8 +140,8 @@ public:
         CARAPI TranslateRectInScreenToAppWindow(
             /* [in] */ IRect* rect);
 
-        //CARAPI TranslateLayoutParamsInAppWindowToScreen(
-        //    /* [in] */ LayoutParams params);
+        CARAPI TranslateLayoutParamsInAppWindowToScreen(
+           /* [in] */ IWindowManagerLayoutParams* params);
 
         CARAPI GetTranslatedContentInsets(
             /* [in] */ IRect* contentInsets,
@@ -150,6 +150,9 @@ public:
         CARAPI GetTranslatedVisbileInsets(
             /* [in] */ IRect* visibleInsets,
             /* [out] */ IRect** rect);
+
+        CARAPI GetApplicationInvertedScale(
+            /* [out] */ Float* appInvertedScale);
 
     public:
         Float mApplicationScale;

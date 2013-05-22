@@ -564,23 +564,40 @@ Boolean BaseInputConnection::SendKeyEvent(
     {
         Mutex::Autolock lock(((CLocalInputMethodManager*)mIMM.Get())->sStaticHandlerLock);
 
-        AutoPtr<IApartment> h;
+        AutoPtr<IView> view;
         if (mTargetView != NULL) {
-            mTargetView->GetHandler((IApartment**)&h);
+            view = mTargetView;
         }
-        if (h == NULL) {
+
+        if (view == NULL) {
             if (((CLocalInputMethodManager*)mIMM.Get())->mServedView != NULL) {
-                ((CLocalInputMethodManager*)mIMM.Get())->mServedView->GetHandler((IApartment**)&h);
+                view = ((CLocalInputMethodManager*)mIMM.Get())->mServedView;
             }
         }
 
-        if (h != NULL) {
+        if (view != NULL) {
             // h.sendMessage(h.obtainMessage(ViewRoot.DISPATCH_KEY_FROM_IME,
             //         event));
+
+            AutoPtr<IViewParent> viewParent;
+            ViewRoot* viewRoot = NULL;
+            view->GetParent((IViewParent**)&viewParent);
+            while (viewParent != NULL) {
+                if (viewParent->Probe(EIID_ViewRoot)) {
+                    viewRoot = reinterpret_cast<ViewRoot*>(viewParent->Probe(EIID_ViewRoot));
+                    break;
+                }
+                view = IView::Probe(viewParent);
+                viewParent = NULL;
+                view->GetParent((IViewParent**)&viewParent);
+            }
+
+            assert(viewRoot);
+
             AutoPtr<IParcel> params;
             CCallbackParcel::New((IParcel**)&params);
             params->WriteInterfacePtr((IInterface*)event);
-            h->SendMessage(ViewRoot::DISPATCH_KEY_FROM_IME, params);
+            viewRoot->SendMessage(ViewRoot::DISPATCH_KEY_FROM_IME, params);
         }
     }
     return FALSE;

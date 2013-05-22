@@ -249,6 +249,9 @@ public:
             /* [in] */ ParseComponentArgs* args,
             /* [in] */ IActivityInfo* info);
 
+        CARAPI_(void) SetCapsuleName(
+            /* [in] */ const String& capName);
+
     public:
         AutoPtr<IActivityInfo> mInfo;
     };
@@ -392,6 +395,7 @@ public:
             , mExtras(NULL)
             , mOperationPending(FALSE)
             , mInstallLocation(0)
+            , mIsAndroidAPK(FALSE)
         {
             ASSERT_SUCCEEDED(CApplicationInfo::New((IApplicationInfo**)&mApplicationInfo));
             mApplicationInfo->SetUid(-1);
@@ -412,6 +416,7 @@ public:
             , mExtras(NULL)
             , mOperationPending(FALSE)
             , mInstallLocation(0)
+            , mIsAndroidAPK(FALSE)
         {
             ASSERT_SUCCEEDED(CApplicationInfo::New((IApplicationInfo**)&mApplicationInfo));
             mApplicationInfo->SetCapsuleName(mCapsuleName);
@@ -540,6 +545,8 @@ public:
         List< AutoPtr<IFeatureInfo> > mReqFeatures;
 
         Int32 mInstallLocation;
+
+        Boolean mIsAndroidAPK;
     };
 
 public:
@@ -631,11 +638,11 @@ private:
         /* [in] */ Boolean requiresSeparator,
         /* [out] */ String* error);
 
-    CARAPI BuildClassName(
+    static CARAPI_(String) BuildClassName(
         /* [in] */ const String& cap,
-        /* [in] */ ICharSequence* clsSeq,
+        /* [in] */ const String& clsSeq,
         /* [in] */ ArrayOf<String>* outError,
-        /* [out] */ String* name);
+        /* [in] */ Boolean isAndroidAPK);
 
     CARAPI BuildProcessName(
         /* [in] */ const String& cap,
@@ -798,6 +805,8 @@ public:
     static const Int32 PARSE_FORWARD_LOCK = 1<<4;
     static const Int32 PARSE_ON_SDCARD = 1<<5;
     static const Int32 PARSE_IS_SYSTEM_DIR = 1<<6;
+    //Elastos
+    static const Int32 PARSE_IS_ANDROID_APK = 1<<7;
 
     /**
      * List of new permissions that have been added since 1.0.

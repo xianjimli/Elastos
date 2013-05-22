@@ -1754,6 +1754,8 @@ void ViewRoot::PerformTraversals()
             else if (hadSurface) {
                 mSurfaceHolder->UngetCallbacks();
 
+                mSurfaceHolderCallback->SurfaceDestroyed(mSurfaceHolder);
+
                 Vector<AutoPtr<ISurfaceHolderCallback> >& callbacks =
                     mSurfaceHolder->GetCallbacks();
                 Vector<AutoPtr<ISurfaceHolderCallback> >::Iterator iter;
@@ -3730,9 +3732,9 @@ Int32 ViewRoot::RelayoutWindow(
     mPendingContentInsets->SetEx(pendingContentInsets);
     mPendingVisibleInsets->SetEx(pendingVisibleInsets);
     mPendingConfiguration->SetTo(pendingConfiguration);
-    //TODO:
-    mSurface = (CSurface*)surface.Get();
-    //mSurface->CopyFrom(surface);
+    Handle32 nativeSurface;
+    surface->GetSurface(&nativeSurface);
+    mSurface->SetSurface(nativeSurface);
 
     if (restore) {
         params->Restore();

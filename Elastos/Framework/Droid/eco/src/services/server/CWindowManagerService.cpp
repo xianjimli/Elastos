@@ -9746,7 +9746,9 @@ ECode CWindowManagerService::WindowState::CreateSurfaceLocked(
         AutoPtr<ICharSequence> title;
         mAttrs->GetTitle((ICharSequence**)&title);
         String strTitle;
-        title->ToString(&strTitle);
+        if (title != NULL) {
+            title->ToString(&strTitle);
+        }
         Int32 format;
         mAttrs->GetFormat(&format);
 /* TODO:

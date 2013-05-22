@@ -47,8 +47,8 @@ module
             [in] ILocalCapsuleManager* cm,
             [out] ICharSequence** des);
 
-        //GetDescription(
-        //    [out] String* des);
+        GetDescription(
+            [out] String* des);
 
         GetGroup(
             [out] String* group);

@@ -21,7 +21,7 @@ module
     const contentprovider_OPEN_ASSET_FILE_TRANSACTION = 0x0000000f;
 
     const contentprovider_APPLY_BATCH_TRANSACTION = 0x00000014;
-    
+
     const contentprovider_CALL_TRANSACTION = 0x00000015;
 
     interface IContext;
@@ -37,6 +37,7 @@ module
     interface IBulkCursor;
     interface IContentProviderResult;
 
+    [deprecated]
     interface IContentProvider {
         /**
         * Remote version of a query, which returns an IBulkCursor. The bulk
@@ -104,7 +105,7 @@ module
         Delete(
             [in] IUri* uri,
             [in] String selection,
-            [in] ArrayOf<String> selectionArgs,
+            [in] ArrayOf<String>* selectionArgs,
             [out] Int32* rowsAffected);
 
         /**
@@ -114,7 +115,7 @@ module
             [in] IUri* uri,
             [in] IContentValues* values,
             [in] String selection,
-            [in] ArrayOf<String> selectionArgs,
+            [in] ArrayOf<String>* selectionArgs,
             [out] Int32* rowsAffected);
 
         /**

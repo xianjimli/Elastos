@@ -105,9 +105,9 @@ ECode CContentProviderOperation::Apply(
     Int32 numRows;
 
     if (mType == ContentProviderOperation_TYPE_DELETE) {
-        FAIL_RETURN(provider->Delete(mUri, mSelection, *selectionArgs, &numRows));
+        FAIL_RETURN(provider->Delete(mUri, mSelection, selectionArgs, &numRows));
     } else if (mType == ContentProviderOperation_TYPE_UPDATE) {
-        FAIL_RETURN(provider->Update(mUri, values, mSelection, *selectionArgs, &numRows));
+        FAIL_RETURN(provider->Update(mUri, values, mSelection, selectionArgs, &numRows));
     } else if (mType == ContentProviderOperation_TYPE_ASSERT) {
         // Assert that all rows match expected values
         AutoFree<ArrayOf<String> > projection;
@@ -376,7 +376,7 @@ ECode CContentProviderOperation::WriteToParcel(
 
     if (NULL != mSelectionArgs) {
         dest->WriteInt32(1);
-        dest->WriteArrayOfString(*mSelectionArgs);
+        dest->WriteArrayOfString(mSelectionArgs);
     } else {
         dest->WriteInt32(0);
     }

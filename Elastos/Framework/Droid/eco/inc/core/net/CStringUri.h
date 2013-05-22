@@ -320,8 +320,7 @@ protected:
                 && uriString.GetChar(ssi + 2) == '/') {
             // Skip over authority to path.
             pathStart = ssi + 3;
-            L_LOOP:
-                while (pathStart < length) {
+            while (pathStart < length) {
                 switch (uriString.GetChar(pathStart)) {
                     case '?': // Start of query
                     case '#': // Start of fragment
@@ -330,27 +329,27 @@ protected:
                             return NOERROR;
                         }
                     case '/': // Start of path!
-                        goto L_LOOP;
+                        goto L1;
                 }
                 pathStart++;
             }
+
         } else {
             // Path starts immediately after scheme separator.
             pathStart = ssi + 1;
         }
-
+L1:
         // Find end of path.
         Int32 pathEnd = pathStart;
-        L_LOOP_2:
-            while (pathEnd < length) {
+        while (pathEnd < length) {
             switch (uriString.GetChar(pathEnd)) {
                 case '?': // Start of query
                 case '#': // Start of fragment
-                    goto L_LOOP_2;
+                    goto L2;
             }
             pathEnd++;
         }
-
+L2:
         *result = uriString.Substring(pathStart, pathEnd);
 
         return NOERROR;

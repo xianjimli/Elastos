@@ -2,7 +2,6 @@
 #include "ext/frameworkdef.h"
 #include "capsule/CCapsuleInfo.h"
 
-
 ECode CCapsuleInfo::GetCapsuleName(
     /* [out] */ String* name)
 {
@@ -191,6 +190,7 @@ ECode CCapsuleInfo::AddRequestedPermission(
     /* [in] */ const String& permission)
 {
     if (permission.IsNull()) return NOERROR;
+
     mRequestedPermissions.PushBack(permission);
     return NOERROR;
 }
@@ -247,10 +247,63 @@ ECode CCapsuleInfo::SetInstallLocation(
     return NOERROR;
 }
 
+ECode CCapsuleInfo::GetRequestedPermissions(
+    /* [out, callee] */ ArrayOf<String>** permissions)
+{
+    VALIDATE_NOT_NULL(permissions);
+    Int32 size = mRequestedPermissions.GetSize();
+    if (size > 0) {
+        *permissions = ArrayOf<String>::Alloc(size);
+
+        for (Int32 i = 0; i < size; i ++) {
+            (**permissions)[i] = mRequestedPermissions[i];
+        }
+    }
+
+    return NOERROR;
+}
+
 ECode CCapsuleInfo::ReadFromParcel(
     /* [in] */ IParcel* source)
 {
     source->ReadString(&mCapsuleName);
+
+    // source->ReadInt32(&mVersionCode);
+    // source->ReadString(&mVersionName);
+    // source->ReadString(&mSharedUserId);
+    // source->ReadInt32(&mSharedUserLabel);
+    // if (mApplicationInfo != NULL) {
+    //     Int32 flag = 0;
+    //     source->ReadInt32(&flag);
+    //     assert(IParcelable::Probe(mApplicationInfo) != NULL);
+    //     IParcelable::Probe(mApplicationInfo)->ReadFromParcel(source);
+    // } else {
+    //     Int32 flag = 0;
+    //     source->ReadInt32(&flag);
+    // }
+    // source->ReadInt64(&mFirstInstallTime);
+    // source->ReadInt64(&mLastUpdateTime);
+    //source->ReadArrayOf((Handle32*)&mGids);
+    // source->ReadTypedArray(&mActivities);
+    // source->ReadTypedArray(&mReceivers);
+    // source->ReadTypedArray(&mServices);
+    // source->ReadTypedArray(&mContentProviders);
+    // source->ReadTypedArray(&mInstrumentations);
+    // source->ReadTypedArray(&mPermissions);
+
+    AutoFree< ArrayOf<String> > requestedPermissions;
+    source->ReadArrayOfString((ArrayOf<String>**)&requestedPermissions);
+    if (requestedPermissions != NULL) {
+        for (Int32 i = 0; i < requestedPermissions->GetLength(); i++) {
+            mRequestedPermissions.PushBack((*requestedPermissions)[i]);
+        }
+    }
+
+    // source->ReadTypedArray(&mSignatures);
+    // source->ReadTypedArray(&mConfigPreferences);
+    // source->ReadTypedArray(&mReqFeatures);
+    //source->ReadInt32(&mInstallLocation);
+
     return NOERROR;
 }
 
@@ -258,6 +311,43 @@ ECode CCapsuleInfo::WriteToParcel(
     /* [in] */ IParcel* dest)
 {
     dest->WriteString(mCapsuleName);
+    // dest->WriteInt32(mVersionCode);
+    // dest->WriteString(mVersionName);
+    // dest->WriteString(mSharedUserId);
+    // dest->WriteInt32(mSharedUserLabel);
+    // if (mApplicationInfo != NULL) {
+    //     dest->WriteInt32(1);
+    //     assert(IParcelable::Probe(mApplicationInfo) != NULL);
+    //     IParcelable::Probe(mApplicationInfo)->WriteToParcel(dest);
+    // } else {
+    //     dest->WriteInt32(0);
+    // }
+    // dest->WriteInt64(mFirstInstallTime);
+    // dest->WriteInt64(mLastUpdateTime);
+    //dest->WriteArrayOf((Handle32)mGids.Get());
+    // dest->writeTypedArray(mActivities);
+    // dest->writeTypedArray(mReceivers);
+    // dest->writeTypedArray(mServices);
+    // dest->writeTypedArray(mContentProviders);
+    // dest->writeTypedArray(mInstrumentations);
+    // dest->writeTypedArray(mPermissions);
+
+    Int32 size = mRequestedPermissions.GetSize();
+    AutoFree< ArrayOf<String> > perms;
+    if (size > 0) {
+        perms = ArrayOf<String>::Alloc(size);
+
+        for (Int32 i = 0; i < size; i ++) {
+            (*perms)[i] = mRequestedPermissions[i];
+        }
+    }
+    dest->WriteArrayOfString(perms);
+
+    // dest->writeTypedArray(mSignatures);
+    // dest->writeTypedArray(mConfigPreferences);
+    // dest->writeTypedArray(mReqFeatures);
+    //dest->WriteInt32(mInstallLocation);
+
     return NOERROR;
 }
 

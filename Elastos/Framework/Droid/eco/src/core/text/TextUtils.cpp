@@ -578,7 +578,7 @@ void TextUtils::CopySpansFrom(
     /* [in] */ ISpanned* source,
     /* [in] */ Int32 start,
     /* [in] */ Int32 end,
-    /* [in] */ InterfaceID* kind,
+    /* [in] */ InterfaceID kind,
     /* [in] */ ISpannable* dest,
     /* [in] */ Int32 destoff)
 {
@@ -587,7 +587,7 @@ void TextUtils::CopySpansFrom(
 //    }
 
     ArrayOf<IInterface*>* spans;
-    source->GetSpans(start, end, *kind, &spans);
+    source->GetSpans(start, end, kind, &spans);
 
     for (Int32 i = 0; i < spans->GetLength(); i++) {
         Int32 st, en, fl;

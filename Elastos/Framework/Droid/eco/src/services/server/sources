@@ -61,8 +61,11 @@ SOURCES += CBackupManagerService.cpp
 SOURCES += CBatteryService.cpp
 SOURCES += CConnectivityService.cpp
 SOURCES += CClipboardService.cpp
+SOURCES += CMountService.cpp
 SOURCES += CNetStatService.cpp
 SOURCES += CPrivacySettingsManagerService.cpp
+SOURCES += CNetworkManagementService.cpp
+SOURCES += NativeDaemonConnector.cpp
 
 LIBRARIES += location/location.lib
 LIBRARIES += connectivity/connectivity.lib

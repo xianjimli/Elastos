@@ -9,7 +9,6 @@
 #include "os/CApartment.h"
 #include "os/SystemClock.h"
 #include "view/CSurfaceViewWindow.h"
-#include <stdio.h>
 
 //const String SurfaceView::TAG;
 const Boolean SurfaceView::DEBUG;
@@ -494,7 +493,9 @@ void SurfaceView::HideSurface()
                     (IRect**) &outVisibleInsets, (IConfiguration**) &outConfig,
                     &result, (ISurface**)&outSurface);
 
-            mSurface = outSurface;
+            Handle32 nativeSurface;
+            outSurface->GetSurface(&nativeSurface);
+            mSurface->SetSurface(nativeSurface);
         }
     }
 }
@@ -666,8 +667,9 @@ void SurfaceView::UpdateWindow(
         return;
     }
 
-    AutoPtr<ViewRoot> viewRoot;
-    GetRootView()->GetParent((IViewParent**)&viewRoot);
+    AutoPtr<IViewParent> vp;
+    GetRootView()->GetParent((IViewParent**)&vp);
+    AutoPtr<ViewRoot> viewRoot = reinterpret_cast<ViewRoot*>(vp->Probe(EIID_ViewRoot));
     if (viewRoot != NULL) {
         mTranslator = viewRoot->mTranslator;
     }
@@ -723,8 +725,7 @@ void SurfaceView::UpdateWindow(
             ((CWindowManagerLayoutParams*)mLayout.Get())->mWidth = GetWidth();
             ((CWindowManagerLayoutParams*)mLayout.Get())->mHeight = GetHeight();
             if (mTranslator != NULL) {
-                //TODO
-                //mTranslator->TranslateLayoutParamsInAppWindowToScreen(mLayout);
+                mTranslator->TranslateLayoutParamsInAppWindowToScreen(mLayout);
             }
 
             ((CWindowManagerLayoutParams*)mLayout.Get())->mFormat = mRequestedFormat;
@@ -738,7 +739,7 @@ void SurfaceView::UpdateWindow(
 
             //TODO
             //if (!GetContext()->GetResources()->GetCompatibilityInfo()->SupportsScreen()) {
-            // ((CWindowManagerLayoutParams*)mLayout.Get())->mFlags |= WindowManagerLayoutParams_FLAG_COMPATIBLE_WINDOW;
+            //((CWindowManagerLayoutParams*)mLayout.Get())->mFlags |= WindowManagerLayoutParams_FLAG_COMPATIBLE_WINDOW;
             //}
 
             ((CWindowManagerLayoutParams*)mLayout.Get())->mMemoryType = mRequestedType;
@@ -749,8 +750,8 @@ void SurfaceView::UpdateWindow(
                 ((CWindowManagerLayoutParams*)mLayout.Get())->mType = mWindowType;
                 ((CWindowManagerLayoutParams*)mLayout.Get())->mGravity = Gravity_LEFT|Gravity_TOP;
                 Int32 result = 0;
-                assert(mSession != NULL);
 
+                assert(mSession != NULL);
                 mSession->AddWithoutInputChannel(mWindow, mLayout,
                         mVisible ? VISIBLE : GONE, mContentInsets.Get(), &result);
             }
@@ -782,7 +783,10 @@ void SurfaceView::UpdateWindow(
                         (IRect**) &outVisibleInsets, (IConfiguration**) &outConfig,
                         &relayoutResult, (ISurface**)&outSurface);
 
-                mSurface = outSurface;
+                Handle32 nativeSurface;
+                outSurface->GetSurface(&nativeSurface);
+                mSurface->SetSurface(nativeSurface);
+                mWinFrame->SetEx(outFrame);
 
                 if ((relayoutResult & WindowManagerImpl_RELAYOUT_FIRST_TIME) != 0) {
                     mReportDrawNeeded = TRUE;
@@ -795,11 +799,16 @@ void SurfaceView::UpdateWindow(
                 if (mTranslator == NULL) {
                     mWinFrame->GetWidth(&((CRect*)mSurfaceFrame.Get())->mRight);
                     mWinFrame->GetHeight(&((CRect*)mSurfaceFrame.Get())->mBottom);
-                } else {
-                    //TODO
-                    // Float appInvertedScale = ((CTranslator*)mTranslator.Get())->ApplicationInvertedScale;
-                    // mSurfaceFrame->mRight = (Int32) (mWinFrame.width() * appInvertedScale + 0.5f);
-                    // mSurfaceFrame->mBottom = (Int32) (mWinFrame.height() * appInvertedScale + 0.5f);
+                }
+                else {
+                    Float appInvertedScale = 0.0;
+                    mTranslator->GetApplicationInvertedScale(&appInvertedScale);
+
+                    Int32 w = 0, h = 0;
+                    mWinFrame->GetWidth(&w);
+                    mWinFrame->GetHeight(&h);
+                    mSurfaceFrame->SetRight((Int32)(w * appInvertedScale + 0.5f));
+                    mSurfaceFrame->SetBottom((Int32)(h * appInvertedScale + 0.5f));
                 }
 
                 Int32 surfaceWidth = ((CRect*)mSurfaceFrame.Get())->mRight;

@@ -1,0 +1,140 @@
+
+module
+{
+    interface INetworkManagementService {
+
+	Create(
+             [in] IContext* context,
+             [out] INetworkManagementService** NMService);
+
+	RegisterObserver(
+             [in] INetworkManagementEventObserver* obs);
+
+	UnregisterObserver(
+             [in] INetworkManagementEventObserver* obs);
+
+	IntToIpString(
+             [in] Int32 i,
+             [out] String* s);
+
+	//
+	// INetworkManagementService members
+	//
+	ListInterfaces(
+             [out, callee] ArrayOf<String>* interfaces);
+
+	GetInterfaceConfig(
+             [in] String iface);
+//             [out] IInterfaceConfiguration** config);
+
+	SetInterfaceConfig(
+             [in] String iface);
+//             [in] InterfaceConfiguration cfg);
+
+	Shutdown();
+
+	GetIpForwardingEnabled(
+             [out] Boolean* isEnabled);
+
+	SetIpForwardingEnabled(
+             [in] Boolean isEnabled);
+
+	StartTethering(
+             [in] ArrayOf<String> dhcpRange);
+
+	StopTethering();
+
+	IsTetheringStarted(
+             [out] Boolean* isStarted);
+
+	TetherInterface(
+             [in] String iface);
+
+	UntetherInterface(
+             [in] String iface);
+
+	ListTetheredInterfaces(
+             [out, callee] ArrayOf<String>* interFaces);
+
+	SetDnsForwarders(
+             [in] ArrayOf<String> dns);
+
+	GetDnsForwarders(
+             [out, callee] ArrayOf<String>* forwarders);
+
+	EnableNat(
+             [in] String internalInterface,
+             [in] String externalInterface);
+
+	DisableNat(
+             [in] String internalInterface,
+             [in] String externalInterface);
+
+	ListTtys(
+             [out, callee] ArrayOf<String>* ttys);
+
+	AttachPppd(
+             [in] String tty,
+             [in] String localAddr,
+             [in] String remoteAddr,
+             [in] String dns1Addr,
+             [in] String dns2Addr);
+
+	DetachPppd(
+             [in] String tty);
+
+	StartUsbRNDIS();
+
+	StopUsbRNDIS();
+
+	IsUsbRNDISStarted(
+             [out] Boolean* isStarted);
+
+	StartAccessPoint(
+//             [in] IWifiConfiguration wifiConfig,
+             [in] String wlanIface,
+             [in] String softapIface);
+
+	ConvertQuotedString(
+             [in] String s,
+             [out] String* quotedString);
+
+	StopAccessPoint();
+
+	SetAccessPoint(
+//             [in] IWifiConfiguration wifiConfig,
+             [in] String wlanIface,
+             [in] String softapIface);
+
+	GetInterfaceCounter(
+             [in] String iface,
+             [in] Boolean rx,
+             [out] Int64* counter);
+
+	GetInterfaceRxCounter(
+             [in] String iface,
+             [out] Int64* counter);
+
+	GetInterfaceTxCounter(
+             [in] String iface,
+             [out] Int64* counter);
+
+	SetInterfaceThrottle(
+             [in] String iface,
+             [in] Int32 rxKbps,
+             [in] Int32 txKbps);
+
+	GetInterfaceThrottle(
+             [in] String iface,
+             [in] Boolean rx,
+             [out] Int32* throttle);
+
+	GetInterfaceRxThrottle(
+             [in] String iface,
+             [out] Int32* rxThrottle);
+
+	GetInterfaceTxThrottle(
+             [in] String iface,
+             [out] Int32* txThrottle);
+    }
+}

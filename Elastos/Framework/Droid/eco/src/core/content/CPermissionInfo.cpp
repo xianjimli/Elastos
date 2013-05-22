@@ -256,13 +256,13 @@ ECode CPermissionInfo::WriteToParcel(
     return NOERROR;
 }
 
-// ECode CPermissionInfo::GetDescription(
-//     /* [out] */ String* des)
-// {
-//     VALIDATE_NOT_NULL(des);
+ECode CPermissionInfo::GetDescription(
+    /* [out] */ String* des)
+{
+    VALIDATE_NOT_NULL(des);
 
-//     return E_NOT_IMPLEMENTED;
-// }
+    return E_NOT_IMPLEMENTED;
+}
 
 ECode CPermissionInfo::constructor()
 {

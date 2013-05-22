@@ -30,8 +30,8 @@ module
         TranslateRectInScreenToAppWindow(
             [in] IRect* rect);
 
-        //TranslateLayoutParamsInAppWindowToScreen(
-        //    [in] LayoutParams params);
+        TranslateLayoutParamsInAppWindowToScreen(
+            [in] IWindowManagerLayoutParams* params);
 
         GetTranslatedContentInsets(
             [in] IRect* contentInsets,
@@ -40,6 +40,9 @@ module
         GetTranslatedVisbileInsets(
             [in] IRect* visibleInsets,
             [out] IRect** rect);
+
+        GetApplicationInvertedScale(
+            [out] Float* appInvertedScale);
     }
 
     interface ICompatibilityInfo {

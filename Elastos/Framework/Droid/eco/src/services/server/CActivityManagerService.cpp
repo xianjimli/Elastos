@@ -19,7 +19,7 @@
 #include <unistd.h>
 #include <Slogger.h>
 #include <StringBuffer.h>
-
+#include <cutils/properties.h>
 
 using namespace Elastos;
 using namespace Elastos::Core;
@@ -890,14 +890,27 @@ void CActivityManagerService::StartProcessLocked(
 //            mSimpleProcessManagement ? app.processName : null, uid, uid,
 //            gids, debugFlags, null);
 
-    Int32 pid = fork();
-    if(pid == 0){
-        char *argv[] = {(char *)"host", (char *)"Elastos.Framework.Core.eco",
-                        (char *)"CApplicationApartment", NULL};
-        if(execv("/data/data/com.elastos.runtime/elastos/host", argv) < 0){
-            Slogger::E(TAG, "Execute host.ecx fail!\n");
+    Int32 pid = 0;
+    String sourcePath;
+    app->mInfo->GetSourceDir(&sourcePath);
+    if (!sourcePath.IsNull() && sourcePath.EndWith(".apk")) {
+        if (system("dalvikvm -cp /system/framework/android-bootstrap.jar com.elastos.android.Bootstrap") != 0) {
+            Slogger::E(TAG, "Execute dalvikvm fail!\n");
         }
-        exit(0);
+        char strPid[10];
+        property_get("elastos.pid", strPid, "0");
+        pid = atoi(strPid);
+    }
+    else {
+        pid = fork();
+        if(pid == 0){
+            char *argv[] = {(char *)"host", (char *)"Elastos.Framework.Core.eco",
+                            (char *)"CApplicationApartment", NULL};
+            if(execv("/data/data/com.elastos.runtime/elastos/host", argv) < 0){
+                Slogger::E(TAG, "Execute host.ecx fail!\n");
+            }
+            exit(0);
+        }
     }
 
 //    AutoPtr<BatteryStatsImpl> bs = app->mBatteryStats->GetBatteryStats();
@@ -4501,6 +4514,7 @@ ECode CActivityManagerService::GetRecentTasks(
 //            }
 //        }
 //        return res;
+//    }
     return E_NOT_IMPLEMENTED;
 }
 
