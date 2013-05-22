@@ -1,58 +1,77 @@
 
 #include "content/CSyncStorageEnginePendingOperation.h"
+#include "ext/frameworkext.h"
+#include "os/CBundle.h"
 
 ECode CSyncStorageEnginePendingOperation::GetAccount(
     /* [out] */ IAccount** account)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(account);
+    *account = mAccount;
+    return NOERROR;
 }
 
 ECode CSyncStorageEnginePendingOperation::GetSyncSource(
     /* [out] */ Int32* syncSource)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(syncSource);
+    *syncSource = mSyncSource;
+    return NOERROR;
 }
 
 ECode CSyncStorageEnginePendingOperation::GetAuthority(
     /* [out] */ String* authority)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(authority);
+    *authority = mAuthority;
+    return NOERROR;
 }
 
 ECode CSyncStorageEnginePendingOperation::GetExtras(
     /* [out] */ IBundle** extras)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(extras);
+    *extras = mExtras;
+    return NOERROR;
 }
 
 ECode CSyncStorageEnginePendingOperation::GetExpendited(
     /* [out] */ Boolean* expedited)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(expedited);
+    *expedited = mExpedited;
+    return NOERROR;
 }
 
 ECode CSyncStorageEnginePendingOperation::GetAuthorityId(
     /* [out] */ Int32* authorityId)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(authorityId);
+    *authorityId = mAuthorityId;
+    return NOERROR;
 }
 
 ECode CSyncStorageEnginePendingOperation::SetAuthorityId(
     /* [in] */ Int32 authorityId)
 {
-    return E_NOT_IMPLEMENTED;
+    mAuthorityId = authorityId;
+    return NOERROR;
 }
 
 ECode CSyncStorageEnginePendingOperation::GetFlatExtras(
     /* [out, callee] */ ArrayOf<Byte>** flatExtras)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(flatExtras);
+    *flatExtras = mFlatExtras->Clone();
+    return NOERROR;
 }
 
 ECode CSyncStorageEnginePendingOperation::SetFlatExtras(
     /* [in] */ ArrayOf<Byte>* flatExtras)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(flatExtras);
+    mFlatExtras->Replace(0, flatExtras->GetPayload(), flatExtras->GetLength());
+    return NOERROR;
 }
 
 ECode CSyncStorageEnginePendingOperation::constructor(
@@ -62,12 +81,31 @@ ECode CSyncStorageEnginePendingOperation::constructor(
     /* [in] */ IBundle* extras,
     /* [in] */ Boolean expedited)
 {
-    return E_NOT_IMPLEMENTED;
+    mAccount = account;
+    mSyncSource = source;
+    mAuthority = authority;
+
+    if (NULL != extras) {
+        FAIL_RETURN(CBundle::New(extras, (IBundle**)&mExtras));
+    } else{
+        mExtras = extras;
+    }
+
+    mExpedited = expedited;
+    mAuthorityId = -1;
+    return NOERROR;
 }
 
 ECode CSyncStorageEnginePendingOperation::constructor(
     /* [in] */ ISyncStorageEnginePendingOperation* other)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(other);
+    FAIL_RETURN(other->GetAccount((IAccount**)&mAccount));
+    FAIL_RETURN(other->GetSyncSource(&mSyncSource));
+    FAIL_RETURN(other->GetAuthority(&mAuthority));
+    FAIL_RETURN(other->GetExtras((IBundle**)&mExtras));
+    FAIL_RETURN(other->GetAuthorityId(&mAuthorityId));
+    FAIL_RETURN(other->GetExpendited(&mExpedited));
+    return NOERROR;
 }
 

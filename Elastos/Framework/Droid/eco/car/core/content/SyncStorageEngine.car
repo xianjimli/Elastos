@@ -149,7 +149,7 @@ module
             [in] String authority);
 
         GetAuthority(
-            [in] Int32 authoriyId,
+            [in] Int32 authorityId,
             [out] ISyncStorageEngineAuthorityInfo** authorityInfo);
 
         /**
@@ -396,8 +396,8 @@ module
         SetDelayUntil(
             [in] Int64 delayUntil);
 
-        GetPeriodicSyncs(
-            [out] IObjectContainer** periodicSyncs);
+        //GetPeriodicSyncs(
+        //    [out] IObjectContainer** periodicSyncs);
 
     }
 

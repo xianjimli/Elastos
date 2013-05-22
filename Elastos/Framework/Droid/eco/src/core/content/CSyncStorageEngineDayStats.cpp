@@ -1,63 +1,79 @@
 
 #include "content/CSyncStorageEngineDayStats.h"
+#include "ext/frameworkdef.h"
 
 ECode CSyncStorageEngineDayStats::GetDay(
     /* [out] */ Int32* day)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(day);
+    *day = mDay;
+    return NOERROR;
 }
 
 ECode CSyncStorageEngineDayStats::GetSuccessCount(
     /* [out] */ Int32* successCount)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(successCount);
+    *successCount = mSuccessCount;
+    return NOERROR;
 }
 
 ECode CSyncStorageEngineDayStats::SetSuccessCount(
     /* [in] */ Int32 successCount)
 {
-    return E_NOT_IMPLEMENTED;
+    mSuccessCount = successCount;
+    return NOERROR;
 }
 
 ECode CSyncStorageEngineDayStats::GetSuccessTime(
     /* [out] */ Int64* successTime)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(successTime);
+    *successTime = mSuccessTime;
+    return NOERROR;
 }
 
 ECode CSyncStorageEngineDayStats::SetSuccessTime(
     /* [in] */ Int64 successTime)
 {
-    return E_NOT_IMPLEMENTED;
+    mSuccessTime = successTime;
+    return NOERROR;
 }
 
 ECode CSyncStorageEngineDayStats::GetFailureCount(
     /* [out] */ Int32* failureCount)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(failureCount);
+    *failureCount = mFailureCount;
+    return NOERROR;
 }
 
 ECode CSyncStorageEngineDayStats::SetFailureCount(
     /* [in] */ Int32 failureCount)
 {
-    return E_NOT_IMPLEMENTED;
+    mFailureCount = failureCount;
+    return NOERROR;
 }
 
 ECode CSyncStorageEngineDayStats::GetFailureTime(
     /* [out] */ Int64* failureTime)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(failureTime);
+    *failureTime = mFailureTime;
+    return NOERROR;
 }
 
 ECode CSyncStorageEngineDayStats::SetFailureTime(
     /* [in] */ Int64 failureTime)
 {
-    return E_NOT_IMPLEMENTED;
+    mFailureTime = failureTime;
+    return NOERROR;
 }
 
 ECode CSyncStorageEngineDayStats::constructor(
     /* [in] */ Int32 day)
 {
-    return E_NOT_IMPLEMENTED;
+    mDay = day;
+    return NOERROR;
 }
 

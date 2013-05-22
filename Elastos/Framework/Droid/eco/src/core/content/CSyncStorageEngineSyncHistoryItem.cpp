@@ -1,111 +1,139 @@
 
 #include "content/CSyncStorageEngineSyncHistoryItem.h"
+#include "ext/frameworkdef.h"
 
 ECode CSyncStorageEngineSyncHistoryItem::GetAuthorityId(
     /* [out] */ Int32* authorityId)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(authorityId);
+    *authorityId = mAuthorityId;
+    return NOERROR;
 }
 
 ECode CSyncStorageEngineSyncHistoryItem::SetAuthorityId(
     /* [in] */ Int32 authorityId)
 {
-    return E_NOT_IMPLEMENTED;
+    mAuthorityId = authorityId;
+    return NOERROR;
 }
 
 ECode CSyncStorageEngineSyncHistoryItem::GetHistoryId(
     /* [out] */ Int32* historyId)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(historyId);
+    *historyId = mHistoryId;
+    return NOERROR;
 }
 
 ECode CSyncStorageEngineSyncHistoryItem::SetHistoryId(
     /* [in] */ Int32 historyId)
 {
-    return E_NOT_IMPLEMENTED;
+    mHistoryId = historyId;
+    return NOERROR;
 }
 
 ECode CSyncStorageEngineSyncHistoryItem::GetEventTime(
     /* [out] */ Int64* eventTime)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(eventTime);
+    *eventTime = mEventTime;
+    return NOERROR;
 }
 
 ECode CSyncStorageEngineSyncHistoryItem::SetEventTime(
     /* [in] */ Int64 eventTime)
 {
-    return E_NOT_IMPLEMENTED;
+    mEventTime = eventTime;
+    return NOERROR;
 }
 
 ECode CSyncStorageEngineSyncHistoryItem::GetElapsedTime(
     /* [out] */ Int64* elapsedTime)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(elapsedTime);
+    *elapsedTime = mElapsedTime;
+    return NOERROR;
 }
 
 ECode CSyncStorageEngineSyncHistoryItem::SetElapsedTime(
     /* [in] */ Int64 elapsedTime)
 {
-    return E_NOT_IMPLEMENTED;
+    mElapsedTime = elapsedTime;
+    return NOERROR;
 }
 
 ECode CSyncStorageEngineSyncHistoryItem::GetSource(
     /* [out] */ Int32* source)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(source);
+    *source = mSource;
+    return NOERROR;
 }
 
 ECode CSyncStorageEngineSyncHistoryItem::SetSource(
     /* [in] */ Int32 source)
 {
-    return E_NOT_IMPLEMENTED;
+    mSource = source;
+    return NOERROR;
 }
 
 ECode CSyncStorageEngineSyncHistoryItem::GetEvent(
     /* [out] */ Int32* event)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(event);
+    *event = mEvent;
+    return NOERROR;
 }
 
 ECode CSyncStorageEngineSyncHistoryItem::SetEvent(
     /* [in] */ Int32 event)
 {
-    return E_NOT_IMPLEMENTED;
+    mEvent = event;
+    return NOERROR;
 }
 
 ECode CSyncStorageEngineSyncHistoryItem::GetUpstreamActivity(
     /* [out] */ Int64* upstreamActivity)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(upstreamActivity);
+    *upstreamActivity = mUpstreamActivity;
+    return NOERROR;
 }
 
 ECode CSyncStorageEngineSyncHistoryItem::SetUpstreamActivity(
     /* [in] */ Int64 upstreamActivity)
 {
-    return E_NOT_IMPLEMENTED;
+    mUpstreamActivity = upstreamActivity;
+    return NOERROR;
 }
 
 ECode CSyncStorageEngineSyncHistoryItem::GetDownstreamActivity(
     /* [out] */ Int64* downstreamActivity)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(downstreamActivity);
+    *downstreamActivity = mDownstreamActivity;
+    return NOERROR;
 }
 
 ECode CSyncStorageEngineSyncHistoryItem::SetDownstreamActivity(
     /* [in] */ Int64 downstreamActivity)
 {
-    return E_NOT_IMPLEMENTED;
+    mDownstreamActivity = downstreamActivity;
+    return NOERROR;
 }
 
 ECode CSyncStorageEngineSyncHistoryItem::GetMesg(
     /* [out] */ String* mesg)
 {
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(mesg);
+    *mesg = mMesg;
+    return NOERROR;
 }
 
 ECode CSyncStorageEngineSyncHistoryItem::SetMesg(
     /* [in] */ const String& mesg)
 {
-    return E_NOT_IMPLEMENTED;
+    mMesg = mesg;
+    return NOERROR;
 }
 
