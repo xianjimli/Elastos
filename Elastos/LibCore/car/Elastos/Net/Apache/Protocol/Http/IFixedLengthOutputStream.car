@@ -1,0 +1,6 @@
+module
+{
+    interface IFixedLengthOutputStream extends IAbstractHttpOutputStream
+    {
+    }
+}

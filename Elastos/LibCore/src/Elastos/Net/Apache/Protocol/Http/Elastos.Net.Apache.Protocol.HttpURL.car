@@ -3,6 +3,13 @@ module
     merge("../../../../../../car/Elastos/Net/Apache/Protocol/Http/IHttpHandler.car");
     merge("../../../../../../car/Elastos/Net/Apache/Protocol/Http/IHttpURLConnectionImpl.car");
     merge("../../../../../../car/Elastos/Net/Apache/Protocol/Http/IAbstractHttpOutputStream.car");
+    merge("../../../../../../car/Elastos/Net/Apache/Protocol/Http/IAbstractHttpInputStream.car");
+    merge("../../../../../../car/Elastos/Net/Apache/Protocol/Http/IChunkedInputStream.car");
+    merge("../../../../../../car/Elastos/Net/Apache/Protocol/Http/IChunkedOutputStream.car");
+    merge("../../../../../../car/Elastos/Net/Apache/Protocol/Http/IFixedLengthInputStream.car");
+    merge("../../../../../../car/Elastos/Net/Apache/Protocol/Http/IFixedLengthOutputStream.car");
+    merge("../../../../../../car/Elastos/Net/Apache/Protocol/Http/IUnknownLengthHttpInputStream.car");
+    merge("../../../../../../car/Elastos/Net/Apache/Protocol/Http/IRetryableOutputStream.car");
 
     class CHttpURLConnectionImpl {
         constructor(
@@ -24,4 +31,56 @@ module
         interface IHttpHandler;
     }
 
+    class CChunkedInputStream {
+        constructor(
+            [in] IInputStream* is,
+            [in] ICacheRequest* cacheRequest,
+            [in] IHttpURLConnectionImpl* httpURLConnection);
+
+        interface IChunkedInputStream;
+    }
+
+    class CChunkedOutputStream {
+        constructor(
+            [in] IOutputStream* socketOut,
+            [in] Int32 maxChunkLength);
+
+        interface IChunkedOutputStream;
+    }
+
+    class CFixedLengthInputStream {
+        constructor(
+            [in] IInputStream* is,
+            [in] ICacheRequest* cacheRequest,
+            [in] IHttpURLConnectionImpl* httpURLConnection,
+            [in] Int32 length);
+
+        interface IFixedLengthInputStream;
+    }
+
+    class CFixedLengthOutputStream {
+        constructor(
+            [in] IOutputStream* socketOut,
+            [in] Int32 bytesRemaining);
+
+        interface IFixedLengthOutputStream;
+    }
+
+    class CUnknownLengthHttpInputStream {
+        constructor(
+            [in] IInputStream* is,
+            [in] ICacheRequest* cacheRequest,
+            [in] IHttpURLConnectionImpl* httpURLConnection);
+
+        interface IUnknownLengthHttpInputStream;
+    }
+
+    class CRetryableOutputStream {
+        constructor();
+
+        constructor(
+            [in] Int32 limit);
+
+        interface IRetryableOutputStream;
+    }
 }
