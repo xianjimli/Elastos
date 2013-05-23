@@ -1,6 +1,7 @@
 
 #include "webkit/CUrlInterceptRegistryHelper.h"
 #include "webkit/CUrlInterceptRegistry.h"
+
 ECode CUrlInterceptRegistryHelper::SetUrlInterceptDisabled(
     /* [in] */ Boolean disabled)
 {
@@ -11,6 +12,8 @@ ECode CUrlInterceptRegistryHelper::SetUrlInterceptDisabled(
 ECode CUrlInterceptRegistryHelper::UrlInterceptDisabled(
     /* [out] */ Boolean * flag)
 {
+    VALIDATE_NOT_NULL(flag);
+
     *flag = CUrlInterceptRegistry::UrlInterceptDisabled();
     return NOERROR;
 }
@@ -19,6 +22,8 @@ ECode CUrlInterceptRegistryHelper::RegisterHandler(
     /* [in] */ IUrlInterceptHandler * handler,
     /* [out] */ Boolean * flag)
 {
+    VALIDATE_NOT_NULL(flag);
+
     *flag = CUrlInterceptRegistry::RegisterHandler(handler);
     return NOERROR;
 }
@@ -27,6 +32,8 @@ ECode CUrlInterceptRegistryHelper::UnregisterHandler(
     /* [in] */ IUrlInterceptHandler * handler,
     /* [out] */ Boolean * flag)
 {
+    VALIDATE_NOT_NULL(flag);
+
     *flag = CUrlInterceptRegistry::UnregisterHandler(handler);
     return NOERROR;
 }

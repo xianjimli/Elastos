@@ -1,3 +1,4 @@
+#include <Logger.h>
 
 #include "ext/frameworkext.h"
 #include <elstring.h>
@@ -6,8 +7,11 @@
 
 #include "webkit/CWebViewDatabase.h"
 #include "webkit/CCacheManager.h"
+#include "webkit/DebugFlags.h"
 #include "os/Runnable.h"
 #include "os/FileUtils.h"
+
+using namespace Elastos::Utility::Logging;
 
 const CString CCacheManager::HEADER_KEY_IFMODIFIEDSINCE("if-modified-since");
 const CString CCacheManager::HEADER_KEY_IFNONEMATCH("if-none-match");
@@ -271,9 +275,9 @@ CARAPI_(AutoPtr<ICacheManagerCacheResult>) CCacheManager::GetCacheFile(
         }
     }
 
-    /*if (DebugFlags.CACHE_MANAGER) {
-        Log.v(LOGTAG, "getCacheFile for url " + url);
-    }*/
+    if (DebugFlags::sCACHE_MANAGER) {
+        Logger::V(LOGTAG, "getCacheFile for url " + url);
+    }
 
     return result;
 }
@@ -374,7 +378,9 @@ CARAPI_(void) CCacheManager::SaveCacheFile(
     Boolean bDelete = FALSE;
     cacheRet->outFile->Delete(&bDelete);
     if ((redirect || cacheRet->contentLength == 0) && !bDelete) {
-        //Log.e(LOGTAG, cacheRet.outFile.getPath() + " delete failed.");
+        String path;
+        cacheRet->outFile->GetPath(&path);
+        Logger::E(LOGTAG, path + " delete failed.");
     }
 
     if (cacheRet->contentLength == 0) {
@@ -385,9 +391,9 @@ CARAPI_(void) CCacheManager::SaveCacheFile(
     GetDatabaseKey(url, postIdentifier, str);
     mDataBase->AddCache(str, (ICacheManagerCacheResult*)cacheRet);
 
-    //if (DebugFlags.CACHE_MANAGER) {
-    //    Log.v(LOGTAG, "saveCacheFile for url " + url);
-    //}
+    if (DebugFlags::sCACHE_MANAGER) {
+        Logger::V(LOGTAG, "saveCacheFile for url " + url);
+    }
 }
 
 CARAPI_(Boolean) CCacheManager::CleanupCacheFile(
@@ -443,7 +449,9 @@ CARAPI_(Boolean) CCacheManager::RemoveAllCacheFiles()
                     Boolean flag = false;
                     f->Delete(&flag);
                     if (!flag) {
-//                        Log.e(LOGTAG, f.getPath() + " delete failed.");
+                        String path;
+                        f->GetPath(&path);
+                        Logger::E(LOGTAG, path + " delete failed.");
                     }
                 }
             }
@@ -481,7 +489,9 @@ CARAPI_(void) CCacheManager::TrimCacheIfNeeded()
             Boolean bDelete = FALSE;
             f->Delete(&bDelete);
             if (!bDelete) {
-            //    Log.e(LOGTAG, f.getPath() + " delete failed.");
+                String path;
+                f->GetPath(&path);
+                Logger::E(LOGTAG, path + " delete failed.");
             }
         }
         // remove the unreferenced files in the cache directory
@@ -528,7 +538,7 @@ CARAPI_(Boolean) CCacheManager::CreateCacheDirectory()
         Boolean bMkDir = FALSE;
         mBaseDir->Mkdirs(&bMkDir);
         if(!bMkDir) {
-            //Log.w(LOGTAG, "Unable to create webviewCache directory");
+            Logger::W(LOGTAG, "Unable to create webviewCache directory");
             return FALSE;
         }
 

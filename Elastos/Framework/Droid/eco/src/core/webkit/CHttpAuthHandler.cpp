@@ -3,7 +3,7 @@
 #include "os/CApartment.h"
 #include "webkit/CBrowserFrame.h"
 
-const CString CHttpAuthHandler::LOGTAG = "network";
+const CString CHttpAuthHandler::LOGTAG("network");
 
 const Int32 CHttpAuthHandler::AUTH_PROCEED;
 const Int32 CHttpAuthHandler::AUTH_CANCEL;
@@ -17,8 +17,8 @@ CHttpAuthHandler::construct(
 }
 
 Boolean CHttpAuthHandler::HandleResponseForSynchronousRequest(
-        /* [in] */ String username, 
-        /* [in] */ String password)
+        /* [in] */ const String& username, 
+        /* [in] */ const String& password)
 {
     AutoPtr<LoadListener> loader = NULL;
 
@@ -46,7 +46,7 @@ ECode CHttpAuthHandler::Proceed(
     /* [in] */ const String& username,
     /* [in] */ const String& password)
 {
-    if ( HandleResponseForSynchronousRequest( username, password ) ) {
+    if (HandleResponseForSynchronousRequest(username, password)) {
         SignalRequestComplete();
         return NOERROR;
     }
@@ -71,7 +71,7 @@ ECode CHttpAuthHandler::Cancel()
 }
 
 ECode CHttpAuthHandler::UseHttpAuthUsernamePassword(
-    /* [out] */ Boolean * pFlag)
+    /* [out] */ Boolean* flag)
 {
     AutoPtr<LoadListener> loader;
 
@@ -80,11 +80,11 @@ ECode CHttpAuthHandler::UseHttpAuthUsernamePassword(
     mLoaderQueueMutex.Unlock();
 
     if (loader != NULL) {
-        *pFlag = !loader->AuthCredentialsInvalid();
+        *flag = !loader->AuthCredentialsInvalid();
         return NOERROR;
     }
 
-    *pFlag = FALSE;
+    *flag = FALSE;
     return NOERROR;
 }
 
@@ -183,10 +183,10 @@ void CHttpAuthHandler::ProcessNextLoader()
 
 void CHttpAuthHandler::OnReceivedCredentials(
     /* [in] */ LoadListener* loader,
-    /* [in] */ String host, 
-    /* [in] */ String realm, 
-    /* [in] */ String username, 
-    /* [in] */ String password)
+    /* [in] */ const String& host, 
+    /* [in] */ const String& realm, 
+    /* [in] */ const String& username, 
+    /* [in] */ const String& password)
 {
     AutoPtr<IBrowserFrame> browserFrame = loader->GetFrame();
     CBrowserFrame* bf = (CBrowserFrame*)(browserFrame.Get());
@@ -292,7 +292,7 @@ ECode CHttpAuthHandler::SendMessage(
 	ECode ec = E_ILLEGAL_ARGUMENT_EXCEPTION;
 
     if (message == AUTH_PROCEED) {
-        void (STDCALL CHttpAuthHandler::*pHandlerFunc)(String, String);
+        void (STDCALL CHttpAuthHandler::*pHandlerFunc)(const String&, const String&);
         pHandlerFunc = &CHttpAuthHandler::HandleAuthProceed;
         ec = mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);
     }
@@ -305,8 +305,8 @@ ECode CHttpAuthHandler::SendMessage(
 }
 
 void CHttpAuthHandler::HandleAuthProceed(
-        /* [in] */ String username,
-        /* [in] */ String password)
+        /* [in] */ const String& username,
+        /* [in] */ const String& password)
 {
 	AutoPtr<LoadListener> loader = NULL;
 	{

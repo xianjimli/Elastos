@@ -1,7 +1,11 @@
+#include <Logger.h>
+#include <StringBuffer.h>
 
 #include "webkit/FileLoader.h"
 #include "webkit/CURLUtil.h"
 #include "utils/CTypedValue.h"
+
+using namespace Elastos::Utility::Logging;
 
 const CString FileLoader::LOGTAG("webkit");
 
@@ -61,7 +65,7 @@ CARAPI_(Boolean) FileLoader::SetupStreamAndSendStatus()
         // drawable/foo.png, the id is located at field "foo" of class
         // "<package>.R$drawable"
         if (mPath.GetLength() == 0) {
-//            Log.e(LOGTAG, "Need a path to resolve the res file");
+            Logger::E(LOGTAG, "Need a path to resolve the res file");
 //            mLoadListener.error(EventHandler.FILE_ERROR, mContext
 //                    .getString(R.string.httpErrorFileNotFound));
             return FALSE;
@@ -70,7 +74,7 @@ CARAPI_(Boolean) FileLoader::SetupStreamAndSendStatus()
         Int32 slash = mPath.IndexOf('/');
         Int32 dot = mPath.IndexOf('.', slash);
         if (slash == -1 || dot == -1) {
-//            Log.e(LOGTAG, "Incorrect res path: " + mPath);
+            Logger::E(LOGTAG, StringBuffer("Incorrect res path: ") + mPath);
 //            mLoadListener.error(EventHandler.FILE_ERROR, mContext
 //                    .getString(R.string.httpErrorFileNotFound));
             return FALSE;

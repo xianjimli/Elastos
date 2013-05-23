@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <Logger.h>
 
 #include "webkit/CBrowserFrame.h"
 #include "webkit/JWebCoreJavaBridge.h"
@@ -7,12 +8,15 @@
 #include "webkit/CookieSyncManager.h"
 #include "webkit/CPluginManager.h"
 #include "webkit/CURLUtil.h"
+#include "webkit/DebugFlags.h"
 #include "webkit/WebHistoryItem.h"
 #include "webkit/WebBackForwardList.h"
 #include "view/ViewRoot.h"
 #include "view/CDisplay.h"
 #include "webkit/CCallbackProxy.h"
 #include "os/CApartment.h"
+
+using namespace Elastos::Utility::Logging;
 
 // message ids
 // a message posted when a frame loading is completed
@@ -348,9 +352,9 @@ ECode CBrowserFrame::constructor(
     proxy->GetBackForwardList((IWebBackForwardList**)&list);
     NativeCreateFrame((WebViewCore*)webViewCore, am, list);
 
-/*    if (DebugFlags.BROWSER_FRAME) {
-        Log.v(LOGTAG, "BrowserFrame constructor: this=" + this);
-    }*/
+    if (DebugFlags::sBROWSER_FRAME) {
+        Logger::V(LOGTAG, "BrowserFrame constructor: this=%d" + (Int32)this);
+    }
 
     return NOERROR;
 }

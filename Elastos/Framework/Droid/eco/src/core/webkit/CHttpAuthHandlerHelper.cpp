@@ -1,6 +1,7 @@
 
 #include "webkit/CHttpAuthHandlerHelper.h"
 #include "webkit/CHttpAuthHandler.h"
+
 ECode CHttpAuthHandlerHelper::OnReceivedCredentials(
     /* [in] */ Handle32 loader,
     /* [in] */ const String& host,

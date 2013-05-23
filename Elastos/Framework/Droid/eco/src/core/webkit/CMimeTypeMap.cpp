@@ -15,8 +15,7 @@ ECode CMimeTypeMap::GetFileExtensionFromUrl(
     if (url.GetLength() > 0)
     {
         Int32 query = url.LastIndexOf('?');
-        if (query > 0)
-        {
+        if (query > 0) {
             url = url.Substring(0, query);
         }
         Int32 filenamePos = url.LastIndexOf('/');
@@ -26,11 +25,9 @@ ECode CMimeTypeMap::GetFileExtensionFromUrl(
         // if the filename contains special characters, we don't
         // consider it valid for our matching purposes:
         if (filename.GetLength() > 0 /*&&
-            Pattern.matches("[a-zA-Z_0-9\\.\\-\\(\\)\\%]+", filename)*/)
-        {
+            Pattern.matches("[a-zA-Z_0-9\\.\\-\\(\\)\\%]+", filename)*/) {
             Int32 dotPos = filename.LastIndexOf('.');
-            if (0 <= dotPos)
-            {
+            if (0 <= dotPos) {
                 *outUrl = filename.Substring(dotPos + 1);
                 return E_NOT_IMPLEMENTED;
             }

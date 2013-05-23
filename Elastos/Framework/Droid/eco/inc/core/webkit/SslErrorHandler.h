@@ -3,17 +3,22 @@
 
 #include "LoadListener.h"
 
+#include <elastos/List.h>
+
+using namespace Core::Threading;
+
 /**
  * SslErrorHandler: class responsible for handling SSL errors. This class is
  * passed as a parameter to BrowserCallback.displaySslErrorDialog and is meant
  * to receive the user's response.
  */
-class SslErrorHandler // : public Handler 
+class SslErrorHandler : public ElRefBase,
+                        public IApartment
 {
 
     //@Override
-    virtual CARAPI_(void) HandleMessage(
-        /* [in] */ IMessage* msg);
+    //virtual CARAPI_(void) HandleMessage(
+    //    /* [in] */ IMessage* msg);
 
     /**
      * Creates a new error handler with an empty loader queue.
@@ -47,7 +52,7 @@ class SslErrorHandler // : public Handler
      * Handles SSL error(s) on the way up to the user.
      */
     /* package */
-    virtual CARAPI_(void) handleSslErrorRequest(
+    virtual CARAPI_(void) HandleSslErrorRequest(
         /* [in] */ LoadListener* loader);
 
     /**
@@ -113,18 +118,23 @@ private:
      * Queue of loaders that experience SSL-related problems.
      */
 //    LinkedList<LoadListener> mLoaderQueue;
+     List<AutoPtr<LoadListener> >* mLoaderQueue;
 
     /**
      * SSL error preference table.
      */
-    IBundle* mSslPrefTable;
+    AutoPtr<IBundle> mSslPrefTable;
 
     // These are only used in the client facing SslErrorHandler.
-    const ISslErrorHandler* mOriginHandler;
-    const LoadListener* mLoadListener;
+    /*const*/ AutoPtr<ISslErrorHandler> mOriginHandler;
+    /*const*/ AutoPtr<LoadListener> mLoadListener;
 
     // Message id for handling the response
     static const Int32 HANDLE_RESPONSE = 100;
+
+    AutoPtr<IApartment> mApartment;
+
+    Mutex mSyncLock;
 };
 
 #endif //__SSLERRORHANDLER_H__

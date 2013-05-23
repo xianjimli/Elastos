@@ -1,10 +1,14 @@
+#include <Logger.h>
 
 #include "webkit/JWebCoreJavaBridge.h"
 #include "webkit/PerfChecker.h"
 #include "webkit/CCookieManager.h"
 #include "webkit/CPluginManager.h"
 #include "webkit/CertTool.h"
+#include "webkit/DebugFlags.h"
 #include "content/Context.h"
+
+using namespace Elastos::Utility::Logging;
 
 const CString JWebCoreJavaBridge::LOGTAG("webkit-timers");
 AutoPtr<IWebView> JWebCoreJavaBridge::sCurrentMainWebView = NULL;
@@ -209,7 +213,7 @@ CARAPI_(void) JWebCoreJavaBridge::GetPluginSharedDataDirectory(
 CARAPI_(void) JWebCoreJavaBridge::SetSharedTimer(
 	/* [in] */ Int64 timemillis)
 {
-//    if (DebugFlags.J_WEB_CORE_JAVA_BRIDGE) Log.v(LOGTAG, "setSharedTimer " + timemillis);
+    if (DebugFlags::sJ_WEB_CORE_JAVA_BRIDGE) Logger::V(LOGTAG, "setSharedTimer %d" + timemillis);
 
     ECode (STDCALL JWebCoreJavaBridge::*pHandlerFunc)();
 
@@ -236,9 +240,9 @@ CARAPI_(void) JWebCoreJavaBridge::SetSharedTimer(
  */
 CARAPI_(void) JWebCoreJavaBridge::StopSharedTimer()
 {
-//	if (DebugFlags.J_WEB_CORE_JAVA_BRIDGE) {
-//        Log.v(LOGTAG, "stopSharedTimer removing all timers");
-//    }
+	if (DebugFlags::sJ_WEB_CORE_JAVA_BRIDGE) {
+        Logger::V(LOGTAG, "stopSharedTimer removing all timers");
+    }
 
     ECode (STDCALL JWebCoreJavaBridge::*pHandlerFunc)();
     pHandlerFunc = &JWebCoreJavaBridge::HandleTimerMessage;
@@ -271,7 +275,7 @@ CARAPI_(void) JWebCoreJavaBridge::GetSignedPublicKey(
         assert(pContext != NULL);
         CertTool::GetSignedPublicKey(pContext, index, challenge, strOut);
     } else {
-//        Log.e(LOGTAG, "There is no active WebView for getSignedPublicKey");
+        Logger::E(LOGTAG, "There is no active WebView for getSignedPublicKey");
         strOut = "";
     }
 }

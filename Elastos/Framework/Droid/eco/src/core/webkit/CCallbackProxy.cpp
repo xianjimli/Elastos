@@ -1,9 +1,14 @@
+#include <Logger.h>
 
 #include "webkit/CCallbackProxy.h"
 #include "webkit/Network.h"
 #include "webkit/WebBackForwardList.h"
 #include "webkit/CWebView.h"
 #include "webkit/CWebHistoryItem.h"
+#include "webkit/DebugFlags.h"
+#include "os/SystemClock.h"
+
+using namespace Elastos::Utility::Logging;
 
 const CString CCallbackProxy::LOGTAG("CallbackProxy");
 
@@ -728,9 +733,9 @@ ECode CCallbackProxy::OnPageFinished(
     // Performance probe
     if (PERF_PROBE) {
         // un-comment this if PERF_PROBE is true
-//        Log.d("WebCore", "WebCore thread used " + 
-//                (SystemClock.currentThreadTimeMillis() - mWebCoreThreadTime)
-//                + " ms and idled " + mWebCoreIdleTime + " ms");
+        Logger::D("WebCore", "WebCore thread used %d ms and idled %d ms" + 
+                (SystemClock::GetUptimeMillis() - mWebCoreThreadTime) +
+                mWebCoreIdleTime);
         Network::GetInstance((IContext*)mContext)->StopTiming();
     }
 
