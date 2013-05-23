@@ -1,6 +1,6 @@
 module
 {
-    interface IAbstractHttpInputStream extends IAbstractHttpInputStream
+    interface IAbstractHttpInputStream extends IInputStream
     {
     }
 }
