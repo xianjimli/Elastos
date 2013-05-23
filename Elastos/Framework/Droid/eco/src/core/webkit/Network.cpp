@@ -1,6 +1,10 @@
+#include <Logger.h>
 
 #include "webkit/Network.h"
 #include "webkit/HttpAuthHandler.h"
+#include "webkit/DebugFlags.h"
+
+using namespace Elastos::Utility::Logging;
 
 const CString Network::LOGTAG("network");
 
@@ -188,9 +192,9 @@ CARAPI_(void) Network::SetProxyPassword(
 CARAPI_(Boolean) Network::SaveState(
 	/* [in] */ const IBundle* outState)
 {
-//	if (DebugFlags.NETWORK) {
-//        Log.v(LOGTAG, "Network.saveState()");
-//    }
+	if (DebugFlags::sNETWORK) {
+        Logger::V(LOGTAG, "Network.saveState()");
+    }
 
 	Boolean bRet = FALSE;
 
@@ -208,9 +212,9 @@ CARAPI_(Boolean) Network::SaveState(
 CARAPI_(Boolean) Network::RestoreState(
 	/* [in] */ const IBundle* inState)
 {
-//	if (DebugFlags.NETWORK) {
-//        Log.v(LOGTAG, "Network.restoreState()");
-//    }
+	if (DebugFlags::sNETWORK) {
+        Logger::V(LOGTAG, "Network.restoreState()");
+    }
 
 	Boolean bRet = FALSE;
 

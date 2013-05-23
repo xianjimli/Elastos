@@ -1,7 +1,11 @@
+#include <Logger.h>
 
 #include "webkit/CookieSyncManager.h"
 #include "webkit/CWebViewDatabase.h"
 #include "webkit/CCookieManager.h"
+#include "webkit/DebugFlags.h"
+
+using namespace Elastos::Utility::Logging;
 
 CookieSyncManager* CookieSyncManager::sRef = NULL;
 Mutex CookieSyncManager::sSyncLock;
@@ -134,9 +138,9 @@ CARAPI_(void) CookieSyncManager::ClearExpiredCookies(
 
 CARAPI_(void) CookieSyncManager::SyncFromRamToFlash()
 {
-//	if (DebugFlags.COOKIE_SYNC_MANAGER) {
-//        Log.v(LOGTAG, "CookieSyncManager::syncFromRamToFlash STARTS");
-//    }
+	if (DebugFlags::sCOOKIE_SYNC_MANAGER) {
+        Logger::V(LOGTAG, "CookieSyncManager::syncFromRamToFlash STARTS");
+    }
 
 	ICookieManager* cookieManager = NULL;
 	///////////////////////   new  //////////////////////////////
@@ -155,9 +159,9 @@ CARAPI_(void) CookieSyncManager::SyncFromRamToFlash()
     ((CCookieManager*)cookieManager)->DeleteLRUDomain(lruList);
     SyncFromRamToFlash(lruList);
 
-//    if (DebugFlags.COOKIE_SYNC_MANAGER) {
-//        Log.v(LOGTAG, "CookieSyncManager::syncFromRamToFlash DONE");
-//    }
+    if (DebugFlags::sCOOKIE_SYNC_MANAGER) {
+        Logger::V(LOGTAG, "CookieSyncManager::syncFromRamToFlash DONE");
+    }
 }
 
 CookieSyncManager::CookieSyncManager(

@@ -1,5 +1,9 @@
+#include <Logger.h>
+#include <StringBuffer.h>
 
 #include "webkit/PerfChecker.h"
+
+using namespace Elastos::Utility::Logging;
 
 const Int64 PerfChecker::mResponseThreshold;
 
@@ -22,7 +26,7 @@ CARAPI_(void) PerfChecker::ResponseAlert(
         Int64 upTime;// = SystemClock.uptimeMillis();
         Int64 time =  upTime - mTime;
         if (time > mResponseThreshold) {
-//            Log.w("webkit", what + " used " + time + " ms");
+            Logger::W("webkit", StringBuffer(what) + " used %d ms" + time);
         }
         // Reset mTime, to permit reuse
         mTime = upTime;

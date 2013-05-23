@@ -1,3 +1,4 @@
+#include <Logger.h>
 
 #include "webkit/CWebView.h"
 #include "webkit/CWebViewDatabase.h"
@@ -8,6 +9,7 @@
 #include "webkit/CWebBackForwardList.h"
 #include "webkit/CPluginList.h"
 #include "widget/CToastHelper.h"
+#include "webkit/DebugFlags.h"
 #include "utils/CDisplayMetrics.h"
 #include "content/CResources.h"
 #include "content/CConfiguration.h"
@@ -18,6 +20,8 @@
 #include "view/animation/CAlphaAnimation.h"
 #include "text/Selection.h"
 #include "view/inputmethod/CLocalInputMethodManager.h"
+
+using namespace Elastos::Utility::Logging;
 
 const CString CWebView::LOGTAG("webview");
 
@@ -2151,9 +2155,9 @@ ECode CWebView::SetCertificate(
 {
     VALIDATE_NOT_NULL(certificate);
 
-//    if (DebugFlags.WEB_VIEW) {
-//        Log.v(LOGTAG, "setCertificate=" + certificate);
-//    }
+    if (DebugFlags::sWEB_VIEW) {
+//        Logger::V(LOGTAG, "setCertificate=" + certificate);
+    }
 
     // here, the certificate can be null (if the site is not secure)
     mCertificate = certificate;
@@ -2785,7 +2789,7 @@ ECode CWebView::InvokeZoomPicker()
     ws->SupportZoom(&bFlag);
 
     if (!bFlag) {
-//        Log.w(LOGTAG, "This WebView doesn't support zoom.");
+        Logger::W(LOGTAG, "This WebView doesn't support zoom.");
         return NOERROR;
     }
 
@@ -3269,9 +3273,9 @@ ECode CWebView::NotifyFindDialogDismissed()
 ECode CWebView::SetFindDialogHeight(
     /* [in] */ Int32 height)
 {
-//    if (DebugFlags.WEB_VIEW) {
-//        Log.v(LOGTAG, "setFindDialogHeight height=" + height);
-//    }
+    if (DebugFlags::sWEB_VIEW) {
+        Logger::V(LOGTAG, "setFindDialogHeight height=%d" + height);
+    }
  
     mFindHeight = height;
     
@@ -3582,9 +3586,9 @@ ECode CWebView::CopySelection(
     String selection;
     GetSelection(&selection);
     if (selection != "") {
-//        if (DebugFlags.WEB_VIEW) {
-//            Log.v(LOGTAG, "copySelection \"" + selection + "\"");
-//        }
+        if (DebugFlags::sWEB_VIEW) {
+            Logger::V(LOGTAG, "copySelection \"" + selection + "\"");
+        }
 
         AutoPtr<IToastHelper> toast;
         CToastHelper::AcquireSingleton((IToastHelper**)&toast);
@@ -4191,9 +4195,9 @@ CARAPI_(void) CWebView::RebuildWebTextView()
 //                    ContentToViewDimension(bottom));
         }
         if (text.GetLength() == 0) {
-//            if (DebugFlags.WEB_VIEW) {
-//                Log.v(LOGTAG, "rebuildWebTextView null == text");
-//            }
+            if (DebugFlags::sWEB_VIEW) {
+                Logger::V(LOGTAG, "rebuildWebTextView null == text");
+            }
             text = "";
         }
 #if 0
@@ -4285,20 +4289,19 @@ CARAPI_(void) CWebView::MoveSelection(
     mSelectY += yRate;
     Int32 maxX = width + mScrollX;
     Int32 maxY = height + mScrollY;
-//    mSelectX = Math.min(maxX, Math.max(mScrollX - SELECT_CURSOR_OFFSET, mSelectX));
-//    mSelectY = Math.min(maxY, Math.max(mScrollY - SELECT_CURSOR_OFFSET, mSelectY));
-#if 0
-    if (DebugFlags.WEB_VIEW) {
-        Log.v(LOGTAG, "moveSelection"
-                + " mSelectX=" + mSelectX
-                + " mSelectY=" + mSelectY
-                + " mScrollX=" + mScrollX
-                + " mScrollY=" + mScrollY
-                + " xRate=" + xRate
-                + " yRate=" + yRate
-                );
+    //mSelectX = Math.min(maxX, Math.max(mScrollX - SELECT_CURSOR_OFFSET, mSelectX));
+    //mSelectY = Math.min(maxY, Math.max(mScrollY - SELECT_CURSOR_OFFSET, mSelectY));
+
+    mSelectX = mScrollX - SELECT_CURSOR_OFFSET > mSelectX ? mScrollX - SELECT_CURSOR_OFFSET : mSelectX;
+    mSelectX = maxX < mSelectX ? maxX : mSelectX;
+
+    mSelectY = mScrollY - SELECT_CURSOR_OFFSET > mSelectY ? mScrollY - SELECT_CURSOR_OFFSET : mSelectY;
+    mSelectY = maxY < mSelectY ? maxY : mSelectY;
+
+    if (DebugFlags::sWEB_VIEW) {
+//        Logger::V(LOGTAG, "moveSelection mSelectX=%d mSelectY=%d mScrollX=%d mScrollY=%d xRate=%d yRate=%d"
+//                + mSelectX + mSelectY + mScrollX + mScrollY + xRate + yRate);
     }
-#endif
 
     NativeMoveSelection(ViewToContentX(mSelectX), ViewToContentY(mSelectY));
     Int32 scrollX = mSelectX < mScrollX ? -SELECT_CURSOR_OFFSET
@@ -4879,9 +4882,9 @@ CARAPI_(void) CWebView::OnFocusChanged(
     /* [in] */ Int32 direction,
     /* [in] */ IRect* previouslyFocusedRect)
 {
-//    if (DebugFlags.WEB_VIEW) {
-//        Log.v(LOGTAG, "MT focusChanged " + focused + ", " + direction);
-//    }
+    if (DebugFlags::sWEB_VIEW) {
+        Logger::V(LOGTAG, "MT focusChanged %d, %d" + focused + direction);
+    }
 
     if (focused) {
         // When we regain focus, if we have window focus, resume drawing
@@ -5040,7 +5043,7 @@ CARAPI_(void) CWebView::OnMeasure(
     Int32 contentHeight = ContentToViewDimension(mContentHeight);
     Int32 contentWidth = ContentToViewDimension(mContentWidth);
 
-//        Log.d(LOGTAG, "------- measure " + heightMode);
+    Logger::D(LOGTAG, "------- measure %d" + heightMode);
 
     if (heightMode != View::MeasureSpec::EXACTLY) {
         mHeightCanMeasure = TRUE;
@@ -5273,17 +5276,17 @@ CARAPI_(Int32) CWebView::PinLoc(
     /* [in] */ Int32 viewMax,
     /* [in] */ Int32 docMax)
 {
-    //        Log.d(LOGTAG, "-- pinLoc " + x + " " + viewMax + " " + docMax);
+    Logger::D(LOGTAG, "-- pinLoc %d %d %d" + x + viewMax + docMax);
     if (docMax < viewMax) {   // the doc has room on the sides for "blank"
         // pin the short document to the top/left of the screen
         x = 0;
-//            Log.d(LOGTAG, "--- center " + x);
+        Logger::D(LOGTAG, "--- center %d" + x);
     } else if (x < 0) {
         x = 0;
-//            Log.d(LOGTAG, "--- zero");
+        Logger::D(LOGTAG, "--- zero");
     } else if (x + viewMax > docMax) {
         x = docMax - viewMax;
-//            Log.d(LOGTAG, "--- pin " + x);
+        Logger::D(LOGTAG, "--- pin %d" + x);
     }
     return x;
 }
@@ -5585,11 +5588,15 @@ CARAPI_(AutoPtr<IRect>) CWebView::SendOurVisibleRect()
     globalRect->Equals(mLastGlobalRect, &bFlag2);
     if (bFlag1 && !bFlag2) {
 
-//        if (DebugFlags.WEB_VIEW) {
-//            Log.v(LOGTAG, "sendOurVisibleRect=(" + globalRect.left + ","
-//                    + globalRect.top + ",r=" + globalRect.right + ",b="
-//                    + globalRect.bottom);
-//        }
+        if (DebugFlags::sWEB_VIEW) {
+            Int32 left, top, right, bottom;
+            globalRect->GetLeft(&left);
+            globalRect->GetTop(&top);
+            globalRect->GetRight(&right);
+            globalRect->GetBottom(&bottom);
+            Logger::V(LOGTAG, "sendOurVisibleRect=(%d,%d,r=%d,b=%d" + left +
+                    + top + right + bottom);
+        }
         // TODO: the global offset is only used by windowRect()
         // in ChromeClientAndroid ; other clients such as touch
         // and mouse events could return view + screen relative points.
@@ -5815,7 +5822,7 @@ CARAPI_(Boolean) CWebView::PinScrollTo(
     }
 
     if (animate) {
-        //        Log.d(LOGTAG, "startScroll: " + dx + " " + dy);
+        Logger::D(LOGTAG, "startScroll: %d %d" + dx + dy);
         mScroller->StartScroll(mScrollX, mScrollY, dx, dy,
                 animationDuration > 0 ? animationDuration : ComputeDuration(dx, dy));
         AwakenScrollBars(mScroller->GetDuration());
@@ -5860,7 +5867,7 @@ CARAPI_(Boolean) CWebView::SetContentScrollBy(
         // ScrollView and ListView will not scroll horizontally.
         // FIXME: Why do we only scroll horizontally if there is no
         // vertical scroll?
-//                Log.d(LOGTAG, "setContentScrollBy cy=" + cy);
+        Logger::D(LOGTAG, "setContentScrollBy cy=%d" + cy);
         return cy == 0 && cx != 0 && PinScrollBy(cx, 0, animate, 0);
     } else {
         return PinScrollBy(cx, cy, animate, 0);
@@ -5898,8 +5905,8 @@ CARAPI_(Boolean) CWebView::SetContentScrollTo(
         vx = ContentToViewX(cx);
         vy = ContentToViewY(cy);
     }
-//        Log.d(LOGTAG, "content scrollTo [" + cx + " " + cy + "] view=[" +
-//                      vx + " " + vy + "]");
+        Logger::D(LOGTAG, "content scrollTo [%d %d] view=[%d %d]" + cx + cy + 
+                      vx + vy);
     // Some mobile sites attempt to scroll the title bar off the page by
     // scrolling to (0,1).  If we are at the top left corner of the
     // page, assume this is an attempt to scroll off the title bar, and
@@ -6361,14 +6368,17 @@ CARAPI_(Boolean) CWebView::HitFocusedPlugin(
     /* [in] */ Int32 contentX,
     /* [in] */ Int32 contentY)
 {
-#if 0
-    if (DebugFlags.WEB_VIEW) {
-        Log.v(LOGTAG, "nativeFocusIsPlugin()=" + nativeFocusIsPlugin());
-        Rect r = nativeFocusNodeBounds();
-        Log.v(LOGTAG, "nativeFocusNodeBounds()=(" + r.left + ", " + r.top
-                + ", " + r.right + ", " + r.bottom + ")");
+    if (DebugFlags::sWEB_VIEW) {
+        Logger::V(LOGTAG, "nativeFocusIsPlugin()=%d" + NativeFocusIsPlugin());
+        AutoPtr<IRect> r = NativeFocusNodeBounds();
+        Int32 left, top, right, bottom;
+        r->GetLeft(&left);
+        r->GetTop(&top);
+        r->GetRight(&right);
+        r->GetBottom(&bottom);
+        Logger::V(LOGTAG, "NativeFocusNodeBounds()=(%d, %d, %d, %d)" + left 
+                + top + right + bottom);
     }
-#endif
 
     Boolean bFlag = FALSE;
     NativeFocusNodeBounds()->Contains(contentX, contentY, &bFlag);
@@ -6648,14 +6658,12 @@ CARAPI_(void) CWebView::DoTrackball(
                 mTrackballRemainsX < 0 ? KeyEvent_KEYCODE_DPAD_LEFT :
                 KeyEvent_KEYCODE_DPAD_RIGHT;
         count = /*Math.min(count, TRACKBALL_MOVE_COUNT)*/count < TRACKBALL_MOVE_COUNT ? count : TRACKBALL_MOVE_COUNT;
-#if 0        
-        if (DebugFlags.WEB_VIEW) {
-            Log.v(LOGTAG, "doTrackball keyCode=" + selectKeyCode
-                    + " count=" + count
-                    + " mTrackballRemainsX=" + mTrackballRemainsX
-                    + " mTrackballRemainsY=" + mTrackballRemainsY);
+        
+        if (DebugFlags::sWEB_VIEW) {
+//            Logger::V(LOGTAG, "doTrackball keyCode=%d count=%d mTrackballRemainsX=%d mTrackballRemainsY=%d" + selectKeyCode
+//                    + count + mTrackballRemainsX + mTrackballRemainsY);
         }
-#endif        
+        
         if (mNativeClass != 0 && NativeFocusIsPlugin()) {
             for (Int32 i = 0; i < count; i++) {
                 LetPluginHandleNavKey(selectKeyCode, time, TRUE);
@@ -6767,22 +6775,17 @@ CARAPI_(void) CWebView::DoFling()
         if (deltaR > circle * 0.9f || deltaR < circle * 0.1f) {
             vx += currentVelocity * mLastVelX / mLastVelocity;
             vy += currentVelocity * mLastVelY / mLastVelocity;
-#if 0           
-            if (DebugFlags.WEB_VIEW) {
-                Log.v(LOGTAG, "doFling vx= " + vx + " vy=" + vy);
+           
+            if (DebugFlags::sWEB_VIEW) {
+                Logger::V(LOGTAG, "doFling vx= %d vy=%d" + vx + vy);
             }
-        } else if (DebugFlags.WEB_VIEW) {
-            Log.v(LOGTAG, "doFling missed " + deltaR / circle);
-#endif        
-        }
-#if 0        
-    } else if (DebugFlags.WEB_VIEW) {
-        Log.v(LOGTAG, "doFling start last=" + mLastVelocity
-                + " current=" + currentVelocity
-                + " vx=" + vx + " vy=" + vy
-                + " maxX=" + maxX + " maxY=" + maxY
-                + " mScrollX=" + mScrollX + " mScrollY=" + mScrollY);
-#endif                
+        } else if (DebugFlags::sWEB_VIEW) {
+//            Logger::V(LOGTAG, "doFling missed %d" + deltaR / circle);      
+        }     
+    } else if (DebugFlags::sWEB_VIEW) {
+//        Logger::V(LOGTAG, "doFling start last=%d current=%d vx=%d vy=%d maxX=%d maxY=%d mScrollX=%d mScrollY=%d"
+//                + mLastVelocity + currentVelocity + vx  + vy
+//                + maxX + maxY + mScrollX + mScrollY);          
     }
 
     // Allow sloppy flings without overscrolling at the edges.
@@ -7318,13 +7321,12 @@ CARAPI_(Boolean) CWebView::NavHandledKey(
     mLastCursorBounds = NativeGetCursorRingBounds();
     Boolean keyHandled
             = NativeMoveCursor(keyCode, count, noScroll) == FALSE;
-#if 0    
-    if (DebugFlags.WEB_VIEW) {
-        Log.v(LOGTAG, "navHandledKey mLastCursorBounds=" + mLastCursorBounds
-                + " mLastCursorTime=" + mLastCursorTime
-                + " handled=" + keyHandled);
+    
+    if (DebugFlags::sWEB_VIEW) {
+        Logger::V(LOGTAG, "navHandledKey mLastCursorBounds=%d mLastCursorTime=%d handled=%d"
+                + mLastCursorBounds + mLastCursorTime + keyHandled);
     }
-#endif
+
     if (keyHandled == FALSE || mHeightCanMeasure == FALSE) {
         return keyHandled;
     }
@@ -7377,12 +7379,12 @@ CARAPI_(Boolean) CWebView::NavHandledKey(
     if (bFlag) {
         return keyHandled;
     }
-#if 0
-    if (DebugFlags.WEB_VIEW) {
-        Log.v(LOGTAG, "navHandledKey contentCursorRingBounds="
+
+    if (DebugFlags::sWEB_VIEW) {
+        Logger::V(LOGTAG, "navHandledKey contentCursorRingBounds=%d"
                 + contentCursorRingBounds);
     }
-#endif
+
     RequestRectangleOnScreen(viewCursorRingBounds, NULL);
     mUserScroll = TRUE;
 
@@ -7722,12 +7724,13 @@ CWebView::DragTrackerHandler::DragTrackerHandler(
     mStartY = y;
     mMinDY = -viewTop;
     mMaxDY = docBottom - viewBottom;
-#if 0
-    if (DebugFlags.DRAG_TRACKER || DEBUG_DRAG_TRACKER) {
-        Log.d(DebugFlags.DRAG_TRACKER_LOGTAG, " dragtracker y= " + y +
-              " up/down= " + mMinDY + " " + mMaxDY);
+
+    if (DebugFlags::sDRAG_TRACKER || DEBUG_DRAG_TRACKER) {
+//        Logger::D(DebugFlags::sDRAG_TRACKER_LOGTAG, 
+//              " dragtracker y= %d up/down= %d %d" + y
+//               + mMinDY + mMaxDY);
     }
-#endif
+
     Int32 docRight = webview->ComputeRealHorizontalScrollRange();
     Int32 viewLeft = 0;
     webview->GetScrollX(&viewLeft);
@@ -7825,12 +7828,12 @@ CARAPI_(Boolean) CWebView::DragTrackerHandler::Draw(
 
         return TRUE;
     }
-#if 0
-    if (DebugFlags.DRAG_TRACKER || DEBUG_DRAG_TRACKER) {
-        Log.d(DebugFlags.DRAG_TRACKER_LOGTAG, " -- draw false " +
-              mCurrStretchX + " " + mCurrStretchY);
+
+    if (DebugFlags::sDRAG_TRACKER || DEBUG_DRAG_TRACKER) {
+//        Logger::D(DebugFlags::sDRAG_TRACKER_LOGTAG, " -- draw false %d %d" +
+//              mCurrStretchX + mCurrStretchY);
     }
-#endif
+
     return FALSE;
 }
 
@@ -7876,12 +7879,12 @@ CARAPI_(void) CWebView::DragTrackerHandler::BuildBitmap(
     CCanvas::New(bm, (ICanvas**)&canvas);
     canvas->Translate(-sx, -sy);
     webview->DrawContent(canvas);
-#if 0
-    if (DebugFlags.DRAG_TRACKER || DEBUG_DRAG_TRACKER) {
-        Log.d(DebugFlags.DRAG_TRACKER_LOGTAG, "--- buildBitmap " + sx +
-              " " + sy + " " + w + " " + h);
+
+    if (DebugFlags::sDRAG_TRACKER || DEBUG_DRAG_TRACKER) {
+        Logger::D(DebugFlags::sDRAG_TRACKER_LOGTAG, 
+              "--- buildBitmap %d %d %d %d" + sx + sy + w + h);
     }
-#endif
+
     mProxy->OnBitmapChange(bm);
 }
 
@@ -8289,13 +8292,18 @@ ECode CWebView::PrivateHandler::HandleNewPictureMsgId(
     draw->mWidthHeight->GetY(&x);
     mWebView->RecordNewContentSize(x, y
             + (mWebView->mFindIsUp ? mWebView->mFindHeight : 0), updateLayout);
-#if 0
-    if (DebugFlags.WEB_VIEW) {
-        Rect b = draw.mInvalRegion.getBounds();
-        Log.v(LOGTAG, "NEW_PICTURE_MSG_ID {" +
-                b.left+","+b.top+","+b.right+","+b.bottom+"}");
+
+    if (DebugFlags::sWEB_VIEW) {
+        AutoPtr<IRect> b;
+        draw->mInvalRegion->GetBounds((IRect**)&b);
+        Int32 left, top, right, bottom;
+        b->GetLeft(&left);
+        b->GetTop(&top);
+        b->GetRight(&right);
+        b->GetBottom(&bottom);
+        Logger::V(LOGTAG, "NEW_PICTURE_MSG_ID {%d,%d,%d,%d}" +
+                left + top + right + bottom);
     }
-#endif
 
     AutoPtr<IRect> rect;
     draw->mInvalRegion->GetBounds((IRect**)&rect);
@@ -8663,7 +8671,7 @@ ECode CWebView::PrivateHandler::HandleShowFullScreen(
     /* [in] */ Int32 npp)
 {
     if (mWebView->mFullScreenHolder != NULL) {
-//        Log.w(LOGTAG, "Should not have another full screen.");
+        Logger::W(LOGTAG, "Should not have another full screen.");
         mWebView->mFullScreenHolder->Dismiss();
     }
 
@@ -8708,15 +8716,13 @@ ECode CWebView::PrivateHandler::HandleShowRectMsgId(
         x += (Int32) (left + data->mXPercentInDoc * width
                 - mWebView->mScrollX - data->mXPercentInView * viewWidth);
     }
-#if 0
-    if (DebugFlags.WEB_VIEW) {
-        Log.v(LOGTAG, "showRectMsg=(left=" + left + ",width=" +
-              width + ",maxWidth=" + maxWidth +
-              ",viewWidth=" + viewWidth + ",x="
-              + x + ",xPercentInDoc=" + data.mXPercentInDoc +
-              ",xPercentInView=" + data.mXPercentInView+ ")");
+
+    if (DebugFlags::sWEB_VIEW) {
+//        Logger::V(LOGTAG, "showRectMsg=(left=%d,width=%d,maxWidth=%d,viewWidth=%d,x=%d,xPercentInDoc=%d,xPercentInView=%d)"
+//              + left + width + maxWidth + viewWidth + x + data->mXPercentInDoc
+//              + data->mXPercentInView);
     }
-#endif
+
     // use the passing content width to cap x as the current
     // mContentWidth may not be updated yet
     

@@ -1,4 +1,6 @@
 #include <elastos/System.h>
+#include <Logger.h>
+#include <StringBuffer.h>
 
 #include "webkit/CCookieManager.h"
 #include "webkit/CCookieSyncManager.h"
@@ -6,6 +8,7 @@
 #include "webkit/DebugFlags.h"
 
 using namespace Core;
+using namespace Elastos::Utility::Logging;
 
 ICookieManager* CCookieManager::sRef;
 
@@ -141,9 +144,11 @@ ECode CCookieManager::SetCookieEx(
         return E_NOT_IMPLEMENTED;
     }
 
-//    if (DebugFlags.COOKIE_MANAGER) {
-//        Log.v(LOGTAG, "setCookie: uri: " + uri + " value: " + value);
-//    }
+    if (DebugFlags::sCOOKIE_MANAGER) {
+        String webAddress;
+//        uri->ToString(&webAddress);
+        Logger::V(LOGTAG, StringBuffer("setCookie: uri: ") + webAddress + " value: " + value);
+    }
 
     Vector<String> hostAndPath;
     GetHostAndPath(uri, hostAndPath);
@@ -652,7 +657,7 @@ CARAPI_(void) CCookieManager::GetHostAndPath(
             }
         } else if (index == ret[0].LastIndexOf(PERIOD)) {
             // cookie host must have at least two periods
-            ret[0] = PERIOD + ret[0];
+            ret[0] = (const char*)&PERIOD + ret[0];
         }
 
         if (ret[1].GetChar(0) != PATH_DELIM) {
@@ -908,7 +913,7 @@ CARAPI_(void) CCookieManager::ParseCookie(
                     value.ToLowerCase();
                     if (value.GetChar(0) != PERIOD) {
                         // pre-pended dot to make it as a domain cookie
-                        value = PERIOD + value;
+                        value = (const char*)&PERIOD + value;
                         lastPeriod++;
                     }
 
@@ -1009,7 +1014,7 @@ CARAPI_(Boolean) CCookieManager::Cookie::PathMatch(
 
         Int32 len = path.GetLength();
         if (len == 0) {
-//            Log.w(LOGTAG, "Empty cookie path");
+            Logger::W(LOGTAG, "Empty cookie path");
             return FALSE;
         }
 

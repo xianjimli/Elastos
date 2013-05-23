@@ -1,3 +1,4 @@
+#include <Logger.h>
 
 #include "webkit/FrameLoader.h"
 #include "webkit/CURLUtil.h"
@@ -9,6 +10,9 @@
 #include "webkit/CCacheManager.h"
 #include "webkit/CacheLoader.h"
 #include "webkit/CCookieManager.h"
+#include "webkit/DebugFlags.h"
+
+using namespace Elastos::Utility::Logging;
 
 const CString FrameLoader::HEADER_STR("text/xml, text/html, application/xhtml+xml, image/png, text/plain, */*;q=0.8");
 const CString FrameLoader::CONTENT_TYPE("content-type");
@@ -116,10 +120,12 @@ CARAPI_(Boolean) FrameLoader::ExecuteLoad()
         return TRUE;
     }
 
-//    if (DebugFlags.FRAME_LOADER) {
-//        Log.v(LOGTAG, "FrameLoader.executeLoad: url protocol not supported:"
-//                + mListener.url());
-//    }
+    if (DebugFlags::sFRAME_LOADER) {
+        String url;
+        mListener->Url(&url);
+        Logger::V(LOGTAG, "FrameLoader.executeLoad: url protocol not supported:"
+                + url);
+    }
 
 //    mListener.error(EventHandler.ERROR_UNSUPPORTED_SCHEME,
 //            mListener.getContext().getText(
@@ -229,10 +235,12 @@ CARAPI_(Boolean) FrameLoader::HandleHTTPLoad()
         return TRUE;
     }
 
-//    if (DebugFlags.FRAME_LOADER) {
-//        Log.v(LOGTAG, "FrameLoader: http " + mMethod + " load for: "
-//                + mListener.url());
-//    }
+    if (DebugFlags::sFRAME_LOADER) {
+        String url;
+        mListener->Url(&url);
+        Logger::V(LOGTAG, "FrameLoader: http " + mMethod + " load for: "
+                + url);
+    }
 
     Boolean ret = FALSE;
     Int32 error;// = EventHandler.ERROR_UNSUPPORTED_SCHEME;
@@ -255,10 +263,11 @@ CARAPI_(Boolean) FrameLoader::HandleHTTPLoad()
 CARAPI_(void) FrameLoader::StartCacheLoad(
 	/* [in] */ const ICacheManagerCacheResult* result)
 {
-//    if (DebugFlags.FRAME_LOADER) {
-//        Log.v(LOGTAG, "FrameLoader: loading from cache: "
-//              + mListener.url());
-//    }
+    if (DebugFlags::sFRAME_LOADER) {
+        String url;
+        mListener->Url(&url);
+        Logger::V(LOGTAG, "FrameLoader: loading from cache: " + url);
+    }
     // Tell the Listener respond with the cache file
     CacheLoader* cacheLoader = new CacheLoader(mListener, (CCacheManager::CacheResult*)result);
     mListener->SetCacheLoader(cacheLoader);
@@ -317,10 +326,11 @@ CARAPI_(Boolean) FrameLoader::HandleCache()
         // network.
         case WebSettings::WS_LOAD_CACHE_ELSE_NETWORK:
         {
-//            if (DebugFlags.FRAME_LOADER) {
-//                Log.v(LOGTAG, "FrameLoader: checking cache: "
-//                        + mListener.url());
-//            }
+            if (DebugFlags::sFRAME_LOADER) {
+                String url;
+                mListener->Url(&url);
+                Logger::V(LOGTAG, "FrameLoader: checking cache: " + url);
+            }
             // Get the cache file name for the current URL, passing null for
             // the validation headers causes no validation to occur
             String strUrl;

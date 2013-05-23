@@ -20,7 +20,7 @@ public:
     CARAPI Cancel();
 
     CARAPI UseHttpAuthUsernamePassword(
-        /* [out] */ Boolean * pFlag);
+        /* [out] */ Boolean * flag);
 
     /**
      * Informs the WebView of a new set of credentials.
@@ -29,10 +29,10 @@ public:
     //public 
     static void OnReceivedCredentials(
         /* [in] */ LoadListener* loader,
-        /* [in] */ String host, 
-        /* [in] */ String realm, 
-        /* [in] */ String username, 
-        /* [in] */ String password);
+        /* [in] */ const String& host, 
+        /* [in] */ const String& realm, 
+        /* [in] */ const String& username, 
+        /* [in] */ const String& password);
 
 public:
     //IApartment
@@ -96,8 +96,8 @@ public:
     //public 
     //void HandleMessage(IMessage msg);
     void HandleAuthProceed(
-        /* [in] */ String username,
-        /* [in] */ String password);
+        /* [in] */ const String& username,
+        /* [in] */ const String& password);
 
     void HandleAuthCancel();
 
@@ -141,25 +141,21 @@ private:
      * @return True if the request is synchronous and handleAuthRequest() has
      * been unblocked
      */
-    //private 
-    Boolean HandleResponseForSynchronousRequest(
-        /* [in] */ String username, 
-        /* [in] */ String password);
+    CARAPI_(Boolean) HandleResponseForSynchronousRequest(
+        /* [in] */ const String& username, 
+        /* [in] */ const String& password);
 
-    //private
-    void SignalRequestComplete();
+    CARAPI_(void) SignalRequestComplete();
 
     /**
      * Wait for the request in flight, if any, to complete
      */
-    //private 
-    void WaitForRequestToComplete();
+    CARAPI_(void) WaitForRequestToComplete();
 
     /**
      * Process the next loader in the queue (helper method)
      */
-    //private 
-    void ProcessNextLoader();
+    CARAPI_(void) ProcessNextLoader();
 
 public:
     // Use to synchronize when making synchronous calls to

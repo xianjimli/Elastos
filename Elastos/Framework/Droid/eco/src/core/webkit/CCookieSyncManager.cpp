@@ -1,6 +1,11 @@
+#include <Logger.h>
+#include <elastos/System.h>
 
 #include "webkit/CCookieSyncManager.h"
 #include "webkit/CWebViewDatabase.h"
+#include "webkit/DebugFlags.h"
+
+using namespace Elastos::Utility::Logging;
 
 CCookieSyncManager* CCookieSyncManager::sRef;
 
@@ -109,9 +114,9 @@ CARAPI_(void) CCookieSyncManager::ClearExpiredCookies(
 
 CARAPI_(void) CCookieSyncManager::SyncFromRamToFlash()
 {
-//    if (DebugFlags.COOKIE_SYNC_MANAGER) {
-//        Log.v(LOGTAG, "CookieSyncManager::syncFromRamToFlash STARTS");
-//    }
+    if (DebugFlags::sCOOKIE_SYNC_MANAGER) {
+        Logger::V(LOGTAG, "CookieSyncManager::syncFromRamToFlash STARTS");
+    }
 
     CCookieManager* cookieManager = NULL;
     CCookieManager::AcquireSingletonByFriend(&cookieManager);
@@ -124,16 +129,16 @@ CARAPI_(void) CCookieSyncManager::SyncFromRamToFlash()
 
     Vector<AutoPtr<CCookieManager::Cookie> > cookieList;
     cookieManager->GetUpdatedCookiesSince(mLastUpdate, cookieList);
-//    mLastUpdate = System.currentTimeMillis();
+    mLastUpdate = System::GetCurrentTimeMillis();
     SyncFromRamToFlash(cookieList);
 
     Vector<AutoPtr<CCookieManager::Cookie> > lruList;
     cookieManager->DeleteLRUDomain(lruList);
     SyncFromRamToFlash(lruList);
 
-//    if (DebugFlags.COOKIE_SYNC_MANAGER) {
-//        Log.v(LOGTAG, "CookieSyncManager::syncFromRamToFlash DONE");
-//    }
+    if (DebugFlags::sCOOKIE_SYNC_MANAGER) {
+        Logger::V(LOGTAG, "CookieSyncManager::syncFromRamToFlash DONE");
+    }
 }
 
 CARAPI_(void) CCookieSyncManager::SyncFromRamToFlash(
