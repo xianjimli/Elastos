@@ -9,3 +9,5 @@ INCLUDES += $(MAKEDIR)/../../../../../../inc/Elastos/common;
 SOURCES += CHttpHandler.cpp
 SOURCES += CHttpURLConnectionImpl.cpp
 SOURCES += HttpConnection.cpp
+SOURCES += HttpConnectionPool.cpp
+SOURCES += Header.cpp

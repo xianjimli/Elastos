@@ -1,6 +1,15 @@
 #ifndef __HEADER_H__
 #define __HEADER_H__
 
+#ifndef __USE_MALLOC
+#define __USE_MALLOC
+#endif
+
+#include <elastos/List.h>
+#include <elastos/Map.h>
+
+using namespace Elastos;
+
 class Header
 {
     /**
@@ -17,7 +26,7 @@ public:
      * @param map
      *            the initial keyTable as a map
      */
-    Header(Map<String, List<String>> map);
+    Header(Map<String, List<String> > map);
 
     //public Object clone() {
 
@@ -62,7 +71,7 @@ public:
      *
      * @since 1.4
      */
-    Map<String, List<String>> GetFieldMap();
+    Map<String, List<String> > GetFieldMap();
 
     /**
      * Returns the element at <code>pos</code>, null if no such element

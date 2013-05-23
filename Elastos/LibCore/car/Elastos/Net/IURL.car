@@ -205,5 +205,15 @@ module
          */
         GetDefaultPort(
             [out] Int32* port);
+
+        /**
+         * Returns a string containing a concise, human-readable representation of
+         * this URL. The returned string is the same as the result of the method
+         * {@code toExternalForm()}.
+         *
+         * @return the string representation of this URL.
+         */
+        ToString(
+            [out] String* str);
     }
 }

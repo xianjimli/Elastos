@@ -2,16 +2,28 @@
 #ifndef __CHTTPURLCONNECTIONIMPL_H__
 #define __CHTTPURLCONNECTIONIMPL_H__
 
+#ifndef __USE_MALLOC
+#define __USE_MALLOC
+#endif
+
 #include "_CHttpURLConnectionImpl.h"
 #include "Elastos.IO.h"
 #include "CProxy.h"
 #include "CURI.h"
+#include "HttpURLConnection.h"
 #include "HttpConnection.h"
+#include "Header.h"
 //#include "CResponseCache.h"
 //#include "CCacheResponse.h"
 //#include "CCacheRequest.h"
 
-CarClass(CHttpURLConnectionImpl)
+enum Retry {
+    Retry_NONE,
+    Retry_SAME_CONNECTION,
+    Retry_NEW_CONNECTION
+};
+
+CarClass(CHttpURLConnectionImpl), public HttpURLConnection
 {
 public:
     CHttpURLConnectionImpl();
@@ -172,6 +184,89 @@ public:
         /* [in] */ Int32 port,
         /* [in] */ IProxy * pProxy);
 
+    CARAPI MakeConnection();
+
+    CARAPI_(PInterface) Probe(
+        /* [in]  */ REIID riid);
+
+    String ReadLine(
+        /* [in] */ IInputStream *is);
+
+    void ReadHeaders();
+
+    ECode PrepareRequestHeaders(
+        /* [out] */ Header** header);
+
+    String GetStatusLine();
+
+    String GetOriginAddress(
+        /* [in] */ IURL* url);
+
+    String GetDefaultUserAgent();
+
+    String GetSystemProperty(
+        /* [in] */ const String& property);
+
+protected:
+    ECode ReleaseSocket(
+        /* [in] */ Boolean reuseSocket);
+
+    ECode SetUpTransportIO(
+        /* [in] */ HttpConnection* connection);
+
+    void DiscardIntermediateResponse();
+
+    String RequestString();
+
+    ECode GetTransferStream(
+        /* [out] */ IInputStream** ppIs);
+
+private:
+    ECode GetFromCache(
+        /* [out] */ Boolean* is);
+
+    ECode GetHttpConnection(
+        /* [in] */ IProxy* proxy,
+        /* [out] */ HttpConnection** connection);
+
+    Boolean HasConnectionCloseHeader();
+
+    ECode MaybeCache();
+
+    ECode RetrieveResponse();
+
+    AutoPtr<IInputStream> InitContentStream();
+
+    ECode WriteRequestHeaders(
+        /* [in] */ IOutputStream* out);
+
+    ECode ReadResponseHeaders();
+
+    Boolean HasResponseBody();
+
+    Int32 ParseResponseCode();
+
+    Int32 GetConnectToPort();
+
+    ECode GetConnectToInetAddress(
+        /* [out] */ IInetAddress** addr);
+
+    String GetConnectToHost();
+
+    ECode ProcessResponseHeaders(
+        /* [out] */ Retry* retry);
+
+    ECode ProcessAuthHeader(
+        /* [in] */ const String& responseHeader,
+        /* [in] */ const String& retryHeader,
+        /* [out] */ Retry* retry);
+
+    void SetProxy(
+        /* [in] */ const String& proxy);
+
+    ECode GetAuthorizationCredentials(
+        /* [in] */ const String& challenge,
+        /* [out] */ String* credential);
 public:
     static String OPTIONS;
     static String GET;
@@ -200,10 +295,10 @@ private:
     AutoPtr<IOutputStream> mSocketOut;
     AutoPtr<IInputStream> mResponseBodyIn;
 
-//    IAbstractHttpOutputStream* mRequestBodyOut;
-//    AutoPtr<IResponseCache> mResponseCache;
-//    AutoPtr<ICacheResponse> mCacheResponse;
-//    AutoPtr<ICacheRequest> mCacheRequest;
+    AutoPtr<IAbstractHttpOutputStream> mRequestBodyOut;
+    AutoPtr<IResponseCache> mResponseCache;
+    AutoPtr<ICacheResponse> mCacheResponse;
+    AutoPtr<ICacheRequest> mCacheRequest;
 
     Boolean mHasTriedCache;
     Boolean mSentRequestHeaders;
@@ -215,11 +310,11 @@ private:
     // the destination URI
     AutoPtr<IURI> mUri;
 
-//    static Header* mDefaultRequestHeader;
-//    Header* mRequestHeader;
+    static Header* mDefaultRequestHeader;
+    Header* mRequestHeader;
 
     /** Null until a response is received from the network or the cache */
-//    Header* mResponseHeader;
+    Header* mResponseHeader;
 
     Int32 mRedirectionCount;
 

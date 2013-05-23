@@ -2,6 +2,15 @@ module
 {
     interface IHttpURLConnectionImpl extends IHttpURLConnection
     {
+    /**
+     * Internal method to open a connection to the server. Unlike connect(),
+     * this method may be called multiple times for a single response. This may
+     * be necessary when following redirects.
+     *
+     * <p>Request parameters may not be changed after this method has been
+     * called.
+     */
+        MakeConnection();
     }
 }
 

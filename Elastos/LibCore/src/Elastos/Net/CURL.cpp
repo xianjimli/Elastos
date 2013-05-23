@@ -614,3 +614,9 @@ ECode CURL::GetDefaultPort(
     VALIDATE_NOT_NULL(port);
     return mStrmHandler->GetDefaultPort(port);
 }
+
+ECode CURL::ToString(
+    String* str)
+{
+    return NOERROR;
+}

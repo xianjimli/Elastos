@@ -4,7 +4,7 @@ Header::Header()
 {
 }
 
-Header::Header(Map<String, List<String>> map)
+Header::Header(Map<String, List<String> > map)
 {
 }
 
@@ -37,7 +37,7 @@ void Header::Set(
 {
 }
 
-Map<String, List<String>> Header::GetFieldMap()
+Map<String, List<String> > Header::GetFieldMap()
 {
 }
 

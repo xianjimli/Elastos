@@ -390,6 +390,9 @@ public:
     CARAPI GetDefaultPort(
         /* [out] */ Int32* port);
 
+    CARAPI ToString(
+        /* [out] */ String* str);
+
 protected:
     /**
      * Sets the properties of this URL using the provided arguments. Only a
