@@ -1,8 +1,75 @@
 
 module
 {
-    [deprecated]
+    interface ISyncOperation;
+    interface ISyncStorageEnginePendingOperation;
+    
     interface ISyncQueue {
-
+    
+        Add(
+            [in] ISyncOperation* operation,
+            [out] Boolean* result);
+            
+        AddEx(
+            [in] ISyncOperation* operation,
+            [in] ISyncStorageEnginePendingOperation* pop,
+            [out] Boolean* result);
+            
+         /**
+         * Remove the specified operation if it is in the queue.
+         * @param operation the operation to remove
+         */
+        Remove(
+            [in] ISyncOperation* operation);
+            
+        /**
+         * Find the operation that should run next. Operations are sorted by their earliestRunTime,
+         * prioritizing first those with a syncable state of "unknown" that aren't retries then
+         * expedited operations.
+         * The earliestRunTime is adjusted by the sync adapter's backoff and delayUntil times, if any.
+         * @return the operation that should run next and when it should run. The time may be in
+         * the future. It is expressed in milliseconds since boot.
+         */
+        //NextOperation(
+        //    IPair<ISyncOperation*, Int64> n);
+        
+        GetOpTime(
+            [in] ISyncOperation* op,
+            [out] Int64* time);
+            
+        GetIsInitial(
+            [in] ISyncOperation* op,
+            [out] Boolean* isInitial);
+        
+        // return true if op is a better candidate than best. Rules:
+        // if the "Initial" state differs, make the current the best if it is "Initial".
+        // else, if the expedited state differs, pick the expedited unless it is backed off and the
+        // non-expedited isn't
+        // VisibleForTesting
+        IsOpBetter(
+            [in] ISyncOperation* best,
+            [in] Int64 bestRunTime,
+            [in] Boolean bestIsInitial,
+            [in] ISyncOperation* op,
+            [in] Int64 opRunTime,
+            [in] Boolean opIsInitial,
+            [out] Boolean* isOpBetter);
+            
+        /**
+         * Find and return the SyncOperation that should be run next and is ready to run.
+         * @param now the current {@link android.os.SystemClock#elapsedRealtime()}, used to
+         * decide if the sync operation is ready to run
+         * @return the SyncOperation that should be run next and is ready to run.
+         */
+        // NextReadyToRun(
+        //     [in] Int64 now,
+        //     [out] IPair<ISyncOperation, Int64>);
+        
+        RemoveEx(
+            [in] IAccount* account,
+            [in] String authority);
+            
+        Dump(
+            [out] String* sb);
     }
 }

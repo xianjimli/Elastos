@@ -32,6 +32,7 @@ SOURCES += CSyncStats.cpp
 SOURCES += CSyncOperation.cpp
 SOURCES += CSyncInfo.cpp
 SOURCES += CSyncStatusInfo.cpp
+SOURCES += CSyncQueue.cpp
 SOURCES += CConfiguration.cpp
 SOURCES += CInstrumentationInfo.cpp
 SOURCES += ContextWrapper.cpp

@@ -3,7 +3,12 @@
 #define __CSYNCSTATUSINFO_H__
 
 #include "_CSyncStatusInfo.h"
+
 #include <ext/frameworkdef.h>
+#include <elastos/AutoPtr.h>
+#include <Logger.h>
+
+using namespace Elastos::Utility::Logging;
 
 CarClass(CSyncStatusInfo)
 {
@@ -120,7 +125,7 @@ public:
         /* [in] */ Boolean initialize);
 
     CARAPI GetperiodicSyncTimes(
-        /* [out] */ IObjectContainer** periodicSyncTimes);
+        /* [out, callee] */ ArrayOf<Int64>** periodicSyncTimes);
 
     CARAPI ReadFromParcel(
         /* [in] */ IParcel* source);
@@ -134,8 +139,33 @@ public:
     CARAPI constructor(
         /* [in] */ Int32 authorityId);
 
+public:
+
+    /*final*/ Int32 authorityId;
+    Int64 totalElapsedTime;
+    Int32 numSyncs;
+    Int32 numSourcePoll;
+    Int32 numSourceServer;
+    Int32 numSourceLocal;
+    Int32 numSourceUser;
+    Int32 numSourcePeriodic;
+    Int64 lastSuccessTime;
+    Int32 lastSuccessSource;
+    Int64 lastFailureTime;
+    Int32 lastFailureSource;
+    String lastFailureMesg;
+    Int64 initialFailureTime;
+    Boolean pending;
+    Boolean initialize;
+
+    /*ArrayList<Long>*/ ArrayOf<Int64>* periodicSyncTimes;
+
 private:
-    // TODO: Add your private member variables here.
+    void EnsurePeriodicSyncTimeSize(Int32 index);
+
+private:
+    static const CString TAG;// = "Sync";
+
 };
 
 #endif // __CSYNCSTATUSINFO_H__
