@@ -50,10 +50,10 @@ public:
     CARAPI GetKey(
         /* [out] */ String* key);
 
-    CARAPI GetEearliestRunTime(
+    CARAPI GetEarliestRunTime(
         /* [out] */ Int64* earliestRunTime);
 
-    CARAPI SetEearliestRunTime(
+    CARAPI SetEarliestRunTime(
         /* [in] */ Int64 earliestRunTime);
 
     CARAPI GetExpedited(

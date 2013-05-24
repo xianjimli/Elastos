@@ -9,6 +9,7 @@
 #include <elastos/HashMap.h>
 
 using namespace Elastos;
+using namespace Elastos::Core;
 
 CarClass(CSyncQueue)
 {
@@ -63,7 +64,7 @@ private:
 
     // A Map of SyncOperations operationKey -> SyncOperation that is designed for
     // quick lookup of an enqueued SyncOperation.
-    HashMap<String, ISyncOperation*> mOperationsMap;// = Maps.newHashMap();
+    /*final*/ HashMap<String, ISyncOperation*> mOperationsMap;// = Maps.newHashMap();
 };
 
 #endif // __CSYNCQUEUE_H__

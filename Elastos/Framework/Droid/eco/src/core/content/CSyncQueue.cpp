@@ -1,5 +1,8 @@
 
 #include "content/CSyncQueue.h"
+#include "content/CSyncOperation.h"
+#include "content/CSyncStorageEnginePendingOperation.h"
+#include "elastos/Math.h"
 
 const CString CSyncQueue::TAG = "SyncManager";
 
@@ -18,8 +21,9 @@ ECode CSyncQueue::Add(
     /* [in] */ ISyncOperation* operation,
     /* [out] */ Boolean* result)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    AddEx(operation, NULL, result);
+
+    return NOERROR;
 }
 
 ECode CSyncQueue::AddEx(
@@ -27,7 +31,102 @@ ECode CSyncQueue::AddEx(
     /* [in] */ ISyncStorageEnginePendingOperation* pop,
     /* [out] */ Boolean* result)
 {
-    // TODO: Add your code here
+
+    if(operation == NULL){
+        return E_ILLEGAL_ARGUMENT_EXCEPTION;
+    }
+
+    // - if an operation with the same key exists and this one should run earlier,
+    //   update the earliestRunTime of the existing to the new time
+    // - if an operation with the same key exists and if this one should run
+    //   later, ignore it
+    // - if no operation exists then add the new one
+
+    String operationKey;
+    operation->GetKey(&operationKey);
+
+    ISyncOperation* existingOperation = NULL;
+
+    HashMap<String, ISyncOperation*>::Iterator it = mOperationsMap.Find((operationKey));
+
+    if (it != mOperationsMap.End()) {
+        existingOperation = it->mSecond;
+        existingOperation->AddRef();
+    }
+
+    if (existingOperation != NULL) {
+        Boolean changed = FALSE;
+
+        Boolean existingOperationExpedited;
+        Boolean operationExpedited;
+
+        existingOperation->GetExpedited(&existingOperationExpedited);
+        operation->GetExpedited(&operationExpedited);
+
+        if (operationExpedited == existingOperationExpedited) {
+            Int64 existingOperationEarliestRunTime;
+            Int64 operationEarliestRunTime;
+
+            existingOperation->GetEarliestRunTime(&existingOperationEarliestRunTime);
+            operation->GetEarliestRunTime(&operationEarliestRunTime);
+
+            Int64 newRunTime = Math::Min(existingOperationEarliestRunTime, operationEarliestRunTime);
+
+            if (existingOperationEarliestRunTime != newRunTime) {
+                existingOperation->SetEarliestRunTime(newRunTime);
+                changed = TRUE;
+            }
+        } else {
+            if (operationExpedited) {
+                existingOperation->SetExpedited(TRUE);
+                changed = TRUE;
+            }
+        }
+
+        *result = changed;
+
+        // Release reference
+        existingOperation->Release();
+        existingOperation = NULL;
+    }
+
+    operation->SetPendingOperation(pop);
+
+    if (pop == NULL) {
+
+        AutoPtr<IAccount> account;
+        operation->GetAccount((IAccount**)&account);
+
+        Int32 syncSource;
+        operation->GetSyncSource(&syncSource);
+
+        String authority;
+        operation->GetAuthority(&authority);
+
+        AutoPtr<IBundle> extra;
+        operation->GetExtras((IBundle**)&extra);
+
+        Boolean expedited;
+        operation->GetExpedited(&expedited);
+
+        AutoPtr<ISyncOperation> syncOperation;
+
+        FAIL_RETURN(CSyncStorageEnginePendingOperation::New(account, syncSource, authority, extra, expedited, &pop));
+
+        ISyncStorageEnginePendingOperation* newPop;
+        mSyncStorageEngine->InsertIntoPending(pop, &newPop);
+        pop = newPop;
+
+        if (pop == NULL) {
+//            throw new IllegalStateException("error adding pending sync operation " + operation);
+            return E_ILLEGAL_STATE_EXCEPTION;
+        }
+        operation->SetPendingOperation(pop);
+    }
+
+    mOperationsMap[operationKey] = operation;
+    *result = TRUE;
+
     return E_NOT_IMPLEMENTED;
 }
 
@@ -85,20 +184,48 @@ ECode CSyncQueue::Dump(
 ECode CSyncQueue::constructor(
     /* [in] */ ISyncStorageEngine* engine)
 {
-//    mSyncStorageEngine = engine;
-//
-//    ArrayList<SyncStorageEngine.PendingOperation> ops
-//            = mSyncStorageEngine.getPendingOperations();
-//    final int N = ops.size();
-//    for (int i=0; i<N; i++) {
-//        SyncStorageEngine.PendingOperation op = ops.get(i);
-//        SyncOperation syncOperation = new SyncOperation(
-//                op.account, op.syncSource, op.authority, op.extras, 0 /* delay */);
-//        syncOperation.expedited = op.expedited;
-//        syncOperation.pendingOperation = op;
-//        add(syncOperation, op);
-//    }
+    mSyncStorageEngine = engine;
 
-    return E_NOT_IMPLEMENTED;
+    AutoPtr<IObjectContainer> pendingOperations;
+
+    mSyncStorageEngine->GetPendingOperations((IObjectContainer**)&pendingOperations);
+
+
+    AutoPtr<IObjectEnumerator> opsIt;
+    pendingOperations->GetObjectEnumerator((IObjectEnumerator**) &opsIt);
+
+    Boolean hasNext;
+    while (opsIt->MoveNext(&hasNext), hasNext)
+    {
+        AutoPtr<ISyncStorageEnginePendingOperation> pendingOperation;
+        opsIt->Current((IInterface**)&pendingOperation);
+
+
+        AutoPtr<IAccount> account;
+        pendingOperation->GetAccount((IAccount**)&account);
+
+        Int32 syncSource;
+        pendingOperation->GetSyncSource(&syncSource);
+
+        String authority;
+        pendingOperation->GetAuthority(&authority);
+
+        AutoPtr<IBundle> extra;
+        pendingOperation->GetExtras((IBundle**)&extra);
+
+        Boolean expedited;
+        pendingOperation->GetExpendited(&expedited);
+
+        AutoPtr<ISyncOperation> syncOperation;
+
+        FAIL_RETURN(CSyncOperation::New(account, syncSource, authority, extra, 0, (ISyncOperation**)&syncOperation));
+
+        syncOperation->SetExpedited(expedited);
+        syncOperation->SetPendingOperation(pendingOperation);
+
+        Boolean result = FALSE;
+        AddEx(syncOperation, pendingOperation, &result);
+    }
+
+    return NOERROR;
 }
-

@@ -34,10 +34,10 @@ module
         GetKey(
             [out] String* key);
             
-        GetEearliestRunTime(
+        GetEarliestRunTime(
             [out] Int64* earliestRunTime);
             
-        SetEearliestRunTime(
+        SetEarliestRunTime(
             [in] Int64 earliestRunTime);
             
         GetExpedited(

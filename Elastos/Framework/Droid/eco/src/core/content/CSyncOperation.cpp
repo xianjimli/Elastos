@@ -139,7 +139,7 @@ ECode CSyncOperation::GetKey(
     return NOERROR;
 }
 
-ECode CSyncOperation::GetEearliestRunTime(
+ECode CSyncOperation::GetEarliestRunTime(
     /* [out] */ Int64* earliestRunTime)
 {
     VALIDATE_NOT_NULL(earliestRunTime);
@@ -148,7 +148,7 @@ ECode CSyncOperation::GetEearliestRunTime(
     return NOERROR;
 }
 
-ECode CSyncOperation::SetEearliestRunTime(
+ECode CSyncOperation::SetEarliestRunTime(
     /* [in] */ Int64 earliestRunTime)
 {
     this->earliestRunTime = earliestRunTime;
