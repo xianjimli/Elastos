@@ -443,12 +443,12 @@ WebViewCore::WebCoreThread::WvcWctHandler::WvcWctHandler()
 /*****************************WebViewCore::WebCoreThread*****************************/
 ECode WebViewCore::WebCoreThread::Run()
 {
-    //Looper::Prepare();    //JAVA:  os/Loop.java(public class)
+    CApartment::Prepare();    //Looper::Prepare();    //JAVA:  os/Loop.java(public class)
     assert(sWebCoreHandler.Get() == NULL);  //JAVA:  Assert.assertNull(sWebCoreHandler);
     Core::Threading::Mutex::Autolock lock(WebViewCore::mMutexClass);
     WebViewCore::sWebCoreHandler = (IApartment*)(new WvcWctHandler());
     //WebViewCore.class.notify();
-    //Looper::Loop();    //JAVA:  os/Loop.java(public class)
+    WebViewCore::sWebCoreHandler->Start(ApartmentAttr_New);    //Looper::Loop();    //JAVA:  os/Loop.java(public class)
     return NOERROR;
 }
 /*****************************WebViewCore::EventHub::WvcEhHandler*****************************/
@@ -871,7 +871,7 @@ ECode WebViewCore::EventHub::WvcEhHandler::SendMessage(
     }
     if(message == EventHub::LISTBOX_CHOICES )
     {
-        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(Int32/*, ISparseBooleanArray* */);
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(Int32, HashMap<Int32, Boolean>* );
         pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleListboxChoices;
         return mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);        
     }
@@ -1261,7 +1261,7 @@ Handle32 WebViewCore::EventHub::WvcEhHandler::GetFunc(
     }
     if(message == EventHub::LISTBOX_CHOICES )
     {
-        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(Int32/*, ISparseBooleanArray* */);
+        void (STDCALL WebViewCore::EventHub::WvcEhHandler::*pHandlerFunc)(Int32, HashMap<Int32, Boolean>* );
         pHandlerFunc = &WebViewCore::EventHub::WvcEhHandler::HandleListboxChoices;
         return *(Handle32*)&pHandlerFunc;
     }
@@ -1892,14 +1892,16 @@ void WebViewCore::EventHub::WvcEhHandler::HandleSetSelection(
 
 //EventHub::LISTBOX_CHOICES
 void WebViewCore::EventHub::WvcEhHandler::HandleListboxChoices(
-    /* [in] */ Int32 arg1//,
-    /* [in] */ /*ISparseBooleanArray* obj*/)
+    /* [in] */ Int32 arg1,
+    /* [in] */ HashMap<Int32, Boolean> * obj)
 {
-    //AutoPtr<ISparseBooleanArray> choices = obj;
+    //JAVA:  SparseBooleanArray choices = (SparseBooleanArray)msg.obj;
+    HashMap<Int32, Boolean> * choices = obj;
     Int32 choicesSize = arg1;
     AutoFree < ArrayOf<Boolean> > choicesArray = ArrayOf<Boolean>::Alloc(choicesSize);
-    for (Int32 c = 0; c < choicesSize; c++) {
-        //choices -> Get(c,&(choicesArray[c]));
+    HashMap<Int32, Boolean>::Iterator iter = choices->Begin();
+    for (Int32 c = 0; (iter != choices->End())&&(c < choicesSize) ; iter++, c++) {
+        (*choicesArray)[c] = iter->mSecond;
     }
     mWebViewCore -> NativeSendListBoxChoices(choicesArray, choicesSize);
 }
@@ -2453,7 +2455,7 @@ String WebViewCore::OpenFileChooser()
     AutoFree < ArrayOf < String > > projection;
     ArrayOf<String>::Free(projection.Get());
     projection = ArrayOf<String>::Alloc(1);
-    (*projection)[0] = /*OpenableColumns_DISPLAY_NAME*/String("");
+    (*projection)[0] = /*OpenableColumns_DISPLAY_NAME*/String("_display_name");
     AutoPtr<ICursor> cursor ;
     AutoFree < ArrayOf < String > > arrayNull;
     ArrayOf<String>::Free(arrayNull.Get());

@@ -1,0 +1,38 @@
+module
+{
+    /**
+     *  This is a special version of ArrayAdapter which changes its text size
+     *  to match the text size of its host TextView.
+     */
+    interface IAutoCompleteAdapter extends IArrayAdapter
+    {
+    	/**
+         * {@inheritDoc}
+         */
+        /* this method has definded in wedget/Adapter.car
+        GetView(
+            [in] Int32 position, 
+            [in] IView* convertView, 
+            [in] IViewGroup* parent, 
+            [out] IView** view);
+        */
+    }
+
+    /**
+     * WebTextView is a specialized version of EditText used by WebView
+     * to overlay html textfields (and textareas) to use our standard
+     * text editing.
+     */
+    /* package */
+    interface IWebTextView extends IAutoCompleteTextView
+    {
+    	OnDrawSubstitute();
+
+	    /**
+	     *  Always use this instead of setAdapter, as this has features specific to
+	     *  the WebTextView.
+	     */
+	    SetAdapterCustom(
+            [in] IAutoCompleteAdapter* adapter);
+    }
+}

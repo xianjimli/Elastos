@@ -255,7 +255,7 @@ CARAPI_(IInterface*) WebSyncManager::Clone()
 ECode WebSyncManager::Run()
 {
     // prepare Looper for sync handler
-    //JAVA:  Looper.prepare();    //JAVA:  os/Looper.java (public class)
+    CApartment::Prepare();    //JAVA:  Looper.prepare();    //JAVA:  os/Looper.java (public class)
 
     mHandler = new SyncHandler(this);
     OnSyncInit();
@@ -270,7 +270,7 @@ ECode WebSyncManager::Run()
     CCallbackParcel::New((IParcel**)&params);
     mHandler->PostCppCallbackDelayed((Handle32)(mHandler.Get()), *(Handle32*)&pHandlerFunc, params, 0, SYNC_LATER_INTERVAL);
 
-    //JAVA:    Looper.loop();    //JAVA:  os/Looper.java (public class)
+    mHandler->Start(ApartmentAttr_New);    //JAVA:    Looper.loop();    //JAVA:  os/Looper.java (public class)
     return NOERROR;
 }
 

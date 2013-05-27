@@ -6,6 +6,7 @@
 #include "content/cm/CSignature.h"
 #include "webkit/CBrowserFrame.h"
 #include "webkit/JWebCoreJavaBridge.h"
+#include "os/SystemProperties.h"
 
 const CString CPluginManager::LOGTAG = "PluginManager";
 

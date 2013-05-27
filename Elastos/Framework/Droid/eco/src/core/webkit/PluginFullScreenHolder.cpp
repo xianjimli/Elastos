@@ -3,6 +3,7 @@
 #include "../../../res/gen/R.h"
 #include "view/CViewGroupLayoutParams.h"
 #include "webkit/CWebView.h"
+#include "view/ViewGroup.h"
 
 PluginFullScreenHolder::PluginFullScreenHolder(
         /* [in] */ IWebView* webView, 
@@ -118,7 +119,7 @@ void PluginFullScreenHolder::OnStop()
     mContentView -> GetParent( (IViewParent**)&pViewParent );
     if( mContentView != NULL && pViewParent.Get() != NULL ) {
         IViewGroup* vg = (IViewGroup *)(pViewParent.Get());
-        //vg -> RemoveView(mContentView.Get());
+        ((ViewGroup*)vg) -> RemoveView(mContentView.Get());
     }
     AutoPtr<WebViewCore> pWebViewCore;
     pWebViewCore = ((CWebView*)(mWebView.Get()))-> GetWebViewCore();

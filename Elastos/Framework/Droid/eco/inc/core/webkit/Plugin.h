@@ -14,10 +14,10 @@
 class Plugin {
 
 //public:
-//	class PreferencesClickHandler {
-//	public:
-//		virtual CARAPI_(void) handleClickEvent(
-//			/* [in] */ IContext* context) = 0;
+//    class PreferencesClickHandler {
+//    public:
+//        virtual CARAPI_(void) handleClickEvent(
+//            /* [in] */ IContext* context) = 0;
 //    };
 
 private:
@@ -64,91 +64,92 @@ private:
         AutoPtr<IAlertDialog> mDialog;
     };
 
+public:
     /**
      * @deprecated This interface was intended to be used by Gears. Since Gears was
      * deprecated, so is this class.
      */
     //@Deprecated
-	Plugin(
-		/* [in] */ String name,
-		/* [in] */ String path,
-		/* [in] */ String fileName,
-		/* [in] */ String description);
+    Plugin(
+        /* [in] */ String name,
+        /* [in] */ String path,
+        /* [in] */ String fileName,
+        /* [in] */ String description);
 
     /**
      * @deprecated This interface was intended to be used by Gears. Since Gears was
      * deprecated, so is this class.
      */
     //@Deprecated
-	virtual CARAPI_(String) ToString();
+    virtual CARAPI_(String) ToString();
 
     /**
      * @deprecated This interface was intended to be used by Gears. Since Gears was
      * deprecated, so is this class.
      */
     //@Deprecated
-	virtual CARAPI_(String) GetName();
+    virtual CARAPI_(String) GetName();
 
     /**
      * @deprecated This interface was intended to be used by Gears. Since Gears was
      * deprecated, so is this class.
      */
     //@Deprecated
-	virtual CARAPI_(String) GetPath();
+    virtual CARAPI_(String) GetPath();
 
     /**
      * @deprecated This interface was intended to be used by Gears. Since Gears was
      * deprecated, so is this class.
      */
     //@Deprecated
-	virtual CARAPI_(String) GetFileName();
+    virtual CARAPI_(String) GetFileName();
 
     /**
      * @deprecated This interface was intended to be used by Gears. Since Gears was
      * deprecated, so is this class.
      */
     //@Deprecated
-	virtual CARAPI_(String) GetDescription();
+    virtual CARAPI_(String) GetDescription();
 
     /**
      * @deprecated This interface was intended to be used by Gears. Since Gears was
      * deprecated, so is this class.
      */
     //@Deprecated
-	virtual CARAPI_(void) SetName(
-		/* [in] */ String name);
+    virtual CARAPI_(void) SetName(
+        /* [in] */ String name);
 
     /**
      * @deprecated This interface was intended to be used by Gears. Since Gears was
      * deprecated, so is this class.
      */
     //@Deprecated
-	virtual CARAPI_(void) SetPath(
-		/* [in] */ String path);
+    virtual CARAPI_(void) SetPath(
+        /* [in] */ String path);
 
     /**
      * @deprecated This interface was intended to be used by Gears. Since Gears was
      * deprecated, so is this class.
      */
     //@Deprecated
-	virtual CARAPI_(void) SetFileName(
-		/* [in] */ String fileName);
+    virtual CARAPI_(void) SetFileName(
+        /* [in] */ String fileName);
 
     /**
      * @deprecated This interface was intended to be used by Gears. Since Gears was
      * deprecated, so is this class.
      */
     //@Deprecated
-	virtual CARAPI_(void) SetDescription(
-		/* [in] */ String description);
+    virtual CARAPI_(void) SetDescription(
+        /* [in] */ String description);
 
     /**
      * @deprecated This interface was intended to be used by Gears. Since Gears was
      * deprecated, so is this class.
      */
     //@Deprecated
-	virtual CARAPI_(void) SetClickHandler(
-		/* [in] */ IPluginPreferencesClickHandler* handler);
+    virtual CARAPI SetClickHandler(
+        /* [in] */ IPluginPreferencesClickHandler* handler);
 
    /**
     * Invokes the click handler for this plugin.
@@ -157,14 +158,23 @@ private:
     * deprecated, so is this class.
     */
     //@Deprecated
-	virtual CARAPI_(void) DispatchClickEvent(
-		/* [in] */ IContext* context);
+    virtual CARAPI DispatchClickEvent(
+        /* [in] */ IContext* context);
+
+protected:
+    void Init(
+        /* [in] */ String name,
+        /* [in] */ String path,
+        /* [in] */ String fileName,
+        /* [in] */ String description);
+
+    Plugin();
 
 private:
-	String mName;
-	String mPath;
-	String mFileName;
-	String mDescription;
+    String mName;
+    String mPath;
+    String mFileName;
+    String mDescription;
     AutoPtr<IPluginPreferencesClickHandler> mHandler;
 };
 

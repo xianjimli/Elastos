@@ -73,28 +73,25 @@ CARAPI Plugin::DefaultClickHandler::HandleClickEvent(
 ECode Plugin::DefaultClickHandler::OnClick(
     /* [in] */ IDialogInterface* dialog, 
     /* [in] */ Int32 which)
-{	
+{    
     mDialog -> Dismiss();
     mDialog = NULL;
     return NOERROR;
 }
 
-Plugin::Plugin(
-	/* [in] */ String name,
-	/* [in] */ String path,
-	/* [in] */ String fileName,
-	/* [in] */ String description)
-{	
-    mName = name;
-    mPath = path;
-    mFileName = fileName;
-    mDescription = description;    
+Plugin::Plugin()
+{
+    String strNULL=String("");
+    Init(strNULL, strNULL, strNULL, strNULL);
+}
 
-    AutoPtr<Plugin::DefaultClickHandler> pDch = new Plugin::DefaultClickHandler();
-    mHandler = (IPluginPreferencesClickHandler*)(pDch.Get());    
-    pDch -> mName = (ICharSequence *)&name;
-    pDch -> mDescription = (ICharSequence *)&description;
-    pDch -> mRStringOk = (ICharSequence *)(R::id::ok);     //RStringOK = JAVA: R.string.ok
+Plugin::Plugin(
+    /* [in] */ String name,
+    /* [in] */ String path,
+    /* [in] */ String fileName,
+    /* [in] */ String description)
+{    
+    Init(name, path, fileName, description);
 }
 
 String Plugin::ToString()
@@ -146,16 +143,36 @@ void Plugin::SetDescription(
     mDescription = description;
 }
 
-void Plugin::SetClickHandler(
+ECode Plugin::SetClickHandler(
     /* [in] */ IPluginPreferencesClickHandler * handler)
 {
     mHandler = handler;
+    return NOERROR;
 }
 
-void Plugin::DispatchClickEvent(
+ECode Plugin::DispatchClickEvent(
     /* [in] */ IContext * context)
 {
     if(mHandler != NULL) {
         mHandler -> HandleClickEvent(context);
     }
+    return NOERROR;
+}
+
+void Plugin::Init(
+    /* [in] */ String name,
+    /* [in] */ String path,
+    /* [in] */ String fileName,
+    /* [in] */ String description)
+{
+    mName = name;
+    mPath = path;
+    mFileName = fileName;
+    mDescription = description;    
+
+    AutoPtr<Plugin::DefaultClickHandler> pDch = new Plugin::DefaultClickHandler();
+    mHandler = (IPluginPreferencesClickHandler*)(pDch.Get());    
+    pDch -> mName = (ICharSequence *)&name;
+    pDch -> mDescription = (ICharSequence *)&description;
+    pDch -> mRStringOk = (ICharSequence *)(R::id::ok);     //RStringOK = JAVA: R.string.ok    
 }
