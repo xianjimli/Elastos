@@ -35,7 +35,7 @@ ECode CSyncStorageEnginePendingOperation::GetExtras(
     return NOERROR;
 }
 
-ECode CSyncStorageEnginePendingOperation::GetExpendited(
+ECode CSyncStorageEnginePendingOperation::GetExpedited(
     /* [out] */ Boolean* expedited)
 {
     VALIDATE_NOT_NULL(expedited);
@@ -105,7 +105,7 @@ ECode CSyncStorageEnginePendingOperation::constructor(
     FAIL_RETURN(other->GetAuthority(&mAuthority));
     FAIL_RETURN(other->GetExtras((IBundle**)&mExtras));
     FAIL_RETURN(other->GetAuthorityId(&mAuthorityId));
-    FAIL_RETURN(other->GetExpendited(&mExpedited));
+    FAIL_RETURN(other->GetExpedited(&mExpedited));
     return NOERROR;
 }
 

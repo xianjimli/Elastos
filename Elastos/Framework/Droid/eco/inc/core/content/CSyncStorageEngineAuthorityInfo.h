@@ -58,7 +58,7 @@ public:
 
     //CARAPI GetPeriodicSyncs(
     //    /* [out] */ IObjectContainer** periodicSyncs);
-    List<Pair<AutoPtr<IBundle>, Int64> >* GetPeriodicSyncs();    
+    List<Pair<AutoPtr<IBundle>, Int64>* >* GetPeriodicSyncs();    
 
     CARAPI constructor(
         /* [in] */ IAccount* account,
@@ -74,7 +74,7 @@ private:
     Int64 mBackoffTime;
     Int64 mBackoffDelay;
     Int64 mDelayUntil;
-    List<Pair<AutoPtr<IBundle>, Int64> >* mPeriodicSyncs;
+    List<Pair<AutoPtr<IBundle>, Int64>* >* mPeriodicSyncs;
 };
 
 #endif // __CSYNCSTORAGEENGINEAUTHORITYINFO_H__

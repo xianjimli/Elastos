@@ -8,6 +8,7 @@
 #include "_CSyncStorageEngine.h"
 #include "ext/frameworkext.h"
 #include <elastos/AutoPtr.h>
+#include <elastos/AutoFree.h>
 #include <elastos/HashMap.h>
 #include <elastos/List.h>
 #include <elastos/ElRefBase.h>
