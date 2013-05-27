@@ -31,7 +31,7 @@ const Int32 WebViewWorker::CACHE_TRANSACTION_TICKER_INTERVAL;
 
 WebViewWorker::WebViewWorker(
 	/* [in] */ /*Looper* looper*/)//:Handler(looper)
-{    
+{
     assert(SUCCEEDED(CApartment::GetMainApartment((IApartment**)&mApartment))
         && (mApartment != NULL));
 }
@@ -48,6 +48,7 @@ CARAPI_(WebViewWorker*) WebViewWorker::GetHandler()
         thread -> Start();
         sWorkerHandler = new WebViewWorker(thread -> GetLooper());
         */
+        sWorkerHandler = new WebViewWorker();
     }
 
     return sWorkerHandler;

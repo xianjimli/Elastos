@@ -14,6 +14,7 @@
 #include "graphics/CRegion.h"
 
 #include <elastos/Set.h>
+#include <elastos/HashMap.h>
 
 class WebViewCore : public ElRefBase
 {
@@ -501,8 +502,8 @@ public:
                 /* [in] */ Int32 arg2);
             //EventHub::LISTBOX_CHOICES
             void HandleListboxChoices(
-                /* [in] */ Int32 arg1//,
-                /* [in] */ /*ISparseBooleanArray* obj*/);
+                /* [in] */ Int32 arg1,
+                /* [in] */ HashMap<Int32, Boolean>* obj);
             //EventHub::SINGLE_LISTBOX_CHOICE
             void HandleSingleListboxChoices(
                 /* [in] */ Int32 arg1);

@@ -12,7 +12,7 @@
 CarClass(CWebHistoryItem)
 {
 public:
-    friend class CWebHistoryItem;
+    //friend class CWebHistoryItem;
 
     /*public*/
     CARAPI GetId(

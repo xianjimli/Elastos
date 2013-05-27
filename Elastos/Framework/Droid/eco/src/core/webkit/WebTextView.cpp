@@ -15,10 +15,57 @@
 #include "graphics/ElPixelFormat.h"
 #include "view/inputmethod/CLocalInputMethodManager.h"
 #include "widget/CEditableInputConnection.h"
+#include "text/Selection.h"
+#include "view/ViewConfiguration.h"
+#include "view/ElKeyCharacterMap.h"
+#include <elastos/Vector.h>
+#include "view/ViewGroup.h"
 
 const CString WebTextView::LOGTAG = "webtextview";
 
 /******************************AutoCompleteAdapter*************************/
+IARRAYADAPTER_METHODS_IMPL(WebTextView::AutoCompleteAdapter, ArrayAdapter, ArrayAdapter);
+
+PInterface WebTextView::AutoCompleteAdapter::Probe(
+    /* [in] */ REIID riid)
+{
+    if (riid == EIID_IInterface) {
+        return (IInterface*)(IAutoCompleteAdapter*)this;
+    }
+    else if (riid == EIID_IAutoCompleteAdapter) {
+        return (IAutoCompleteAdapter*)this;
+    }
+    return NULL;
+}
+
+UInt32 WebTextView::AutoCompleteAdapter::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 WebTextView::AutoCompleteAdapter::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode WebTextView::AutoCompleteAdapter::GetInterfaceID(
+    /* [in] */ IInterface* Object,
+    /* [out] */ InterfaceID* iID)
+{
+    VALIDATE_NOT_NULL(iID);
+    if (iID == NULL) {
+        return E_INVALID_ARGUMENT;
+    }
+
+    if (Object == (IInterface*)(IAutoCompleteAdapter*)this) {
+        *iID = EIID_IAutoCompleteAdapter;
+    }
+    else {
+        return E_INVALID_ARGUMENT;
+    }
+    return NOERROR;
+}
+
 WebTextView::AutoCompleteAdapter::AutoCompleteAdapter(
     /* [in] */ IContext* context,
     /* [in] */ IObjectContainer* entries):ArrayAdapter(context, R::layout::search_dropdown_item_1line, entries)
@@ -366,6 +413,52 @@ Int32 WebTextView::OutlineDrawable::GetOpacity()
 }
 
 /*******************************WebTextView*********************************/
+// PInterface WebTextView::Probe(
+//     /* [in] */ REIID riid)
+// {
+//     if (riid == EIID_IInterface) {
+//         return (IInterface*)(IView*)this;
+//     }
+//     else if (riid == EIID_IView) {
+//         return (IView*)this;
+//     }
+//     return NULL;
+// }
+
+// UInt32 WebTextView::AddRef()
+// {
+//     return ElRefBase::AddRef();
+// }
+
+// UInt32 WebTextView::Release()
+// {
+//     return ElRefBase::Release();
+// }
+
+// ECode WebTextView::GetInterfaceID(
+//     /* [in] */ IInterface* Object,
+//     /* [out] */ InterfaceID* iID)
+// {
+//     VALIDATE_NOT_NULL(iID);
+//     if (iID == NULL) {
+//         return E_INVALID_ARGUMENT;
+//     }
+
+//     if (Object == (IInterface*)(IView*)this) {
+//         *iID = EIID_IView;
+//     }
+//     else {
+//         return E_INVALID_ARGUMENT;
+//     }
+//     return NOERROR;
+// }
+
+// IVIEW_METHODS_IMPL(WebTextView, AutoCompleteTextView, AutoCompleteTextView);
+
+WebTextView::WebTextView(): AutoCompleteTextView()
+{
+    mMaxLength = -1;
+}
 
 /**
  * Create a new WebTextView.
@@ -379,6 +472,15 @@ WebTextView::WebTextView(
 {
     mWebView = webView;
     mMaxLength = -1;
+}
+
+void WebTextView::Init(
+    /* [in] */ IContext* context,
+    /* [in] */ IWebView* webView)
+{
+    AutoCompleteTextView::Init(context,NULL,R::attr::webTextViewStyle);
+    mWebView = webView;
+    mMaxLength = -1;    
 }
 
 //@Override
@@ -470,12 +572,8 @@ Boolean WebTextView::DispatchKeyEvent(
     if ((GetLayout().Get()) == NULL) {
         Measure(mWidthSpec, mHeightSpec);
     }
-    //AutoPtr<ISelection> selectionT;     //JAVA_DIR:text/Selection.java(public class) 
-    //Selection::New((ISelection**)selectionT);
-    Int32 oldStart = 0;
-    Int32 oldEnd = 0;
-    //selectionT -> GetSelectionStart( (ICharSequence*)(text.Get()), &oldStart);
-    //selectionT -> GetSelectionEnd( (ICharSequence*)(text.Get()), &oldEnd );
+    Int32 oldStart = Selection::GetSelectionStart( (ICharSequence*)(text.Get()) );
+    Int32 oldEnd = Selection::GetSelectionEnd( (ICharSequence*)(text.Get()) );
 
     Boolean maxedOut = ( (mMaxLength != -1) && (oldLength == mMaxLength) );
     // If we are at max length, and there is a selection rather than a
@@ -520,12 +618,8 @@ Boolean WebTextView::DispatchKeyEvent(
                 // unlikely that a site would combine the two in
                 // one textfield.
                 AutoPtr<ISpannable> span = (ISpannable*)( (GetText().Get()) -> Probe(EIID_ISpannable) );
-                Int32 newStart = 0;
-                Int32 newEnd = 0;
-                //AutoPtr<ISelection> selectionT;     //JAVA_DIR:text/Selection.java(public class) 
-                //Selection::New((ISelection**)selectionT);
-                //selectionT -> GetSelectionStart( (ICharSequence*)(text.Get()), &newStart);
-                //selectionT -> GetSelectionEnd( (ICharSequence*)(text.Get()), &newEnd );
+                Int32 newStart = Selection::GetSelectionStart( (ICharSequence*)(text.Get()) );
+                Int32 newEnd = Selection::GetSelectionEnd( (ICharSequence*)(text.Get()) );
                 String strSpan;
                 ( ((ICharSequence*)span) -> ToString(&strSpan) );
                 ((CWebView*)(mWebView.Get())) -> ReplaceTextfieldText(0, oldLength, strSpan,newStart, newEnd);
@@ -636,9 +730,10 @@ void WebTextView::OnDraw(
     }
 }
 
-void WebTextView::OnDrawSubstitute()
+ECode WebTextView::OnDrawSubstitute()
 {
     UpdateCursorControllerPositions();
+    return NOERROR;
 }
 
 //@Override
@@ -782,11 +877,14 @@ void WebTextView::OnTextChanged(
     /*
     AutoPtr<IKeyCharacterMap> kmap;    //view/KeyCharacterMap
     kmap = KeyCharacterMap::Load(KeyCharacterMap_BUILT_IN_KEYBOARD);
-    */
-    AutoFree< ArrayOf< AutoPtr<IKeyEvent> > > events;
+    */    
+    AutoPtr<ElKeyCharacterMap> kmap = ElKeyCharacterMap::Load(ElKeyCharacterMap::BUILT_IN_KEYBOARD);
+
+    Vector< AutoPtr<IKeyEvent> > * events;//AutoFree< ArrayOf< AutoPtr<IKeyEvent> > > events;
     //events = kmap -> GetEvents(mCharacter);
+    kmap->GetEvents((Char16*)(mCharacter->GetPayload()), mCharacter->GetLength(), (Elastos::Vector<AutoPtr<IKeyEvent> >**)&events);
     
-    Boolean cannotUseKeyEvents = (NULL == events.Get());
+    Boolean cannotUseKeyEvents = (NULL == events);
     Int32 charactersFromKeyEvents = cannotUseKeyEvents ? 0 : 1;
     if (count > 1 || cannotUseKeyEvents) {
         AutoPtr<ICharSequence> iCharSequenceT;
@@ -809,7 +907,7 @@ void WebTextView::OnTextChanged(
         }
     }
     if (!cannotUseKeyEvents) {
-        Int32 length = events -> GetLength();
+        Int32 length = events -> GetSize();
         for (Int32 i = 0; i < length; i++) {
             // We never send modifier keys to native code so don't send them
             // here either.
@@ -851,11 +949,15 @@ Boolean WebTextView::OnTouchEvent(
                 return FALSE;
             }
             Int32 slop = 0;
+
             /*
             AutoPtr<IViewConfiguration> viewConfigurationT;
             CViewConfiguration::Get(mContext,(IViewConfiguration**)&viewConfigurationT);
             viewConfigurationT -> GetScaledTouchSlop(&slop);
             */
+            ViewConfiguration * viewConfigurationT = ViewConfiguration::Get(mContext);
+            slop = viewConfigurationT->GetScaledTouchSlop();
+
             AutoPtr<ISpannable> buffer = (ISpannable*)( (GetText().Get()) -> Probe(EIID_ISpannable) );
             Int32 initialScrollX = 0;//CTouch::GetInitialScrollX(this, buffer);    //text/method  Touch.java(public class)
             Int32 initialScrollY = 0;//CTouch::GetInitialScrollY(this, buffer);
@@ -985,7 +1087,7 @@ void WebTextView::Remove()
     AutoPtr<IBinder> binder;
     binder = GetWindowToken();
     imm -> HideSoftInputFromWindow(binder, 0, &bHideSoftInputFromWindow);
-    //( mWebView.Get() ) -> RemoveView(this);
+    ( (ViewGroup*)( mWebView.Get() ) ) -> RemoveView((IView*)this);
     Boolean bRequestFocus;
     ( mWebView.Get() ) -> RequestFocus(&bRequestFocus);
 }
@@ -997,7 +1099,7 @@ void WebTextView::BringIntoView()
     layOutT = GetLayout();
     if ( layOutT.Get() != NULL ) {
         AutoPtr<ICharSequence> charSequenceT = GetText().Get();
-        BringPointIntoView(/*CSelection::GetSelectionEnd(charSequenceT.Get())*/0);    //JAVA:    text/Selection.java(public class)
+        BringPointIntoView(Selection::GetSelectionEnd(charSequenceT.Get()));    //JAVA:    text/Selection.java(public class)
     }
 }
 
@@ -1040,8 +1142,8 @@ void WebTextView::SetDefaultSelection()
     Int32 textLen = 0;
     text -> GetLength(&textLen);
     Int32 selection = mSingle ? textLen : 0;
-    if (/*CSelection::GetSelectionStart((ICharSequence*)text) == selection*/FALSE
-                && /*CSelection::GetSelectionEnd((ICharSequence*)text) == selection*/FALSE) {   //JAVA:  text/Selection
+    if (Selection::GetSelectionStart((ICharSequence*)text) == selection
+                && Selection::GetSelectionEnd((ICharSequence*)text) == selection) {   //JAVA:  text/Selection
         // The selection of the UI copy is set correctly, but the
         // WebTextView still needs to inform the webkit thread to set the
         // selection.  Normally that is done in onSelectionChanged, but
@@ -1055,7 +1157,7 @@ void WebTextView::SetDefaultSelection()
         }
     } 
     else {
-        //CSelection::SetSelection(text, selection, selection);
+        Selection::SetSelection(text, selection, selection);
     }
 }
 
@@ -1202,7 +1304,7 @@ void WebTextView::SetSelectionFromWebKit(
         return;
     }
     mFromWebKit = TRUE;
-    //CSelection::SetSelection(text, start, end);   //JAVA:  text/Selection.java
+    Selection::SetSelection(text, start, end);   //JAVA:  text/Selection.java
     mFromWebKit = FALSE;
 }
 
@@ -1217,8 +1319,8 @@ void WebTextView::SetTextAndKeepSelection(
 {
     mPreChange = text;
     AutoPtr<IEditable> edit = (IEditable*)(GetText().Get());
-    Int32 selStart = 0;//CSelection::GetSelectionStart(edit);   //JAVA text/Selection.java(static Method)
-    Int32 selEnd = 0;//CSelection::GetSelectionEnd(edit);
+    Int32 selStart = Selection::GetSelectionStart(edit);   //JAVA text/Selection.java(static Method)
+    Int32 selEnd = Selection::GetSelectionEnd(edit);
     mInSetTextAndKeepSelection = TRUE;
     AutoPtr<IEditable> editT;
     Int32 editLen;
@@ -1232,7 +1334,7 @@ void WebTextView::SetTextAndKeepSelection(
     if (selEnd > newLength) {
         selEnd = newLength;
     } 
-    //CSelection::SetSelection(edit, selStart, selEnd);
+    Selection::SetSelection(edit, selStart, selEnd);
     mInSetTextAndKeepSelection = FALSE;
     UpdateCachedTextfield();
 }
@@ -1368,4 +1470,12 @@ Boolean WebTextView::RequestRectangleOnScreen(
         return AutoCompleteTextView::RequestRectangleOnScreen(rectangle);
     }
     return FALSE;
+}
+
+//@Override   //Own Add
+Boolean WebTextView::RequestRectangleOnScreen(
+    /* [in] */ IRect* rectangle,
+    /* [in] */ Boolean immediate)
+{
+    return AutoCompleteTextView::RequestRectangleOnScreen(rectangle,immediate);
 }

@@ -38,6 +38,7 @@ module
   merge("webkit/MockGeolocation.car");
   merge("webkit/MimeTypeMap.car");
   merge("webkit/WebBackForwardList.car");
+  merge("webkit/WebTextView.car");
 
 
   class CBrowserFrame {
@@ -187,6 +188,19 @@ module
 
   singleton class CWebStorage {
     interface IWebStorage;
+  }
+
+  class CWebTextView{
+    constructor(
+        [in] IContext* context,
+        [in] IWebView* webView);
+
+    interface IWebTextView;
+    interface IOnPreDrawListener;
+    interface IDrawableCallback;
+    interface IKeyEventCallback;
+    interface IAccessibilityEventSource;
+    interface IFilterListener;
   }
 
   class CWebView {

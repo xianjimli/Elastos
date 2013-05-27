@@ -2,7 +2,7 @@
 #define __WEBVIEWWORKER_H__
 
 #include "ext/frameworkext.h"
-#include <utils/Looper.h>
+//#include <utils/Looper.h>
 #include <elastos/Map.h>
 #include <elastos/AutoPtr.h>
 #include <elastos/Mutex.h>

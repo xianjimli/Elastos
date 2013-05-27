@@ -7,8 +7,12 @@
 #include <elastos/AutoFree.h>
 #include <elastos/ElRefBase.h>
 #include <elastos/List.h>
-#include "widget/ArrayAdapter.h"
 #include "graphics/drawable/Drawable.h"
+
+#include "widget/ArrayAdapter.h"
+#include "webkit/ArrayAdapterMacro.h"
+
+//#include "view/ViewMacro.h"
 
 /**
  * WebTextView is a specialized version of EditText used by WebView
@@ -16,17 +20,45 @@
  * text editing.
  */
 /* package */
- class WebTextView : public ElRefBase, AutoCompleteTextView {
+class WebTextView : public AutoCompleteTextView, public ElRefBase//, public IView 
+{
+// public:
+//     CARAPI_(PInterface) Probe(
+//         /* [in] */ REIID riid);
 
- public:
+//     CARAPI_(UInt32) AddRef();
+
+//     CARAPI_(UInt32) Release();
+
+//     CARAPI GetInterfaceID(
+//         /* [in] */ IInterface* Object,
+//         /* [out] */ InterfaceID* iID);
+
+// public:
+//     IVIEW_METHODS_DECL();
+
+public:
     static const CString LOGTAG;// = "webtextview";
 
     /**
      *  This is a special version of ArrayAdapter which changes its text size
      *  to match the text size of its host TextView.
      */
-    class AutoCompleteAdapter : public ArrayAdapter
+    class AutoCompleteAdapter : public ElRefBase, public ArrayAdapter, public IAutoCompleteAdapter
     {
+    public:
+        CARAPI_(PInterface) Probe(
+            /* [in] */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface* Object,
+            /* [out] */ InterfaceID* iID);
+    public:
+        IARRAYADAPTER_METHODS_DECL();
     public:
         friend class WebTextView;
 
@@ -231,7 +263,7 @@
         /* [in] */ IEditorInfo* outAttrs);
 
     //public
-    virtual CARAPI_(void) OnDrawSubstitute();
+    virtual CARAPI OnDrawSubstitute();
 
     //@Override
     //public
@@ -361,6 +393,12 @@
     virtual CARAPI_(Boolean) RequestRectangleOnScreen(
         /* [in] */ IRect* rectangle);
 
+    //@Override //Own Add
+    //public
+    virtual CARAPI_(Boolean) RequestRectangleOnScreen(
+        /* [in] */ IRect* rectangle,
+        /* [in] */ Boolean immediate);
+
 protected:
     //@Override
     virtual CARAPI_(void) OnDraw(
@@ -391,7 +429,16 @@ protected:
         /* [in] */ Int32 before,
         /* [in] */ Int32 count);
 
+    void Init(
+        /* [in] */ IContext* context,
+        /* [in] */ IWebView* webView);
+
+protected:
+
+    WebTextView();
+
 private:
+
     /**
      * Ensure that the underlying textfield is lined up with the WebTextView.
      */

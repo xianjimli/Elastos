@@ -39,6 +39,7 @@ SOURCES += CWebChromeClient.cpp
 SOURCES += CWebHistoryItem.cpp
 SOURCES += CWebIconDatabase.cpp
 SOURCES += CWebStorage.cpp
+SOURCES += CWebTextView.cpp
 SOURCES += CWebView.cpp
 SOURCES += CWebViewClient.cpp
 SOURCES += CWebViewDatabase.cpp
