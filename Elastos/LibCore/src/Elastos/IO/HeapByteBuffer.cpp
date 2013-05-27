@@ -6,10 +6,8 @@ HeapByteBuffer::HeapByteBuffer(
     /* [in] */ Int32 capacity)
     : BaseByteBuffer(capacity)
 {
-    ArrayOf<Byte>* backingArray;
-
-    backingArray = ArrayOf<Byte>::Alloc(capacity);
-    assert(NULL != backingArray);
+    mBackingArray = ArrayOf<Byte>::Alloc(capacity);
+    assert(NULL != mBackingArray);
     mOffset        = 0;
     mIsAllocBySelf = true;
 }

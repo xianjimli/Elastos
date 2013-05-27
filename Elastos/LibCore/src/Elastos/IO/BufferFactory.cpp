@@ -20,6 +20,7 @@ ECode BufferFactory::NewByteBuffer(
     ReadWriteHeapByteBuffer* buffer = new ReadWriteHeapByteBuffer(array);
     if (buffer->Probe(EIID_IByteBuffer) != NULL) {
         *buf = (IByteBuffer*)buffer->Probe(EIID_IByteBuffer);
+        (*buf)->AddRef();
     }
     else {
         *buf = NULL;
@@ -37,6 +38,7 @@ ECode BufferFactory::NewByteBufferEx(
     ReadWriteHeapByteBuffer* buffer = new ReadWriteHeapByteBuffer(capacity);
     if (buffer->Probe(EIID_IByteBuffer) != NULL) {
         *buf = (IByteBuffer*)buffer->Probe(EIID_IByteBuffer);
+        (*buf)->AddRef();
     }
     else {
         *buf = NULL;
@@ -54,6 +56,7 @@ ECode BufferFactory::NewCharBuffer(
     ReadWriteCharArrayBuffer* buffer = new ReadWriteCharArrayBuffer(array);
     if (buffer->Probe(EIID_ICharBuffer) != NULL) {
         *buf = (ICharBuffer*)buffer->Probe(EIID_ICharBuffer);
+        (*buf)->AddRef();
     }
     else {
         *buf = NULL;
@@ -73,6 +76,7 @@ ECode BufferFactory::NewCharBufferEx(
     CharSequenceAdapter* buffer = new CharSequenceAdapter(len, chseq);
     if (buffer->Probe(EIID_ICharBuffer) != NULL) {
         *buf = (ICharBuffer*)buffer->Probe(EIID_ICharBuffer);
+        (*buf)->AddRef();
     }
     else {
         *buf = NULL;
@@ -90,6 +94,7 @@ ECode BufferFactory::NewCharBufferEx2(
     ReadWriteCharArrayBuffer* buffer = new ReadWriteCharArrayBuffer(capacity);
     if (buffer->Probe(EIID_ICharBuffer) != NULL) {
         *buf = (ICharBuffer*)buffer->Probe(EIID_ICharBuffer);
+        (*buf)->AddRef();
     }
     else {
         *buf = NULL;
@@ -107,6 +112,7 @@ ECode BufferFactory::NewDirectByteBuffer(
     ReadWriteDirectByteBuffer* buffer = new ReadWriteDirectByteBuffer(capacity);
     if (buffer->Probe(EIID_IByteBuffer) != NULL) {
         *buf = (IByteBuffer*)buffer->Probe(EIID_IByteBuffer);
+        (*buf)->AddRef();
     }
     else {
         *buf = NULL;
@@ -124,6 +130,7 @@ ECode BufferFactory::NewDoubleBuffer(
     ReadWriteDoubleArrayBuffer* buffer = new ReadWriteDoubleArrayBuffer(array);
     if (buffer->Probe(EIID_IDoubleBuffer) != NULL) {
         *buf = (IDoubleBuffer*)buffer->Probe(EIID_IDoubleBuffer);
+    (*buf)->AddRef();
     }
     else {
         *buf = NULL;
@@ -141,6 +148,7 @@ ECode BufferFactory::NewDoubleBufferEx(
     ReadWriteDoubleArrayBuffer* buffer = new ReadWriteDoubleArrayBuffer(capacity);
     if (buffer->Probe(EIID_IDoubleBuffer) != NULL) {
         *buf = (IDoubleBuffer*)buffer->Probe(EIID_IDoubleBuffer);
+        (*buf)->AddRef();
     }
     else {
         *buf = NULL;
@@ -158,6 +166,7 @@ ECode BufferFactory::NewFloatBuffer(
     ReadWriteFloatArrayBuffer* buffer = new ReadWriteFloatArrayBuffer(array);
     if (buffer->Probe(EIID_IFloatBuffer) != NULL) {
         *buf = (IFloatBuffer*)buffer->Probe(EIID_IFloatBuffer);
+        (*buf)->AddRef();
     }
     else {
         *buf = NULL;
@@ -175,6 +184,7 @@ ECode BufferFactory::NewFloatBufferEx(
     ReadWriteFloatArrayBuffer* buffer = new ReadWriteFloatArrayBuffer(capacity);
     if (buffer->Probe(EIID_IFloatBuffer) != NULL) {
         *buf = (IFloatBuffer*)buffer->Probe(EIID_IFloatBuffer);
+        (*buf)->AddRef();
     }
     else {
         *buf = NULL;
@@ -192,6 +202,7 @@ ECode BufferFactory::NewInt32Buffer(
     ReadWriteInt32ArrayBuffer* buffer = new ReadWriteInt32ArrayBuffer(capacity);
     if (buffer->Probe(EIID_IInt32Buffer) != NULL) {
         *buf = (IInt32Buffer*)buffer->Probe(EIID_IInt32Buffer);
+        (*buf)->AddRef();
     }
     else {
         *buf = NULL;
@@ -209,6 +220,7 @@ ECode BufferFactory::NewInt32BufferEx(
     ReadWriteInt32ArrayBuffer* buffer = new ReadWriteInt32ArrayBuffer(array);
     if (buffer->Probe(EIID_IInt32Buffer) != NULL) {
         *buf = (IInt32Buffer*)buffer->Probe(EIID_IInt32Buffer);
+        (*buf)->AddRef();
     }
     else {
         *buf = NULL;
@@ -226,6 +238,7 @@ ECode BufferFactory::NewInt64Buffer(
     ReadWriteInt64ArrayBuffer* buffer = new ReadWriteInt64ArrayBuffer(capacity);
     if (buffer->Probe(EIID_IInt64Buffer) != NULL) {
         *buf = (IInt64Buffer*)buffer->Probe(EIID_IInt64Buffer);
+        (*buf)->AddRef();
     }
     else {
         *buf = NULL;
@@ -243,6 +256,7 @@ ECode BufferFactory::NewInt64BufferEx(
     ReadWriteInt64ArrayBuffer* buffer = new ReadWriteInt64ArrayBuffer(array);
     if (buffer->Probe(EIID_IInt64Buffer) != NULL) {
         *buf = (IInt64Buffer*)buffer->Probe(EIID_IInt64Buffer);
+        (*buf)->AddRef();
     }
     else {
         *buf = NULL;
@@ -260,6 +274,7 @@ ECode BufferFactory::NewInt16Buffer(
     ReadWriteInt16ArrayBuffer* buffer = new ReadWriteInt16ArrayBuffer(capacity);
     if (buffer->Probe(EIID_IInt16Buffer) != NULL) {
         *buf = (IInt16Buffer*)buffer->Probe(EIID_IInt16Buffer);
+        (*buf)->AddRef();
     }
     else {
         *buf = NULL;
@@ -277,6 +292,7 @@ ECode BufferFactory::NewInt16BufferEx(
     ReadWriteInt16ArrayBuffer* buffer = new ReadWriteInt16ArrayBuffer(array);
     if (buffer->Probe(EIID_IInt16Buffer) != NULL) {
         *buf = (IInt16Buffer*)buffer->Probe(EIID_IInt16Buffer);
+        (*buf)->AddRef();
     }
     else {
         *buf = NULL;

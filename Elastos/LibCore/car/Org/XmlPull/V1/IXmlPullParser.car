@@ -995,6 +995,22 @@ module
          */
         NextTag(
             [out] Int32* tag);
+
+        /**
+         * Returns true if this parser processes namespaces.
+         *
+         * @see #setNamespaceProcessingEnabled(boolean)
+         */
+        IsNamespaceProcessingEnabled(
+            [out] Boolean* result);
+
+        /**
+         * Enables or disables namespace processing. Set to false by default.
+         *
+         * @see #isNamespaceProcessingEnabled()
+         */
+        SetNamespaceProcessingEnabled(
+            [in] Boolean processNamespaces);
     }
 
     interface IXmlPullParserFactory {

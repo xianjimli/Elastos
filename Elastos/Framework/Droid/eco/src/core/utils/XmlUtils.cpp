@@ -102,12 +102,38 @@ ECode XmlUtils::BeginDocument(
     /* [in] */ IXmlPullParser* parser,
     /* [in] */ CString firstElementName)
 {
-    return E_NOT_IMPLEMENTED;	
+    Int32 type;
+    parser->Next(&type);
+    while (type != IXmlPullParser_START_TAG
+               && type != IXmlPullParser_END_DOCUMENT) {
+        ;
+    }
+
+    if (type != IXmlPullParser_START_TAG) {
+        // throw new XmlPullParserException("No start tag found");
+        return E_XML_PULL_PARSER_EXCEPTION;
+    }
+
+    String str;
+    parser->GetName(&str);
+    if (!str.Equals(firstElementName)) {
+        // throw new XmlPullParserException("Unexpected start tag: found " + parser.getName() +
+        //         ", expected " + firstElementName);
+        return E_XML_PULL_PARSER_EXCEPTION;
+    }
+
+    return NOERROR;
 }
 
 ECode XmlUtils::NextElement(
     /* [in] */ IXmlPullParser* parser)
 {
-    return E_NOT_IMPLEMENTED;
+    Int32 type;
+    parser->Next(&type);
+    while (type != IXmlPullParser_START_TAG
+               && type != IXmlPullParser_END_DOCUMENT) {
+        parser->Next(&type);;
+    }
+    return NOERROR;
 }
 

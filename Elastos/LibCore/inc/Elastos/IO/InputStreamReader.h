@@ -145,7 +145,7 @@ private:
 
     Boolean mEndOfInput;
 
-//    CharsetDecoder decoder;
+    // AutoPtr<ICharset> mDecoder;
 
     AutoPtr<IByteBuffer> mBytes;
 };

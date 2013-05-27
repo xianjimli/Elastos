@@ -4,6 +4,7 @@
 #include <elastos/AutoFree.h>
 #include <StringBuffer.h>
 #include <Elastos.IO.h>
+#include <stdio.h>
 
 using namespace Elastos::Core;
 
@@ -53,12 +54,42 @@ const String CXmlPullParser::TYPES[TYPES_LENGTH] = {
 
 CXmlPullParser::CXmlPullParser()
 {
+    mSrcBuf  = ArrayOf<Char8>::Alloc(8192 * 4);//memory big use 8192 or 128
+    mTxtBuf = ArrayOf<Char8>::Alloc(128);
+    mAttributes = ArrayOf<String>::Alloc(16);
+    mElementStack = ArrayOf<String>::Alloc(16);
+    mNspStack = ArrayOf<String>::Alloc(8);
+    mNspCounts = ArrayOf<Int32>::Alloc(4);
 }
 
 CXmlPullParser::~CXmlPullParser()
 {
-    for (Int32 i = 0; i < 16; i++) ((*mAttributes)[i]).~String();
+    if (mSrcBuf) {
+        ArrayOf<Char8>::Free(mSrcBuf);
+    }
+
+    if (mTxtBuf) {
+        ArrayOf<Char8>::Free(mTxtBuf);
+    }
+
+    for (Int32 i = 0; i < 16; i++) {
+        ((*mAttributes)[i]).~String();
+    }
     ArrayOf<String>::Free(mAttributes);
+
+    for (Int32 i = 0; i < 16; i++) {
+        ((*mElementStack)[i]).~String();
+    }
+    ArrayOf<String>::Free(mElementStack);
+
+    for (Int32 i = 0; i < 8; i++) {
+        ((*mNspStack)[i]).~String();
+    }
+    ArrayOf<String>::Free(mNspStack);
+
+    if (mNspCounts) {
+        ArrayOf<Int32>::Free(mNspCounts);
+    }
 }
 
 // BEGIN android-added
@@ -377,8 +408,7 @@ ECode CXmlPullParser::ParseLegacy(
                 }
 
                 FAIL_RETURN(ParseStartTag(TRUE));
-
-                if (mAttributeCount < 1 || ((*mAttributes)[2]).Compare("version")) {
+                if (mAttributeCount < 1 || !((*mAttributes)[2]).Compare("version")) {
                     XPP_ERROR("version expected");
                 }
 
@@ -1002,15 +1032,20 @@ ECode CXmlPullParser::Peek(
             FAIL_RETURN(mReader->Read(&nw));
         }
         else if (mSrcPos < mSrcCount) {
-            nw = (*mSrcBuf)[mSrcPos++];
+            Int32 offset = ((mSrcPos + 1) * 4 - 1);
+            nw = *(mSrcBuf->GetPayload() + offset);
+            printf("%c", nw);
+            mSrcPos++;
         }
         else {
             FAIL_RETURN(mReader->ReadBufferEx(0, mSrcBuf->GetLength(), mSrcBuf, &mSrcCount));
+            printf("!!!!!!!!!!!!!!!start read buffer mSrcCount = %d, mSrcPos = %d\n", mSrcCount, mSrcPos);
+
             if (mSrcCount <= 0) {
                 nw = -1;
             }
             else {
-                nw = (*mSrcBuf)[0];
+                nw = *(mSrcBuf->GetPayload() + 3);
             }
 
             mSrcPos = 1;
@@ -1771,4 +1806,19 @@ ECode CXmlPullParser::SetProperty(
         error += name;
         return Exception(error);
     }
+}
+
+
+ECode CXmlPullParser::IsNamespaceProcessingEnabled(
+    /* [out] */ Boolean* result)
+{
+    *result = mProcessNsp;
+    return NOERROR;
+}
+
+ECode CXmlPullParser::SetNamespaceProcessingEnabled(
+    /* [in] */ Boolean processNamespaces)
+{
+    mProcessNsp = processNamespaces;
+    return NOERROR;
 }

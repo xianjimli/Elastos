@@ -85,6 +85,7 @@ ECode CharBuffer::WrapEx3(
     bufCls->mLimit = end;
 
     *buf = result;
+    result->AddRef();
     return NOERROR;
 }
 

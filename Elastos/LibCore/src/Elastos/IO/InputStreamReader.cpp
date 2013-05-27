@@ -3,7 +3,8 @@
 #include "ByteBuffer.h"
 #include "CharBuffer.h"
 #include "CCharsetHelper.h"
-
+#include "CCharBufferHelper.h"
+#include <stdio.h>
 InputStreamReader::InputStreamReader()
     : mEndOfInput(FALSE)
 {
@@ -132,19 +133,34 @@ ECode InputStreamReader::ReadBufferEx(
         *number = 0;
         return NOERROR;
     }
-
+#if 0
     AutoPtr<ICharSequence> charSeq;
-    CStringWrapper::New(String(buffer->GetPayload()), (ICharSequence**)&charSeq);
+    ECode ec = CStringWrapper::New(String(buffer->GetPayload()), (ICharSequence**)&charSeq);
+    printf("ec = %d\n", ec);
     AutoPtr<ICharBuffer> out;
-    CharBuffer::WrapEx3(charSeq, offset, count, (ICharBuffer**)&out);
+    printf("InputStreamReader charseq = %d, offset = %d, count = %d\n", charSeq.Get(), offset, count);
+    ec = CharBuffer::WrapEx3(charSeq, 0, 2, (ICharBuffer**)&out);
+#else
+    AutoPtr<ICharBufferHelper> charBufferHelper;
+    CCharBufferHelper::AcquireSingleton((ICharBufferHelper**)&charBufferHelper);
+    AutoPtr<ICharBuffer> out;
+    charBufferHelper->WrapArrayEx((ArrayOf<Char32>* )buffer, offset, count/sizeof(Char32), (ICharBuffer**)&out);
+#endif
     //CoderResult result = CoderResult.UNDERFLOW;
-
     // bytes.remaining() indicates number of bytes in buffer
     // when 1-st time entered, it'll be equal to zero
     Boolean hasRemaining;
     mBytes->HasRemaining(&hasRemaining);
     Boolean needInput = !hasRemaining;
 
+    //if end of document, do not need read again
+    if (mEndOfInput) {
+        *number = -1;
+        return NOERROR;
+    }
+
+    Int32 size;
+    Int32 was_red;
     while(out->HasRemaining(&hasRemaining), hasRemaining) {
         // fill the buffer if needed
         if (needInput) {
@@ -168,8 +184,9 @@ ECode InputStreamReader::ReadBufferEx(
             Int32 off = offset + limit;
             ArrayOf<Byte>* buf;
             mBytes->Array(&buf);
-            Int32 was_red;
+            // printf("mIn read off = %d, to_read = %d\n", off, to_read);
             mIn->ReadBufferEx(off, to_read, buf, &was_red);
+            // printf("mIn was_red = %d\n", was_red);
             if (was_red == -1) {
                 mEndOfInput = TRUE;
                 break;
@@ -178,30 +195,43 @@ ECode InputStreamReader::ReadBufferEx(
                 break;
             }
             mBytes->SetLimit(limit + was_red);
-            needInput = FALSE;
+            //needInput = FALSE;
         }
 
         // decode bytes
-        //result = decoder.decode(bytes, out, false);
+        //ECode ec = mDecoder->Decode(mBytes.Get(), (ICharBuffer**)&out);
 
         //if (result.isUnderflow()) {
             // compact the buffer if no space left
-            Int32 limit, capacity;
-            mBytes->Capacity(&capacity);
-            mBytes->GetLimit(&limit);
-            if (limit == capacity) {
-                mBytes->Compact();
-                Int32 pos;
-                mBytes->GetPosition(&pos);
-                mBytes->SetLimit(pos);
-                mBytes->SetPosition(0);
-            }
-            needInput = TRUE;
+        Int32 limit, capacity;
+        mBytes->Capacity(&capacity);
+        mBytes->GetLimit(&limit);
+        if (limit == capacity) {
+            mBytes->Compact();
+            Int32 pos;
+            mBytes->GetPosition(&pos);
+            mBytes->SetLimit(pos);
+            mBytes->SetPosition(0);
+        }
+            //needInput = TRUE;
         //}
         //else {
         //    break;
        // }
     }
+#if 1
+    mBytes->GetLimit(&size);
+    // printf("mBytes limited = %d\n", size);
+
+    if (mEndOfInput) {
+        Char32 ch;
+        for (Int32 i = 0; i < size; i++) {
+            mBytes->GetCharEx(i, &ch);
+            // printf("ch = %c -- %x, %d/%d\n", ch, ch, i, size);
+            out->PutCharEx(i, ch);
+        }
+    }
+#endif
 
     // if (result == CoderResult.UNDERFLOW && endOfInput) {
     //     result = decoder.decode(bytes, out, true);
@@ -215,8 +245,11 @@ ECode InputStreamReader::ReadBufferEx(
     // }
 
     Int32 charBufPos;
+    Int32 outLimit;
+    out->GetLimit(&outLimit);
     out->GetPosition(&charBufPos);
-    *number = charBufPos == 0 ? -1 : charBufPos - offset;
+    //*number = charBufPos == 0 ? -1 : charBufPos - offset;
+    *number = size;
     return NOERROR;
 }
 
