@@ -338,7 +338,7 @@ module
         GetExtras(
             [out] IBundle** extras);
 
-        GetExpendited(
+        GetExpedited(
             [out] Boolean* expedited);
 
         GetAuthorityId(

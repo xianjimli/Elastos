@@ -21,7 +21,7 @@ public:
     CARAPI GetExtras(
         /* [out] */ IBundle** extras);
 
-    CARAPI GetExpendited(
+    CARAPI GetExpedited(
         /* [out] */ Boolean* expedited);
 
     CARAPI GetAuthorityId(

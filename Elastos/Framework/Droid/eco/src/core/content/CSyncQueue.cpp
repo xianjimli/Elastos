@@ -214,7 +214,7 @@ ECode CSyncQueue::constructor(
         pendingOperation->GetExtras((IBundle**)&extra);
 
         Boolean expedited;
-        pendingOperation->GetExpendited(&expedited);
+        pendingOperation->GetExpedited(&expedited);
 
         AutoPtr<ISyncOperation> syncOperation;
 

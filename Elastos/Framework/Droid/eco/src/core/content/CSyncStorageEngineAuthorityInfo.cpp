@@ -10,6 +10,12 @@ CSyncStorageEngineAuthorityInfo::CSyncStorageEngineAuthorityInfo()
 CSyncStorageEngineAuthorityInfo::~CSyncStorageEngineAuthorityInfo()
 {
     if (NULL != mPeriodicSyncs) {
+        List<Pair<AutoPtr<IBundle>, Int64>* >::Iterator iter = mPeriodicSyncs->Begin();
+
+        for (; iter != mPeriodicSyncs->End(); ++iter) {
+            delete *iter;
+        }
+
         mPeriodicSyncs->Clear();
         delete mPeriodicSyncs;
     }
@@ -114,7 +120,7 @@ ECode CSyncStorageEngineAuthorityInfo::SetDelayUntil(
     return NOERROR;
 }
 
-List<Pair<AutoPtr<IBundle>, Int64> >* CSyncStorageEngineAuthorityInfo::GetPeriodicSyncs()
+List<Pair<AutoPtr<IBundle>, Int64>* >* CSyncStorageEngineAuthorityInfo::GetPeriodicSyncs()
 {
     return mPeriodicSyncs;
 }
@@ -131,10 +137,10 @@ ECode CSyncStorageEngineAuthorityInfo::constructor(
     mSyncable = -1; // default to "unknown"
     mBackoffTime = -1; // if < 0 then we aren't in backoff mode
     mBackoffDelay = -1; // if < 0 then we aren't in backoff mode
-    mPeriodicSyncs = new List<Pair<AutoPtr<IBundle>, Int64> >();
+    mPeriodicSyncs = new List<Pair<AutoPtr<IBundle>, Int64>* >();
     AutoPtr<IBundle> newBundle;
     FAIL_RETURN(CBundle::New((IBundle**)&newBundle));
-    Pair<AutoPtr<IBundle>, Int64> newPair(newBundle, 60 * 60 * 24); // DEFAULT_POLL_FREQUENCY_SECONDS = 60 * 60 * 24; // One day
+    Pair<AutoPtr<IBundle>, Int64>* newPair = new Pair<AutoPtr<IBundle>, Int64>(newBundle, 60 * 60 * 24); // DEFAULT_POLL_FREQUENCY_SECONDS = 60 * 60 * 24; // One day
     mPeriodicSyncs->PushBack(newPair);
     return NOERROR;
 }
