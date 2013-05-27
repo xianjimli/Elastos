@@ -305,6 +305,23 @@ ECode CActivityManagerService::GetSystemContext(
     return NOERROR;
 }
 
+PermissionController::PermissionController(
+    /* [in] */ CActivityManagerService* activityManagerService)
+{
+    mActivityManagerService = activityManagerService;
+}
+
+Boolean PermissionController::CheckPermission(
+    /* [in] */ CString permission,
+    /* [in] */ Int32 pid,
+    /* [in] */ Int32 uid)
+{
+    Int32 result;
+    mActivityManagerService->CheckPermission(permission, pid,
+            uid, &result);
+    return result == CapsuleManager_PERMISSION_GRANTED;
+}
+
 ECode CActivityManagerService::SetSystemProcess()
 {
     // try {
@@ -315,7 +332,9 @@ ECode CActivityManagerService::SetSystemProcess()
     //     if (MONITOR_CPU_USAGE) {
     //         ServiceManager.addService("cpuinfo", new CpuBinder(m));
     //     }
-    //     ServiceManager.addService("permission", new PermissionController(m));
+    AutoPtr<IServiceManager> serviceManager;
+    Elastos::GetServiceManager((IServiceManager**)&serviceManager);
+    //serviceManager->AddService("permission", new PermissionController(this));
 
     //     ApplicationInfo info =
     //         mSelf.mContext.getPackageManager().getApplicationInfo(

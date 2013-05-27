@@ -304,6 +304,12 @@ public: /*package*/
             /* [in] */ Int32 id,
             /* [out] */ ICharSequence** csq);
 
+        CARAPI IsNamespaceProcessingEnabled(
+            /* [out] */ Boolean* result);
+
+        CARAPI SetNamespaceProcessingEnabled(
+            /* [in] */ Boolean processNamespaces);
+
     public:
         /*package*/ android::ResXMLParser* mParseState;
 

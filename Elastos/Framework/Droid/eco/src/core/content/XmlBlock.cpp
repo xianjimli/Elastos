@@ -954,6 +954,18 @@ ECode XmlBlock::Parser::GetPooledString(
     return mBlock->mStrings->Get(id, csq);
 }
 
+ECode XmlBlock::Parser::IsNamespaceProcessingEnabled(
+    /* [out] */ Boolean* result)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
+ECode XmlBlock::Parser::SetNamespaceProcessingEnabled(
+    /* [in] */ Boolean processNamespaces)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
 XmlBlock::XmlBlock(
     /* [in] */ IAssetManager* assets,
     /* [in] */ android::ResXMLTree* xmlBlock)

@@ -31,6 +31,7 @@
 #include <elastos/List.h>
 #include <elastos/Mutex.h>
 #include <StringBuffer.h>
+#include <binder/IPermissionController.h>
 
 
 using namespace Elastos;
@@ -542,6 +543,12 @@ public:
         /* [in] */ IBinder* token,
         /* [in] */ Int32 pid,
         /* [in] */ Boolean isForeground);
+
+    CARAPI CheckPermission(
+        /* [in] */ CString permission,
+        /* [in] */ Int32 pid,
+        /* [in] */ Int32 uid,
+        /* [out] */ Int32* result);
 
     CARAPI CheckUriPermission(
         /* [in] */ IUri* uri,
@@ -1063,12 +1070,6 @@ private:
         /* [in] */ Int32 pid,
         /* [in] */ Int32 uid,
         /* [in] */ Int32 reqUid);
-
-    CARAPI CheckPermission(
-        /* [in] */ CString permission,
-        /* [in] */ Int32 pid,
-        /* [in] */ Int32 uid,
-        /* [out] */ Int32* result);
 
     CARAPI_(Int32) CheckCallingPermission(
         /* [in] */ CString permission);
@@ -1907,6 +1908,21 @@ private:
     AutoPtr<CWindowManagerService> mWindowManager;
 
     AutoPtr<IRemoteCallbackList> mWatchers;
+};
+
+class PermissionController : public IInterface
+{
+public:
+    PermissionController(
+        /* [in] */ CActivityManagerService* activityManagerService);
+
+    Boolean CheckPermission(
+        /* [in] */ CString permission,
+        /* [in] */ Int32 pid,
+        /* [in] */ Int32 uid);
+
+private:
+    AutoPtr<CActivityManagerService> mActivityManagerService;
 };
 
 #endif // __CACTIVITYMANAGERSERVICE_H__

@@ -5147,9 +5147,9 @@ ECode CCapsuleManagerService::constructor(
         }
 
         // todo:
-        // ReadPermissions();
+        ReadPermissions();
 
-        // mRestoredSettings = mSettings->ReadLP();
+        mRestoredSettings = mSettings->ReadLP();
         Int64 startTime = SystemClock::GetUptimeMillis();
 
 //	        EventLog.writeEvent(EventLogTags.BOOT_PROGRESS_PMS_SYSTEM_SCAN_START,

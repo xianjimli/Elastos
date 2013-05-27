@@ -154,6 +154,11 @@ public:
     CARAPI NextTag(
         /* [out] */ Int32* tag);
 
+    CARAPI IsNamespaceProcessingEnabled(
+        /* [out] */ Boolean* result);
+
+    CARAPI SetNamespaceProcessingEnabled(
+        /* [in] */ Boolean processNamespaces);
 public:
     /**
      * This array can be used to convert the event type integer constants
@@ -251,7 +256,7 @@ private:
 
     // source
 
-    AutoPtr<IReader> mReader;
+    IReader* mReader;
     String mEncoding;
     ArrayOf<Char8>* mSrcBuf;
 

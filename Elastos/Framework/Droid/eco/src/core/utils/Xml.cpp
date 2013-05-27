@@ -20,5 +20,9 @@ AutoPtr<IAttributeSet> Xml::AsAttributeSet(
 
 AutoPtr<IXmlPullParser> Xml::NewPullParser()
 {
-    return NULL;
+    AutoPtr<IXmlPullParser> xmlPullParser;
+    CXmlPullParser::New((IXmlPullParser**)&xmlPullParser);
+    xmlPullParser->SetNamespaceProcessingEnabled(TRUE);
+    xmlPullParser->AddRef();
+    return xmlPullParser;
 }
