@@ -1034,12 +1034,12 @@ ECode CXmlPullParser::Peek(
         else if (mSrcPos < mSrcCount) {
             Int32 offset = ((mSrcPos + 1) * 4 - 1);
             nw = *(mSrcBuf->GetPayload() + offset);
-            printf("%c", nw);
+            // printf("%c", nw);
             mSrcPos++;
         }
         else {
             FAIL_RETURN(mReader->ReadBufferEx(0, mSrcBuf->GetLength(), mSrcBuf, &mSrcCount));
-            printf("!!!!!!!!!!!!!!!start read buffer mSrcCount = %d, mSrcPos = %d\n", mSrcCount, mSrcPos);
+            // printf("!!!!!!!!!!!!!!!start read buffer mSrcCount = %d, mSrcPos = %d\n", mSrcCount, mSrcPos);
 
             if (mSrcCount <= 0) {
                 nw = -1;
