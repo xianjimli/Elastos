@@ -1,0 +1,26 @@
+
+module
+{
+    interface IAccount;
+    interface IBundle;
+
+    interface IPeriodicSync {
+
+        GetAccount(
+            [out] IAccount** account);
+
+        GetAuthority(
+            [out] String* authority);
+
+        GetExtras(
+            [out] IBundle** extras);
+
+        GetPeriod(
+            [out] Int64* period);
+
+        Equals(
+            [in] IInterface* obj,
+            [out] Boolean* result);
+    }
+
+}

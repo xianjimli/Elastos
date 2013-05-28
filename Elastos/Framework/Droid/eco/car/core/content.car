@@ -71,6 +71,7 @@ module
     merge("content/SharedPreferences.car");
     merge("content/UriMatcher.car");
     merge("content/Entity.car");
+    merge("content/PeriodicSync.car");
   
     
     interface ICursor;
@@ -793,5 +794,16 @@ module
         interface ISyncStorageEngineHelper;
     }
 
+    class CPeriodicSync {
+        /** Creates a new PeriodicSync, copying the Bundle */
+        constructor(
+            [in] IAccount* account,
+            [in] String authority,
+            [in] IBundle* extras,
+            [in] Int64 period);
+
+        interface IPeriodicSync;
+        interface IParcelable;
+    }
 }
 

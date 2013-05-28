@@ -2,6 +2,7 @@
 #include "accounts/CAccount.h"
 #include "content/CContentResolverHelper.h"
 #include "content/CIntent.h"
+#include "content/CPeriodicSync.h"
 #include "content/CSyncStatusInfo.h"
 #include "content/CSyncStorageEngine.h"
 #include "content/CSyncStorageEngineAuthorityInfo.h"
@@ -576,8 +577,9 @@ ECode CSyncStorageEngine::GetPeriodicSyncs(
         Pair<AutoPtr<IBundle>, Int64>* item;
         for (; iter != periodicSyncs->End(); ++iter) {
             item = *iter;
-            //TODO: syncs.add(new PeriodicSync(account, providerName, item.first, item.second));
-            //periodicSyncList->Add();
+            AutoPtr<IPeriodicSync> periodicSync;
+            FAIL_RETURN(CPeriodicSync::New(account, providerName, item->mFirst, item->mSecond, (IPeriodicSync**) &periodicSync));
+            (*periodicSyncList)->Add(periodicSync.Get());
         }
     }
 
@@ -1610,8 +1612,7 @@ ECode CSyncStorageEngine::FlattenBundle(
     VALIDATE_NOT_NULL(flattenBundleArray);
     AutoPtr<IParcel> parcel; // Parcel parcel = Parcel.obtain();
     ECode ecode = NOERROR;
-    AutoPtr<IParcelable> parcelable = (IParcelable*) bundle->Probe(EIID_IParcelable);
-    ecode = parcelable->WriteToParcel(parcel);
+    ecode = IParcelable::Probe(bundle)->WriteToParcel(parcel);
     FAIL_WithGoto(ecode);
     //TODO: *flattenBundleArray = parcel.marshall();
     EXIT:
@@ -2725,8 +2726,7 @@ ECode CSyncStorageEngine::WriteStatusLocked()
         status = (ISyncStatusInfo*) mSyncStatus->ValueAt(i);
         ecode = out->WriteInt32(SyncStorageEngine_STATUS_FILE_ITEM);
         FAIL_WithGoto(ecode);
-        AutoPtr<IParcelable> parcelable = (IParcelable*) status->Probe(EIID_IParcelable);
-        ecode = parcelable->WriteToParcel(out);
+        ecode = IParcelable::Probe(status)->WriteToParcel(out);
         FAIL_WithGoto(ecode);
     }
 
