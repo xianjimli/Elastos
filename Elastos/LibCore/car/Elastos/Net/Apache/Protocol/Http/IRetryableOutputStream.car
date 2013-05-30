@@ -2,5 +2,10 @@ module
 {
     interface IRetryableOutputStream extends IAbstractHttpOutputStream
     {
+        ContentLength(
+            [out] Int32* size);
+
+        WriteToSocket(
+            [in] IOutputStream* socketOut);
     }
 }

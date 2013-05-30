@@ -3,8 +3,10 @@
 #define __CRETRYABLEOUTPUTSTREAM_H__
 
 #include "_CRetryableOutputStream.h"
-
-CarClass(CRetryableOutputStream)
+#include "Elastos.IO.h"
+#include <elastos/AutoPtr.h>
+#include "AbstractHttpOutputStream.h"
+CarClass(CRetryableOutputStream), public AbstractHttpOutputStream
 {
 public:
     CARAPI Close();
@@ -30,8 +32,15 @@ public:
     CARAPI constructor(
         /* [in] */ Int32 limit);
 
+    CARAPI ContentLength(
+        /* [out] */ Int32* pSize);
+
+    CARAPI WriteToSocket(
+        /* [in] */ IOutputStream* pSocketOut);
 private:
     // TODO: Add your private member variables here.
+    Int32 mLimit;
+    AutoPtr<IByteArrayOutputStream> mContent;
 };
 
 #endif // __CRETRYABLEOUTPUTSTREAM_H__

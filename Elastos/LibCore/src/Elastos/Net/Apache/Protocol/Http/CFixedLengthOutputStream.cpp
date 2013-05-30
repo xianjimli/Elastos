@@ -3,13 +3,23 @@
 ECode CFixedLengthOutputStream::Close()
 {
     // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    if (mClosed) {
+        return NOERROR;
+    }
+    mClosed = TRUE;
+    if (mBytesRemaining > 0) {
+        return E_IO_EXCEPTION;
+    };
+    return NOERROR;
 }
 
 ECode CFixedLengthOutputStream::Flush()
 {
     // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    if (mClosed) {
+        return NOERROR; // don't throw; this stream might have been closed on the caller's behalf
+    }
+    return mSocketOut->Flush();
 }
 
 ECode CFixedLengthOutputStream::Write(
@@ -32,7 +42,16 @@ ECode CFixedLengthOutputStream::WriteBufferEx(
     /* [in] */ const ArrayOf<Byte> & buffer)
 {
     // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    CheckNotClosed();
+    CheckBounds(buffer, offset, count);
+
+    if (count > mBytesRemaining) {
+        return E_IO_EXCEPTION;
+    }
+
+    mSocketOut->WriteBufferEx(offset, count, buffer);
+    mBytesRemaining -= count;;
+    return NOERROR;
 }
 
 ECode CFixedLengthOutputStream::CheckError(
@@ -47,6 +66,8 @@ ECode CFixedLengthOutputStream::constructor(
     /* [in] */ Int32 bytesRemaining)
 {
     // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    mSocketOut = pSocketOut;
+    mBytesRemaining = bytesRemaining;
+    return NOERROR;
 }
 

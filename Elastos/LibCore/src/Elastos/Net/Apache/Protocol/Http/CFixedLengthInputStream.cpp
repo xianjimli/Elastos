@@ -1,16 +1,33 @@
 
 #include "CFixedLengthInputStream.h"
+#include <elastos/Math.h>
+
 ECode CFixedLengthInputStream::Available(
     /* [out] */ Int32 * pNumber)
 {
     // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    CheckNotClosed();
+    if (mBytesRemaining == 0) {
+        *pNumber = 0;
+    } else {
+        Int32 avail;
+        mIn->Available(&avail);
+        *pNumber = Math::Min(avail, mBytesRemaining);
+    }
+    return NOERROR;
 }
 
 ECode CFixedLengthInputStream::Close()
 {
     // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    if (mClosed) {
+        return NOERROR;
+    }
+    mClosed = TRUE;
+    if (mBytesRemaining != 0) {
+        UnexpectedEndOfInput();
+    }
+    return NOERROR;
 }
 
 ECode CFixedLengthInputStream::Mark(
@@ -49,7 +66,25 @@ ECode CFixedLengthInputStream::ReadBufferEx(
     /* [out] */ Int32 * pNumber)
 {
     // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    CheckBounds(*pBuffer, offset, length);
+    CheckNotClosed();
+    if (mBytesRemaining == 0) {
+        return NOERROR;
+    }
+
+    Int32 read;
+    mIn->ReadBufferEx(offset, Math::Min(length, mBytesRemaining), pBuffer, &read);
+    if (read == -1) {
+        UnexpectedEndOfInput(); // the server didn't supply the promised content length
+        return E_IO_EXCEPTION;
+    }
+    mBytesRemaining -= read;
+    CacheWrite(*pBuffer, offset, read);
+    if (mBytesRemaining == 0) {
+        EndOfInput(TRUE);
+    }
+    *pNumber = read;
+    return NOERROR;
 }
 
 ECode CFixedLengthInputStream::Reset()
@@ -73,6 +108,11 @@ ECode CFixedLengthInputStream::constructor(
     /* [in] */ Int32 length)
 {
     // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    AbstractHttpInputStream(pIs, pHttpURLConnection, pCacheRequest);
+    mBytesRemaining = length;
+    if (mBytesRemaining == 0) {
+        EndOfInput(TRUE);
+    }
+    return NOERROR;
 }
 

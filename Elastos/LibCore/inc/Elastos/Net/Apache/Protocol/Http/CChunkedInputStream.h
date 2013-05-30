@@ -3,9 +3,15 @@
 #define __CCHUNKEDINPUTSTREAM_H__
 
 #include "_CChunkedInputStream.h"
+#include "AbstractHttpInputStream.h"
 
-CarClass(CChunkedInputStream)
+using namespace Elastos::Core;
+
+CarClass(CChunkedInputStream), public AbstractHttpInputStream
 {
+public:
+    CChunkedInputStream();
+
 public:
     CARAPI Available(
         /* [out] */ Int32 * pNumber);
@@ -41,9 +47,16 @@ public:
         /* [in] */ IInputStream * pIs,
         /* [in] */ ICacheRequest * pCacheRequest,
         /* [in] */ IHttpURLConnectionImpl * pHttpURLConnection);
+private:
+    ECode ReadChunkSize();
 
 private:
     // TODO: Add your private member variables here.
+    static Int32 MIN_LAST_CHUNK_LENGTH;
+    static Int32 NO_CHUNK_YET;
+    Int32 mBytesRemainingInChunk;
+    Boolean mHasMoreChunks;
+
 };
 
 #endif // __CCHUNKEDINPUTSTREAM_H__

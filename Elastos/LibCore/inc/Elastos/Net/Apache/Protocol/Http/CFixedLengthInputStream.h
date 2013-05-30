@@ -3,8 +3,11 @@
 #define __CFIXEDLENGTHINPUTSTREAM_H__
 
 #include "_CFixedLengthInputStream.h"
+#include "AbstractHttpInputStream.h"
 
-CarClass(CFixedLengthInputStream)
+using namespace Elastos::Core;
+
+CarClass(CFixedLengthInputStream), public AbstractHttpInputStream
 {
 public:
     CARAPI Available(
@@ -45,6 +48,7 @@ public:
 
 private:
     // TODO: Add your private member variables here.
+    Int32 mBytesRemaining;
 };
 
 #endif // __CFIXEDLENGTHINPUTSTREAM_H__

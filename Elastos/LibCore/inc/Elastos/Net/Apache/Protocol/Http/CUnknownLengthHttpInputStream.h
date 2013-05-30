@@ -3,8 +3,9 @@
 #define __CUNKNOWNLENGTHHTTPINPUTSTREAM_H__
 
 #include "_CUnknownLengthHttpInputStream.h"
+#include "AbstractHttpInputStream.h"
 
-CarClass(CUnknownLengthHttpInputStream)
+CarClass(CUnknownLengthHttpInputStream), public AbstractHttpInputStream
 {
 public:
     CARAPI Available(
@@ -44,6 +45,7 @@ public:
 
 private:
     // TODO: Add your private member variables here.
+    Boolean mInputExhausted;
 };
 
 #endif // __CUNKNOWNLENGTHHTTPINPUTSTREAM_H__

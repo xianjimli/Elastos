@@ -3,8 +3,9 @@
 #define __CFIXEDLENGTHOUTPUTSTREAM_H__
 
 #include "_CFixedLengthOutputStream.h"
-
-CarClass(CFixedLengthOutputStream)
+#include <elastos/AutoPtr.h>
+#include "AbstractHttpOutputStream.h"
+CarClass(CFixedLengthOutputStream), public AbstractHttpOutputStream
 {
 public:
     CARAPI Close();
@@ -31,6 +32,8 @@ public:
 
 private:
     // TODO: Add your private member variables here.
+    AutoPtr<IOutputStream> mSocketOut;
+    Int32 mBytesRemaining;
 };
 
 #endif // __CFIXEDLENGTHOUTPUTSTREAM_H__

@@ -4,13 +4,26 @@ ECode CUnknownLengthHttpInputStream::Available(
     /* [out] */ Int32 * pNumber)
 {
     // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    CheckNotClosed();
+    if (mIn == NULL) {
+        *pNumber = 0;
+    } else {
+        return mIn->Available(pNumber);
+    }
+    return NOERROR;
 }
 
 ECode CUnknownLengthHttpInputStream::Close()
 {
     // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    if (mClosed) {
+        return NOERROR;
+    }
+    mClosed = TRUE;
+    if (!mInputExhausted) {
+        UnexpectedEndOfInput();
+    };
+    return NOERROR;
 }
 
 ECode CUnknownLengthHttpInputStream::Mark(
@@ -49,7 +62,25 @@ ECode CUnknownLengthHttpInputStream::ReadBufferEx(
     /* [out] */ Int32 * pNumber)
 {
     // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    CheckBounds(*pBuffer, offset, length);
+    CheckNotClosed();
+
+    if (mIn == NULL || mInputExhausted) {
+        return E_IO_EXCEPTION;
+    }
+
+    Int32 read;
+
+    mIn->ReadBufferEx(offset, length, pBuffer, &read);
+    if (read == -1) {
+        mInputExhausted = TRUE;
+        EndOfInput(FALSE);
+        return E_IO_EXCEPTION;
+    }
+
+    CacheWrite(*pBuffer, offset, read);
+    *pNumber = read;
+    return NOERROR;
 }
 
 ECode CUnknownLengthHttpInputStream::Reset()
@@ -72,6 +103,7 @@ ECode CUnknownLengthHttpInputStream::constructor(
     /* [in] */ IHttpURLConnectionImpl * pHttpURLConnection)
 {
     // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    AbstractHttpInputStream(pIs, pHttpURLConnection, pCacheRequest);
+    return NOERROR;
 }
 
