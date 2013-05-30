@@ -6001,12 +6001,14 @@ void CWindowManagerService::PerformLayoutAndPlaceSurfacesLockedInner(
                 if ((attrFlags & WindowManagerLayoutParams_FLAG_DIM_BEHIND) != 0) {
                     if (!dimming) {
                         //Slog.i(TAG, "DIM BEHIND: " + w);
-                        dimming = TRUE;
-                        if (mDimAnimator == NULL) {
-                            mDimAnimator = new DimAnimator(mFxSession);
-                        }
-                        mDimAnimator->Show(dw, dh);
-                        mDimAnimator->UpdateParameters(w, currentTime);
+                        //TODO:
+                        //
+                        // dimming = TRUE;
+                        // if (mDimAnimator == NULL) {
+                        //     mDimAnimator = new DimAnimator(mFxSession);
+                        // }
+                        // mDimAnimator->Show(dw, dh);
+                        // mDimAnimator->UpdateParameters(w, currentTime);
                     }
                 }
                 if ((attrFlags & WindowManagerLayoutParams_FLAG_BLUR_BEHIND) != 0) {

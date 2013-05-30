@@ -15,6 +15,8 @@ CarClass(CSurfaceSession)
 public:
     CSurfaceSession();
 
+    ~CSurfaceSession();
+
     /** Forcibly detach native resources associated with this object.
      *  Unlike destroy(), after this call any surfaces that were created
      *  from the session will no longer work. The session itself is destroyed.
@@ -23,7 +25,6 @@ public:
 
 private:
     /* no user serviceable parts here ... */
-    CARAPI Finalize();
     CARAPI Init();
     CARAPI Destroy();
 

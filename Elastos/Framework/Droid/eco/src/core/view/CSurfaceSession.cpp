@@ -6,14 +6,19 @@ CSurfaceSession::CSurfaceSession()
     Init();
 }
 
-ECode CSurfaceSession::Kill()
+CSurfaceSession::~CSurfaceSession()
 {
-    return E_NOT_IMPLEMENTED;
+    Destroy();
 }
 
-ECode CSurfaceSession::Finalize()
+ECode CSurfaceSession::Kill()
 {
-    return Destroy();
+    if (mClient != NULL) {
+        mClient->dispose();
+        mClient = NULL;
+    }
+
+    return NOERROR;
 }
 
 ECode CSurfaceSession::Init()
@@ -25,5 +30,7 @@ ECode CSurfaceSession::Init()
 
 ECode CSurfaceSession::Destroy()
 {
-    return E_NOT_IMPLEMENTED;
+    mClient =NULL;
+
+    return NOERROR;
 }
