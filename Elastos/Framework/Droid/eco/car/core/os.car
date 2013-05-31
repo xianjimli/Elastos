@@ -26,6 +26,7 @@ module
     merge("os/Handler.car");
     merge("os/Message.car");
     merge("os/BatteryManager.car");
+    merge("os/PermissionController.car");
 
     class CRemoteCallbackList {
         constructor();
@@ -172,5 +173,11 @@ module
         constructor();
 
         interface IParcel;
+    }
+
+    class CPermissionController {
+        constructor();
+
+        interface IPermissionController;
     }
 }

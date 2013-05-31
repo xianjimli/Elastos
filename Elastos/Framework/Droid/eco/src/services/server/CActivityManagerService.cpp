@@ -334,7 +334,9 @@ ECode CActivityManagerService::SetSystemProcess()
     //     }
     AutoPtr<IServiceManager> serviceManager;
     Elastos::GetServiceManager((IServiceManager**)&serviceManager);
-    //serviceManager->AddService("permission", new PermissionController(this));
+    AutoPtr<IPermissionController> permissionController;
+    CPermissionController::New((IPermissionController**)&permissionController);
+    serviceManager->AddService(String("permission"), permissionController.Get());
 
     //     ApplicationInfo info =
     //         mSelf.mContext.getPackageManager().getApplicationInfo(
