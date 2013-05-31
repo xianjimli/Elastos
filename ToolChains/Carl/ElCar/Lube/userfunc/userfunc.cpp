@@ -3191,10 +3191,10 @@ Restart:
             assert(0 == pType->nPointer);
 
             if (Type_CString == pType->pNestedType->type) {
-                pCtx->PutString("pParams->WriteArrayOfCString(");
+                pCtx->PutString("pParams->WriteArrayOfCString(&");
             }
             else if (Type_String == pType->pNestedType->type) {
-                pCtx->PutString("pParams->WriteArrayOfString(");
+                pCtx->PutString("pParams->WriteArrayOfString(&");
             }
             else {
                 pCtx->PutString("pParams->WriteArrayOf((Handle32)&");
