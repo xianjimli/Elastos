@@ -299,6 +299,9 @@ module
     [deprecated]
     class CAttributedString {
         constructor(
+            [in] IAttributedCharacterIterator* iterator);
+
+        constructor(
             [in] IAttributedCharacterIterator* iterator,
             [in] Int32 start,
             [in] Int32 end);
@@ -307,7 +310,7 @@ module
             [in] IAttributedCharacterIterator* iterator,
             [in] Int32 start,
             [in] Int32 end,
-            [in] ArrayOf<IAttributedCharacterIteratorAttribute*>* attributes);
+            [in] IObjectContainer* attributes);
 
         constructor(
             [in] String value);

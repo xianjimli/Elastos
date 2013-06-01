@@ -44,6 +44,9 @@ SOURCES += CTimer.cpp
 #SOURCES += ZoneInfo.cpp
 #SOURCES += ZoneInfoDB.cpp
 #SOURCES += TimeZoneGetter.cpp
+SOURCES += CLocaleDataHelper.cpp
+SOURCES += Currency.cpp
+SOURCES += CCurrencyHelper.cpp
 
 LIBRARIES = $(XDK_USER_LIB)/Elastos.Runtime.lib
 ifeq "$(XDK_TARGET_PLATFORM)" "win32"

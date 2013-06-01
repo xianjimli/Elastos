@@ -35,7 +35,8 @@ module
          *
          * @return a set of attribute keys; may be empty.
          */
-        //public Set<Attribute> getAllAttributeKeys();
+        GetAllAttributeKeys(
+            [out] IObjectContainer** allAttrKeys);
 
         /**
          * Returns the value stored in the attribute for the current character. If
@@ -88,7 +89,9 @@ module
          *            the set of attributes which the run is based on.
          * @return the index of the last character of the current run.
          */
-        //public int getRunLimit(Set<? extends Attribute> attributes);
+        GetRunLimitEx2(
+            [in] IObjectContainer* attributes,
+            [out] Int32* runLimit);
 
         /**
          * Returns the index of the first character in the run that has the same
@@ -119,6 +122,8 @@ module
          *            the set of attributes which the run is based on.
          * @return the index of the last character of the current run.
          */
-        //public int getRunStart(Set<? extends Attribute> attributes);
+        GetRunStartEx2(
+            [in] IObjectContainer* attributes,
+            [out] Int32* index);
     }
 }

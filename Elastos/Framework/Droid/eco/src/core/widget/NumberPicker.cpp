@@ -384,10 +384,10 @@ void NumberPicker::Init(
 
     mText = (IEditText*)FindViewById(0x010201fb/*R.id.timepicker_input*/).Get();
     mText->SetOnFocusChangeListener((IViewOnFocusChangeListener*)focusListener);
-    // AutoPtr<IObjectContainer> container;
-    // CObjectContainer::New((IObjectContainer**)&container);
-    // container->Add(inputFilter);
-    // mText->SetFilters(container);
+    AutoPtr<IObjectContainer> container;
+    CObjectContainer::New((IObjectContainer**)&container);
+    container->Add(inputFilter);
+    mText->SetFilters(container);
     mText->SetRawInputType(InputType_TYPE_CLASS_NUMBER);
 
     if (!IsEnabled()) {

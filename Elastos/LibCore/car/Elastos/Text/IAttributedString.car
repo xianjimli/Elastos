@@ -38,7 +38,7 @@ module {
          * for this text.
          */
         GetIteratorEx(
-            [in] ArrayOf<IAttributedCharacterIteratorAttribute*>* attributes,
+            [in] IObjectContainer* attributes,
             [out] IAttributedCharacterIterator** iterator);
 
         /**
@@ -49,7 +49,7 @@ module {
          */
 
         GetIteratorEx2(
-            [in] ArrayOf<IAttributedCharacterIteratorAttribute*>* attributes,
+            [in] IObjectContainer* attributes,
             [in] Int32 start,
             [in] Int32 end,
             [out] IAttributedCharacterIterator** iterator);

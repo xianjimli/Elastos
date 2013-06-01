@@ -8,7 +8,6 @@
 
 using namespace Elastos::Core;
 
-
 static AutoPtr<ILocale> CreateDefaultLocale()
 {
     AutoPtr<CLocale> l;
@@ -16,7 +15,15 @@ static AutoPtr<ILocale> CreateDefaultLocale()
     return (ILocale*)l.Get();
 }
 
+static AutoPtr<ILocale> CreateRootLocale()
+{
+    AutoPtr<CLocale> l;
+    CLocale::NewByFriend(String(""), String(""), String(""), (CLocale**)&l);
+    return (ILocale*)l.Get();
+}
+
 AutoPtr<ILocale> CLocale::sDefaultLocale = CreateDefaultLocale();
+const AutoPtr<ILocale> CLocale::ROOT = CreateRootLocale();
 
 ECode CLocale::constructor()
 {
@@ -469,7 +476,6 @@ ECode CLocale::ToString(
     /* [out] */ String* str)
 {
     VALIDATE_NOT_NULL(str);
-
     if (mCachedToStringResult.IsNull()) {
         mCachedToStringResult = ToNewString();
     }

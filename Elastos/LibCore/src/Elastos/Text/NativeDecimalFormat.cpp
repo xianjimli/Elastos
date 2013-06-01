@@ -901,9 +901,11 @@ static ArrayOf<Char32>* formatResult(
     int len = str.length();
     ArrayOf<Char32>* result = ArrayOf<Char32>::Alloc(len);
     if (result != NULL) {
-        const UChar* buffer = str.getBuffer();
-        for (Int32 i = 0; i < len; ++i) {
-            (*result)[i] = buffer[i];
+        String s("");
+        ElStringByteSink sink(&s);
+        str.toUTF8(sink);
+        for (Int32 i = 0; i < s.GetLength(); ++i) {
+            (*result)[i] = s[i];
         }
     }
     return result;
@@ -1008,11 +1010,11 @@ ECode NativeDecimalFormat::Open(
     /* [in] */ Char32 zeroDigit,
     /* [out] */ Handle32* addr)
 {
-    if (pattern.IsNull()) {
-        // jniThrowNullPointerException(env, NULL);
-        *addr = 0;
-        return E_NULL_POINTER_EXCEPTION;
-    }
+    // if (pattern.IsNull()) {
+    //     // jniThrowNullPointerException(env, NULL);
+    //     *addr = 0;
+    //     return E_NULL_POINTER_EXCEPTION;
+    // }
     UErrorCode status = U_ZERO_ERROR;
     UParseError parseError;
     U_ICU_NAMESPACE::DecimalFormatSymbols* symbols = makeDecimalFormatSymbols(
@@ -1182,7 +1184,7 @@ String NativeDecimalFormat::ToPatternImpl(
     else {
         fmt->toPattern(pattern);
     }
-    String s;
+    String s("");
     ElStringByteSink sink(&s);
     pattern.toUTF8(sink);
     return s;

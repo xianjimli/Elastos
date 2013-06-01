@@ -117,7 +117,7 @@ module
          */
         GetVariant(
             [out] String* variant);
-            
+
         ToString(
             [out] String* str);
     }
@@ -149,6 +149,9 @@ module
          */
         GetDefault(
             [out] ILocale** defaultLocale);
+
+        GetRoot(
+            [out] ILocale** rootLocale);
 
         /**
          * Gets the list of two letter ISO country codes which can be used as the

@@ -81,6 +81,7 @@ AutoPtr<ILocaleData> LocaleData::Get(
     if (locale == NULL) {
         locale = CLocale::GetDefault();
     }
+
     String localeName;
     locale->ToString(&localeName);
     {
@@ -127,7 +128,7 @@ AutoPtr<LocaleData> LocaleData::MakeLocaleData(
         result->OverrideWithDataFrom(Get(l));
     }
     else if(!language.IsEmpty()) {
-        result->OverrideWithDataFrom(Get(NULL/*CLocale::ROOT*/));
+        result->OverrideWithDataFrom(Get(CLocale::ROOT));
     }
     // Override with data from this locale.
     result->OverrideWithDataFrom(InitLocaleData(locale));
@@ -355,6 +356,142 @@ ECode LocaleData::GetTimeFormat(
     }
     // throw new AssertionError();
     return E_ASSERTION_ERROR;
+}
+
+ECode LocaleData::GetZeroDigit(
+    /* [out] */ Char32* zeroDigit)
+{
+    VALIDATE_NOT_NULL(zeroDigit);
+    *zeroDigit = mZeroDigit;
+    return NOERROR;
+}
+
+ECode LocaleData::GetDigit(
+    /* [out] */ Char32* digit)
+{
+    VALIDATE_NOT_NULL(digit);
+    *digit = mDigit;
+    return NOERROR;
+}
+
+ECode LocaleData::GetDecimalSeparator(
+    /* [out] */ Char32* decimalSeparator)
+{
+    VALIDATE_NOT_NULL(decimalSeparator);
+    *decimalSeparator = mDecimalSeparator;
+    return NOERROR;
+}
+
+ECode LocaleData::GetGroupingSeparator(
+    /* [out] */ Char32* groupingSeparator)
+{
+    VALIDATE_NOT_NULL(groupingSeparator);
+    *groupingSeparator = mGroupingSeparator;
+    return NOERROR;
+}
+
+ECode LocaleData::GetPatternSeparator(
+    /* [out] */ Char32* patternSeparator)
+{
+    VALIDATE_NOT_NULL(patternSeparator);
+    *patternSeparator = mPatternSeparator;
+    return NOERROR;
+}
+
+ECode LocaleData::GetPercent(
+    /* [out] */ Char32* percent)
+{
+    VALIDATE_NOT_NULL(percent);
+    *percent = mPercent;
+    return NOERROR;
+}
+
+ECode LocaleData::GetPerMill(
+    /* [out] */ Char32* perMill)
+{
+    VALIDATE_NOT_NULL(perMill);
+    *perMill = mPerMill;
+    return NOERROR;
+}
+
+ECode LocaleData::GetMonetarySeparator(
+    /* [out] */ Char32* monetarySeparator)
+{
+    VALIDATE_NOT_NULL(monetarySeparator);
+    *monetarySeparator = mMonetarySeparator;
+    return NOERROR;
+}
+
+ECode LocaleData::GetMinusSign(
+    /* [out] */ Char32* minusSign)
+{
+    VALIDATE_NOT_NULL(minusSign);
+    *minusSign = mMinusSign;
+    return NOERROR;
+}
+
+ECode LocaleData::GetExponentSeparator(
+    /* [out] */ String* exponentSeparator)
+{
+    VALIDATE_NOT_NULL(exponentSeparator);
+    *exponentSeparator = mExponentSeparator;
+    return NOERROR;
+}
+
+ECode LocaleData::GetInfinity(
+    /* [out] */ String* infinity)
+{
+    VALIDATE_NOT_NULL(infinity);
+    *infinity = mInfinity;
+    return NOERROR;
+}
+
+ECode LocaleData::GetNaN(
+    /* [out] */ String* naN)
+{
+    VALIDATE_NOT_NULL(naN);
+    *naN = mNaN;
+    return NOERROR;
+}
+
+ECode LocaleData::GetCurrencySymbol(
+    /* [out] */ String* currencySymbol)
+{
+    VALIDATE_NOT_NULL(currencySymbol);
+    *currencySymbol = mCurrencySymbol;
+    return NOERROR;
+}
+
+ECode LocaleData::GetInternationalCurrencySymbol(
+    /* [out] */ String* internationalCurrencySymbol)
+{
+    VALIDATE_NOT_NULL(internationalCurrencySymbol);
+    *internationalCurrencySymbol = mInternationalCurrencySymbol;
+    return NOERROR;
+}
+
+ECode LocaleData::GetNumberPattern(
+    /* [out] */ String* numberPattern)
+{
+    VALIDATE_NOT_NULL(numberPattern);
+    *numberPattern = mNumberPattern;
+    return NOERROR;
+}
+
+ECode LocaleData::GetCurrencyPattern(
+    /* [out] */ String* currencyPattern)
+{
+    VALIDATE_NOT_NULL(currencyPattern);
+    *currencyPattern = mCurrencyPattern;
+    return NOERROR;
+}
+
+ECode LocaleData::GetPercentPattern(
+    /* [out] */ String* percentPattern)
+{
+    VALIDATE_NOT_NULL(percentPattern);
+    *percentPattern = mPercentPattern;
+    return NOERROR;
 }
 
 AutoPtr<ILocaleData> LocaleData::InitLocaleData(

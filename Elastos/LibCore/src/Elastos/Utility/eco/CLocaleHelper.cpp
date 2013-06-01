@@ -43,6 +43,17 @@ ECode CLocaleHelper::GetDefault(
     return NOERROR;
 }
 
+ECode CLocaleHelper::GetRoot(
+    /* [out] */ ILocale** rootLocale)
+{
+    VALIDATE_NOT_NULL(rootLocale);
+    *rootLocale = CLocale::ROOT;
+    if (*rootLocale) {
+        (*rootLocale)->AddRef();
+    }
+    return NOERROR;
+}
+
 /**
  * Gets the list of two letter ISO country codes which can be used as the
  * country code for a {@code Locale}.

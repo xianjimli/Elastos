@@ -9,6 +9,57 @@ module
         GetTimeFormat(
             [in] Int32 style,
             [out] String* format);
+
+        GetZeroDigit(
+            [out] Char32* zeroDigit);
+
+        GetDigit(
+            [out] Char32* digit);
+
+        GetDecimalSeparator(
+            [out] Char32* decimalSeparator);
+
+        GetGroupingSeparator(
+            [out] Char32* groupingSeparator);
+
+        GetPatternSeparator(
+            [out] Char32* patternSeparator);
+
+        GetPercent(
+            [out] Char32* percent);
+
+        GetPerMill(
+            [out] Char32* perMill);
+
+        GetMonetarySeparator(
+            [out] Char32* monetarySeparator);
+
+        GetMinusSign(
+            [out] Char32* minusSign);
+
+        GetExponentSeparator(
+            [out] String* exponentSeparator);
+
+        GetInfinity(
+            [out] String* infinity);
+
+        GetNaN(
+            [out] String* naN);
+
+        GetCurrencySymbol(
+            [out] String* currencySymbol);
+
+        GetInternationalCurrencySymbol(
+            [out] String* internationalCurrencySymbol);
+
+        GetNumberPattern(
+            [out] String* numberPattern);
+
+        GetCurrencyPattern(
+            [out] String* currencyPattern);
+
+        GetPercentPattern(
+            [out] String* percentPattern);
     }
 
     interface ILocaleDataHelper {

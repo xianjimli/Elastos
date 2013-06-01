@@ -3,7 +3,7 @@
 #include "NumberFormat.h"
 #include <Elastos.IO.h>
 #include "CNumberFormatField.h"
-
+#include "CDecimalFormat.h"
 
 static AutoPtr<INumberFormatField> sInit(const String& name)
 {
@@ -175,9 +175,13 @@ ECode NumberFormat::GetCurrencyInstance(
     /* [in] */ ILocale* locale,
     /* [out] */ INumberFormat** instance)
 {
-    assert(0);
-    //return getInstance(LocaleData.get(locale).currencyPattern, locale);
-    return NOERROR;
+    AutoPtr<ILocaleDataHelper> helper;
+    CLocaleDataHelper::AcquireSingleton((ILocaleDataHelper**)&helper);
+    AutoPtr<ILocaleData> localeData;
+    FAIL_RETURN(helper->Get(locale, (ILocaleData**)&localeData));
+    String currencyPattern;
+    localeData->GetCurrencyPattern(&currencyPattern);
+    return GetInstance(currencyPattern, locale, instance);
 }
 
 ECode NumberFormat::GetIntegerInstance(
@@ -219,9 +223,8 @@ ECode NumberFormat::GetInstance(
     /* [in] */ ILocale* locale,
     /* [out] */ INumberFormat** instance)
 {
-    assert(0);
-//    return new DecimalFormat(pattern, locale);
-    return NOERROR;
+//    assert(0);
+    return CDecimalFormat::New(pattern, locale, (IDecimalFormat**)instance);
 }
 
 ECode NumberFormat::GetMaximumFractionDigits(
@@ -266,9 +269,13 @@ ECode NumberFormat::GetNumberInstance(
     /* [in] */ ILocale* locale,
     /* [out] */ INumberFormat** instance)
 {
-    assert(0);
-//    return getInstance(LocaleData.get(locale).numberPattern, locale);
-    return NOERROR;
+    AutoPtr<ILocaleDataHelper> helper;
+    CLocaleDataHelper::AcquireSingleton((ILocaleDataHelper**)&helper);
+    AutoPtr<ILocaleData> localeData;
+    FAIL_RETURN(helper->Get(locale, (ILocaleData**)&localeData));
+    String numberPattern;
+    localeData->GetNumberPattern(&numberPattern);
+    return GetInstance(numberPattern, locale, instance);
 }
 
 ECode NumberFormat::GetPercentInstance(
@@ -285,9 +292,13 @@ ECode NumberFormat::GetPercentInstance(
     /* [in] */ ILocale* locale,
     /* [out] */ INumberFormat** instance)
 {
-    assert(0);
-//    return getInstance(LocaleData.get(locale).percentPattern, locale);
-    return NOERROR;
+    AutoPtr<ILocaleDataHelper> helper;
+    CLocaleDataHelper::AcquireSingleton((ILocaleDataHelper**)&helper);
+    AutoPtr<ILocaleData> localeData;
+    FAIL_RETURN(helper->Get(locale, (ILocaleData**)&localeData));
+    String percentPattern;
+    localeData->GetPercentPattern(&percentPattern);
+    return GetInstance(percentPattern, locale, instance);
 }
 
 ECode NumberFormat::IsGroupingUsed(

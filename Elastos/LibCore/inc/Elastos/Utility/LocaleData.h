@@ -14,6 +14,8 @@ using namespace Elastos::Core::Threading;
 class LocaleData : public ElRefBase, public ILocaleData
 {
 public:
+    LocaleData();
+
     ~LocaleData();
 
     CARAPI_(PInterface) Probe(
@@ -40,9 +42,58 @@ public:
         /* [in] */ Int32 style,
         /* [out] */ String* format);
 
-private:
-    LocaleData();
+    CARAPI GetZeroDigit(
+        /* [out] */ Char32* zeroDigit);
 
+    CARAPI GetDigit(
+        /* [out] */ Char32* digit);
+
+    CARAPI GetDecimalSeparator(
+        /* [out] */ Char32* decimalSeparator);
+
+    CARAPI GetGroupingSeparator(
+        /* [out] */ Char32* groupingSeparator);
+
+    CARAPI GetPatternSeparator(
+        /* [out] */ Char32* patternSeparator);
+
+    CARAPI GetPercent(
+        /* [out] */ Char32* percent);
+
+    CARAPI GetPerMill(
+        /* [out] */ Char32* perMill);
+
+    CARAPI GetMonetarySeparator(
+        /* [out] */ Char32* monetarySeparator);
+
+    CARAPI GetMinusSign(
+        /* [out] */ Char32* minusSign);
+
+    CARAPI GetExponentSeparator(
+        /* [out] */ String* exponentSeparator);
+
+    CARAPI GetInfinity(
+        /* [out] */ String* infinity);
+
+    CARAPI GetNaN(
+        /* [out] */ String* naN);
+
+    CARAPI GetCurrencySymbol(
+        /* [out] */ String* currencySymbol);
+
+    CARAPI GetInternationalCurrencySymbol(
+        /* [out] */ String* internationalCurrencySymbol);
+
+    CARAPI GetNumberPattern(
+        /* [out] */ String* numberPattern);
+
+    CARAPI GetCurrencyPattern(
+        /* [out] */ String* currencyPattern);
+
+    CARAPI GetPercentPattern(
+        /* [out] */ String* percentPattern);
+
+private:
     static CARAPI_(AutoPtr<LocaleData>) MakeLocaleData(
         /* [in] */ ILocale* locale);
 

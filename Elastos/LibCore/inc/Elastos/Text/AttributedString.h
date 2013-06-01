@@ -6,63 +6,73 @@
 #include <elastos.h>
 #include <elastos/AutoPtr.h>
 #include <elastos/Map.h>
-#include <elastos/HashMap.h>
 #include <elastos/List.h>
-#include <elastos/Set.h>
 #include <elastos/HashSet.h>
-#include <StringBuffer.h>
+#include <elastos/ElRefBase.h>
 
-extern "C" const InterfaceID EIID_Range;
+_ELASTOS_NAMESPACE_BEGIN
 
-using namespace Elastos;
+template<> struct Hash<AutoPtr<IAttributedCharacterIteratorAttribute> >
+{
+    size_t operator()(AutoPtr<IAttributedCharacterIteratorAttribute> s) const
+    {
+        assert(s != NULL);
+        return (size_t)s.Get();
+    }
+};
+
+_ELASTOS_NAMESPACE_END
 
 /**
  * Holds a string with attributes describing the characters of
  * this string.
  */
-class AttributedString {
+class AttributedString
+{
 public:
-
-    class Range {
+    struct Range
+    {
     public:
-        CARAPI_(PInterface) Probe(
-                /* [in]  */ REIID riid);
-
         Range(
             /* [in] */ Int32 s,
             /* [in] */ Int32 e,
             /* [in] */ IInterface* v);
     public:
-        Int32 start;
-        Int32 end;
-        AutoPtr<IInterface> value;
+        Int32 mStart;
+        Int32 mEnd;
+        AutoPtr<IInterface> mValue;
     };
 
-    class AttributedIterator : public IAttributedCharacterIterator {
+    class AttributedIterator
+            : public IAttributedCharacterIterator
+            , public ElRefBase
+    {
     public:
-        /**
-         * Returns a new {@code AttributedIterator} with the same source string,
-         * begin, end, and current index as this attributed iterator.
-         *
-         * @return a shallow copy of this attributed iterator.
-         * @see java.lang.Cloneable
-         */
-    /*
-        @Override
-        @SuppressWarnings("unchecked")
-        public Object clone() {
-            try {
-                AttributedIterator clone = (AttributedIterator) super.clone();
-                if (attributesAllowed != null) {
-                    clone.attributesAllowed = (HashSet<Attribute>) attributesAllowed
-                            .clone();
-                }
-                return clone;
-            } catch (CloneNotSupportedException e) {
-                throw new AssertionError(e); // android-changed
-            }
-        }
-    */
+        AttributedIterator(
+            /* [in] */ AttributedString* attrString);
+
+        AttributedIterator(
+            /* [in] */ AttributedString* attrString,
+            /* [in] */ IObjectContainer* attributes,
+            /* [in] */ Int32 begin,
+            /* [in] */ Int32 end);
+
+        ~AttributedIterator();
+
+        CARAPI_(PInterface) Probe(
+            /* [in]  */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
+        CARAPI Clone(
+            /* [out] */ IInterface** copy);
+
         CARAPI Current(
             /* [out] */ Char32* value);
 
@@ -100,55 +110,37 @@ public:
          * @return a set of attribute keys that may be empty.
          */
         CARAPI GetAllAttributeKeys(
-            /* [out] */ Set<IAttributedCharacterIteratorAttribute* >* allAttributedKeys);
+            /* [out] */ IObjectContainer** allAttributedKeys);
 
         CARAPI GetAttribute(
-                /* [in] */ IAttributedCharacterIteratorAttribute* attribute,
-                /* [out] */ IInterface** instance);
-
-        CARAPI GetAttributes(
-                /* [out] */ Map<IAttributedCharacterIteratorAttribute*, IInterface*>* attributes);
-
-        CARAPI GetRunLimit(
-                /* [out] */ Int32* runLimit);
-
-        CARAPI GetRunLimit(
-                /* [in] */ IAttributedCharacterIteratorAttribute* attribute,
-                /* [out] */ Int32* runLimit);
-/*
-        public int getRunLimit(Set<? extends Attribute> attributes) {
-            int limit = end;
-            Iterator<? extends Attribute> it = attributes.iterator();
-            while (it.hasNext()) {
-                AttributedCharacterIterator.Attribute attribute = it.next();
-                int newLimit = getRunLimit(attribute);
-                if (newLimit < limit) {
-                    limit = newLimit;
-                }
-            }
-            return limit;
-        }*/
-
-        CARAPI GetRunStart(
-            /* [out] */ Int32* runStart);
-
-        CARAPI GetRunStart(
             /* [in] */ IAttributedCharacterIteratorAttribute* attribute,
-            /* [out] */ Int32* runStart);
-/*
-        public int getRunStart(Set<? extends Attribute> attributes) {
-            int start = begin;
-            Iterator<? extends Attribute> it = attributes.iterator();
-            while (it.hasNext()) {
-                AttributedCharacterIterator.Attribute attribute = it.next();
-                int newStart = getRunStart(attribute);
-                if (newStart > start) {
-                    start = newStart;
-                }
-            }
-            return start;
-        }
-*/
+            /* [out] */ IInterface** instance);
+
+        // CARAPI GetAttributes(
+        //         /* [out] */ Map<IAttributedCharacterIteratorAttribute*, IInterface*>* attributes);
+
+        CARAPI GetRunLimit(
+            /* [out] */ Int32* runLimit);
+
+        CARAPI GetRunLimitEx(
+            /* [in] */ IAttributedCharacterIteratorAttribute* attribute,
+            /* [out] */ Int32* runLimit);
+
+        CARAPI GetRunLimitEx2(
+            /* [in] */ IObjectContainer* attributes,
+            /* [out] */ Int32* runLimit);
+
+        CARAPI GetRunStart(
+            /* [out] */ Int32* index);
+
+        CARAPI GetRunStartEx(
+            /* [in] */ IAttributedCharacterIteratorAttribute* attribute,
+            /* [out] */ Int32* index);
+
+        CARAPI GetRunStartEx2(
+            /* [in] */ IObjectContainer* attributes,
+            /* [out] */ Int32* index);
+
         CARAPI Last(
             /* [out] */ Char32* lastValue);
 
@@ -160,50 +152,37 @@ public:
 
         CARAPI SetIndex(
             /* [in] */ Int32 location,
-            /* [out] */ Char32* newIndex);
-
-    protected:
-        AttributedIterator(
-            /* [in] */ AttributedString* attrString);
-
-        AttributedIterator(
-            /* [in] */ AttributedString* attrString,
-            /* [in] */ ArrayOf<IAttributedCharacterIteratorAttribute*>* attributes,
-            /* [in] */ Int32 begin,
-            /* [in] */ Int32 end);
+            /* [out] */ Char32* newChar);
 
     private:
-        CARAPI InRange(
-            /* [in] */ Range* range,
-            /* [out] */ Boolean* result);
+        CARAPI_(Boolean) InRange(
+            /* [in] */ Range* range);
 
-        CARAPI InRange(
-            /* [in] */ List<Range*>* ranges,
-            /* [out] */ Boolean* result);
+        CARAPI_(Boolean) InRange(
+            /* [in] */ List<Range*>* ranges);
 
-        CARAPI CurrentValue(
-            /* [in] */ List<Range*>* ranges,
-            /* [out] */ IInterface** currentValue);
+        CARAPI_(AutoPtr<IInterface>) CurrentValue(
+            /* [in] */ List<Range*>* ranges);
 
-        CARAPI RunLimit(
-            /* [in] */ List<Range*>* ranges,
-            /* [out] */ Int32* limitValue);
+        CARAPI_(Int32) RunLimit(
+            /* [in] */ List<Range*>* ranges);
 
-        CARAPI RunStart(
-            /* [in] */ List<Range*>* ranges,
-            /* [out] */ Int32* runStart);
+        CARAPI_(Int32) RunStart(
+            /* [in] */ List<Range*>* ranges);
 
     private:
-        Int32 begin, end, offset;
+        Int32 mBegin;
+        Int32 mEnd;
+        Int32 mOffset;
 
-        AttributedString* attrString;
+        AttributedString* mAttrString;
 
-        Set<IAttributedCharacterIteratorAttribute*>* attributesAllowed;
+        HashSet<AutoPtr<IAttributedCharacterIteratorAttribute> >* mAttributesAllowed;
 
     };
 
 public:
-    AttributedString();
+    ~AttributedString();
 
     /**
      * Constructs an {@code AttributedString} from an {@code
@@ -215,29 +194,6 @@ public:
      */
     CARAPI Init(
         /* [in] */ IAttributedCharacterIterator* iterator);
-
-    /**
-     * Constructs an {@code AttributedString} from a range of the text contained
-     * in the specified {@code AttributedCharacterIterator}, starting at {@code
-     * start} and ending at {@code end}. All attributes will be copied to this
-     * attributed string.
-     *
-     * @param iterator
-     *            the {@code AttributedCharacterIterator} that contains the text
-     *            for this attributed string.
-     * @param start
-     *            the start index of the range of the copied text.
-     * @param end
-     *            the end index of the range of the copied text.
-     * @throws IllegalArgumentException
-     *             if {@code start} is less than first index of
-     *             {@code iterator}, {@code end} is greater than the last
-     *             index + 1 in {@code iterator} or if {@code start > end}.
-     */
-    CARAPI Init(
-        /* [in] */ IAttributedCharacterIterator* iterator,
-        /* [in] */ Int32 start,
-        /* [in] */ Int32 end);
 
     /**
      * Constructs an {@code AttributedString} from a range of the text contained
@@ -265,7 +221,30 @@ public:
         /* [in] */ IAttributedCharacterIterator* iterator,
         /* [in] */ Int32 start,
         /* [in] */ Int32 end,
-        /* [in] */ ArrayOf<IAttributedCharacterIteratorAttribute*>* attributes);
+        /* [in] */ IObjectContainer* attributes);
+
+    /**
+     * Constructs an {@code AttributedString} from a range of the text contained
+     * in the specified {@code AttributedCharacterIterator}, starting at {@code
+     * start} and ending at {@code end}. All attributes will be copied to this
+     * attributed string.
+     *
+     * @param iterator
+     *            the {@code AttributedCharacterIterator} that contains the text
+     *            for this attributed string.
+     * @param start
+     *            the start index of the range of the copied text.
+     * @param end
+     *            the end index of the range of the copied text.
+     * @throws IllegalArgumentException
+     *             if {@code start} is less than first index of
+     *             {@code iterator}, {@code end} is greater than the last
+     *             index + 1 in {@code iterator} or if {@code start > end}.
+     */
+    CARAPI Init(
+        /* [in] */ IAttributedCharacterIterator* iterator,
+        /* [in] */ Int32 start,
+        /* [in] */ Int32 end);
 
     /**
      * Creates an {@code AttributedString} from the given text.
@@ -398,8 +377,8 @@ public:
      * @return the newly created {@code AttributedCharacterIterator}.
      */
     virtual CARAPI GetIteratorEx(
-            /* [in] */ ArrayOf<IAttributedCharacterIteratorAttribute*>* attributes,
-            /* [out] */ IAttributedCharacterIterator** iterator);
+        /* [in] */ IObjectContainer* attributes,
+        /* [out] */ IAttributedCharacterIterator** iterator);
 
     /**
      * Returns an {@code AttributedCharacterIterator} that gives access to the
@@ -417,21 +396,14 @@ public:
      * @return the newly created {@code AttributedCharacterIterator}.
      */
     virtual CARAPI GetIteratorEx2(
-            /* [in] */ ArrayOf<IAttributedCharacterIteratorAttribute*>* attributes,
-            /* [in] */ Int32 start,
-            /* [in] */ Int32 end,
-            /* [out] */ IAttributedCharacterIterator** iterator);
-
-private:
-    AttributedString(
-        /* [in] */ IAttributedCharacterIterator* iterator,
+        /* [in] */ IObjectContainer* attributes,
         /* [in] */ Int32 start,
         /* [in] */ Int32 end,
-        /* [in] */ Set<IAttributedCharacterIteratorAttribute* >* attributes);
+        /* [out] */ IAttributedCharacterIterator** iterator);
 
 public:
-    String text;
+    String mText;
 
-    Map<IAttributedCharacterIteratorAttribute*, List<Range*>* >* attributeMap;
+    Map<AutoPtr<IAttributedCharacterIteratorAttribute>, List<Range*>* >* mAttributeMap;
 };
 #endif //__ATTRIBUTEDSTRING_H__

@@ -44,4 +44,36 @@ module
         GetDefaultFractionDigits(
             [out] Int32* defaultFractionDigits);
     }
+
+    interface ICurrencyHelper {
+        /**
+         * Returns the {@code Currency} instance for the given currency code.
+         * <p>
+         *
+         * @param currencyCode
+         *            the currency code.
+         * @return the {@code Currency} instance for this currency code.
+         *
+         * @throws IllegalArgumentException
+         *             if the currency code is not a supported ISO 4217 currency
+         *             code.
+         */
+        GetInstance(
+            [in] String currencyCode,
+            [out] ICurrency** currency);
+
+        /**
+         * Returns the {@code Currency} instance for this {@code Locale}'s country.
+         *
+         * @param locale
+         *            the {@code Locale} of a country.
+         * @return the {@code Currency} used in the country defined by the locale parameter.
+         *
+         * @throws IllegalArgumentException
+         *             if the locale's country is not a supported ISO 3166 Country.
+         */
+        GetInstanceEx(
+            [in] ILocale* locale,
+            [out] ICurrency** currency);
+    }
 }

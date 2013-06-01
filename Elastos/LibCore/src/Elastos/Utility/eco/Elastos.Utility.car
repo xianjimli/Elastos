@@ -55,6 +55,10 @@ module
         interface ILocaleHelper;
     }
 
+    singleton class CLocaleDataHelper {
+        interface ILocaleDataHelper;
+    }
+
     singleton class CICUHelper {
         interface IICUHelper;
     }
@@ -172,5 +176,9 @@ module
         constructor();
 
         interface ITimer;
+    }
+
+    singleton class CCurrencyHelper {
+        interface ICurrencyHelper;
     }
 }

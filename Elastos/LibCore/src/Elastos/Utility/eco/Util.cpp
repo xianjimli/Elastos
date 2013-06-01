@@ -8,6 +8,10 @@ String Util::ToASCIILowerCase(
     /* [in] */ const String& s)
 {
     Int32 len = s.GetLength();
+    if (len == 0) {
+        return s;
+    }
+
     StringBuffer buffer(len);
     for (Int32 i = 0; i < len; i++) {
          String c = s.Substring(i, 1);
@@ -20,13 +24,16 @@ String Util::ToASCIILowerCase(
          }
     }
     return buffer.Substring(0,len);
-//    return s;
 }
 
 String Util::ToASCIIUpperCase(
     /* [in] */ const String& s)
 {
     Int32 len = s.GetLength();
+    if (len == 0) {
+        return s;
+    }
+
     StringBuffer buffer(len);
     for (Int32 i = 0; i < len; i++) {
          String c = s.Substring(i, 1);
@@ -49,5 +56,4 @@ String Util::ToASCIIUpperCase(
     //     }
     // }
     // return buffer.toString();
-    return s;
 }

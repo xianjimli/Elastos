@@ -3,7 +3,6 @@
 #include "DecimalFormatSymbols.h"
 #include "CDecimalFormatSymbols.h"
 
-
 ECode DecimalFormatSymbols::Init()
 {
     AutoPtr<ILocaleHelper> localeHelper;
@@ -16,33 +15,38 @@ ECode DecimalFormatSymbols::Init()
 ECode DecimalFormatSymbols::Init(
     /* [in] */ ILocale* locale)
 {
-/*
-    LocaleData *localeData = LocaleData::Get(locale);
-    mZeroDigit = localeData.mZeroDigit;
-    mDigit = localeData.mDigit;
-    mDecimalSeparator = localeData.mDecimalSeparator;
-    mGroupingSeparator = localeData.mGroupingSeparator;
-    mPatternSeparator = localeData.mPatternSeparator;
-    mPercent = localeData.mPercent;
-    mPerMill = localeData.mPerMill;
-    mMonetarySeparator = localeData.mMonetarySeparator;
-    mMinusSign = localeData.mMinusSign;
-    mInfinity = localeData.mInfinity;
-    mNaN = localeData.mNaN;
-    mExponentSeparator = localeData.mExponentSeparator;
+    AutoPtr<ILocaleDataHelper> helper;
+    CLocaleDataHelper::AcquireSingleton((ILocaleDataHelper**)&helper);
+    AutoPtr<ILocaleData> localeData;
+    FAIL_RETURN(helper->Get(locale, (ILocaleData**)&localeData));
+    localeData->GetZeroDigit(&mZeroDigit);
+    localeData->GetDigit(&mDigit);
+    localeData->GetDecimalSeparator(&mDecimalSeparator);
+    localeData->GetGroupingSeparator(&mGroupingSeparator);
+    localeData->GetPatternSeparator(&mPatternSeparator);
+    localeData->GetPercent(&mPercent);
+    localeData->GetPerMill(&mPerMill);
+    localeData->GetMonetarySeparator(&mMonetarySeparator);
+    localeData->GetMinusSign(&mMinusSign);
+    localeData->GetInfinity(&mInfinity);
+    localeData->GetNaN(&mNaN);
+    localeData->GetExponentSeparator(&mExponentSeparator);
     mLocale = locale;
     //try {
-        Currency::GetInstance(locale, (ICurrency**)&mCurrency);
-        mCurrency->GetSymbolEx(locale, &mCurrencySymbol);
-        mCurrency->GetCurrencyCode(&mIntlCurrencySymbol);
+    // AutoPtr<ICurrencyHelper> currencyHelper;
+    // CCurrencyHelper::AcquireSingleton((ICurrencyHelper**)&currencyHelper);
+    // FAIL_RETURN(helper->GetInstance(locale, (ICurrency**)&mCurrency));
+    // mCurrency->GetSymbolEx(locale, &mCurrencySymbol);
+    // mCurrency->GetCurrencyCode(&mIntlCurrencySymbol);
     //} catch (IllegalArgumentException e) {
-    //    currency = Currency.getInstance("XXX");
-    //    currencySymbol = localeData.currencySymbol;
-    //    intlCurrencySymbol = localeData.internationalCurrencySymbol;
+    AutoPtr<ICurrencyHelper> currencyHelper;
+    CCurrencyHelper::AcquireSingleton((ICurrencyHelper**)&currencyHelper);
+    FAIL_RETURN(currencyHelper->GetInstance(String("XXX"), (ICurrency**)&mCurrency));
+    localeData->GetCurrencySymbol(&mCurrencySymbol);
+    localeData->GetInternationalCurrencySymbol(&mIntlCurrencySymbol);
     //}
-*/
-    assert(0);
-    return E_NOT_IMPLEMENTED;
+
+    return NOERROR;
 }
 
 ECode DecimalFormatSymbols::GetInstance(

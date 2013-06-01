@@ -45,7 +45,9 @@ int main(int argc, char *argv[])
 
 //     return nQuitCode;
 
-    Double percent = 0;
+    Double num = 12345.321;
+    printf("==== File: %s, Line: %d, num: %f ====\n", __FILE__, __LINE__, num);
+    Double percent = 0.123;
 
     printf("==== File: %s, Line: %d ====\n", __FILE__, __LINE__);
     AutoPtr<INumberFormatHelper> helper;
@@ -53,11 +55,21 @@ int main(int argc, char *argv[])
 
     printf("==== File: %s, Line: %d ====\n", __FILE__, __LINE__);
     AutoPtr<INumberFormat> format;
-    ASSERT_SUCCEEDED(helper->GetPercentInstance((INumberFormat**)&format));
-
-    printf("==== File: %s, Line: %d ====\n", __FILE__, __LINE__);
     String result;
-    ASSERT_SUCCEEDED(format->FormatDouble(percent, &result));
+    ASSERT_SUCCEEDED(helper->GetInstance((INumberFormat**)&format));
     printf("==== File: %s, Line: %d ====\n", __FILE__, __LINE__);
+    ASSERT_SUCCEEDED(format->FormatDouble(num, &result));
+    printf("==== File: %s, Line: %d, result: %s ====\n", __FILE__, __LINE__, (const char*)&result);
+
+    // ASSERT_SUCCEEDED(helper->GetCurrencyInstance((INumberFormat**)&format));
+    // printf("==== File: %s, Line: %d ====\n", __FILE__, __LINE__);
+    // ASSERT_SUCCEEDED(format->FormatDouble(num, &result));
+    // printf("==== File: %s, Line: %d, result: %s ====\n", __FILE__, __LINE__, (const char*)&result);
+
+    // ASSERT_SUCCEEDED(helper->GetPercentInstance((INumberFormat**)&format));
+    // printf("==== File: %s, Line: %d ====\n", __FILE__, __LINE__);
+    // ASSERT_SUCCEEDED(format->FormatDouble(percent, &result));
+    // printf("==== File: %s, Line: %d, result: %s ====\n", __FILE__, __LINE__, (const char*)&result);
+
     return 0;
 }

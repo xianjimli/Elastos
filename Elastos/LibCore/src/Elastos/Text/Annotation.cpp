@@ -1,7 +1,7 @@
 #include "Annotation.h"
 
 ECode Annotation::Init(
-        /* [in] */ IInterface* attribute)
+    /* [in] */ IInterface* attribute)
 {
     value = attribute;
     value->AddRef();
@@ -9,7 +9,7 @@ ECode Annotation::Init(
 }
 
 ECode Annotation::GetValue(
-        /* [out] */ IInterface** v)
+    /* [out] */ IInterface** v)
 {
     *v = value;
     (*v)->AddRef();

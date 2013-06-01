@@ -233,6 +233,15 @@ private:
     String mLanguageCode;
     String mVariantCode;
     String mCachedToStringResult;
+
+public:
+    /**
+     * Locale constant for the root locale. The root locale has an empty language,
+     * country, and variant.
+     *
+     * @since 1.6
+     */
+    static const AutoPtr<ILocale> ROOT;// = new Locale("", "", "");
 };
 
 #endif //__CLOCALE_H__
