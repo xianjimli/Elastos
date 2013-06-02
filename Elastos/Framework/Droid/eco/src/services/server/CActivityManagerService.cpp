@@ -305,23 +305,6 @@ ECode CActivityManagerService::GetSystemContext(
     return NOERROR;
 }
 
-PermissionController::PermissionController(
-    /* [in] */ CActivityManagerService* activityManagerService)
-{
-    mActivityManagerService = activityManagerService;
-}
-
-Boolean PermissionController::CheckPermission(
-    /* [in] */ CString permission,
-    /* [in] */ Int32 pid,
-    /* [in] */ Int32 uid)
-{
-    Int32 result;
-    mActivityManagerService->CheckPermission(permission, pid,
-            uid, &result);
-    return result == CapsuleManager_PERMISSION_GRANTED;
-}
-
 ECode CActivityManagerService::SetSystemProcess()
 {
     // try {
@@ -335,7 +318,7 @@ ECode CActivityManagerService::SetSystemProcess()
     AutoPtr<IServiceManager> serviceManager;
     Elastos::GetServiceManager((IServiceManager**)&serviceManager);
     AutoPtr<IPermissionController> permissionController;
-    CPermissionController::New((IPermissionController**)&permissionController);
+    CPermissionController::New((IActivityManager*)Probe(EIID_IActivityManager), (IPermissionController**)&permissionController);
     serviceManager->AddService(String("permission"), permissionController.Get());
 
     //     ApplicationInfo info =

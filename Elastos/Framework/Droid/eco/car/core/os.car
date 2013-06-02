@@ -176,7 +176,8 @@ module
     }
 
     class CPermissionController {
-        constructor();
+        constructor(
+            [in] IActivityManager* activityManagerService);
 
         interface IPermissionController;
     }

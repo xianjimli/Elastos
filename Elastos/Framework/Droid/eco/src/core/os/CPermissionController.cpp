@@ -1,19 +1,32 @@
 
+#include "ext/frameworkdef.h"
 #include "os/CPermissionController.h"
 
 ECode CPermissionController::CheckPermission(
-    /* [in] */ const String& permission,
+    /* [in] */ CString permission,
     /* [in] */ Int32 pid,
     /* [in] */ Int32 uid,
-    /* [out] */ Boolean * pResult)
+    /* [out] */ Boolean* result)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    Int32 checkResult;
+    ECode ec = mActivityManagerService->CheckPermission(permission, pid, uid, &checkResult);
+
+    if (checkResult == CapsuleManager_PERMISSION_GRANTED) {
+        *result = TRUE;
+    }
+    else {
+        *result = FALSE;
+    }
+
+    return ec;
 }
 
-ECode CPermissionController::constructor()
+ECode CPermissionController::constructor(
+    /* [in] */ IActivityManager* activityManagerService)
 {
-    // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    VALIDATE_NOT_NULL(activityManagerService);
+
+    mActivityManagerService = activityManagerService;
+    return NOERROR;
 }
 

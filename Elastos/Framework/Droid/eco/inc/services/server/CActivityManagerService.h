@@ -1910,19 +1910,4 @@ private:
     AutoPtr<IRemoteCallbackList> mWatchers;
 };
 
-class PermissionController : public IInterface
-{
-public:
-    PermissionController(
-        /* [in] */ CActivityManagerService* activityManagerService);
-
-    Boolean CheckPermission(
-        /* [in] */ CString permission,
-        /* [in] */ Int32 pid,
-        /* [in] */ Int32 uid);
-
-private:
-    AutoPtr<CActivityManagerService> mActivityManagerService;
-};
-
 #endif // __CACTIVITYMANAGERSERVICE_H__
