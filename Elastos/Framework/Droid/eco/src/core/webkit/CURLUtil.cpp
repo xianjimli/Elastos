@@ -406,7 +406,7 @@ String CURLUtil::GuessFileName(
 }
 
 Boolean CURLUtil::VerifyURLEncoding(
-        /* [in] */ String url)
+        /* [in] */ const String& url)
 {
     Int32 count = url.GetLength();
     if(count == 0) {
@@ -435,7 +435,7 @@ Boolean CURLUtil::VerifyURLEncoding(
 }
 
 String CURLUtil::ParseContentDisposition(
-        /* [in] */ String contentDisposition)
+        /* [in] */ const String& contentDisposition)
 {
     /*
     AutoPtr<IMatcher> m;

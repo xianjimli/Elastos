@@ -45,7 +45,8 @@ IPluginManager* CPluginManager::GetInstance(
             return NULL;
         }
 
-        sInstance = new CPluginManager();
+        //sInstance = new CPluginManager();
+        AcquireSingletonByFriend( (CPluginManager**)&sInstance );
         ((CPluginManager *)sInstance) -> InitInstance(contextT.Get());    //CPluginManager::New(contextT, (CPluginManager**)&instance);     //CPluginManager::NewByFriend((CPluginManager**)&sInstance);   
 
         return sInstance;        
@@ -269,7 +270,7 @@ ECode CPluginManager::GetPluginDirectories(
 
 /* package */
 ECode CPluginManager::GetPluginsAPKName(
-        /* [in] */ String pluginLib,
+        /* [in] */ const String& pluginLib,
         /* [out] */ String * pluginsAPKName)
 {
     VALIDATE_NOT_NULL(pluginsAPKName);
@@ -305,8 +306,8 @@ ECode CPluginManager::GetPluginSharedDataDirectory(
 
 /* package */
 ECode CPluginManager::GetPluginClass(
-        /* [in] */ String packageName, 
-        /* [in] */ String className,
+        /* [in] */ const String& packageName, 
+        /* [in] */ const String& className,
         /* [out] */ Handle32 * pluginClass)
 {
     VALIDATE_NOT_NULL(pluginClass);

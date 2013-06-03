@@ -3,7 +3,6 @@
 //#include <elastos/Mutex.h>
 #include "webkit/DebugFlags.h"
 
-
 WebBackForwardList::WebBackForwardList(
     /* [in] */ ICallbackProxy* proxy)
 {
@@ -11,6 +10,17 @@ WebBackForwardList::WebBackForwardList(
     //JAVA:mArray = new ArrayList<WebHistoryItem>();
     mCallbackProxy = proxy;
     return ;
+}
+
+WebBackForwardList::WebBackForwardList()
+{}
+
+void WebBackForwardList::Init(
+    /* [in] */ ICallbackProxy* proxy)
+{
+    mCurrentIndex = -1;
+    //JAVA:mArray = new ArrayList<WebHistoryItem>();
+    mCallbackProxy = proxy;
 }
 
 IWebHistoryItem* WebBackForwardList::GetCurrentItem()
@@ -111,22 +121,9 @@ void WebBackForwardList::RemoveHistoryItem(
     return ;
 }
 
-IWebBackForwardList* WebBackForwardList::Clone()
-{
-    Elastos::Core::Threading::Mutex::Autolock lock(mMutexThis);
-    AutoPtr<WebBackForwardList> l = new WebBackForwardList(NULL);
-    if (mClearPending)  {
-        // If a clear is pending, return a copy with only the current item.
-        l-> AddHistoryItem(GetCurrentItem());
-        return (IWebBackForwardList*)(l.Get());
-    }
-    l -> mCurrentIndex = mCurrentIndex;
-    for (int i = 0; i < GetSize(); i++)  {
-        // Add a copy of each WebHistoryItem
-        (l -> mArray).PushBack(mArray[i]);
-    }
-    return (IWebBackForwardList*)(l.Get());
-}
+// IWebBackForwardList* WebBackForwardList::Clone()
+// {
+// }
 
 void WebBackForwardList::SetCurrentIndex(
     /* [in] */ Int32 newIndex)

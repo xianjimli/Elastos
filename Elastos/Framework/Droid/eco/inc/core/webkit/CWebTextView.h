@@ -42,6 +42,23 @@ public:
     CARAPI SetAdapterCustom(
         /* [in] */ IAutoCompleteAdapter * pAdapter);
 
+    /**
+     * Determine the position and size of WebTextView, and add it to the
+     * WebView's view heirarchy.  All parameters are presumed to be in
+     * view coordinates.  Also requests Focus and sets the cursor to not
+     * request to be in view.
+     * @param x         x-position of the textfield.
+     * @param y         y-position of the textfield.
+     * @param width     width of the textfield.
+     * @param height    height of the textfield.
+     */
+    /* package */
+    virtual CARAPI_(void) SetRect(
+        /* [in] */ Int32 x,
+        /* [in] */ Int32 y,
+        /* [in] */ Int32 width,
+        /* [in] */ Int32 height);
+
 private:
     // TODO: Add your private member variables here.
 };

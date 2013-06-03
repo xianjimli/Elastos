@@ -81,15 +81,13 @@ ECode Plugin::DefaultClickHandler::OnClick(
 
 Plugin::Plugin()
 {
-    String strNULL=String("");
-    Init(strNULL, strNULL, strNULL, strNULL);
 }
 
 Plugin::Plugin(
-    /* [in] */ String name,
-    /* [in] */ String path,
-    /* [in] */ String fileName,
-    /* [in] */ String description)
+    /* [in] */ const String& name,
+    /* [in] */ const String& path,
+    /* [in] */ const String& fileName,
+    /* [in] */ const String& description)
 {    
     Init(name, path, fileName, description);
 }
@@ -119,28 +117,32 @@ String Plugin::GetDescription()
     return mDescription;
 }
 
-void Plugin::SetName(
-    /* [in] */ String name)
+ECode Plugin::SetName(
+    /* [in] */ const String& name)
 {
     mName = name;
+    return NOERROR;
 }
 
-void Plugin::SetPath(
-    /* [in] */ String path)
+ECode Plugin::SetPath(
+    /* [in] */ const String& path)
 {
     mPath = path;
+    return NOERROR;
 }
 
-void Plugin::SetFileName(
-    /* [in] */ String fileName)
+ECode Plugin::SetFileName(
+    /* [in] */ const String& fileName)
 {
     mFileName = fileName;
+    return NOERROR;
 }
 
-void Plugin::SetDescription(
-    /* [in] */ String description)
+ECode Plugin::SetDescription(
+    /* [in] */ const String& description)
 {
     mDescription = description;
+    return NOERROR;
 }
 
 ECode Plugin::SetClickHandler(
@@ -160,10 +162,10 @@ ECode Plugin::DispatchClickEvent(
 }
 
 void Plugin::Init(
-    /* [in] */ String name,
-    /* [in] */ String path,
-    /* [in] */ String fileName,
-    /* [in] */ String description)
+    /* [in] */ const String& name,
+    /* [in] */ const String& path,
+    /* [in] */ const String& fileName,
+    /* [in] */ const String& description)
 {
     mName = name;
     mPath = path;

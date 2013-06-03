@@ -1644,7 +1644,7 @@ String WebSettings::GetDefaultTextEncodingName()
  * it will use the system default user-agent string.
  */
 void WebSettings::SetUserAgentString(
-    /* [in] */ String ua)
+    /* [in] */ String& ua)
 {
     if (ua.IsNullOrEmpty()) {
         sLockForLocaleSettings.Lock();

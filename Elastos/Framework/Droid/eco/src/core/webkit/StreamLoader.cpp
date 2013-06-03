@@ -21,7 +21,8 @@ void StreamLoader::Load()
     if(TRUE){
         Elastos::Core::Threading::Mutex::Autolock lock(mMutex);
         if(mHandler == NULL){
-            CApartment::GetMyApartment((IApartment**)&mHandler);
+            //CApartment::GetMyApartment((IApartment**)&mHandler);
+            mHandler = this;
         }
     }
 
