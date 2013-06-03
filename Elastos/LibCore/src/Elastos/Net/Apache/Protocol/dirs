@@ -1,3 +1,4 @@
 DIRS = File 
 DIRS += Ftp
 DIRS += Http 
+DIRS += Https 
