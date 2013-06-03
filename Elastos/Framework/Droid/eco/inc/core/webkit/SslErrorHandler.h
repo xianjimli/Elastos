@@ -12,10 +12,9 @@ using namespace Core::Threading;
  * passed as a parameter to BrowserCallback.displaySslErrorDialog and is meant
  * to receive the user's response.
  */
-class SslErrorHandler : public ElRefBase,
-                        public IApartment
+class SslErrorHandler
 {
-
+public:
     //@Override
     //virtual CARAPI_(void) HandleMessage(
     //    /* [in] */ IMessage* msg);
@@ -74,13 +73,13 @@ class SslErrorHandler : public ElRefBase,
     /**
      * Proceed with the SSL certificate.
      */
-    virtual CARAPI_(void) Proceed();
+    //virtual CARAPI_(void) Proceed();
 
     /**
      * Cancel this request and all pending requests for the WebView that had
      * the error.
      */
-    virtual CARAPI_(void) Cancel();
+    //virtual CARAPI_(void) Cancel();
 
     /**
      * Handles SSL error(s) on the way down from the user.
@@ -90,6 +89,11 @@ class SslErrorHandler : public ElRefBase,
         /* [in] */ LoadListener* loader,
         /* [in] */ ISslError* error, 
         /* [in] */ Boolean proceed);
+
+protected:
+    void Init(
+        /* [in] */ ISslErrorHandler* origin, 
+        /* [in] */ LoadListener* listener);
 
 private:
     /**
@@ -106,7 +110,7 @@ private:
      */
     CARAPI_(Boolean) ProcessNextLoader();
 
-private:
+protected:
     /* One problem here is that there may potentially be multiple SSL errors
      * coming from mutiple loaders. Therefore, we keep a queue of loaders
      * that have SSL-related problems and process errors one by one in the
@@ -131,8 +135,6 @@ private:
 
     // Message id for handling the response
     static const Int32 HANDLE_RESPONSE = 100;
-
-    AutoPtr<IApartment> mApartment;
 
     Mutex mSyncLock;
 };

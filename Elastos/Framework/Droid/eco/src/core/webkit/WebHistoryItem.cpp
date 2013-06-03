@@ -1,6 +1,7 @@
 #include "webkit/WebHistoryItem.h"
 
 Int32 WebHistoryItem::sNextId = 0;
+Elastos::Core::Threading::Mutex WebHistoryItem::mMutexClass;
 
 WebHistoryItem::WebHistoryItem()
 {
@@ -13,17 +14,37 @@ WebHistoryItem::WebHistoryItem()
 WebHistoryItem::WebHistoryItem(
     /* [in] */ ArrayOf<Byte>* data)
 {
-	mUrl = NULL; // This will be updated natively
-    mFlattenedData = data;
+	Init(data);
     if(TRUE){//JAVA:   synchronized (WebHistoryItem.class)
         Elastos::Core::Threading::Mutex::Autolock lock(mMutexClass);
         mId = sNextId++;
     }
 }
 
+void WebHistoryItem::Init(
+    /* [in] */ ArrayOf<Byte>* data)
+{    
+    mUrl = NULL; // This will be updated natively
+    mFlattenedData = data;
+}
+
 WebHistoryItem::WebHistoryItem(
     /* [in] */ WebHistoryItem* item)
 {
+    if(TRUE){
+        Elastos::Core::Threading::Mutex::Autolock lock(mMutexClass);
+        sNextId++;
+    }
+    Init(item);
+}
+
+void WebHistoryItem::Init(
+    /* [in] */ WebHistoryItem* item)
+{
+    if(TRUE){
+        Elastos::Core::Threading::Mutex::Autolock lock(mMutexClass);
+        sNextId--;
+    }
     if(item != NULL){
         mUrl = item -> GetUrl();
         mTitle = item -> GetTitle();
@@ -68,7 +89,7 @@ IInterface* WebHistoryItem::GetCustomData()
     return mCustomData;
 }
 
-void WebHistoryItem::SetCustomData(
+ECode WebHistoryItem::SetCustomData(
     /* [in] */ IInterface* data)
 {
     mCustomData = data;
@@ -97,11 +118,11 @@ void WebHistoryItem::Inflate(
     Inflate(nativeFrame, mFlattenedData.Get());
 }
 
-WebHistoryItem* WebHistoryItem::Clone()
-{
-    Elastos::Core::Threading::Mutex::Autolock lock(mMutex);
-    return new WebHistoryItem(this);
-}
+// WebHistoryItem* WebHistoryItem::Clone()
+// {
+//     Elastos::Core::Threading::Mutex::Autolock lock(mMutex);
+//     return new WebHistoryItem(this);
+// }
 
 void WebHistoryItem::Inflate(
         /* [in] */ Int32 nativeFrame, 
@@ -113,7 +134,7 @@ void WebHistoryItem::Inflate(
 void WebHistoryItem::Update(
     /* [in] */ CString url, 
     /* [in] */ CString originalUrl, 
-    /* [in] */ String title,
+    /* [in] */ const String& title,
     /* [in] */ IBitmap* favicon,
     /* [in] */ ArrayOf<Byte>* data)
 {
@@ -122,4 +143,10 @@ void WebHistoryItem::Update(
     mTitle = title;
     mFavicon = favicon;
     mFlattenedData = data;
+}
+
+void WebHistoryItem::SetId(
+    /* [in] */ Int32 id)
+{
+    mId = id;
 }

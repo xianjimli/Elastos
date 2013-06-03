@@ -103,7 +103,7 @@ public:
     */
     /* package(hide) */
     static CARAPI_(Boolean) VerifyURLEncoding(
-        /* [in] */ String url);
+        /* [in] */ const String& url);
 
     /*
     * Parse the Content-Disposition HTTP Header. The format of the header
@@ -116,7 +116,7 @@ public:
     */
     /* package(hide) */
     static CARAPI_(String) ParseContentDisposition(
-        /* [in] */ String contentDisposition);
+        /* [in] */ const String& contentDisposition);
 
 private:    
     static CARAPI_(Int32) ParseHex(

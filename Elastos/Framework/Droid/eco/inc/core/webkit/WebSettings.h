@@ -941,7 +941,7 @@ public:
      */
     //public    //Synchronized
     virtual CARAPI_(void) SetUserAgentString(
-        /* [in] */ String ua);
+        /* [in] */ String& ua);
 
     /**
      * Return the WebView's user-agent string.

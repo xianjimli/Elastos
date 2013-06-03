@@ -17,7 +17,7 @@
 #include "PluginFullScreenHolder.h"
 #include "ViewManager.h"
 #include "WebViewCore.h"
-#include "WebTextView.h"
+#include "CWebTextView.h"
 
 CarClass(CWebView), public AbsoluteLayout,
                     public IOnGlobalFocusChangeListener,
@@ -3073,7 +3073,7 @@ private:
     // destroyed.
     AutoPtr<WebViewCore> mWebViewCore;
     
-    AutoPtr<WebTextView> mWebTextView;
+    AutoPtr<CWebTextView> mWebTextView;
 
     // Used to ignore changes to webkit text that arrives to the UI side after
     // more key events.

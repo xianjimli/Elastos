@@ -455,9 +455,8 @@ Int32 WebTextView::OutlineDrawable::GetOpacity()
 
 // IVIEW_METHODS_IMPL(WebTextView, AutoCompleteTextView, AutoCompleteTextView);
 
-WebTextView::WebTextView(): AutoCompleteTextView()
+WebTextView::WebTextView()
 {
-    mMaxLength = -1;
 }
 
 /**
@@ -1258,33 +1257,33 @@ void WebTextView::SetNodePointer(
  * @param height    height of the textfield.
  */
 /* package */
-void WebTextView::SetRect(
-	/* [in] */ Int32 x,
-	/* [in] */ Int32 y,
-	/* [in] */ Int32 width,
-	/* [in] */ Int32 height)
-{    
-    AutoPtr<IAbsoluteLayoutLayoutParams> lp = (IAbsoluteLayoutLayoutParams*)(GetLayoutParams().Get());
-    if (NULL == lp.Get()) {
-        CAbsoluteLayoutLayoutParams::New(width, height, x, y,(IAbsoluteLayoutLayoutParams**)&lp);
-    } 
-    else {
-        ((CAbsoluteLayoutLayoutParams*)lp.Get()) -> mX = x;
-        ((CAbsoluteLayoutLayoutParams*)lp.Get()) -> mY = y;
-        ((CAbsoluteLayoutLayoutParams*)lp.Get()) -> mWidth = width;
-        ((CAbsoluteLayoutLayoutParams*)lp.Get()) -> mHeight = height;
-    }
+// void WebTextView::SetRect(
+// 	/* [in] */ Int32 x,
+// 	/* [in] */ Int32 y,
+// 	/* [in] */ Int32 width,
+// 	/* [in] */ Int32 height)
+// {    
+//     AutoPtr<IAbsoluteLayoutLayoutParams> lp = (IAbsoluteLayoutLayoutParams*)(GetLayoutParams().Get());
+//     if (NULL == lp.Get()) {
+//         CAbsoluteLayoutLayoutParams::New(width, height, x, y,(IAbsoluteLayoutLayoutParams**)&lp);
+//     } 
+//     else {
+//         ((CAbsoluteLayoutLayoutParams*)lp.Get()) -> mX = x;
+//         ((CAbsoluteLayoutLayoutParams*)lp.Get()) -> mY = y;
+//         ((CAbsoluteLayoutLayoutParams*)lp.Get()) -> mWidth = width;
+//         ((CAbsoluteLayoutLayoutParams*)lp.Get()) -> mHeight = height;
+//     }
     
-    if ( (GetParent().Get()) == NULL) {
-        ( (CWebView*)(mWebView.Get()) ) -> AddViewEx3((IView*)this, (IViewGroupLayoutParams*)lp);
-    } 
-    else {
-        SetLayoutParams((IViewGroupLayoutParams*)lp);
-    }
-    // Set up a measure spec so a layout can always be recreated.
-    mWidthSpec = MeasureSpec::MakeMeasureSpec(width, MeasureSpec::EXACTLY);
-    mHeightSpec = MeasureSpec::MakeMeasureSpec(height, MeasureSpec::EXACTLY);
-}
+//     if ( (GetParent().Get()) == NULL) {
+//         ( (CWebView*)(mWebView.Get()) ) -> AddViewEx3((IView*)this, (IViewGroupLayoutParams*)lp);
+//     } 
+//     else {
+//         SetLayoutParams((IViewGroupLayoutParams*)lp);
+//     }
+//     // Set up a measure spec so a layout can always be recreated.
+//     mWidthSpec = MeasureSpec::MakeMeasureSpec(width, MeasureSpec::EXACTLY);
+//     mHeightSpec = MeasureSpec::MakeMeasureSpec(height, MeasureSpec::EXACTLY);
+// }
 
 /**
  * Set the selection, and disable our onSelectionChanged action.

@@ -124,11 +124,10 @@ CARAPI_(Boolean) SslErrorHandler::CheckSslPrefTable(
     //const Int32 primary = error->GetPrimaryError();
     Int32 primary;
 //    error->GetPrimaryError(&primary);
-#if 0
-    if (DebugFlags.SSL_ERROR_HANDLER) {
-        Assert.assertTrue(host != null && primary != 0);
+    if (DebugFlags::sSSL_ERROR_HANDLER)  {
+        //JAVA:Assert.assertTrue(host != null && primary != 0);
+        assert(!( host.IsNullOrEmpty() ) && primary != 0 );
     }
-#endif
 
     Boolean bFlag = FALSE;
     mSslPrefTable->ContainsKey(host, &bFlag);
@@ -140,7 +139,6 @@ CARAPI_(Boolean) SslErrorHandler::CheckSslPrefTable(
             return TRUE;
         }
     }
-
     return FALSE;
 }
 
@@ -157,15 +155,15 @@ CARAPI_(void) SslErrorHandler::FastProcessQueuedSslErrors()
 /**
  * Proceed with the SSL certificate.
  */
-CARAPI_(void) SslErrorHandler::Proceed()
-{}
+// CARAPI_(void) SslErrorHandler::Proceed()
+// {}
 
 /**
  * Cancel this request and all pending requests for the WebView that had
  * the error.
  */
-CARAPI_(void) SslErrorHandler::Cancel()
-{}
+// CARAPI_(void) SslErrorHandler::Cancel()
+// {}
 
 /**
  * Handles SSL error(s) on the way down from the user.
@@ -179,13 +177,14 @@ CARAPI_(void) SslErrorHandler::HandleSslErrorResponse(
 	Mutex::Autolock lock(mSyncLock);
 
 	if (loader == NULL || error == NULL) return;
-
-#if 0
-	if (DebugFlags.SSL_ERROR_HANDLER) {
-        Assert.assertNotNull(loader);
-        Assert.assertNotNull(error);
+    if (DebugFlags::sSSL_ERROR_HANDLER) 
+    {
+        //JAVA:Assert.assertNotNull(loader);
+        //JAVA:Assert.assertNotNull(error);
+        assert( loader != NULL );
+        assert( error != NULL );
     }
-#endif
+
     if (DebugFlags::sSSL_ERROR_HANDLER) {
         String url;
         loader->Url(&url);
@@ -200,11 +199,12 @@ CARAPI_(void) SslErrorHandler::HandleSslErrorResponse(
             Int32 primary;// = error.getPrimaryError();
             String host;
             loader->Host(&host);
-#if 0
-            if (DebugFlags.SSL_ERROR_HANDLER) {
-                Assert.assertTrue(host != null && primary != 0);
+            if (DebugFlags::sSSL_ERROR_HANDLER) 
+            {
+                //JAVA:Assert.assertTrue(host != null && primary != 0);
+                assert( ( !( host.IsNullOrEmpty() ) ) &&  primary != 0 );
             }
-#endif
+
             Boolean hasKey;
             mSslPrefTable->ContainsKey(host, &hasKey);
             Int32 temp;
@@ -225,8 +225,15 @@ SslErrorHandler::SslErrorHandler(
     /* [in] */ ISslErrorHandler* origin, 
     /* [in] */ LoadListener* listener)
 {
-	mOriginHandler = origin;
-	mLoadListener = listener;
+    Init(origin, listener);
+}
+
+void SslErrorHandler::Init(
+    /* [in] */ ISslErrorHandler* origin, 
+    /* [in] */ LoadListener* listener)
+{
+    mOriginHandler = origin;
+    mLoadListener = listener;
 }
 
 /**
@@ -236,40 +243,6 @@ SslErrorHandler::SslErrorHandler(
  */
 CARAPI_(Boolean) SslErrorHandler::ProcessNextLoader()
 {
-	Mutex::Autolock lock(mSyncLock);
-
-	AutoPtr<LoadListener> loader = mLoaderQueue->GetFront();
-    if (loader != NULL) {
-        // if this loader has been cancelled
-        if (loader->Cancelled()) {
-            // go to the following loader in the queue. Make sure this
-            // loader has been removed from the queue.
-            //mLoaderQueue->remove(loader);
-            mLoaderQueue->PopFront();
-            return TRUE;
-        }
-
-        AutoPtr<ISslError> error = loader->SslError();
-#if 0
-        if (DebugFlags.SSL_ERROR_HANDLER) {
-            Assert.assertNotNull(error);
-        }
-#endif
-        // checkSslPrefTable will handle the ssl error response if the
-        // answer is available. It does not remove the loader from the
-        // queue.
-        if (CheckSslPrefTable(loader, error)) {
-            //mLoaderQueue.remove(loader);
-            mLoaderQueue->PopFront();
-            return TRUE;
-        }
-
-        // if we do not have information on record, ask
-        // the user (display a dialog)
-        AutoPtr<ICallbackProxy> proxy = ((CBrowserFrame*)(loader->GetFrame().Get()))->GetCallbackProxy();
-//        proxy->OnReceivedSslError(new SslErrorHandler(this, loader), error);
-    }
-
     // the queue must be empty, stop
     return FALSE;
 }

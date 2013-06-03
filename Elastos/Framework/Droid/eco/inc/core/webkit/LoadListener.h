@@ -515,7 +515,7 @@ private:
      * strength, we pick the one that comes first.
      */
     CARAPI ParseAuthHeader(
-        /* [in] */ String header//,
+        /* [in] */ const String& header//,
         /* [out] */ /*IHttpAuthHeader** httpAuthHeader*/);
 
     /**

@@ -2575,7 +2575,7 @@ ECode CWebView::CanGoBack(
     mCallbackProxy->GetBackForwardList((IWebBackForwardList**)&l);
     assert(l != NULL);
 //    synchronized (l) {
-        ((CWebBackForwardList*)l.Get())->GetClearPending(bFlag);
+        *bFlag=((CWebBackForwardList*)l.Get())->GetClearPending();
         if (*bFlag) {
             *bFlag = FALSE;
             return NOERROR;
@@ -2604,7 +2604,7 @@ ECode CWebView::CanGoForward(
     mCallbackProxy->GetBackForwardList((IWebBackForwardList**)&l);
     assert(l.Get());
 //    synchronized (l) {
-        ((CWebBackForwardList*)l.Get())->GetClearPending(bFlag);
+        *bFlag=((CWebBackForwardList*)l.Get())->GetClearPending();
         if (*bFlag) {
             *bFlag = FALSE;
             return NOERROR;
@@ -2639,7 +2639,7 @@ ECode CWebView::CanGoBackOrForward(
     assert(l.Get());
 //    synchronized (l) {
         Boolean clearPending = FALSE;
-        ((CWebBackForwardList*)l.Get())->GetClearPending(&clearPending);
+        clearPending=((CWebBackForwardList*)l.Get())->GetClearPending();
         if (clearPending) {
             *bFlag = FALSE;
             return NOERROR;

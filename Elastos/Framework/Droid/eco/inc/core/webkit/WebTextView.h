@@ -20,7 +20,7 @@
  * text editing.
  */
 /* package */
-class WebTextView : public AutoCompleteTextView, public ElRefBase//, public IView 
+class WebTextView : public AutoCompleteTextView//, public IView 
 {
 // public:
 //     CARAPI_(PInterface) Probe(
@@ -347,11 +347,11 @@ public:
      * @param height    height of the textfield.
      */
     /* package */
-    virtual CARAPI_(void) SetRect(
-        /* [in] */ Int32 x,
-        /* [in] */ Int32 y,
-        /* [in] */ Int32 width,
-        /* [in] */ Int32 height);
+    // virtual CARAPI_(void) SetRect(
+    //     /* [in] */ Int32 x,
+    //     /* [in] */ Int32 y,
+    //     /* [in] */ Int32 width,
+    //     /* [in] */ Int32 height);
 
     /**
      * Set the selection, and disable our onSelectionChanged action.
@@ -462,11 +462,13 @@ private:
     CARAPI_(void) SetMaxLength(
         /* [in] */ Int32 maxLength);
 
-private:
+protected://private:
     AutoPtr<IWebView>       mWebView;
-    Boolean         mSingle;
     Int32           mWidthSpec;
     Int32           mHeightSpec;
+
+private:
+    Boolean         mSingle;
     Int32           mNodePointer;
     // FIXME: This is a hack for blocking unmatched key ups, in particular
     // on the enter key.  The method for blocking unmatched key ups prevents

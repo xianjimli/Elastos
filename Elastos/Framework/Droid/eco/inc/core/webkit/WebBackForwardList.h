@@ -13,7 +13,7 @@
  * WebView.copyBackForwardList() will return a copy of this class used to
  * inspect the entries in the list.
  */
-class WebBackForwardList: public ElRefBase //: public Cloneable, public Serializable 
+class WebBackForwardList //: public Cloneable, public Serializable 
 {
 
 public:
@@ -135,7 +135,11 @@ protected:
      *
      * synchronized
      */
-    virtual CARAPI_(IWebBackForwardList*) Clone();
+    //virtual CARAPI_(IWebBackForwardList*) Clone();
+
+    WebBackForwardList();
+    void Init(
+        /* [in] */ ICallbackProxy* proxy);
 
 private:
     /* Remove the item at the given index. Called by JNI only. */
@@ -143,19 +147,22 @@ private:
     CARAPI_(void) RemoveHistoryItem(
         /* [in] */ Int32 index);
 
-    // Current position in the list.
-    Int32 mCurrentIndex;
-    // ArrayList of WebHistoryItems for maintaining our copy.
-    List< AutoPtr<IWebHistoryItem> > mArray;
-    // Flag to indicate that the list is invalid
-    Boolean mClearPending;
-    // CallbackProxy to issue client callbacks.
-    /*const*/ AutoPtr<ICallbackProxy> mCallbackProxy;
-
     /* Close the native list. */
     /* native */
     static CARAPI_(void) NativeClose(
         /* [in] */ Int32 nativeFrame);
+
+protected:
+    // Current position in the list.
+    Int32 mCurrentIndex;
+    // ArrayList of WebHistoryItems for maintaining our copy.
+    List< AutoPtr<IWebHistoryItem> > mArray;    
+    // Flag to indicate that the list is invalid
+    Boolean mClearPending;
+
+private:
+    // CallbackProxy to issue client callbacks.
+    /*const*/ AutoPtr<ICallbackProxy> mCallbackProxy;
 
     Elastos::Core::Threading::Mutex mMutexThis;
     //static Elastos::Core::Threading::Mutex mMutexClass;

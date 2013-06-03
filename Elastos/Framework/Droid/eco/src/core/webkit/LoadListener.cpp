@@ -1726,7 +1726,7 @@ CARAPI_(void) LoadListener::ParseContentTypeHeader(
  * strength, we pick the one that comes first.
  */
 ECode LoadListener::ParseAuthHeader(
-        /* [in] */ String header//,
+        /* [in] */ const String& header//,
         /* [out] */ /*IHttpAuthHeader** httpAuthHeader*/)
 {
     if (header.IsNull()) {

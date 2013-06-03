@@ -28,7 +28,7 @@ public:
 
     /* package */
     CARAPI GetPluginsAPKName(
-        /* [in] */ String pluginLib,
+        /* [in] */ const String& pluginLib,
         /* [out] */ String * pluginsAPKName);
 
     /* package */
@@ -37,8 +37,8 @@ public:
 
     /* package */
     CARAPI GetPluginClass(
-        /* [in] */ String packageName, 
-        /* [in] */ String className,
+        /* [in] */ const String& packageName, 
+        /* [in] */ const String& className,
         /* [out] */ Handle32 * pluginClass);
 
     /*added for function GetInstance to init 'mInstance'  */

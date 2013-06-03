@@ -11,7 +11,8 @@
  * item. Each history item may be updated during the load of a page.
  * @see WebBackForwardList
  */
-class WebHistoryItem {
+class WebHistoryItem //:public Cloneable
+{
 
 public:
 
@@ -92,7 +93,7 @@ public:
      * @hide
      */
     /*public*/
-    virtual CARAPI_(void) SetCustomData(
+    virtual CARAPI SetCustomData(
         /* [in] */ IInterface* data);
 
     /**
@@ -134,8 +135,31 @@ protected:
     /**
      * Clone the history item for use by clients of WebView.
      */
-    virtual CARAPI_(WebHistoryItem*) Clone();
+    // virtual CARAPI_(WebHistoryItem*) Clone();
 
+    void Init(
+    /* [in] */ ArrayOf<Byte>* data);
+
+    void Init(
+        /* [in] */ WebHistoryItem* item);
+
+protected://private:
+    /* Called by jni when the item is updated */
+    CARAPI_(void) Update(
+        /* [in] */ CString url, 
+        /* [in] */ CString originalUrl, 
+        /* [in] */ const String& title,
+        /* [in] */ IBitmap* favicon,
+        /* [in] */ ArrayOf<Byte>* data);
+
+    void SetId(
+        /* [in] */ Int32 id);
+        
+    /**
+     * Basic constructor that assigns a unique id to the item. Called by JNI
+     * only.
+     */
+    WebHistoryItem();
 
 private:
 
@@ -144,20 +168,6 @@ private:
     CARAPI_(void) Inflate(
         /* [in] */ Int32 nativeFrame, 
         /* [in] */ ArrayOf<Byte>* data);
-
-    /* Called by jni when the item is updated */
-    CARAPI_(void) Update(
-        /* [in] */ CString url, 
-        /* [in] */ CString originalUrl, 
-        /* [in] */ String title,
-        /* [in] */ IBitmap* favicon,
-        /* [in] */ ArrayOf<Byte>* data);
-
-    /**
-     * Basic constructor that assigns a unique id to the item. Called by JNI
-     * only.
-     */
-    WebHistoryItem();
 
     /**
      * Construct a clone of a WebHistoryItem from the given item.

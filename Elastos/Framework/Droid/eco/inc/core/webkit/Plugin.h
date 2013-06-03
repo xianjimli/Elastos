@@ -71,10 +71,10 @@ public:
      */
     //@Deprecated
     Plugin(
-        /* [in] */ String name,
-        /* [in] */ String path,
-        /* [in] */ String fileName,
-        /* [in] */ String description);
+        /* [in] */ const String& name,
+        /* [in] */ const String& path,
+        /* [in] */ const String& fileName,
+        /* [in] */ const String& description);
 
     /**
      * @deprecated This interface was intended to be used by Gears. Since Gears was
@@ -116,32 +116,32 @@ public:
      * deprecated, so is this class.
      */
     //@Deprecated
-    virtual CARAPI_(void) SetName(
-        /* [in] */ String name);
+    virtual CARAPI SetName(
+        /* [in] */ const String& name);
 
     /**
      * @deprecated This interface was intended to be used by Gears. Since Gears was
      * deprecated, so is this class.
      */
     //@Deprecated
-    virtual CARAPI_(void) SetPath(
-        /* [in] */ String path);
+    virtual CARAPI SetPath(
+        /* [in] */ const String& path);
 
     /**
      * @deprecated This interface was intended to be used by Gears. Since Gears was
      * deprecated, so is this class.
      */
     //@Deprecated
-    virtual CARAPI_(void) SetFileName(
-        /* [in] */ String fileName);
+    virtual CARAPI SetFileName(
+        /* [in] */ const String& fileName);
 
     /**
      * @deprecated This interface was intended to be used by Gears. Since Gears was
      * deprecated, so is this class.
      */
     //@Deprecated
-    virtual CARAPI_(void) SetDescription(
-        /* [in] */ String description);
+    virtual CARAPI SetDescription(
+        /* [in] */ const String& description);
 
     /**
      * @deprecated This interface was intended to be used by Gears. Since Gears was
@@ -163,10 +163,10 @@ public:
 
 protected:
     void Init(
-        /* [in] */ String name,
-        /* [in] */ String path,
-        /* [in] */ String fileName,
-        /* [in] */ String description);
+        /* [in] */ const String& name,
+        /* [in] */ const String& path,
+        /* [in] */ const String& fileName,
+        /* [in] */ const String& description);
 
     Plugin();
 
