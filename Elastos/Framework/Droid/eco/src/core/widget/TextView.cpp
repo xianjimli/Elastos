@@ -134,6 +134,15 @@ using namespace Elastos::Core;
 
 
 TextView::Drawables::Drawables()
+    : mDrawableSizeTop(0)
+    , mDrawableSizeBottom(0)
+    , mDrawableSizeLeft(0)
+    , mDrawableSizeRight(0)
+    , mDrawableWidthTop(0)
+    , mDrawableWidthBottom(0)
+    , mDrawableHeightLeft(0)
+    , mDrawableHeightRight(0)
+    , mDrawablePadding(0)
 {
     CRect::NewByFriend((CRect**)&mCompoundRect);
 }
