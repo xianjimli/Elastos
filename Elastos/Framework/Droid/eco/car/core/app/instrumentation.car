@@ -7,6 +7,7 @@ module
     interface IActivity;
     interface IBundle;
     interface IApplicationApartment;
+    interface IInstrumentationWatcher;
     interface IBinder;
 
     interface IActivityResult {
@@ -18,6 +19,13 @@ module
     }
 
     interface IInstrumentation {
+        OnCreate(
+            [in] IBundle* arguments);
+
+        OnStart();
+
+        OnDestroy();
+
         NewApplication(
             [in] String moduleName,
             [in] String className,
@@ -77,6 +85,13 @@ module
             [in] IIntent* intent,
             [in] Int32 requestCode,
             [out] IActivityResult** result);
+
+        Init(
+            [in] IApplicationApartment* apartment,
+            [in] IContext* instrContext,
+            [in] IContext* appContext,
+            [in] IComponentName* component, 
+            [in] IInstrumentationWatcher* watcher);
     }
 
     interface IActivityMonitor {

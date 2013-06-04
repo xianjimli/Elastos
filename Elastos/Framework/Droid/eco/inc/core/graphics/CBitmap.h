@@ -32,6 +32,9 @@ public:
     CARAPI SetDensity(
         /* [in] */ Int32 density);
 
+    static CARAPI_(void) SetDefaultDensity(
+        /* [in] */ Int32 density);
+
     CARAPI SetNinePatchChunk(
         /* [in] */ const ArrayOf<Byte> & chunk);
 
@@ -185,9 +188,6 @@ public:
     SkBitmap* Ni();
 
 private:
-    CARAPI_(void) SetDefaultDensity(
-        /* [in] */ Int32 density);
-
     static CARAPI_(Int32) GetDefaultDensity();
 
     /*  Private constructor that must received an already allocated native

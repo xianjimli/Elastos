@@ -518,9 +518,9 @@ ECode Activity::Start()
 
 ECode Activity::Restart()
 {
-    OnRestart();
+    ECode ec = OnRestart();
 
-    return Start();
+    return ec;
 }
 
 ECode Activity::Resume()
