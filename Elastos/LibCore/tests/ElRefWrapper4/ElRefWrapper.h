@@ -39,14 +39,13 @@ inline Boolean operator _op_ (const WeakPtr<U>& o) const {              \
     return mPtr _op_ o.mPtr;                                  \
 }
 
-template <typename T>
 class RefWrapper
 {
 public:
     class WeakRefType
     {
     public:
-        RefWrapper<T>* GetRefWrapper() const;
+        RefWrapper* GetRefWrapper() const;
 
         void IncWeak(const void* id);
         void DecWeak(const void* id);
@@ -68,7 +67,7 @@ public:
         //           for each reference and dereference; when retain == false, we
         //           match up references and dereferences and keep only the
         //           outstanding ones.
-        void TrackMe(Boolean enable, Boolean retain);
+        void TrackMe(Boolean enable, Boolean retain) const;
     };
 
     // used to override the RefWrapper destruction.
@@ -83,7 +82,7 @@ public:
 
 public:
     RefWrapper();
-    RefWrapper(T* other);
+    RefWrapper(IInterface* obj);
 
     ~RefWrapper();
 
@@ -99,13 +98,13 @@ public:
 
     WeakRefType* GetWeakRefs() const;
 
-    inline T* Get() const { return mObj; }
+    inline IInterface* Get() const { return mObj; }
 
     //! DEBUGGING ONLY: Print references held on object.
     inline void PrintRefs() const { GetWeakRefs()->PrintRefs(); }
 
     //! DEBUGGING ONLY: Enable tracking of object.
-    inline void TrackMe(Boolean enable, Boolean retain)
+    inline void TrackMe(Boolean enable, Boolean retain) const
     {
         GetWeakRefs()->TrackMe(enable, retain);
     }
@@ -140,20 +139,11 @@ private:
     friend class WeakRefType;
     class WeakRefImpl;
 
-    RefWrapper(const RefWrapper<T>& other);
-    template<typename U> RefWrapper(U* other);
-    template<typename U> RefWrapper(const RefWrapper<U>& other);
-
-    // Assignment
-
-    RefWrapper& operator = (T* other);
-    RefWrapper& operator = (const RefWrapper<T>& other);
-
-    template<typename U> RefWrapper& operator = (const RefWrapper<U>& other);
-    template<typename U> RefWrapper& operator = (U* other);
+    RefWrapper(const RefWrapper& o);
+    RefWrapper& operator = (const RefWrapper& o);
 
     WeakRefImpl* const mRefs;
-    T* const mObj;
+    IInterface* const mObj;
 };
 
 // ---------------------------------------------------------------------------
@@ -162,7 +152,7 @@ template <typename T>
 class StrongPtr
 {
 public:
-    typedef typename T::WeakRefType WeakRefType;
+    typedef typename RefWrapper::WeakRefType WeakRefType;
 
     inline StrongPtr() : mPtr(0) { }
 
@@ -182,7 +172,7 @@ public:
     template<typename U> StrongPtr& operator = (U* other);
 
     //! Special optimization for use by ProcessState (and nobody else).
-    void ForceSet(T* other);
+    // void ForceSet(T* other);
 
     // Reset
 
@@ -190,9 +180,9 @@ public:
 
     // Accessors
 
-    inline T& operator* () const { return *mPtr; }
-    inline T* operator-> () const { return mPtr;  }
-    inline T* Get() const { return mPtr; }
+    inline T& operator* () const { return mPtr != NULL ? *((T*)mPtr->Get()) : *(T*)mPtr; }
+    inline T* operator-> () const { return mPtr != NULL ? (T*)mPtr->Get() : NULL;  }
+    inline T* Get() const { return mPtr != NULL ? (T*)mPtr->Get() : NULL; }
 
     // Operators
 
@@ -208,9 +198,9 @@ private:
     template<typename Y> friend class WeakPtr;
 
     // Optimization for WeakPtr::Promote().
-    StrongPtr(T* p, WeakRefType* refs);
+    StrongPtr(RefWrapper* p, WeakRefType* refs);
 
-    T* mPtr;
+    RefWrapper* mPtr;
 };
 
 // ---------------------------------------------------------------------------
@@ -219,7 +209,7 @@ template <typename T>
 class WeakPtr
 {
 public:
-    typedef typename T::WeakRefType WeakRefType;
+    typedef typename RefWrapper::WeakRefType WeakRefType;
 
     inline WeakPtr() : mPtr(0) {}
 
@@ -242,7 +232,7 @@ public:
     template<typename U> WeakPtr& operator = (const WeakPtr<U>& other);
     template<typename U> WeakPtr& operator = (const StrongPtr<U>& other);
 
-    void SetObjectAndRefs(T* other, WeakRefType* refs);
+    void SetObjectAndRefs(RefWrapper* other, WeakRefType* refs);
 
     // promotion to StrongPtr
 
@@ -256,7 +246,7 @@ public:
 
     inline WeakRefType* GetRefs() const { return mRefs; }
 
-    inline T* UnsafeGet() const { return mPtr; }
+    inline T* UnsafeGet() const { return mPtr != NULL ? (T*)mPtr->Get() : NULL; }
 
     // Operators
 
@@ -310,7 +300,7 @@ private:
     template<typename Y> friend class StrongPtr;
     template<typename Y> friend class WeakPtr;
 
-    T* mPtr;
+    RefWrapper* mPtr;
     WeakRefType* mRefs;
 };
 
@@ -323,25 +313,23 @@ private:
 // ---------------------------------------------------------------------------
 #define INITIAL_STRONG_VALUE (1<<28)
 
-template<typename T>
-RefWrapper<T>::Destroyer::~Destroyer()
+RefWrapper::Destroyer::~Destroyer()
 {}
 
 
 // ---------------------------------------------------------------------------
-template<typename T>
-class RefWrapper<T>::WeakRefImpl : public RefWrapper<T>::WeakRefType
+class RefWrapper::WeakRefImpl : public RefWrapper::WeakRefType
 {
 public:
     volatile Int32    mStrong;
     volatile Int32    mWeak;
-    RefWrapper<T>* const   mBase;
+    RefWrapper* const   mBase;
     volatile Int32    mFlags;
     Destroyer*        mDestroyer;
 
 #if !DEBUG_REFS
 
-    WeakRefImpl(RefWrapper<T>* base)
+    WeakRefImpl(RefWrapper* base)
         : mStrong(INITIAL_STRONG_VALUE)
         , mWeak(0)
         , mBase(base)
@@ -354,11 +342,11 @@ public:
     void AddWeakRef(const void* /*id*/) { }
     void RemoveWeakRef(const void* /*id*/) { }
     void PrintRefs() const { }
-    void TrackMe(Boolean, Boolean) { }
+    void TrackMe(Boolean, Boolean) const { }
 
 #else
 
-    WeakRefImpl(RefWrapper<T>* base)
+    WeakRefImpl(RefWrapper* base)
         : mStrong(INITIAL_STRONG_VALUE)
         , mWeak(0)
         , mBase(base)
@@ -564,8 +552,7 @@ private:
 
 // ---------------------------------------------------------------------------
 
-template<typename T>
-void RefWrapper<T>::IncStrong(const void* id) const
+void RefWrapper::IncStrong(const void* id) const
 {
     WeakRefImpl* const refs = mRefs;
     refs->AddWeakRef(id);
@@ -585,8 +572,7 @@ void RefWrapper<T>::IncStrong(const void* id) const
     const_cast<RefWrapper*>(this)->OnFirstRef();
 }
 
-template<typename T>
-void RefWrapper<T>::DecStrong(const void* id) const
+void RefWrapper::DecStrong(const void* id) const
 {
     WeakRefImpl* const refs = mRefs;
     refs->RemoveStrongRef(id);
@@ -610,8 +596,7 @@ void RefWrapper<T>::DecStrong(const void* id) const
     refs->DecWeak(id);
 }
 
-template<typename T>
-void RefWrapper<T>::ForceIncStrong(const void* id) const
+void RefWrapper::ForceIncStrong(const void* id) const
 {
     WeakRefImpl* const refs = mRefs;
     refs->AddWeakRef(id);
@@ -634,25 +619,21 @@ void RefWrapper<T>::ForceIncStrong(const void* id) const
     }
 }
 
-template<typename T>
-Int32 RefWrapper<T>::GetStrongCount() const
+Int32 RefWrapper::GetStrongCount() const
 {
     return mRefs->mStrong;
 }
 
-template<typename T>
-void RefWrapper<T>::SetDestroyer(RefWrapper::Destroyer* destroyer) {
+void RefWrapper::SetDestroyer(RefWrapper::Destroyer* destroyer) {
     mRefs->mDestroyer = destroyer;
 }
 
-template<typename T>
-RefWrapper<T>* RefWrapper<T>::WeakRefType::GetRefWrapper() const
+RefWrapper* RefWrapper::WeakRefType::GetRefWrapper() const
 {
     return static_cast<const WeakRefImpl*>(this)->mBase;
 }
 
-template<typename T>
-void RefWrapper<T>::WeakRefType::IncWeak(const void* id)
+void RefWrapper::WeakRefType::IncWeak(const void* id)
 {
     WeakRefImpl* const impl = static_cast<WeakRefImpl*>(this);
     impl->AddWeakRef(id);
@@ -660,8 +641,7 @@ void RefWrapper<T>::WeakRefType::IncWeak(const void* id)
     LOG_ASSERT(c >= 0, "incWeak called on %p after last weak ref", this);
 }
 
-template<typename T>
-void RefWrapper<T>::WeakRefType::DecWeak(const void* id)
+void RefWrapper::WeakRefType::DecWeak(const void* id)
 {
     WeakRefImpl* const impl = static_cast<WeakRefImpl*>(this);
     impl->RemoveWeakRef(id);
@@ -700,8 +680,7 @@ void RefWrapper<T>::WeakRefType::DecWeak(const void* id)
     }
 }
 
-template<typename T>
-Boolean RefWrapper<T>::WeakRefType::AttemptIncStrong(const void* id)
+Boolean RefWrapper::WeakRefType::AttemptIncStrong(const void* id)
 {
     IncWeak(id);
 
@@ -766,8 +745,7 @@ Boolean RefWrapper<T>::WeakRefType::AttemptIncStrong(const void* id)
     return TRUE;
 }
 
-template<typename T>
-Boolean RefWrapper<T>::WeakRefType::AttemptIncWeak(const void* id)
+Boolean RefWrapper::WeakRefType::AttemptIncWeak(const void* id)
 {
     WeakRefImpl* const impl = static_cast<WeakRefImpl*>(this);
 
@@ -788,56 +766,48 @@ Boolean RefWrapper<T>::WeakRefType::AttemptIncWeak(const void* id)
     return curCount > 0;
 }
 
-template<typename T>
-Int32 RefWrapper<T>::WeakRefType::GetWeakCount() const
+Int32 RefWrapper::WeakRefType::GetWeakCount() const
 {
     return static_cast<const WeakRefImpl*>(this)->mWeak;
 }
 
-template<typename T>
-void RefWrapper<T>::WeakRefType::PrintRefs() const
+void RefWrapper::WeakRefType::PrintRefs() const
 {
     static_cast<const WeakRefImpl*>(this)->PrintRefs();
 }
 
-template<typename T>
-void RefWrapper<T>::WeakRefType::TrackMe(Boolean enable, Boolean retain)
+void RefWrapper::WeakRefType::TrackMe(Boolean enable, Boolean retain) const
 {
     static_cast<const WeakRefImpl*>(this)->TrackMe(enable, retain);
 }
 
-template<typename T>
-typename RefWrapper<T>::WeakRefType* RefWrapper<T>::CreateWeak(const void* id) const
+typename RefWrapper::WeakRefType* RefWrapper::CreateWeak(const void* id) const
 {
     mRefs->IncWeak(id);
     return mRefs;
 }
 
-template<typename T>
-typename RefWrapper<T>::WeakRefType* RefWrapper<T>::GetWeakRefs() const
+typename RefWrapper::WeakRefType* RefWrapper::GetWeakRefs() const
 {
     return mRefs;
 }
 
-template<typename T>
-RefWrapper<T>::RefWrapper()
+RefWrapper::RefWrapper()
     : mRefs(new WeakRefImpl(this))
     , mObj(NULL)
 {
 //    LOGV("Creating refs %p with RefWrapper %p\n", mRefs, this);
 }
 
-template<typename T>
-RefWrapper<T>::RefWrapper(T* other)
+RefWrapper::RefWrapper(IInterface* obj)
     : mRefs(new WeakRefImpl(this))
-    , mObj(other)
+    , mObj(obj)
 {
 //    LOGV("Creating refs %p with RefWrapper %p\n", mRefs, this);
     if (mObj) mObj->AddRef();
 }
 
-template<typename T>
-RefWrapper<T>::~RefWrapper()
+RefWrapper::~RefWrapper()
 {
     if ((mRefs->mFlags & OBJECT_LIFETIME_WEAK) == OBJECT_LIFETIME_WEAK) {
         if (mRefs->mWeak == 0) {
@@ -847,28 +817,23 @@ RefWrapper<T>::~RefWrapper()
     if (mObj) mObj->Release();
 }
 
-template<typename T>
-void RefWrapper<T>::ExtendObjectLifetime(Int32 mode)
+void RefWrapper::ExtendObjectLifetime(Int32 mode)
 {
     android_atomic_or(mode, &mRefs->mFlags);
 }
 
-template<typename T>
-void RefWrapper<T>::OnFirstRef()
+void RefWrapper::OnFirstRef()
 {}
 
-template<typename T>
-void RefWrapper<T>::OnLastStrongRef(const void* /*id*/)
+void RefWrapper::OnLastStrongRef(const void* /*id*/)
 {}
 
-template<typename T>
-Boolean RefWrapper<T>::OnIncStrongAttempted(uint32_t flags, const void* id)
+Boolean RefWrapper::OnIncStrongAttempted(uint32_t flags, const void* id)
 {
     return (flags&FIRST_INC_STRONG) ? TRUE : FALSE;
 }
 
-template<typename T>
-void RefWrapper<T>::OnLastWeakRef(const void* /*id*/)
+void RefWrapper::OnLastWeakRef(const void* /*id*/)
 {}
 
 
@@ -876,9 +841,11 @@ void RefWrapper<T>::OnLastWeakRef(const void* /*id*/)
 // StrongPtr
 template<typename T>
 StrongPtr<T>::StrongPtr(T* other)
-    : mPtr(other)
 {
-    if (other) other->IncStrong(this);
+    if (other) {
+        mPtr = new RefWrapper(other);
+        mPtr->IncStrong(this);
+    }
 }
 
 template<typename T>
@@ -889,9 +856,12 @@ StrongPtr<T>::StrongPtr(const StrongPtr<T>& other)
 }
 
 template<typename T> template<typename U>
-StrongPtr<T>::StrongPtr(U* other) : mPtr(other)
+StrongPtr<T>::StrongPtr(U* other)
 {
-    if (other) other->IncStrong(this);
+    if (other) {
+        mPtr = new RefWrapper(other);
+        mPtr->IncStrong(this);
+    }
 }
 
 template<typename T> template<typename U>
@@ -910,7 +880,7 @@ StrongPtr<T>::~StrongPtr()
 template<typename T>
 StrongPtr<T>& StrongPtr<T>::operator = (const StrongPtr<T>& other)
 {
-    T* otherPtr(other.mPtr);
+    RefWrapper* otherPtr(other.mPtr);
     if (otherPtr) otherPtr->IncStrong(this);
     if (mPtr) mPtr->DecStrong(this);
     mPtr = otherPtr;
@@ -920,16 +890,18 @@ StrongPtr<T>& StrongPtr<T>::operator = (const StrongPtr<T>& other)
 template<typename T>
 StrongPtr<T>& StrongPtr<T>::operator = (T* other)
 {
-    if (other) other->IncStrong(this);
     if (mPtr) mPtr->DecStrong(this);
-    mPtr = other;
+    if (other) {
+        mPtr = new RefWrapper(other);
+        mPtr->IncStrong(this);
+    }
     return *this;
 }
 
 template<typename T> template<typename U>
 StrongPtr<T>& StrongPtr<T>::operator = (const StrongPtr<U>& other)
 {
-    U* otherPtr(other.mPtr);
+    RefWrapper* otherPtr(other.mPtr);
     if (otherPtr) otherPtr->IncStrong(this);
     if (mPtr) mPtr->DecStrong(this);
     mPtr = otherPtr;
@@ -939,18 +911,20 @@ StrongPtr<T>& StrongPtr<T>::operator = (const StrongPtr<U>& other)
 template<typename T> template<typename U>
 StrongPtr<T>& StrongPtr<T>::operator = (U* other)
 {
-    if (other) other->IncStrong(this);
     if (mPtr) mPtr->DecStrong(this);
-    mPtr = other;
+    if (other) {
+        mPtr = new RefWrapper(other);
+        mPtr->IncStrong(this);
+    }
     return *this;
 }
 
-template<typename T>
-void StrongPtr<T>::ForceSet(T* other)
-{
-    other->ForceIncStrong(this);
-    mPtr = other;
-}
+// template<typename T>
+// void StrongPtr<T>::ForceSet(T* other)
+// {
+//     other->ForceIncStrong(this);
+//     mPtr = other;
+// }
 
 template<typename T>
 void StrongPtr<T>::Clear()
@@ -962,7 +936,7 @@ void StrongPtr<T>::Clear()
 }
 
 template<typename T>
-StrongPtr<T>::StrongPtr(T* p, WeakRefType* refs)
+StrongPtr<T>::StrongPtr(RefWrapper* p, WeakRefType* refs)
     : mPtr((p && refs->AttemptIncStrong(this)) ? p : 0)
 {}
 
@@ -970,9 +944,11 @@ StrongPtr<T>::StrongPtr(T* p, WeakRefType* refs)
 
 template<typename T>
 WeakPtr<T>::WeakPtr(T* other)
-    : mPtr(other)
 {
-    if (other) mRefs = other->CreateWeak(this);
+    if (other) {
+        mPtr = new RefWrapper(other);
+        mRefs = mPtr->CreateWeak(this);
+    }
 }
 
 template<typename T>
@@ -994,9 +970,11 @@ WeakPtr<T>::WeakPtr(const StrongPtr<T>& other)
 
 template<typename T> template<typename U>
 WeakPtr<T>::WeakPtr(U* other)
-    : mPtr(other)
 {
-    if (other) mRefs = other->CreateWeak(this);
+    if (other) {
+        mPtr = new RefWrapper(other);
+        mRefs = mPtr->CreateWeak(this);
+    }
 }
 
 template<typename T> template<typename U>
@@ -1027,10 +1005,12 @@ WeakPtr<T>::~WeakPtr()
 template<typename T>
 WeakPtr<T>& WeakPtr<T>::operator = (T* other)
 {
-    WeakRefType* newRefs =
-        other ? other->CreateWeak(this) : 0;
+    WeakRefType* newRefs = 0;
     if (mPtr) mRefs->DecWeak(this);
-    mPtr = other;
+    if (other) {
+        mPtr = new RefWrapper(other);
+        newRefs = mPtr->CreateWeak(this);
+    }
     mRefs = newRefs;
     return *this;
 }
@@ -1039,7 +1019,7 @@ template<typename T>
 WeakPtr<T>& WeakPtr<T>::operator = (const WeakPtr<T>& other)
 {
     WeakRefType* otherRefs(other.mRefs);
-    T* otherPtr(other.mPtr);
+    RefWrapper* otherPtr(other.mPtr);
     if (otherPtr) otherRefs->IncWeak(this);
     if (mPtr) mRefs->DecWeak(this);
     mPtr = otherPtr;
@@ -1052,7 +1032,7 @@ WeakPtr<T>& WeakPtr<T>::operator = (const StrongPtr<T>& other)
 {
     WeakRefType* newRefs =
         other != NULL ? other->CreateWeak(this) : 0;
-    T* otherPtr(other.mPtr);
+    RefWrapper* otherPtr(other.mPtr);
     if (mPtr) mRefs->DecWeak(this);
     mPtr = otherPtr;
     mRefs = newRefs;
@@ -1062,10 +1042,12 @@ WeakPtr<T>& WeakPtr<T>::operator = (const StrongPtr<T>& other)
 template<typename T> template<typename U>
 WeakPtr<T>& WeakPtr<T>::operator = (U* other)
 {
-    WeakRefType* newRefs =
-        other ? other->CreateWeak(this) : 0;
+    WeakRefType* newRefs = 0;
     if (mPtr) mRefs->DecWeak(this);
-    mPtr = other;
+    if (other) {
+        mPtr = new RefWrapper(other);
+        newRefs = mPtr->CreateWeak(this);
+    }
     mRefs = newRefs;
     return *this;
 }
@@ -1074,7 +1056,7 @@ template<typename T> template<typename U>
 WeakPtr<T>& WeakPtr<T>::operator = (const WeakPtr<U>& other)
 {
     WeakRefType* otherRefs(other.mRefs);
-    U* otherPtr(other.mPtr);
+    RefWrapper* otherPtr(other.mPtr);
     if (otherPtr) otherRefs->IncWeak(this);
     if (mPtr) mRefs->DecWeak(this);
     mPtr = otherPtr;
@@ -1087,7 +1069,7 @@ WeakPtr<T>& WeakPtr<T>::operator = (const StrongPtr<U>& other)
 {
     WeakRefType* newRefs =
         other != NULL ? other->CreateWeak(this) : 0;
-    U* otherPtr(other.mPtr);
+    RefWrapper* otherPtr(other.mPtr);
     if (mPtr) mRefs->DecWeak(this);
     mPtr = otherPtr;
     mRefs = newRefs;
@@ -1095,7 +1077,7 @@ WeakPtr<T>& WeakPtr<T>::operator = (const StrongPtr<U>& other)
 }
 
 template<typename T>
-void WeakPtr<T>::SetObjectAndRefs(T* other, WeakRefType* refs)
+void WeakPtr<T>::SetObjectAndRefs(RefWrapper* other, WeakRefType* refs)
 {
     if (other) refs->IncWeak(this);
     if (mPtr) mRefs->DecWeak(this);

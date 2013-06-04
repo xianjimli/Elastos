@@ -162,7 +162,7 @@ template <typename T>
 class StrongPtr
 {
 public:
-    typedef typename T::WeakRefType WeakRefType;
+    typedef typename RefWrapper<T>::WeakRefType WeakRefType;
 
     inline StrongPtr() : mPtr(0) { }
 
@@ -182,7 +182,7 @@ public:
     template<typename U> StrongPtr& operator = (U* other);
 
     //! Special optimization for use by ProcessState (and nobody else).
-    void ForceSet(T* other);
+    // void ForceSet(T* other);
 
     // Reset
 
@@ -190,9 +190,9 @@ public:
 
     // Accessors
 
-    inline T& operator* () const { return *mPtr; }
-    inline T* operator-> () const { return mPtr;  }
-    inline T* Get() const { return mPtr; }
+    inline T& operator* () const { return mPtr != NULL ? *(mPtr->Get()) : *mPtr; }
+    inline T* operator-> () const { return mPtr != NULL ? mPtr->Get() : NULL;  }
+    inline T* Get() const { return mPtr != NULL ? mPtr->Get() : NULL; }
 
     // Operators
 
@@ -208,9 +208,9 @@ private:
     template<typename Y> friend class WeakPtr;
 
     // Optimization for WeakPtr::Promote().
-    StrongPtr(T* p, WeakRefType* refs);
+    StrongPtr(RefWrapper<T>* p, WeakRefType* refs);
 
-    T* mPtr;
+    RefWrapper<T>* mPtr;
 };
 
 // ---------------------------------------------------------------------------
@@ -219,7 +219,7 @@ template <typename T>
 class WeakPtr
 {
 public:
-    typedef typename T::WeakRefType WeakRefType;
+    typedef typename RefWrapper<T>::WeakRefType WeakRefType;
 
     inline WeakPtr() : mPtr(0) {}
 
@@ -242,7 +242,7 @@ public:
     template<typename U> WeakPtr& operator = (const WeakPtr<U>& other);
     template<typename U> WeakPtr& operator = (const StrongPtr<U>& other);
 
-    void SetObjectAndRefs(T* other, WeakRefType* refs);
+    void SetObjectAndRefs(RefWrapper<T>* other, WeakRefType* refs);
 
     // promotion to StrongPtr
 
@@ -256,7 +256,7 @@ public:
 
     inline WeakRefType* GetRefs() const { return mRefs; }
 
-    inline T* UnsafeGet() const { return mPtr; }
+    inline T* UnsafeGet() const { return mPtr != NULL ? mPtr->Get() : NULL; }
 
     // Operators
 
@@ -310,7 +310,7 @@ private:
     template<typename Y> friend class StrongPtr;
     template<typename Y> friend class WeakPtr;
 
-    T* mPtr;
+    RefWrapper<T>* mPtr;
     WeakRefType* mRefs;
 };
 
@@ -876,9 +876,11 @@ void RefWrapper<T>::OnLastWeakRef(const void* /*id*/)
 // StrongPtr
 template<typename T>
 StrongPtr<T>::StrongPtr(T* other)
-    : mPtr(other)
 {
-    if (other) other->IncStrong(this);
+    if (other) {
+        mPtr = new RefWrapper<T>(other);
+        mPtr->IncStrong(this);
+    }
 }
 
 template<typename T>
@@ -889,9 +891,12 @@ StrongPtr<T>::StrongPtr(const StrongPtr<T>& other)
 }
 
 template<typename T> template<typename U>
-StrongPtr<T>::StrongPtr(U* other) : mPtr(other)
+StrongPtr<T>::StrongPtr(U* other)
 {
-    if (other) other->IncStrong(this);
+    if (other) {
+        mPtr = new RefWrapper<T>(other);
+        mPtr->IncStrong(this);
+    }
 }
 
 template<typename T> template<typename U>
@@ -910,7 +915,7 @@ StrongPtr<T>::~StrongPtr()
 template<typename T>
 StrongPtr<T>& StrongPtr<T>::operator = (const StrongPtr<T>& other)
 {
-    T* otherPtr(other.mPtr);
+    RefWrapper<T>* otherPtr(other.mPtr);
     if (otherPtr) otherPtr->IncStrong(this);
     if (mPtr) mPtr->DecStrong(this);
     mPtr = otherPtr;
@@ -920,16 +925,18 @@ StrongPtr<T>& StrongPtr<T>::operator = (const StrongPtr<T>& other)
 template<typename T>
 StrongPtr<T>& StrongPtr<T>::operator = (T* other)
 {
-    if (other) other->IncStrong(this);
     if (mPtr) mPtr->DecStrong(this);
-    mPtr = other;
+    if (other) {
+        mPtr = new RefWrapper<T>(other);
+        mPtr->IncStrong(this);
+    }
     return *this;
 }
 
 template<typename T> template<typename U>
 StrongPtr<T>& StrongPtr<T>::operator = (const StrongPtr<U>& other)
 {
-    U* otherPtr(other.mPtr);
+    RefWrapper<U>* otherPtr(other.mPtr);
     if (otherPtr) otherPtr->IncStrong(this);
     if (mPtr) mPtr->DecStrong(this);
     mPtr = otherPtr;
@@ -939,18 +946,20 @@ StrongPtr<T>& StrongPtr<T>::operator = (const StrongPtr<U>& other)
 template<typename T> template<typename U>
 StrongPtr<T>& StrongPtr<T>::operator = (U* other)
 {
-    if (other) other->IncStrong(this);
     if (mPtr) mPtr->DecStrong(this);
-    mPtr = other;
+    if (other) {
+        mPtr = new RefWrapper<U>(other);
+        mPtr->IncStrong(this);
+    }
     return *this;
 }
 
-template<typename T>
-void StrongPtr<T>::ForceSet(T* other)
-{
-    other->ForceIncStrong(this);
-    mPtr = other;
-}
+// template<typename T>
+// void StrongPtr<T>::ForceSet(T* other)
+// {
+//     other->ForceIncStrong(this);
+//     mPtr = other;
+// }
 
 template<typename T>
 void StrongPtr<T>::Clear()
@@ -962,7 +971,7 @@ void StrongPtr<T>::Clear()
 }
 
 template<typename T>
-StrongPtr<T>::StrongPtr(T* p, WeakRefType* refs)
+StrongPtr<T>::StrongPtr(RefWrapper<T>* p, WeakRefType* refs)
     : mPtr((p && refs->AttemptIncStrong(this)) ? p : 0)
 {}
 
@@ -970,9 +979,11 @@ StrongPtr<T>::StrongPtr(T* p, WeakRefType* refs)
 
 template<typename T>
 WeakPtr<T>::WeakPtr(T* other)
-    : mPtr(other)
 {
-    if (other) mRefs = other->CreateWeak(this);
+    if (other) {
+        mPtr = new RefWrapper<T>(other);
+        mRefs = mPtr->CreateWeak(this);
+    }
 }
 
 template<typename T>
@@ -994,9 +1005,11 @@ WeakPtr<T>::WeakPtr(const StrongPtr<T>& other)
 
 template<typename T> template<typename U>
 WeakPtr<T>::WeakPtr(U* other)
-    : mPtr(other)
 {
-    if (other) mRefs = other->CreateWeak(this);
+    if (other) {
+        mPtr = new RefWrapper<U>(other);
+        mRefs = mPtr->CreateWeak(this);
+    }
 }
 
 template<typename T> template<typename U>
@@ -1027,10 +1040,12 @@ WeakPtr<T>::~WeakPtr()
 template<typename T>
 WeakPtr<T>& WeakPtr<T>::operator = (T* other)
 {
-    WeakRefType* newRefs =
-        other ? other->CreateWeak(this) : 0;
+    WeakRefType* newRefs = 0;
     if (mPtr) mRefs->DecWeak(this);
-    mPtr = other;
+    if (other) {
+        mPtr = new RefWrapper<T>(other);
+        newRefs = mPtr->CreateWeak(this);
+    }
     mRefs = newRefs;
     return *this;
 }
@@ -1062,10 +1077,12 @@ WeakPtr<T>& WeakPtr<T>::operator = (const StrongPtr<T>& other)
 template<typename T> template<typename U>
 WeakPtr<T>& WeakPtr<T>::operator = (U* other)
 {
-    WeakRefType* newRefs =
-        other ? other->CreateWeak(this) : 0;
+    WeakRefType* newRefs = 0;
     if (mPtr) mRefs->DecWeak(this);
-    mPtr = other;
+    if (other) {
+        mPtr = new RefWrapper<U>(other);
+        newRefs = mPtr->CreateWeak(this);
+    }
     mRefs = newRefs;
     return *this;
 }
@@ -1095,7 +1112,7 @@ WeakPtr<T>& WeakPtr<T>::operator = (const StrongPtr<U>& other)
 }
 
 template<typename T>
-void WeakPtr<T>::SetObjectAndRefs(T* other, WeakRefType* refs)
+void WeakPtr<T>::SetObjectAndRefs(RefWrapper<T>* other, WeakRefType* refs)
 {
     if (other) refs->IncWeak(this);
     if (mPtr) mRefs->DecWeak(this);
