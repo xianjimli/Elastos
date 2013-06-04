@@ -223,7 +223,6 @@ ECode NumberFormat::GetInstance(
     /* [in] */ ILocale* locale,
     /* [out] */ INumberFormat** instance)
 {
-//    assert(0);
     return CDecimalFormat::New(pattern, locale, (IDecimalFormat**)instance);
 }
 

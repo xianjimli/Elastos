@@ -4,7 +4,7 @@ module
      * A constant which indicates that there is no character at the current
      * index.
      */
-    const CharacterIterator_DONE = 0xffff;
+    const ICharacterIterator_DONE = 0xffff;
 
     /**
      * An interface for the bidirectional iteration over a group of characters. The

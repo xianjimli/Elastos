@@ -20,7 +20,7 @@ public:
         /* [in] */ IAttributedCharacterIterator* iterator,
         /* [in] */ Int32 start,
         /* [in] */ Int32 end,
-        /* [in] */ IObjectContainer* attributes);
+        /* [in] */ ArrayOf<IAttributedCharacterIteratorAttribute*>* attributes);
 
     CARAPI constructor(
         /* [in] */ const String& value);
@@ -39,11 +39,11 @@ public:
         /* [out] */ IAttributedCharacterIterator** iterator);
 
     CARAPI GetIteratorEx(
-        /* [in] */ IObjectContainer* attributes,
+        /* [in] */ ArrayOf<IAttributedCharacterIteratorAttribute*>* attributes,
         /* [out] */ IAttributedCharacterIterator** iterator);
 
     CARAPI GetIteratorEx2(
-        /* [in] */ IObjectContainer* attributes,
+        /* [in] */ ArrayOf<IAttributedCharacterIteratorAttribute*>* attributes,
         /* [in] */ Int32 start,
         /* [in] */ Int32 end,
         /* [out] */ IAttributedCharacterIterator** iterator);

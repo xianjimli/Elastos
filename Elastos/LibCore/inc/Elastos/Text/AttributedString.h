@@ -5,7 +5,7 @@
 #include "Elastos.Text_server.h"
 #include <elastos.h>
 #include <elastos/AutoPtr.h>
-#include <elastos/Map.h>
+#include <elastos/HashMap.h>
 #include <elastos/List.h>
 #include <elastos/HashSet.h>
 #include <elastos/ElRefBase.h>
@@ -30,7 +30,7 @@ _ELASTOS_NAMESPACE_END
 class AttributedString
 {
 public:
-    struct Range
+    class Range
     {
     public:
         Range(
@@ -44,8 +44,8 @@ public:
     };
 
     class AttributedIterator
-            : public IAttributedCharacterIterator
-            , public ElRefBase
+            : public ElRefBase
+            , public IAttributedCharacterIterator
     {
     public:
         AttributedIterator(
@@ -53,7 +53,7 @@ public:
 
         AttributedIterator(
             /* [in] */ AttributedString* attrString,
-            /* [in] */ IObjectContainer* attributes,
+            /* [in] */ ArrayOf<IAttributedCharacterIteratorAttribute*>* attributes,
             /* [in] */ Int32 begin,
             /* [in] */ Int32 end);
 
@@ -120,15 +120,15 @@ public:
         //         /* [out] */ Map<IAttributedCharacterIteratorAttribute*, IInterface*>* attributes);
 
         CARAPI GetRunLimit(
-            /* [out] */ Int32* runLimit);
+            /* [out] */ Int32* index);
 
         CARAPI GetRunLimitEx(
             /* [in] */ IAttributedCharacterIteratorAttribute* attribute,
-            /* [out] */ Int32* runLimit);
+            /* [out] */ Int32* index);
 
         CARAPI GetRunLimitEx2(
             /* [in] */ IObjectContainer* attributes,
-            /* [out] */ Int32* runLimit);
+            /* [out] */ Int32* index);
 
         CARAPI GetRunStart(
             /* [out] */ Int32* index);
@@ -221,7 +221,7 @@ public:
         /* [in] */ IAttributedCharacterIterator* iterator,
         /* [in] */ Int32 start,
         /* [in] */ Int32 end,
-        /* [in] */ IObjectContainer* attributes);
+        /* [in] */ ArrayOf<IAttributedCharacterIteratorAttribute*>* attributes);
 
     /**
      * Constructs an {@code AttributedString} from a range of the text contained
@@ -377,7 +377,7 @@ public:
      * @return the newly created {@code AttributedCharacterIterator}.
      */
     virtual CARAPI GetIteratorEx(
-        /* [in] */ IObjectContainer* attributes,
+        /* [in] */ ArrayOf<IAttributedCharacterIteratorAttribute*>* attributes,
         /* [out] */ IAttributedCharacterIterator** iterator);
 
     /**
@@ -396,14 +396,21 @@ public:
      * @return the newly created {@code AttributedCharacterIterator}.
      */
     virtual CARAPI GetIteratorEx2(
-        /* [in] */ IObjectContainer* attributes,
+        /* [in] */ ArrayOf<IAttributedCharacterIteratorAttribute*>* attributes,
         /* [in] */ Int32 start,
         /* [in] */ Int32 end,
         /* [out] */ IAttributedCharacterIterator** iterator);
 
+private:
+    CARAPI Init(
+        /* [in] */ IAttributedCharacterIterator* iterator,
+        /* [in] */ Int32 start,
+        /* [in] */ Int32 end,
+        /* [in] */ IObjectContainer* attributes);
+
 public:
     String mText;
 
-    Map<AutoPtr<IAttributedCharacterIteratorAttribute>, List<Range*>* >* mAttributeMap;
+    HashMap<AutoPtr<IAttributedCharacterIteratorAttribute>, List<Range*>* >* mAttributeMap;
 };
 #endif //__ATTRIBUTEDSTRING_H__

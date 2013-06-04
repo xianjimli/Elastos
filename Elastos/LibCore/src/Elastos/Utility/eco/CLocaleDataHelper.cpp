@@ -9,7 +9,8 @@ ECode CLocaleDataHelper::Get(
 {
     VALIDATE_NOT_NULL(localeData);
 
-    *localeData = LocaleData::Get(locale);
+    AutoPtr<ILocaleData> temp = LocaleData::Get(locale);
+    *localeData = temp;
     if (*localeData) {
         (*localeData)->AddRef();
     }
