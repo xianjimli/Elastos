@@ -11,6 +11,7 @@ using namespace Elastos::Utility::Logging;
 
 CActivityRecord::CActivityRecord() :
     mSendResult(FALSE),
+    mTaskAffinity(String(NULL)),
     mStateNotNeeded(FALSE),
     mFullscreen(TRUE),
     mComponentSpecified(FALSE),

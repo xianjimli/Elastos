@@ -8,8 +8,25 @@
 
 ECode CDefaultInstrumentation::constructor()
 {
+    mApartment = NULL;
     mMessageQueue = NULL;
     mActivityMonitors = NULL;
+    return NOERROR;
+}
+
+ECode CDefaultInstrumentation::OnCreate(
+    /* [in] */ IBundle* arguments)
+{
+    return NOERROR;
+}
+
+ECode CDefaultInstrumentation::OnStart()
+{
+    return NOERROR;
+}
+
+ECode CDefaultInstrumentation::OnDestroy()
+{
     return NOERROR;
 }
 
@@ -246,6 +263,22 @@ ECode CDefaultInstrumentation::ExecStartActivity(
     CheckStartActivityResult(res, intent);
     *result = NULL;
     return ec;
+}
+
+ECode CDefaultInstrumentation::Init(
+    /* [in] */ IApplicationApartment* apartment,
+    /* [in] */ IContext* instrContext,
+    /* [in] */ IContext* appContext,
+    /* [in] */ IComponentName* component, 
+    /* [in] */ IInstrumentationWatcher* watcher)
+{
+    mApartment = apartment;
+    //mMessageQueue = mApartment.getLooper().myQueue();
+    mInstrContext = instrContext;
+    mAppContext = appContext;
+    mComponent = component;
+    mWatcher = watcher;
+    return NOERROR;
 }
 
 ECode CDefaultInstrumentation::CheckStartActivityResult(

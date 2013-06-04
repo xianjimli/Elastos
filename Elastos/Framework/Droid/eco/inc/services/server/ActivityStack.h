@@ -29,6 +29,14 @@ public:
 
     static const Boolean VALIDATE_TOKENS;
 
+    // How long we wait until giving up on the last activity telling us it
+    // is idle.
+    static const Int64 IDLE_TIMEOUT = 10*1000;
+
+    // How long we wait until giving up on an activity telling us it has
+    // finished destroying itself.
+    static const Int64 DESTROY_TIMEOUT = 10*1000;
+
     // How long we wait until giving up on the last activity to pause.  This
     // is short because it directly impacts the responsiveness of starting the
     // next activity.
@@ -50,7 +58,6 @@ public:
     static const Int32 FINISH_IMMEDIATELY = 0;
     static const Int32 FINISH_AFTER_PAUSE = 1;
     static const Int32 FINISH_AFTER_VISIBLE = 2;
-
 
 public:
     ActivityStack(
@@ -203,10 +210,10 @@ public:
         ProcessStoppingActivitiesLocked(
         /* [in] */ Boolean remove);
 
-    CARAPI_(void)ActivityIdleInternal(
-        IBinder* token,
-        Boolean fromTimeout,
-        IConfiguration* config);
+    CARAPI_(void) ActivityIdleInternal(
+        /* [in] */ IBinder* token,
+        /* [in] */ Boolean fromTimeout,
+        /* [in] */ IConfiguration* config);
 
     CARAPI_(Boolean) RequestFinishActivityLocked(
         /* [in] */ IBinder* token,
@@ -301,6 +308,22 @@ private:
     CARAPI_(void) StopActivityLocked(
         /* [in] */ CActivityRecord* r);
 
+    CARAPI HandlePauseTimeout(
+        /* [in] */ IBinder* token);
+
+    CARAPI HandleIdleTimeout(
+        /* [in] */ IBinder* token);
+
+    CARAPI HandleDestroyTimeout(
+        /* [in] */ IBinder* token);
+
+    CARAPI HandleIdleNow(
+        /* [in] */ IBinder* token);
+
+    CARAPI HandleLaunchTimeout();
+
+    CARAPI HandleResumeTop();
+
 private:
     friend class CActivityManagerService;
 
@@ -312,6 +335,7 @@ private:
     static const Int64 START_WARN_TIME = 5*1000;
 
     AutoPtr<IContext> mContext;
+
      /**
      * The back history of all previous (and possibly still
      * running) activities.  It contains HistoryRecord objects.

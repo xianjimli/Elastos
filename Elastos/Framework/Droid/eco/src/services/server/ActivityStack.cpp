@@ -345,12 +345,17 @@ ECode ActivityStack::RealStartActivityLocked(
             r->mInfo, r->mIcicle, results, newIntents, !andResume,
             mService->IsNextTransitionForward());
 
-//    if ((app.info.flags&ApplicationInfo.FLAG_CANT_SAVE_STATE) != 0) {
-//        // This may be a heavy-weight process!  Note that the package
-//        // manager will ensure that only activity can run in the main
-//        // process of the .apk, which is the only thing that will be
-//        // considered heavy-weight.
-//        if (app.processName.equals(app.info.packageName)) {
+    Int32 flags;
+    app->mInfo->GetFlags(&flags);
+    if ((flags & ApplicationInfo_FLAG_CANT_SAVE_STATE) != 0) {
+        // This may be a heavy-weight process!  Note that the package
+        // manager will ensure that only activity can run in the main
+        // process of the .apk, which is the only thing that will be
+        // considered heavy-weight.
+        String cName;
+        app->mInfo->GetCapsuleName(&cName);
+        if (app->mProcessName.Equals(cName)) {
+
 //            if (mService.mHeavyWeightProcess != null
 //                    && mService.mHeavyWeightProcess != app) {
 //                Log.w(TAG, "Starting new heavy weight process " + app
@@ -362,8 +367,8 @@ ECode ActivityStack::RealStartActivityLocked(
 //                    ActivityManagerService.POST_HEAVY_NOTIFICATION_MSG);
 //            msg.obj = r;
 //            mService.mHandler.sendMessage(msg);
-//        }
-//    }
+        }
+    }
 
 #if defined(_DEBUG)
     if (SUCCEEDED(ec)) {
@@ -589,13 +594,19 @@ ECode ActivityStack::StartPausingLocked(
             }
         }
 
-//        // Schedule a pause timeout in case the app doesn't respond.
-//        // We don't give it much time because this directly impacts the
-//        // responsiveness seen by the user.
+        // Schedule a pause timeout in case the app doesn't respond.
+        // We don't give it much time because this directly impacts the
+        // responsiveness seen by the user.
 //        Message msg = mHandler.obtainMessage(PAUSE_TIMEOUT_MSG);
 //        msg.obj = prev;
 //        mHandler.sendMessageDelayed(msg, PAUSE_TIMEOUT);
-//        if (DEBUG_PAUSE) Slog.v(TAG, "Waiting for pause to complete...");
+        ECode (STDCALL ActivityStack::*pHandlerFunc)(IBinder* token);
+        pHandlerFunc = &ActivityStack::HandlePauseTimeout;
+        AutoPtr<IParcel> params;
+        CCallbackParcel::New((IParcel**)&params);
+        params->WriteInterfacePtr((IBinder*)prev);
+        mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);
+        if (DEBUG_PAUSE) Slogger::V(TAG, String("Waiting for pause to complete..."));
     } else {
         // This activity failed to schedule the
         // pause, so just treat it as being paused now.
@@ -700,19 +711,13 @@ void ActivityStack::CompletePauseLocked()
                     // If we already have a few activities waiting to stop,
                     // then give up on things going idle and start clearing
                     // them out.
-                    //if (DEBUG_PAUSE) Slog.v(TAG, "To many pending stops, forcing idle");
-                    void (STDCALL ActivityStack::*pHandlerFunc)(
-                        IBinder*, Boolean, IConfiguration*);
-                    pHandlerFunc = &ActivityStack::ActivityIdleInternal;
-
+                    if (DEBUG_PAUSE) Slogger::V(TAG, String("To many pending stops, forcing idle"));
+                    ECode (STDCALL ActivityStack::*pHandlerFunc)(IBinder* token);
+                    pHandlerFunc = &ActivityStack::HandleIdleNow;
                     AutoPtr<IParcel> params;
                     CCallbackParcel::New((IParcel**)&params);
                     params->WriteInterfacePtr(NULL);
-                    params->WriteBoolean(false);
-                    params->WriteInterfacePtr(NULL);
-
-                    mApartment->PostCppCallback(
-                        (Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);
+                    mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);
                     }
             }
         } else {
@@ -776,20 +781,31 @@ void ActivityStack::CompleteResumeLocked(
     next->mResults = NULL;
     next->mNewIntents = NULL;
 
-//    // schedule an idle timeout in case the app doesn't do it for us.
+    // schedule an idle timeout in case the app doesn't do it for us.
 //    Message msg = mHandler.obtainMessage(IDLE_TIMEOUT_MSG);
 //    msg.obj = next;
 //    mHandler.sendMessageDelayed(msg, IDLE_TIMEOUT);
-
-//    if (false) {
-//        // The activity was never told to pause, so just keep
-//        // things going as-is.  To maintain our own state,
-//        // we need to emulate it coming back and saying it is
-//        // idle.
+    ECode (STDCALL ActivityStack::*pHandlerFunc)(IBinder* token);
+    pHandlerFunc = &ActivityStack::HandleIdleTimeout;
+    AutoPtr<IParcel> params;
+    CCallbackParcel::New((IParcel**)&params);
+    params->WriteInterfacePtr((IBinder*)next);
+    mApartment->PostCppCallbackDelayed((Handle32)this, *(Handle32*)&pHandlerFunc, 
+        params, 0, IDLE_TIMEOUT);
+    if (FALSE) {
+        // The activity was never told to pause, so just keep
+        // things going as-is.  To maintain our own state,
+        // we need to emulate it coming back and saying it is
+        // idle.
 //        msg = mHandler.obtainMessage(IDLE_NOW_MSG);
 //        msg.obj = next;
 //        mHandler.sendMessage(msg);
-//    }
+        AutoPtr<IParcel> nowparams;
+        CCallbackParcel::New((IParcel**)&nowparams);
+        nowparams->WriteInterfacePtr((IBinder*)next);
+        mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, 
+            nowparams, 0); 
+    }
 
     if (mMainStack) {
         mService->ReportResumedActivityLocked(next);
@@ -3636,6 +3652,14 @@ Boolean ActivityStack::DestroyActivityLocked(
 //            Message msg = mHandler.obtainMessage(DESTROY_TIMEOUT_MSG);
 //            msg.obj = r;
 //            mHandler.sendMessageDelayed(msg, DESTROY_TIMEOUT);
+        ECode (STDCALL ActivityStack::*pHandlerFunc)(IBinder* token);
+        pHandlerFunc = &ActivityStack::HandleDestroyTimeout;
+        AutoPtr<IParcel> params;
+        CCallbackParcel::New((IParcel**)&params);
+        params->WriteInterfacePtr((IBinder*)r);
+        mApartment->PostCppCallbackDelayed((Handle32)this, *(Handle32*)&pHandlerFunc, 
+            params, 0, DESTROY_TIMEOUT);
+
         } else {
             r->mState = ActivityState_DESTROYED;
         }
@@ -4188,4 +4212,69 @@ AutoPtr<CActivityRecord> ActivityStack::GetResumedActivity()
 AutoPtr<CActivityRecord> ActivityStack::GetPausingActivity()
 {
     return mPausingActivity;
+}
+
+ECode ActivityStack::HandlePauseTimeout(
+    /* [in] */ IBinder* token)
+{
+    // We don't at this point know if the activity is fullscreen,
+    // so we need to be conservative and assume it isn't.
+    Slogger::W(TAG, String("Activity pause timeout for ") + token);
+    return ActivityPaused(token, NULL, TRUE);
+}
+
+ECode ActivityStack::HandleIdleTimeout(
+    /* [in] */ IBinder* token)
+{
+    if (mService->mDidDexOpt) {
+        mService->mDidDexOpt = FALSE;
+        ECode (STDCALL ActivityStack::*pHandlerFunc)(
+           IBinder* token);
+        pHandlerFunc = &ActivityStack::HandleIdleTimeout;
+        AutoPtr<IParcel> params;
+        CCallbackParcel::New((IParcel**)&params);
+        params->WriteInterfacePtr((IBinder*)token);
+        mApartment->PostCppCallbackDelayed((Handle32)this, *(Handle32*)&pHandlerFunc, 
+            params, 0, IDLE_TIMEOUT);
+        return NOERROR;
+    }
+    // We don't at this point know if the activity is fullscreen,
+    // so we need to be conservative and assume it isn't.
+    Slogger::W(TAG, String("Activity idle timeout for ") + token);
+    ActivityIdleInternal(token, TRUE, NULL);
+    return NOERROR;
+}
+
+ECode ActivityStack::HandleDestroyTimeout(
+    /* [in] */ IBinder* token)
+{
+    // We don't at this point know if the activity is fullscreen,
+    // so we need to be conservative and assume it isn't.
+    Slogger::W(TAG, String("Activity destroy timeout for ") + token);
+    return ActivityDestroyed(token);
+}
+
+ECode ActivityStack::HandleIdleNow(
+    /* [in] */ IBinder* token)
+{
+    ActivityIdleInternal(token, FALSE, NULL);
+    return NOERROR;
+}
+
+ECode ActivityStack::HandleLaunchTimeout()
+{
+    if (mService->mDidDexOpt) {
+        mService->mDidDexOpt = FALSE;
+        ECode (STDCALL ActivityStack::*pHandlerFunc)();
+        pHandlerFunc = &ActivityStack::HandleLaunchTimeout;
+        mApartment->PostCppCallbackDelayed((Handle32)this, *(Handle32*)&pHandlerFunc, 
+            NULL, 0, LAUNCH_TIMEOUT);
+        return NOERROR;
+    }
+    Mutex::Autolock lock(mService->_m_syncLock);
+    // if (mLaunchingActivity->IsHeld()) {
+    //     Slogger::W(TAG, "Launch timeout has expired, giving up wake lock!");
+    //     mLaunchingActivity->Release();
+    // }
+    return NOERROR;
 }

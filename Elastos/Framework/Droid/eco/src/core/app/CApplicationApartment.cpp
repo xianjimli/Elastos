@@ -18,6 +18,7 @@
 #include "os/Process.h"
 #include "view/CWindowManagerLayoutParams.h"
 #include "view/CWindowManagerImpl.h"
+#include "graphics/CBitmap.h"
 #include <Slogger.h>
 #include <StringBuffer.h>
 
@@ -624,48 +625,55 @@ ECode CApplicationApartment::HandleBindApplication(
 //     * the spawning of this process. Without doing this this process would have the incorrect
 //     * system time zone.
 //     */
-//    TimeZone.setDefault(null);
-//
-//    /*
-//     * Initialize the default locale in this process for the reasons we set the time zone.
-//     */
-//    Locale.setDefault(data.config.locale);
-//
-//    /*
-//     * Update the system configuration since its preloaded and might not
-//     * reflect configuration changes. The configuration object passed
-//     * in AppBindData can be safely assumed to be up to date
-//     */
+//    TimeZone::SetDefault(NULL);
+
+    /*
+     * Initialize the default locale in this process for the reasons we set the time zone.
+     */
+    // AutoPtr<ILocale> lc;
+    // data->mConfig->GetLocale((ILocale**)&lc);
+    // AutoPtr<ILocaleHelper> localehelper;
+    // CLocaleHelper::AcquireSingleton((ILocaleHelper**)&localehelper);
+    // localehelper->SetDefault(lc);
+
+    /*
+     * Update the system configuration since its preloaded and might not
+     * reflect configuration changes. The configuration object passed
+     * in AppBindData can be safely assumed to be up to date
+     */
 //    Resources.getSystem().updateConfiguration(mConfiguration, null);
 
     data->mInfo = GetCapsuleInfoNoCheck(data->mAppInfo);
 
-//    /**
-//     * For system applications on userdebug/eng builds, log stack
-//     * traces of disk and network access to dropbox for analysis.
-//     */
-//    if ((data.appInfo.flags &
-//         (ApplicationInfo.FLAG_SYSTEM |
-//          ApplicationInfo.FLAG_UPDATED_SYSTEM_APP)) != 0) {
+    /**
+     * For system applications on userdebug/eng builds, log stack
+     * traces of disk and network access to dropbox for analysis.
+     */
+    if ((data->mAppInfo->mFlags &
+         (ApplicationInfo_FLAG_SYSTEM |
+          ApplicationInfo_FLAG_UPDATED_SYSTEM_APP)) != 0) {
 //        StrictMode.conditionallyEnableDebugLogging();
-//    }
+    }
 
-//    /**
-//     * Switch this process to density compatibility mode if needed.
-//     */
-//    if ((data.appInfo.flags&ApplicationInfo.FLAG_SUPPORTS_SCREEN_DENSITIES)
-//            == 0) {
-//        Bitmap.setDefaultDensity(DisplayMetrics.DENSITY_DEFAULT);
-//    }
-//
-//    if (data.debugMode != IApplicationThread.DEBUG_OFF) {
-//        // XXX should have option to change the port.
+    /**
+     * Switch this process to density compatibility mode if needed.
+     */
+    if ((data->mAppInfo->mFlags & ApplicationInfo_FLAG_SUPPORTS_SCREEN_DENSITIES)
+            == 0) {
+        CBitmap::SetDefaultDensity(DisplayMetrics_DENSITY_DEFAULT);
+    }
+
+    if (data->mDebugMode != ApplicationApartment_DEBUG_OFF) {
+        // XXX should have option to change the port.
 //        Debug.changeDebugPort(8100);
-//        if (data.debugMode == IApplicationThread.DEBUG_WAIT) {
-//            Slog.w(TAG, "Application " + data.info.getPackageName()
-//                  + " is waiting for the debugger on port 8100...");
-//
-//            IActivityManager mgr = ActivityManagerNative.getDefault();
+        if (data->mDebugMode == ApplicationApartment_DEBUG_WAIT) {
+            String cName;
+            data->mInfo->GetCapsuleName(&cName);
+            Slogger::W(TAG, StringBuffer("Application ") + cName
+                  + StringBuffer(" is waiting for the debugger on port 8100..."));
+
+            AutoPtr<IActivityManager> mgr;
+            ActivityManagerNative::GetDefault((IActivityManager**)&mgr);
 //            try {
 //                mgr.showWaitingForDebugger(mAppThread, true);
 //            } catch (RemoteException ex) {
@@ -678,11 +686,11 @@ ECode CApplicationApartment::HandleBindApplication(
 //            } catch (RemoteException ex) {
 //            }
 //
-//        } else {
+        } else {
 //            Slog.w(TAG, "Application " + data.info.getPackageName()
 //                  + " can be debugged on port 8100...");
-//        }
-//    }
+        }
+    }
 
     if (data->mInstrumentationName != NULL) {
         AutoPtr<CContextImpl> appContext;
@@ -714,37 +722,51 @@ ECode CApplicationApartment::HandleBindApplication(
         instrApp->mDataDir = ci->mDataDir;
         LoadedCap* pi = GetCapsuleInfo(instrApp, FALSE, TRUE);
         UNUSED(pi);
-//        ContextImpl instrContext = new ContextImpl();
-//        instrContext.init(pi, null, this);
-//
+        AutoPtr<CContextImpl> instrContext;
+        CContextImpl::NewByFriend((CContextImpl**)&instrContext);
+        instrContext->Init(pi, NULL, this);
+
 //        try {
-//            java.lang.ClassLoader cl = instrContext.getClassLoader();
-//            mInstrumentation = (Instrumentation)
-//                cl.loadClass(data.instrumentationName.getClassName()).newInstance();
+        AutoPtr<IClassLoader> cl;
+        instrContext->GetClassLoader((IClassLoader**)&cl);
+        String className;
+        data->mInstrumentationName->GetClassName(&className);
+        cl->LoadClass(className, (Handle32*)&mInstrumentation);
 //        } catch (Exception e) {
 //            throw new RuntimeException(
 //                "Unable to instantiate instrumentation "
 //                + data.instrumentationName + ": " + e.toString(), e);
 //        }
-//
-//        mInstrumentation.init(this, instrContext, appContext,
-//                new ComponentName(ii.packageName, ii.name), data.instrumentationWatcher);
-//
-//        if (data.profileFile != null && !ii.handleProfiling) {
-//            data.handlingProfiling = true;
-//            File file = new File(data.profileFile);
-//            file.getParentFile().mkdirs();
+
+        String cName, name;
+        ii->GetCapsuleName(&cName);
+        ii->GetName(&name);
+        AutoPtr<IComponentName> component;
+        CComponentName::New(cName, name, (IComponentName**)&component);
+        mInstrumentation->Init(this, instrContext, appContext, component, data->mInstrumentationWatcher);
+
+        Boolean isHandle;
+        ii->IsHandleProfiling(&isHandle);
+        if (data->mProfileFile != NULL && !isHandle) {
+            data->mHandlingProfiling = TRUE;
+            AutoPtr<IFile> file;
+            CFile::New(data->mProfileFile, (IFile**)&file);
+            AutoPtr<IFile> parentfile;
+            file->GetParentFile((IFile**)&parentfile);
+            Boolean hasdirs;
+            parentfile->Mkdirs(&hasdirs);
 //            Debug.startMethodTracing(file.toString(), 8 * 1024 * 1024);
-//        }
-//
+        }
+
 //        try {
-//            mInstrumentation.onCreate(data.instrumentationArgs);
+         ECode ec = mInstrumentation->OnCreate(data->mInstrumentationArgs);
 //        }
 //        catch (Exception e) {
 //            throw new RuntimeException(
 //                "Exception thrown in onCreate() of "
 //                + data.instrumentationName + ": " + e.toString(), e);
 //        }
+        if(FAILED(ec)) return E_RUNTIME_EXCEPTION;
 
     } else {
         CDefaultInstrumentation::New((IInstrumentation**)&mInstrumentation);
@@ -1143,10 +1165,10 @@ ECode CApplicationApartment::HandleResumeActivity(
             a->GetWindowManagerEx((ILocalWindowManager**)&wm);
             AutoPtr<IWindowManagerLayoutParams> l;
             r->mWindow->GetAttributes((IWindowManagerLayoutParams**)&l);
-//	            WindowManager.LayoutParams l = r.window.getAttributes();
+//                WindowManager.LayoutParams l = r.window.getAttributes();
             a->SetDecorView(decor);
             ((CWindowManagerLayoutParams*)l.Get())->mType = WindowManagerLayoutParams_TYPE_BASE_APPLICATION;
-//	            l.type = WindowManager.LayoutParams.TYPE_BASE_APPLICATION;
+//                l.type = WindowManager.LayoutParams.TYPE_BASE_APPLICATION;
             ((CWindowManagerLayoutParams*)l.Get())->mSoftInputMode |= forwardBit;
             Boolean visibleFromClient = FALSE;
             a->IsVisibleFromClient(&visibleFromClient);
@@ -1159,8 +1181,8 @@ ECode CApplicationApartment::HandleResumeActivity(
         // we started another activity, then don't yet make the
         // window visisble.
         } else if (!willBeVisible) {
-//	            if (localLOGV) Slog.v(
-//	                TAG, "Launch " + r + " mStartedActivity set");
+//                if (localLOGV) Slog.v(
+//                    TAG, "Launch " + r + " mStartedActivity set");
             r->mHideForNow = TRUE;
         }
 
@@ -1171,48 +1193,48 @@ ECode CApplicationApartment::HandleResumeActivity(
         r->mActivity->GetDecorView((IView**)&decor);
         if (!finished && willBeVisible
                   && decor != NULL && !r->mHideForNow) {
-//	            if (r.newConfig != null) {
-//	                if (DEBUG_CONFIGURATION) Slog.v(TAG, "Resuming activity "
-//	                            + r.activityInfo.name + " with newConfig " + r.newConfig);
-//	                performConfigurationChanged(r.activity, r.newConfig);
-//	                r.newConfig = null;
-//	            }
-//	            if (localLOGV) Slog.v(TAG, "Resuming " + r + " with isForward="
-//	                    + isForward);
-//	            WindowManager.LayoutParams l = r.window.getAttributes();
-//	            if ((l.softInputMode
-//	                    & WindowManager.LayoutParams.SOFT_INPUT_IS_FORWARD_NAVIGATION)
-//	                    != forwardBit) {
-//	                l.softInputMode = (l.softInputMode
-//	                        & (~WindowManager.LayoutParams.SOFT_INPUT_IS_FORWARD_NAVIGATION))
-//	                        | forwardBit;
-//	                if (r.activity.mVisibleFromClient) {
-//	                    ViewManager wm = a.getWindowManager();
-//	                    View decor = r.window.getDecorView();
-//	                    wm.updateViewLayout(decor, l);
-//	                }
-//	            }
-//	            r.activity.mVisibleFromServer = true;
-//	            mNumVisibleActivities++;
-//	            if (r.activity.mVisibleFromClient) {
+//                if (r.newConfig != null) {
+//                    if (DEBUG_CONFIGURATION) Slog.v(TAG, "Resuming activity "
+//                                + r.activityInfo.name + " with newConfig " + r.newConfig);
+//                    performConfigurationChanged(r.activity, r.newConfig);
+//                    r.newConfig = null;
+//                }
+//                if (localLOGV) Slog.v(TAG, "Resuming " + r + " with isForward="
+//                        + isForward);
+//                WindowManager.LayoutParams l = r.window.getAttributes();
+//                if ((l.softInputMode
+//                        & WindowManager.LayoutParams.SOFT_INPUT_IS_FORWARD_NAVIGATION)
+//                        != forwardBit) {
+//                    l.softInputMode = (l.softInputMode
+//                            & (~WindowManager.LayoutParams.SOFT_INPUT_IS_FORWARD_NAVIGATION))
+//                            | forwardBit;
+//                    if (r.activity.mVisibleFromClient) {
+//                        ViewManager wm = a.getWindowManager();
+//                        View decor = r.window.getDecorView();
+//                        wm.updateViewLayout(decor, l);
+//                    }
+//                }
+//                r.activity.mVisibleFromServer = true;
+//                mNumVisibleActivities++;
+//                if (r.activity.mVisibleFromClient) {
                 r->mActivity->MakeVisible();
-//	            }
+//                }
         }
 
-//	        r.nextIdle = mNewActivities;
-//	        mNewActivities = r;
-//	        if (localLOGV) Slog.v(
-//	            TAG, "Scheduling idle handler for " + r);
-//	        Looper.myQueue().addIdleHandler(new Idler());
+//            r.nextIdle = mNewActivities;
+//            mNewActivities = r;
+//            if (localLOGV) Slog.v(
+//                TAG, "Scheduling idle handler for " + r);
+//            Looper.myQueue().addIdleHandler(new Idler());
 
     } else {
         // If an exception was thrown when trying to resume, then
         // just end this activity.
-//	        try {
-//	            ActivityManagerNative.getDefault()
-//	                .finishActivity(token, Activity.RESULT_CANCELED, null);
-//	        } catch (RemoteException ex) {
-//	        }
+//            try {
+//                ActivityManagerNative.getDefault()
+//                    .finishActivity(token, Activity.RESULT_CANCELED, null);
+//            } catch (RemoteException ex) {
+//            }
     }
     return NOERROR;
 }
@@ -2627,7 +2649,7 @@ ECode CApplicationApartment::ScheduleExit()
 }
 
 ECode CApplicationApartment::RequestThumbnail(
-	/* [in] */ IBinder* token)
+    /* [in] */ IBinder* token)
 {
     return E_NOT_IMPLEMENTED;
 }
