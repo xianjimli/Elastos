@@ -3042,24 +3042,20 @@ ECode TextView::DrawableStateChanged()
     if (dr != NULL) {
         ArrayOf<Int32>* state = GetDrawableState();
 
-        Boolean isStateful;
-        dr->mDrawableTop->IsStateful(&isStateful);
-        if (dr->mDrawableTop != NULL && isStateful) {
+        Boolean isStateful = FALSE;
+        if (dr->mDrawableTop != NULL && (dr->mDrawableTop->IsStateful(&isStateful), isStateful)) {
             dr->mDrawableTop->SetState(state, &isStateful);
         }
 
-        dr->mDrawableBottom->IsStateful(&isStateful);
-        if (dr->mDrawableBottom != NULL && isStateful) {
+        if (dr->mDrawableBottom != NULL && (dr->mDrawableBottom->IsStateful(&isStateful), isStateful)) {
             dr->mDrawableBottom->SetState(state, &isStateful);
         }
 
-        dr->mDrawableLeft->IsStateful(&isStateful);
-        if (dr->mDrawableLeft != NULL && isStateful) {
+        if (dr->mDrawableLeft != NULL && (dr->mDrawableLeft->IsStateful(&isStateful), isStateful)) {
             dr->mDrawableLeft->SetState(state, &isStateful);
         }
 
-        dr->mDrawableRight->IsStateful(&isStateful);
-        if (dr->mDrawableRight != NULL && isStateful) {
+        if (dr->mDrawableRight != NULL && (dr->mDrawableRight->IsStateful(&isStateful), isStateful)) {
             dr->mDrawableRight->SetState(state, &isStateful);
         }
     }
