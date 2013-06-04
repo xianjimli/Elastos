@@ -91,7 +91,7 @@ module
          */
         GetRunLimitEx2(
             [in] IObjectContainer* attributes,
-            [out] Int32* runLimit);
+            [out] Int32* index);
 
         /**
          * Returns the index of the first character in the run that has the same

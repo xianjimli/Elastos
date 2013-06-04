@@ -82,10 +82,8 @@ private:
         /* [in] */ const String& currencyCode);
 
 private:
-    static const Int64 sSerialVersionUID;
-
-    static HashMap<String, AutoPtr<ICurrency> > mCodesToCurrencies;
-    static HashMap<AutoPtr<ILocale>, AutoPtr<ICurrency> > mLocalesToCurrencies;
+    static HashMap<String, AutoPtr<ICurrency> > sCodesToCurrencies;
+    static HashMap<AutoPtr<ILocale>, AutoPtr<ICurrency> > sLocalesToCurrencies;
 
     String mCurrencyCode;
 

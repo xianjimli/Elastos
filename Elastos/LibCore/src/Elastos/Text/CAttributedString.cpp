@@ -19,7 +19,7 @@ ECode CAttributedString::constructor(
     /* [in] */ IAttributedCharacterIterator* iterator,
     /* [in] */ Int32 start,
     /* [in] */ Int32 end,
-    /* [in] */ IObjectContainer* attributes)
+    /* [in] */ ArrayOf<IAttributedCharacterIteratorAttribute*>* attributes)
 {
     return AttributedString::Init(iterator, start, end, attributes);
 }
@@ -53,14 +53,14 @@ ECode CAttributedString::GetIterator(
 }
 
 ECode CAttributedString::GetIteratorEx(
-    /* [in] */ IObjectContainer* attributes,
+    /* [in] */ ArrayOf<IAttributedCharacterIteratorAttribute*>* attributes,
     /* [out] */ IAttributedCharacterIterator** iterator)
 {
     return AttributedString::GetIteratorEx(attributes, iterator);
 }
 
 ECode CAttributedString::GetIteratorEx2(
-    /* [in] */ IObjectContainer* attributes,
+    /* [in] */ ArrayOf<IAttributedCharacterIteratorAttribute*>* attributes,
     /* [in] */ Int32 start,
     /* [in] */ Int32 end,
     /* [out] */ IAttributedCharacterIterator** iterator)

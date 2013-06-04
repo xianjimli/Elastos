@@ -47,10 +47,8 @@ ECode CLocaleHelper::GetRoot(
     /* [out] */ ILocale** rootLocale)
 {
     VALIDATE_NOT_NULL(rootLocale);
-    *rootLocale = CLocale::ROOT;
-    if (*rootLocale) {
-        (*rootLocale)->AddRef();
-    }
+    AutoPtr<ILocale> temp = CLocale::ROOT;
+    (*rootLocale)->AddRef();
     return NOERROR;
 }
 

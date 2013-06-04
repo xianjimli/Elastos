@@ -39,11 +39,11 @@ ECode DecimalFormatSymbols::Init(
     // mCurrency->GetSymbolEx(locale, &mCurrencySymbol);
     // mCurrency->GetCurrencyCode(&mIntlCurrencySymbol);
     //} catch (IllegalArgumentException e) {
-    AutoPtr<ICurrencyHelper> currencyHelper;
-    CCurrencyHelper::AcquireSingleton((ICurrencyHelper**)&currencyHelper);
-    FAIL_RETURN(currencyHelper->GetInstance(String("XXX"), (ICurrency**)&mCurrency));
-    localeData->GetCurrencySymbol(&mCurrencySymbol);
-    localeData->GetInternationalCurrencySymbol(&mIntlCurrencySymbol);
+    // AutoPtr<ICurrencyHelper> currencyHelper;
+    // CCurrencyHelper::AcquireSingleton((ICurrencyHelper**)&currencyHelper);
+    // FAIL_RETURN(currencyHelper->GetInstance(String("XXX"), (ICurrency**)&mCurrency));
+    // localeData->GetCurrencySymbol(&mCurrencySymbol);
+    // localeData->GetInternationalCurrencySymbol(&mIntlCurrencySymbol);
     //}
 
     return NOERROR;

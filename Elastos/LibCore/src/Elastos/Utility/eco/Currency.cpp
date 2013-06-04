@@ -3,10 +3,8 @@
 #include "LocaleData.h"
 #include "CLocaleHelper.h"
 
-const Int64 Currency::sSerialVersionUID = -158308464356906721L;
-
-HashMap<String, AutoPtr<ICurrency> > Currency::mCodesToCurrencies;
-HashMap<AutoPtr<ILocale>, AutoPtr<ICurrency> > Currency::mLocalesToCurrencies;
+HashMap<String, AutoPtr<ICurrency> > Currency::sCodesToCurrencies;
+HashMap<AutoPtr<ILocale>, AutoPtr<ICurrency> > Currency::sLocalesToCurrencies;
 
 Currency::Currency()
     : mDefaultFractionDigits(0)
@@ -88,13 +86,13 @@ AutoPtr<ICurrency> Currency::GetInstance(
 {
     // BEGIN android-changed
     HashMap<String, AutoPtr<ICurrency> >::Iterator it =
-            mCodesToCurrencies.Find(currencyCode);
-    if (it != mCodesToCurrencies.End()) {
+            sCodesToCurrencies.Find(currencyCode);
+    if (it != sCodesToCurrencies.End()) {
         return it->mSecond;
     }
 
     Currency* currency = new Currency(currencyCode);
-    mCodesToCurrencies[currencyCode] = (ICurrency*)currency;
+    sCodesToCurrencies[currencyCode] = (ICurrency*)currency;
     return (ICurrency*)currency;
     // END android-changed
 }
@@ -104,8 +102,8 @@ AutoPtr<ICurrency> Currency::GetInstance(
 {
     // BEGIN android-changed
     HashMap<AutoPtr<ILocale>, AutoPtr<ICurrency> >::Iterator it =
-            mLocalesToCurrencies.Find(locale);
-    if (it != mLocalesToCurrencies.End()) {
+            sLocalesToCurrencies.Find(locale);
+    if (it != sLocalesToCurrencies.End()) {
         return it->mSecond;
     }
 
@@ -124,7 +122,7 @@ AutoPtr<ICurrency> Currency::GetInstance(
     //     return null;
     // }
     // AutoPtr<ICurrency> result = GetInstance(currencyCode);
-    // mLocalesToCurrencies[locale] = result;
+    // sLocalesToCurrencies[locale] = result;
     // return result;
     // END android-changed
 

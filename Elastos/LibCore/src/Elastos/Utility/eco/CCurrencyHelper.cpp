@@ -7,7 +7,8 @@ ECode CCurrencyHelper::GetInstance(
     /* [out] */ ICurrency** currency)
 {
     VALIDATE_NOT_NULL(currency);
-    *currency = Currency::GetInstance(currencyCode);
+    AutoPtr<ICurrency> temp = Currency::GetInstance(currencyCode);
+    *currency = temp;
     if (*currency) {
         (*currency)->AddRef();
     }

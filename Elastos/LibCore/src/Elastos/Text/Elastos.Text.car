@@ -310,7 +310,7 @@ module
             [in] IAttributedCharacterIterator* iterator,
             [in] Int32 start,
             [in] Int32 end,
-            [in] IObjectContainer* attributes);
+            [in] ArrayOf<IAttributedCharacterIteratorAttribute*>* attributes);
 
         constructor(
             [in] String value);

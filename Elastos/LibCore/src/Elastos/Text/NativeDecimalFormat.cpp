@@ -904,8 +904,8 @@ static ArrayOf<Char32>* formatResult(
         String s("");
         ElStringByteSink sink(&s);
         str.toUTF8(sink);
-        for (Int32 i = 0; i < s.GetLength(); ++i) {
-            (*result)[i] = s[i];
+        for (Int32 i = 0; i < s.GetCharCount(); ++i) {
+            (*result)[i] = s.GetChar(i);
         }
     }
     return result;
