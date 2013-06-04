@@ -256,9 +256,8 @@ AutoPtr<IDrawable> ExpandableListView::GetIndicator(
     if (((CExpandableListPosition*)(((CPositionMetadata*)pos)->mPosition.Get()))->type == ExpandableListPosition::GROUP) {
         indicator = mGroupIndicator;
 
-        Boolean stateful;
-        indicator->IsStateful(&stateful);
-        if (indicator.Get() != NULL && stateful) {
+        Boolean stateful = FALSE;
+        if (indicator.Get() != NULL && (indicator->IsStateful(&stateful), stateful)) {
             // Empty check based on availability of data.  If the groupMetadata isn't NULL,
             // we do a check on it. Otherwise, the group is collapsed so we consider it
             // empty for performance reasons.
@@ -277,9 +276,8 @@ AutoPtr<IDrawable> ExpandableListView::GetIndicator(
     } else {
         indicator = mChildIndicator;
 
-        Boolean stateful;
-        indicator->IsStateful(&stateful);
-        if (indicator != NULL && stateful) {
+        Boolean stateful = FALSE;
+        if (indicator != NULL && (indicator->IsStateful(&stateful), stateful)) {
             // No need for a state sets array for the child since it only has two states
             Int32* stateSet = ((CExpandableListPosition*)((CPositionMetadata*)pos)->mPosition.Get())->flatListPos == ((CGroupMetadata*)(((CPositionMetadata*)pos)->mGroupMetadata.Get()))->mLastChildFlPos
                     ? CHILD_LAST_STATE_SET
