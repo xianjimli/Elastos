@@ -961,6 +961,8 @@ ECode CPhoneWindow::constructor(
 {
     mContext = context;
     LayoutInflater::From(context, (ILayoutInflater**)&mLayoutInflater);
+
+    mContextMenuCallback = new ContextMenuCallback(Window_FEATURE_CONTEXT_MENU, this);
     return NOERROR;
 }
 

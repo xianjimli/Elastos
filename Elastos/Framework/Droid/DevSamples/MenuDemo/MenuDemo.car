@@ -1,0 +1,9 @@
+
+module
+{
+    importlib("Elastos.Framework.Core.eco");
+
+    class CActivityOne {
+        interface IActivity;
+    }
+}
