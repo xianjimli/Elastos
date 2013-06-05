@@ -3,9 +3,45 @@
 #define __CHTTPSURLCONNECTIONIMPL_H__
 
 #include "_CHttpsURLConnectionImpl.h"
+#include <elastos/AutoPtr.h>
+#include "CHttpURLConnectionImpl.h"
 
 CarClass(CHttpsURLConnectionImpl)
 {
+	class HttpsEngine : public CHttpURLConnectionImpl
+	{
+	protected:
+		HttpsEngine(
+		    /* [in] */ IURL* url,
+		    /* [in] */ Int32 port,
+		    /* [in] */ CHttpsURLConnectionImpl* impl);
+		
+		HttpsEngine(
+			/* [in] */ IURL* url, 
+			/* [in] */ Int32 port, 
+			/* [in] */ IProxy* proxy,
+			/* [in] */ CHttpsURLConnectionImpl* impl);
+			
+		ECode SetUpTransportIO(HttpConnection* connection);
+		
+		ECode RequiresTunnel(
+			/* [out] */ Boolean* pValue);
+			
+		ECode RequestString(
+			/* [out] */ String* pStr);			
+	
+	public:
+		ECode MakeConnection();
+	
+	private:
+		ECode MakeSslConnection(
+			/* [in] */ Boolean tlsTolerant,
+			/* [out] */ Boolean* pValue);
+	private:
+		AutoPtr<CHttpsURLConnectionImpl> mImpl;
+	};
+
+	friend class HttpsEngine;	
 public:
     CARAPI Connect();
 
@@ -153,6 +189,33 @@ public:
     CARAPI SetChunkedStreamingMode(
         /* [in] */ Int32 chunkLength);
 
+    CARAPI GetCipherSuite(
+        /* [out] */ String * pCipherSuite);
+
+    CARAPI GetLocalCertificates(
+        /* [out, callee] */ ArrayOf<ICertificate *> ** ppCertificates);
+
+    CARAPI GetServerCertificates(
+        /* [out, callee] */ ArrayOf<ICertificate *> ** ppPpCertificates);
+
+    CARAPI GetPeerPrincipal(
+        /* [out] */ IPrincipal ** ppPrincipal);
+
+    CARAPI GetLocalPrincipal(
+        /* [out] */ IPrincipal ** ppPrincipal);
+
+    CARAPI SetHostnameVerifier(
+        /* [in] */ IHostnameVerifier * pV);
+
+    CARAPI GetHostnameVerifier(
+        /* [out] */ IHostnameVerifier ** ppVerifier);
+
+    CARAPI SetSSLSocketFactory(
+        /* [in] */ ISSLSocketFactory * pSf);
+
+    CARAPI GetSSLSocketFactory(
+        /* [out] */ ISSLSocketFactory ** ppSslSocketFactory);
+
     CARAPI constructor(
         /* [in] */ IURL * pUrl,
         /* [in] */ Int32 port);
@@ -163,6 +226,12 @@ public:
         /* [in] */ IProxy * pProxy);
 
 private:
+	ECode CheckConnected();
+	
+private:
+    AutoPtr<HttpsEngine> mHttpsEngine;
+    AutoPtr<ISSLSocket> mSslSocket;
+	
     // TODO: Add your private member variables here.
 };
 

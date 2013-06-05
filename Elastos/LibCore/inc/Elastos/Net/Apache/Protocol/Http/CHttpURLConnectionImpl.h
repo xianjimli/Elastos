@@ -220,7 +220,9 @@ protected:
 
     ECode GetTransferStream(
         /* [out] */ IInputStream** ppIs);
-
+  	
+  	ECode RetrieveResponse();
+	            
 private:
     ECode GetFromCache(
         /* [out] */ Boolean* is);
@@ -233,7 +235,7 @@ private:
 
     ECode MaybeCache();
 
-    ECode RetrieveResponse();
+
 
     AutoPtr<IInputStream> InitContentStream();
 
@@ -267,6 +269,7 @@ private:
     ECode GetAuthorizationCredentials(
         /* [in] */ const String& challenge,
         /* [out] */ String* credential);
+
 public:
     static String OPTIONS;
     static String GET;

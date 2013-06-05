@@ -235,7 +235,8 @@ ECode CSimpleTimeZone::GetRawOffset(
     /* [out] */ Int32 * pRawOffset)
 {
     // TODO: Add your code here
-    return mRawOffset;
+    *pRawOffset = mRawOffset;
+    return NOERROR;
 }
 
 ECode CSimpleTimeZone::HasSameRules(

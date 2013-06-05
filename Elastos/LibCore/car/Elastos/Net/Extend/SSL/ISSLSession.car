@@ -51,8 +51,8 @@ module
          * @return the list of certificates, ordered from local certificate to
          *         CA's certificates.
          */
-//        GetLocalCertificates(
-//            [out, callee] ICertificate* certificate);
+        GetLocalCertificates(
+            [out, callee] ArrayOf<ICertificate*>* certificate);
 
         /**
          * Returns the principal used to identify the local side to the peer during

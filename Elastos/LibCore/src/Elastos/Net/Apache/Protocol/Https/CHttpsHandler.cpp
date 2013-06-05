@@ -1,11 +1,15 @@
 
 #include "CHttpsHandler.h"
+#include "CHttpsURLConnectionImpl.h"
+
 ECode CHttpsHandler::OpenConnection(
     /* [in] */ IURL * pU,
     /* [out] */ IURLConnection ** ppUrlConnection)
 {
     // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    Int32 defaultPort;
+    GetDefaultPort(&defaultPort);
+    return CHttpsURLConnectionImpl::New(pU, defaultPort, (IHttpsURLConnectionImpl **) ppUrlConnection);
 }
 
 ECode CHttpsHandler::OpenConnectionEx(
@@ -14,7 +18,14 @@ ECode CHttpsHandler::OpenConnectionEx(
     /* [out] */ IURLConnection ** ppUrlConnection)
 {
     // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    if (pU == NULL || pProxy == NULL) {
+        return E_INVALID_ARGUMENT;
+    }
+
+    Int32 defaultPort;
+    GetDefaultPort(&defaultPort);
+
+    return CHttpsURLConnectionImpl::New(pU, defaultPort, pProxy, (IHttpsURLConnectionImpl **) ppUrlConnection);
 }
 
 ECode CHttpsHandler::ParseURL(
@@ -75,7 +86,8 @@ ECode CHttpsHandler::GetDefaultPort(
     /* [out] */ Int32 * pPortNum)
 {
     // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    *pPortNum = 443;
+    return NOERROR;
 }
 
 ECode CHttpsHandler::GetHostAddress(

@@ -2,5 +2,102 @@ module
 {
     interface IHttpsURLConnection extends IHttpURLConnection
     {
+    /**
+     * Returns the name of the cipher suite negotiated during the SSL handshake.
+     *
+     * @return the name of the cipher suite negotiated during the SSL handshake.
+     * @throws IllegalStateException
+     *             if no connection has been established yet.
+     */    
+		GetCipherSuite(
+    		[out] String* cipherSuite);
+
+	/**
+     * Returns the list of local certificates used during the handshake. These
+     * certificates were sent to the peer.
+     *
+     * @return Returns the list of certificates used during the handshake with
+     *         the local identity certificate followed by CAs, or {@code null}
+     *         if no certificates were used during the handshake.
+     * @throws IllegalStateException
+     *             if no connection has been established yet.
+     */    		
+		GetLocalCertificates(
+			[out, callee] ArrayOf<ICertificate*>* certificates);
+
+	/**
+     * Return the list of certificates identifying the peer during the
+     * handshake.
+     *
+     * @return the list of certificates identifying the peer with the peer's
+     *         identity certificate followed by CAs.
+     * @throws SSLPeerUnverifiedException
+     *             if the identity of the peer has not been verified..
+     * @throws IllegalStateException
+     *             if no connection has been established yet.
+     */
+		GetServerCertificates(
+			[out, callee] ArrayOf<ICertificate*>* certificates);
+	
+	/**
+     * Returns the {@code Principal} identifying the peer.
+     *
+     * @return the {@code Principal} identifying the peer.
+     * @throws SSLPeerUnverifiedException
+     *             if the identity of the peer has not been verified.
+     * @throws IllegalStateException
+     *             if no connection has been established yet.
+     */
+     	GetPeerPrincipal(
+     		[out] IPrincipal** principal);
+    
+    /**
+     * Returns the {@code Principal} used to identify the local host during the handshake.
+     *
+     * @return the {@code Principal} used to identify the local host during the handshake, or
+     *         {@code null} if none was used.
+     * @throws IllegalStateException
+     *             if no connection has been established yet.
+     */
+    	GetLocalPrincipal(
+    		[out] IPrincipal** principal);
+    		
+	/**
+     * Sets the hostname verifier for this instance.
+     *
+     * @param v
+     *            the hostname verifier for this instance.
+     * @throws IllegalArgumentException
+     *             if the specified verifier is {@code null}.
+     */
+    	SetHostnameVerifier(
+    		[in] IHostnameVerifier* v);
+   	
+   	/**
+     * Returns the hostname verifier used by this instance.
+     *
+     * @return the hostname verifier used by this instance.
+     */
+    	GetHostnameVerifier(
+    		[out] IHostnameVerifier** verifier);
+
+	/**
+     * Sets the SSL socket factory for this instance.
+     *
+     * @param sf
+     *            the SSL socket factory to be used by this instance.
+     * @throws IllegalArgumentException
+     *             if the specified socket factory is {@code null}.
+     */
+    	SetSSLSocketFactory(
+    		[in] ISSLSocketFactory* sf);
+	
+	/**
+     * Returns the SSL socket factory used by this instance.
+     *
+     * @return the SSL socket factory used by this instance.
+     */
+		GetSSLSocketFactory(
+    		[out] ISSLSocketFactory** sslSocketFactory); 		
     }
 }
