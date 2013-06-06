@@ -6,6 +6,7 @@ ECode CPluginManagerHelper::GetInstance(
     /* [out] */ IPluginManager ** instance)
 {
 	*instance = CPluginManager::GetInstance(context);
+	CPluginManager::AcquireSingletonByFriend(NULL);
     return NOERROR;
 }
 

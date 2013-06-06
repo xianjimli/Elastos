@@ -102,11 +102,11 @@ ECode CBrowserFrame::LoadData(
     /* [in] */ const String& encoding,
     /* [in] */ const String& historyUrl)
 {
-    String _baseUrl    = const_cast<String&>(baseUrl);
-    String _data       = const_cast<String&>(data);
-    String _mimeType   = const_cast<String&>(mimeType);
-    String _encoding   = const_cast<String&>(encoding);
-    String _historyUrl = const_cast<String&>(historyUrl);
+    String _baseUrl    = /*const_cast<String&>*/(baseUrl);
+    String _data       = /*const_cast<String&>*/(data);
+    String _mimeType   = /*const_cast<String&>*/(mimeType);
+    String _encoding   = /*const_cast<String&>*/(encoding);
+    String _historyUrl = /*const_cast<String&>*/(historyUrl);
 
     mLoadInitFromJava = TRUE;
     if (_historyUrl == NULL || _historyUrl.GetLength() == 0) {
@@ -306,11 +306,13 @@ ECode CBrowserFrame::constructor(
         AutoPtr<IActivityManager> am;
         context->GetSystemService(Context_ACTIVITY_SERVICE, (IInterface**)&am);
 
-     /*   if (am.getMemoryClass() > 16) {
-            sJavaBridge.setCacheSize(8 * 1024 * 1024);
+        Int32 size = 0;
+//        am->GetMemoryClass(&size);
+        if (size > 16) {
+            sJavaBridge->SetCacheSize(8 * 1024 * 1024);
         } else {
-            sJavaBridge.setCacheSize(4 * 1024 * 1024);
-        }*/
+            sJavaBridge->SetCacheSize(4 * 1024 * 1024);
+        }
 
         // initialize CacheManager
         CCacheManager* cacheManager;

@@ -80,17 +80,24 @@ ECode CHttpAuthHandler::UseHttpAuthUsernamePassword(
     mLoaderQueueMutex.Unlock();
 
     if (loader != NULL) {
-        *flag = !loader->AuthCredentialsInvalid();
+        if (flag) {
+            *flag = !loader->AuthCredentialsInvalid();
+        }
         return NOERROR;
     }
 
-    *flag = FALSE;
+    if (flag) {
+        *flag = FALSE;
+    }
+
     return NOERROR;
 }
 
 void CHttpAuthHandler::HandleAuthRequest(
     /* [in] */ LoadListener *loader)
 {
+    if (loader == NULL) return;
+
     // The call to proxy.onReceivedHttpAuthRequest() may be asynchronous. If
     // the request is synchronous, we must block here until we have a
     // response.
@@ -188,6 +195,8 @@ void CHttpAuthHandler::OnReceivedCredentials(
     /* [in] */ const String& username, 
     /* [in] */ const String& password)
 {
+    if (loader == NULL) return;
+
     AutoPtr<IBrowserFrame> browserFrame = loader->GetFrame();
     CBrowserFrame* bf = (CBrowserFrame*)(browserFrame.Get());
     AutoPtr<ICallbackProxy> proxy = bf->GetCallbackProxy();

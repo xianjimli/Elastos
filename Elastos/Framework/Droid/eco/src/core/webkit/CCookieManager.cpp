@@ -519,8 +519,8 @@ CARAPI_(void) CCookieManager::GetUpdatedCookiesSince(
         Vector<AutoPtr<Cookie> >* list = NULL;
         mCookieMap->Get((*cookieList)[i], (IInterface**)&list);
         
-        int _size = list->GetSize();
-        for (int j = 0; j < _size; j++) {
+        Int32 _size = list->GetSize();
+        for (Int32 j = 0; j < _size; j++) {
             if ((*list)[j]->lastUpdateTime > last) {
                 cookies.PushBack((*list)[j]);
             }
@@ -578,11 +578,9 @@ CARAPI_(void) CCookieManager::DeleteLRUDomain(
             Vector<AutoPtr<Cookie> >* list = NULL;
             mCookieMap->Get((*cookieLists)[i], (IInterface**)&list);
 
-            if (DebugFlags::sCOOKIE_MANAGER)
-            {
+            if (DebugFlags::sCOOKIE_MANAGER) {
                 Int32 _size = list->GetSize();
-                for (Int32 j = 0; j < _size; j++)
-                {
+                for (Int32 j = 0; j < _size; j++) {
                     Cookie* cookie = (*list)[j];
                     // 14 is 3 * sizeof(long) + sizeof(boolean)
                     // + sizeof(byte)
@@ -596,8 +594,7 @@ CARAPI_(void) CCookieManager::DeleteLRUDomain(
                     if (count >= MAX_RAM_COOKIES_COUNT) break;
                 }
             }
-            else
-            {
+            else {
                 count += list->GetSize();
             }
         }
@@ -748,8 +745,7 @@ CARAPI_(void) CCookieManager::ParseCookie(
         if ((semicolonIndex != -1 && (semicolonIndex < equalIndex)) ||
                 equalIndex == -1) {
             // Fix up the index in case we have a string like "testcookie"
-            if (semicolonIndex == -1)
-            {
+            if (semicolonIndex == -1) {
                 semicolonIndex = length;
             }
             cookie->name = cookieString.Substring(index, semicolonIndex);
@@ -850,7 +846,7 @@ CARAPI_(void) CCookieManager::ParseCookie(
                     }
                 }
                 semicolonIndex = cookieString.IndexOf(SEMICOLON, index);
-                int commaIndex = cookieString.IndexOf(COMMA, index);
+                Int32 commaIndex = cookieString.IndexOf(COMMA, index);
                 if (semicolonIndex == -1 && commaIndex == -1) {
                     index = length;
                 } else if (semicolonIndex == -1) {
@@ -858,14 +854,15 @@ CARAPI_(void) CCookieManager::ParseCookie(
                 } else if (commaIndex == -1) {
                     index = semicolonIndex;
                 } else {
-//                    index = Math.min(semicolonIndex, commaIndex);
+                    //index = Math.min(semicolonIndex, commaIndex);
+                    index = semicolonIndex < commaIndex ? semicolonIndex : commaIndex;
                 }
                 String value =
                         cookieString.Substring(equalIndex + 1, index);
                 
                 // Strip quotes if they exist
                 if (value.GetLength() > 2 && value.GetChar(0) == QUOTATION) {
-                    int endQuote = value.IndexOf(QUOTATION, 1);
+                    Int32 endQuote = value.IndexOf(QUOTATION, 1);
                     if (endQuote > 0) {
                         value = value.Substring(1, endQuote);
                     }

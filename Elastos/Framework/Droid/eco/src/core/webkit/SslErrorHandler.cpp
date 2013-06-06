@@ -18,15 +18,11 @@ const Int32 SslErrorHandler::HANDLE_RESPONSE;
  * Creates a new error handler with an empty loader queue.
  */
 /* package */ 
-SslErrorHandler::SslErrorHandler()
+SslErrorHandler::SslErrorHandler() : mOriginHandler(NULL), mLoadListener(NULL)
 {
 	mLoaderQueue = new List<AutoPtr<LoadListener> >();
     //mSslPrefTable = new Bundle();
     CBundle::New((IBundle**)&mSslPrefTable);
-
-    // These are used by client facing SslErrorHandlers.
-    mOriginHandler = NULL;
-    mLoadListener = NULL;
 }
 
 /**

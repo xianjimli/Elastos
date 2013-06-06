@@ -611,8 +611,7 @@ CARAPI_(void) CCacheManager::SetupFiles(
             // cache file. If it is not, resolve the collision.
             Boolean bExists = FALSE;
             file->Exists(&bExists);
-            while (bExists)
-            {
+            while (bExists) {
                 if (checkOldPath) {
                     CacheResult* oldResult = (CacheResult*)mDataBase->GetCache(url);
                     if (oldResult != NULL && oldResult->contentLength > 0) {
@@ -940,8 +939,7 @@ inline CARAPI_(AutoPtr<IFileOutputStream>) CCacheManager::CacheResult::GetOutput
 // These fields can be set manually.
 inline CARAPI CCacheManager::CacheResult::SetInputStream(IFileInputStream* stream)
 {
-    if (stream == NULL)
-    {
+    if (stream == NULL) {
         return E_INVALID_ARGUMENT;
     }
 

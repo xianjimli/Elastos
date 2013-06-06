@@ -106,9 +106,9 @@ ECode CWebViewClient::ShouldOverrideKeyEvent(
     /* [in] */ IKeyEvent* event,
     /* [out] */ Boolean* flag)
 {
-    VALIDATE_NOT_NULL(flag);
-
-    *flag = FALSE;
+    if (flag) {
+        *flag = FALSE;
+    }
 
     return NOERROR;
 }

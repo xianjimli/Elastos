@@ -2341,10 +2341,10 @@ ECode CWebView::SavePicture(
     /* [in] */ IFile* dest,
     /* [out] */ Boolean* bFlag)
 {
-    VALIDATE_NOT_NULL(bFlag);
+    //VALIDATE_NOT_NULL(bFlag);
 
     if (dest == NULL || b == NULL) {
-        *bFlag = FALSE;
+        if (bFlag) *bFlag = FALSE;
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
 
@@ -2390,8 +2390,11 @@ ECode CWebView::SavePicture(
     b->PutFloat("scale", mActualScale);
     b->PutFloat("textwrapScale", mTextWrapScale);
     b->PutBoolean("overview", mInZoomOverview);
-#endif    
-    *bFlag = TRUE;
+#endif
+
+    if (bFlag) {
+        *bFlag = TRUE;
+    }    
 
     return NOERROR;
 }
