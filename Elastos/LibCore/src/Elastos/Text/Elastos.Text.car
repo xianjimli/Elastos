@@ -299,6 +299,10 @@ module
         interface IBidi;
     }
 
+    singleton class CBidiHelper {
+        interface IBidiHelper;
+    }
+
     [deprecated]
     class CAttributedString {
         constructor(

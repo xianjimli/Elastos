@@ -75,6 +75,7 @@ SOURCES += NumericShaper.cpp
 SOURCES += CNumericShaper.cpp
 SOURCES += Bidi.cpp
 SOURCES += CBidi.cpp
+SOURCES += CBidiHelper.cpp
 
 SOURCES += AttributedString.cpp
 SOURCES += CAttributedString.cpp
