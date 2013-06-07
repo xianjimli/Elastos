@@ -60,6 +60,8 @@ module
     }
 
     class CStringUri {
+        constructor();
+        
         constructor(
             [in] String uriString);
 

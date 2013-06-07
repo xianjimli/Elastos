@@ -651,6 +651,8 @@ public:
     CARAPI WriteToParcel(
         /* [in] */ IParcel* dest);
 
+    CARAPI constructor();
+
     CARAPI constructor(
         /* [in] */ const String& uriString);
 

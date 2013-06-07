@@ -5,6 +5,7 @@
 
 using namespace Elastos;
 using namespace Elastos::Core;
+using namespace Elastos::Utility::Logging;
 
 CString CContentService::TAG = "CContentService";
 

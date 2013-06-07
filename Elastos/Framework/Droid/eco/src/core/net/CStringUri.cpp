@@ -88,6 +88,11 @@ ECode CStringUri::constructor(
     return NOERROR;
 }
 
+ECode CStringUri::constructor()
+{
+    return NOERROR;
+}
+
 ECode CStringUri::IsHierarchical(
     /* [out] */ Boolean* isHierarchical)
 {
