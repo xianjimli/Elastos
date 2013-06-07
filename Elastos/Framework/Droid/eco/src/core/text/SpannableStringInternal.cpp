@@ -32,7 +32,9 @@ SpannableStringInternal::~SpannableStringInternal()
 {
     if (mSpans != NULL) {
         for (Int32 i = 0; i < mSpans->GetLength(); i++) {
-            (*mSpans)[i]->Release();
+            if ((*mSpans)[i] != NULL) {
+                (*mSpans)[i]->Release();
+            }
         }
         ArrayOf<IInterface*>::Free(mSpans);
     }
