@@ -27,6 +27,7 @@ Activity::Activity()
     , mFinished(FALSE)
     , mStartedActivity(FALSE)
     , mWindowAdded(FALSE)
+    , mVisibleFromServer(FALSE)
     , mVisibleFromClient(TRUE)
     , mTitleColor(0)
     , mTitleReady(FALSE)
@@ -454,6 +455,24 @@ ECode Activity::GetDecorView(
     return NOERROR;
 }
 
+ECode Activity::SetVisibleFromServer(
+    /* [in] */ Boolean visible)
+{
+    mVisibleFromServer = visible;
+    return NOERROR;
+}
+
+ECode Activity::IsVisibleFromServer(
+    /* [out] */ Boolean * visible)
+{
+    if (!visible) {
+        return E_INVALID_ARGUMENT;
+    }
+    *visible = mVisibleFromServer;
+    return NOERROR;
+
+}
+
 ECode Activity::IsVisibleFromClient(
     /* [out] */ Boolean* visible)
 {
@@ -797,6 +816,14 @@ ECode Activity::OnRetainNonConfigurationInstance(
 {
     if (object == NULL) return E_INVALID_ARGUMENT;
     *object = NULL;
+    return NOERROR;
+}
+
+ECode Activity::OnRetainNonConfigurationChildInstances(
+    /* [out] */ IObjectStringMap** objectStringMap)
+{
+    if(objectStringMap == NULL) return E_INVALID_ARGUMENT;
+    *objectStringMap = NULL;
     return NOERROR;
 }
 
@@ -1175,6 +1202,21 @@ ECode Activity::GetTitleColor(
 {
     if (textColor == NULL) return E_ILLEGAL_ARGUMENT_EXCEPTION;
     *textColor = mTitleColor;
+    return NOERROR;
+}
+
+ECode Activity::SetConfigChangeFlags(
+    /* [in] */ Int32 configChangeFlags)
+{
+    mConfigChangeFlags = configChangeFlags;
+    return NOERROR;
+}
+
+ECode Activity::GetConfigChangeFlags(
+    /* [out] */ Int32* configChangeFlags)
+{
+    if (configChangeFlags == NULL) return E_ILLEGAL_ARGUMENT_EXCEPTION;
+    *configChangeFlags = mConfigChangeFlags;
     return NOERROR;
 }
 

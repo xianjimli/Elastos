@@ -132,6 +132,9 @@ public:
     CARAPI OnRetainNonConfigurationInstance(
         /* [out] */ IInterface** object);
 
+    CARAPI OnRetainNonConfigurationChildInstances(
+        /* [out] */ IObjectStringMap** objectStringMap);
+
     CARAPI OnLowMemory();
 
     CARAPI DispatchNewIntent(
@@ -362,6 +365,12 @@ public:
     CARAPI GetDecorView(
         /* [out] */ IView** decor);
 
+    CARAPI SetVisibleFromServer(
+        /* [in] */ Boolean visible);
+
+    CARAPI IsVisibleFromServer(
+        /* [out] */ Boolean * visible);
+
     CARAPI IsVisibleFromClient(
         /* [out] */ Boolean* visible);
 
@@ -408,6 +417,12 @@ public:
 
     CARAPI GetTitleColor(
         /* [out] */ Int32* textColor);
+
+    CARAPI SetConfigChangeFlags(
+        /* [in] */ Int32 configChangeFlags);
+
+    CARAPI GetConfigChangeFlags(
+        /* [out] */ Int32* configChangeFlags);
 
     CARAPI RunOnUiThread(
         /* [in] */ IRunnable* action);
@@ -772,12 +787,15 @@ private:
     Boolean mStopped;
     Boolean mFinished;
     Boolean mStartedActivity;
+    /*package*/
+    Int32 mConfigChangeFlags;
     AutoPtr<IWindow> mWindow;
     AutoPtr<ILocalWindowManager> mWindowManager;
     AutoPtr<IView> mDecor;
     // frome ContextThemeWrapper.java
     AutoPtr<ILayoutInflater> mInflater;
     Boolean mWindowAdded;
+    Boolean mVisibleFromServer;
     Boolean mVisibleFromClient;
 
     AutoPtr<ICharSequence> mTitle;

@@ -525,6 +525,21 @@ ECode CWindowManagerLayoutParams::SetWindowAnimations(
     return NOERROR;
 }
 
+ECode CWindowManagerLayoutParams::SetSoftInputMode(
+	/* [in] */ Int32 mode)
+{
+    mSoftInputMode = mode;
+    return NOERROR;
+}
+
+ECode CWindowManagerLayoutParams::GetSoftInputMode(
+	/* [out] */ Int32* mode)
+{
+    *mode = mSoftInputMode;
+    return NOERROR;
+}
+
+
 ECode CWindowManagerLayoutParams::ReadFromParcel(
     /* [in] */ IParcel *source)
 {
