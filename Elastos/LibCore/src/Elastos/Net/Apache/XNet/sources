@@ -1,0 +1,10 @@
+TARGET_NAME = Elastos.Net.Apache.XNet
+TARGET_TYPE = lib
+
+INCLUDES += $(MAKEDIR)/../../../../../inc/Elastos/Net/Apache/XNet;
+INCLUDES += $(MAKEDIR)/../../../../../inc/Elastos/Net;
+INCLUDES += $(TARGET_OBJ_PATH)/../../
+INCLUDES += $(MAKEDIR)/../../../../../inc/Elastos/common;
+
+SOURCES += CSSLServerSocketImpl.cpp
+SOURCES += CSSLParametersImpl.cpp

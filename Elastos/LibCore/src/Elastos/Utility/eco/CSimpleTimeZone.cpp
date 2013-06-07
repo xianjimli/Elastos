@@ -69,6 +69,7 @@ ECode CSimpleTimeZone::GetOffset(
     Boolean isUsed;
     UseDaylightTime(&isUsed);
     if (!isUsed) {
+        *pOffset = mRawOffset;
         return mRawOffset;
     }
     ArrayOf<Int32> *fields;

@@ -1,0 +1,33 @@
+module
+{
+    merge("../../../../../car/Elastos/Net/Apache/XNet/ISSLParametersImpl.car");
+    merge("../../../../../car/Elastos/Net/Apache/XNet/ISSLServerSocketImpl.car");
+
+    class CSSLServerSocketImpl {
+        constructor(
+			[in] ISSLParametersImpl* sslParameters);
+			
+		constructor(
+			[in] Int32 port, 
+			[in] ISSLParametersImpl* sslParameters);
+		
+		constructor(
+			[in] Int32 port, 
+			[in] Int32 backlog,
+            [in] ISSLParametersImpl* sslParameters);
+            		
+        constructor(
+        	[in] Int32 port, 
+        	[in] Int32 backlog,
+            [in] IInetAddress* iAddress,
+            [in] ISSLParametersImpl* sslParameters);
+            
+        interface ISSLServerSocketImpl;
+    }
+    
+    
+    class CSSLParametersImpl {
+    	interface ISSLParametersImpl;
+    }
+
+}

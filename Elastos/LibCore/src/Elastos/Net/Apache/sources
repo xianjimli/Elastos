@@ -5,3 +5,4 @@ LIBRARIES += ./Protocol/File/Elastos.Net.Apache.Protocol.FileURL.lib
 LIBRARIES += ./Protocol/Ftp/Elastos.Net.Apache.Protocol.FtpURL.lib
 LIBRARIES += ./Protocol/Http/Elastos.Net.Apache.Protocol.HttpURL.lib
 LIBRARIES += ./Protocol/Https/Elastos.Net.Apache.Protocol.HttpsURL.lib
+LIBRARIES += ./XNet/Elastos.Net.Apache.XNet.lib

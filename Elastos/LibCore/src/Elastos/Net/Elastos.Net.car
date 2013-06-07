@@ -59,6 +59,7 @@ module
     merge("./Apache/Protocol/Ftp/Elastos.Net.Apache.Protocol.FtpURL.car");
     merge("./Apache/Protocol/Http/Elastos.Net.Apache.Protocol.HttpURL.car");
     merge("./Apache/Protocol/Https/Elastos.Net.Apache.Protocol.HttpsURL.car");
+    merge("./Apache/XNet/Elastos.Net.Apache.XNet.car");
 
 
     class CInet4Address {

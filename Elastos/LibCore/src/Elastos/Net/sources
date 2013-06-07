@@ -8,6 +8,7 @@ INCLUDES += $(MAKEDIR)/../../../inc/Elastos/Net/Apache/Protocol/File;
 INCLUDES += $(MAKEDIR)/../../../inc/Elastos/Net/Apache/Protocol/Ftp;
 INCLUDES += $(MAKEDIR)/../../../inc/Elastos/Net/Apache/Protocol/Http;
 INCLUDES += $(MAKEDIR)/../../../inc/Elastos/Net/Apache/Protocol/Https;
+INCLUDES += $(MAKEDIR)/../../../inc/Elastos/Net/Apache/XNet;
 INCLUDES += $(MAKEDIR)/../../../inc/Elastos/Net/Extend;
 INCLUDES += $(MAKEDIR)/../../../inc/Elastos/Net/Extend/SSL;
 #INCLUDES += $(MAKEDIR)/../../../inc/Elastos/IO;

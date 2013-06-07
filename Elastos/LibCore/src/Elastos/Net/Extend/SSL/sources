@@ -9,3 +9,4 @@ INCLUDES += $(MAKEDIR)/../../../../../inc/Elastos/common;
 SOURCES += CSSLContext.cpp
 SOURCES += CDefaultSSLServerSocketFactory.cpp
 SOURCES += CDefaultSSLSocketFactory.cpp
+SOURCES += HttpsURLConnection.cpp
