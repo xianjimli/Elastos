@@ -62,7 +62,7 @@ private:
 
     AutoPtr<IContext> mContext;
 
-    /*List<AutoPtr<IPackageInfo> >* mPackageInfoCache;*/
+    List<AutoPtr<ICapsuleInfo> > mPackageInfoCache;
 
     // Only plugin matches one of the signatures in the list can be loaded
     // inside the WebView process

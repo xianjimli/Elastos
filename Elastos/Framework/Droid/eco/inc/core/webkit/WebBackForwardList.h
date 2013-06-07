@@ -159,12 +159,12 @@ protected:
     List< AutoPtr<IWebHistoryItem> > mArray;    
     // Flag to indicate that the list is invalid
     Boolean mClearPending;
+    Elastos::Core::Threading::Mutex mMutexThis;
 
 private:
     // CallbackProxy to issue client callbacks.
     /*const*/ AutoPtr<ICallbackProxy> mCallbackProxy;
 
-    Elastos::Core::Threading::Mutex mMutexThis;
     //static Elastos::Core::Threading::Mutex mMutexClass;
 };
 

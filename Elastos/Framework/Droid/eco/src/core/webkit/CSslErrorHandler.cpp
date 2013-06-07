@@ -26,6 +26,7 @@ ECode CSslErrorHandler::constructor()
 {
     assert(SUCCEEDED(CApartment::GetMainApartment((IApartment**)&mApartment))
         && (mApartment != NULL));
+    _m_syncLock.mMutex = mSyncLock.mMutex;
     return NOERROR;
 }
 
@@ -35,6 +36,7 @@ ECode CSslErrorHandler::constructor(
 {
     assert(SUCCEEDED(CApartment::GetMainApartment((IApartment**)&mApartment))
         && (mApartment != NULL));
+    _m_syncLock.mMutex = mSyncLock.mMutex;
     SslErrorHandler::Init(origin, listener);
     return NOERROR;
 }
