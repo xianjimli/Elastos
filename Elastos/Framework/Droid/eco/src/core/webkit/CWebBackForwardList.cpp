@@ -5,7 +5,8 @@
 
 ECode CWebBackForwardList::constructor(
         /* [in] */ ICallbackProxy* proxy)
-{
+{    
+    _m_syncLock.mMutex = mMutexThis.mMutex;
     WebBackForwardList::Init(proxy);
 }
 

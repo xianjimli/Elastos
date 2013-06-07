@@ -196,7 +196,7 @@ private:
     // Custom client data that is not flattened or read by native code.
     IInterface* mCustomData;
 
-    Elastos::Core::Threading::Mutex mMutex;
+    //Elastos::Core::Threading::Mutex mMutex;
     static Elastos::Core::Threading::Mutex mMutexClass;
 
 };

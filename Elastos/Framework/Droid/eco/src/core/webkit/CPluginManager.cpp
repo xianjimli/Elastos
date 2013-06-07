@@ -7,6 +7,12 @@
 #include "webkit/CBrowserFrame.h"
 #include "webkit/JWebCoreJavaBridge.h"
 #include "os/SystemProperties.h"
+#include "content/CIntent.h"
+#include "capsule/CServiceInfo.h"
+#include "content/CResolveInfo.h"
+#include "capsule/CCapsuleInfo.h"
+#include "content/CApplicationInfo.h"
+#include "os/SystemProperties.h"
 
 const CString CPluginManager::LOGTAG = "PluginManager";
 
@@ -71,25 +77,7 @@ ECode CPluginManager::RefreshPlugins(
     AutoPtr<IParcel> params;
     CCallbackParcel::New((IParcel**)&params);
     params->WriteBoolean(reloadOpenPages);
-    //(CBrowserFrame::sJavaBridge)->SendMessage(JWebCoreJavaBridge::REFRESH_PLUGINS, params);
-    
-    /*
-    AutoPtr<IApartment> apartmentT;
-    //apartmentT = (IApartment*)((CBrowserFrame::sJavaBridge)->Probe(EIID_IApartment));
-    void (STDCALL JWebCoreJavaBridge::*pHandlerFunc)(Boolean);
-    //pHandlerFunc = &JWebCoreJavaBridge::HandleRefreshPlugins;
-    AutoPtr<IParcel> params;
-    CCallbackParcel::New((IParcel**)&params);
-    params->WriteBoolean(reloadOpenPages);
-    apartmentT->PostCppCallback(
-            (Handle32)(apartmentT.Get()), *(Handle32*)&pHandlerFunc, params, 0);
-    */
-
-    /*
-    AutoPtr<IMessage> pMessage;    //frameworks/base/core/java/android/os/Message.java
-    IBrowserFrame -> mSJavaBridge -> ObtainMessage(IJWebCoreJavaBridge::REFRESH_PLUGINS,reloadOpenPages,(IMessage**)&pMessage);
-    pMessage -> SendToTarget();
-    */
+    (CBrowserFrame::sJavaBridge)->SendMessage(JWebCoreJavaBridge::REFRESH_PLUGINS, params);
     return NOERROR;
 }
 
@@ -98,22 +86,22 @@ ECode CPluginManager::GetPluginDirectories(
 {
     VALIDATE_NOT_NULL(pluginDirectories);
     List<String>* directories = new List<String>;
-    /*
-    AutoPtr<IPackageManager> pm;
-    ECode ec = mContext -> GetPackageManager((IPackageManager**)&pm);
+    
+    AutoPtr<ILocalCapsuleManager> pm;
+    ECode ec = mContext -> GetCapsuleManager((ILocalCapsuleManager**)&pm);
     AutoPtr<IIntent> pIntent;
-    ec = Intent::New(PLUGIN_ACTION,(IIntent**)&pIntent);
+    ec = CIntent::New(String(PLUGIN_ACTION),(IIntent**)&pIntent);
     List<AutoPtr<IResolveInfo> >* plugins;
-    ec = pm -> queryIntentServices(pIntent.Get(),
-        IPackageManager::sGET_SERVICES | IPackageManager::sGET_META_DATA,(IResolveInfo**)&plugins);
+    ec = pm -> QueryIntentServices(pIntent.Get(),
+        CapsuleManager_GET_SERVICES | CapsuleManager_GET_META_DATA, (IObjectContainer**)&plugins);
 
     Mutex::Autolock lock(mMutexPackageInfoCache);
     
     // clear the list of existing packageInfo objects
-    mPackageInfoCache -> clear();
+    mPackageInfoCache.Clear();
 
     AutoPtr<IResolveInfo> info;
-    for (List<AutoPtr<IResolveInfo> >::Iterator it = plugins -> begin(); it != (plugins -> end()); it++)  {
+    for (List<AutoPtr<IResolveInfo> >::Iterator it = plugins -> Begin(); it != (plugins -> End()); it++)  {
         info = (*it);
 
         // retrieve the plugin's service information
@@ -124,14 +112,16 @@ ECode CPluginManager::GetPluginDirectories(
         }
 
         // retrieve information from the plugin's manifest
-        AutoPtr<IPackageInfo> pkgInfo;
-        ec = pm -> getPackageInfo(serviceInfo -> packageName,
-                            IPackageManager::sGET_PERMISSIONS
-                            | IPackageManager::sGET_SIGNATURES,(IPackageInfo**)&pkgInfo);
+        AutoPtr<ICapsuleInfo> pkgInfo;
+        String strPackageName;
+        serviceInfo -> GetCapsuleName(&strPackageName);//serviceInfo -> packageName
+        ec = pm -> GetCapsuleInfo(strPackageName,
+                            CapsuleManager_GET_PERMISSIONS
+                            | CapsuleManager_GET_SIGNATURES,(ICapsuleInfo**)&pkgInfo);
         if(FAILED(ec)) {
             if(FALSE){
-                //PackageManager::NameNotFoundException 
-                Utility::Logging::Logger::W(LOGTAG, String("Can't find plugin: ") + (serviceInfo -> packageName) + "\n");
+                //PackageManager::NameNotFoundException                 
+                Utility::Logging::Logger::W(LOGTAG, String("Can't find plugin: ") + strPackageName + "\n");
                 continue;    
             }            
         } 
@@ -145,36 +135,30 @@ ECode CPluginManager::GetPluginDirectories(
         // updated system app. In both of these cases the library is
         // stored in the app's data directory.
 
-        CPackageInfo * pPI = (CPackageInfo*)pkgInfo;
-        AutoPtr<CApplicationInfo> pAI = pPI -> mApplicationInfo;
-        String directory = pAI -> dataDir + "/lib";
-        const Int32 appFlags = pAI -> flags;
-        const Int32 updatedSystemFlags = (IApplicationInfo::sFLAG_SYSTEM) |
-                                       (IApplicationInfo::sFLAG_UPDATED_SYSTEM_APP);
+        CCapsuleInfo * pPI = (CCapsuleInfo*)(pkgInfo.Get());
+        AutoPtr<CApplicationInfo> pAI = (CApplicationInfo*)((pPI -> mApplicationInfo).Get());
+        String directory = pAI -> mDataDir + "/lib";
+        const Int32 appFlags = pAI -> mFlags;
+        const Int32 updatedSystemFlags = ApplicationInfo_FLAG_SYSTEM |
+                                       ApplicationInfo_FLAG_UPDATED_SYSTEM_APP;
         // preloaded system app with no user updates
-        if ((appFlags & updatedSystemFlags) == (IApplicationInfo::sFLAG_SYSTEM))  {
-            directory = PLUGIN_SYSTEM_LIB + (pPI -> packageName);
+        if ((appFlags & updatedSystemFlags) == ApplicationInfo_FLAG_SYSTEM)  {
+            String strCapsuleName;
+            pPI->GetCapsuleName(&strCapsuleName);
+            directory = String(PLUGIN_SYSTEM_LIB) + strCapsuleName;
         }
 
         // check if the plugin has the required permissions
-        //JAVA:String permissions[] = pPI ->requestedPermissions;
-        //AutoFree<ArrayOf<String> > permissions;
-        //ArrayOf<String>::Free(permissions.Get());
-        Int32 nArrayLen = (pPI -> mRequestedPermissions) -> GetLength();
-        //permissions = ArrayOf<String>::Alloc(nArrayLen);
-        //for (Int32 i = 0; i < nArrayLen; ++i)  {
-        //    (*permissions)[i] = (*(pPI->mRequestedPermissions))[i];
-        //}        
-        //if (permissions == NULL)  {
-        //    continue;
-        //}
-
-        boolean permissionOk = FALSE;
-        if ( (pPI -> mRequestedPermissions) == NULL || nArrayLen == 0 ) {
-            continue;
+        //JAVA:String permissions[] = pkgInfo.requestedPermissions;
+        List<String> permissions=pPI->mRequestedPermissions;
+        if (permissions.IsEmpty())  {
+           continue;
         }
-        for(int i = 0; i < nArrayLen; i++) {
-            if( PLUGIN_PERMISSION.Compare( (*(pPI->mRequestedPermissions))[i] ) )  {
+
+        Boolean permissionOk = FALSE;
+        Int32 nArrayLen=permissions.GetSize();
+        for(Int32 i = 0; i < nArrayLen; i++) {
+            if( String(PLUGIN_PERMISSION).Equals( (pPI->mRequestedPermissions)[i] ) )  {
                 permissionOk = TRUE;
                 break;
             }
@@ -184,23 +168,25 @@ ECode CPluginManager::GetPluginDirectories(
         }
 
         // check to ensure the plugin is properly signed
-        nArrayLen = (pPI -> mSignatures) ->  GetLength();
-        if( (pPI -> mSignatures) == NULL || nArrayLen == 0 ) {
+        List< AutoPtr<ISignature> > Signatures = pPI->mSignatures;
+        nArrayLen = (pPI -> mSignatures).GetSize();
+        if( Signatures.IsEmpty() ) {
             continue;
         }
 
         if (SystemProperties::GetBoolean("ro.secure", FALSE))  {
-            boolean signatureMatch = FALSE;
-            CSignature * pCSignatureT = NULL;
-            for(int j = 0; j < nArrayLen; j++) {
-                pCSignatureT = (CSignature *)(*(pPI->mSignatures))[j];
-                for(int i = 0; i < (SIGNATURES -> GetLength()); i++) {
-                    if( (SIGNATURES[i]) -> Equals(pCSignatureT) ) {
+            Boolean signatureMatch = FALSE;
+            AutoPtr<ISignature> pCSignatureT = NULL;
+            for(Int32 j = 0; j < nArrayLen; j++) {
+                pCSignatureT = (((pPI->mSignatures)[j]).Get());
+                for(Int32 i = 0; i < (SIGNATURES -> GetLength()); i++) {
+                    Boolean isEqual=FALSE;
+                    ((CSignature*)(((*SIGNATURES)[i]).Get()))->Equals(pCSignatureT, &isEqual);
+                    if( isEqual ) {
                         signatureMatch = TRUE;
                         break;
                     }
                 }
-
             }
             if (!signatureMatch)  {
                 continue;
@@ -208,46 +194,52 @@ ECode CPluginManager::GetPluginDirectories(
         }
 
         // determine the type of plugin from the manifest
-        if( (serviceInfo -> mMetaData) == NULL ) {
-            Utility::Logging::Logger::E(LOGTAG, String("The plugin '") + (serviceInfo -> name) + String("' has no type defined\n") );
+        AutoPtr<IBundle> metaDataSI;
+        serviceInfo->GetMetaData((IBundle**)&metaDataSI);
+        
+        String nameSI;
+        serviceInfo->GetName(&nameSI);
+        if( metaDataSI.Get() == NULL ) {
+            Utility::Logging::Logger::E(LOGTAG, String("The plugin '") + nameSI + String("' has no type defined\n") );
             continue;
         }
 
-        String pluginType;
-        (serviceInfo -> metaData) -> GetString(PLUGIN_TYPE,&pluginType);
-        if (!TYPE_NATIVE.Compare(pluginType))  {
-            Utility::Logging::Logger::E(LOGTAG, String("Unrecognized plugin type: ") + pluginType+ String("\n") );
+        String pluginTypeSI;
+        metaDataSI -> GetString(String(PLUGIN_TYPE),&pluginTypeSI);
+        if (!TYPE_NATIVE.Compare(pluginTypeSI))  {
+            Utility::Logging::Logger::E(LOGTAG, String("Unrecognized plugin type: ") + pluginTypeSI+ String("\n") );
             continue;
         }
 
         Handle32 cls;
-        ec = GetPluginClass( (serviceInfo -> mPackageName),(serviceInfo -> mName),&cls);
+        String capsuleNameSI;
+        serviceInfo->GetCapsuleName(&capsuleNameSI);
+        ec = GetPluginClass( capsuleNameSI,nameSI,&cls);
         if(FAILED(ec)) {
             if(FALSE) {
                 //JAVA: catch(NameNotFoundException e)
-                Utility::Logging::Logger::E(LOGTAG, String("Can't find plugin: ") + (serviceInfo -> mPackageName) + String("\n") );
+                Utility::Logging::Logger::E(LOGTAG, String("Can't find plugin: ") + capsuleNameSI + String("\n") );
                 continue;    
             }            
 
             if(FALSE) {
                 //JAVA: catch (ClassNotFoundException e)
-                Utility::Logging::Logger::E(LOGTAG, String("Can't find plugin's class: ") + (serviceInfo -> mName) + String("\n") );
+                Utility::Logging::Logger::E(LOGTAG, String("Can't find plugin's class: ") + nameSI + String("\n") );
                 continue;    
             }
         }
 
         //TODO implement any requirements of the plugin class here!
-        boolean classFound = true;
+        Boolean classFound = TRUE;
         if (!classFound)  {
-            Utility::Logging::Logger::E(LOGTAG, String("The plugin's class' ") + (serviceInfo -> mName) + String("' does not extend the appropriate class.\n") );
+            Utility::Logging::Logger::E(LOGTAG, String("The plugin's class' ") + nameSI + String("' does not extend the appropriate class.\n") );
             continue;
         }
 
         // if all checks have passed then make the plugin available
-        mPackageInfoCache -> add(pkgInfo);
-        directories -> Push_back(directory);
+        mPackageInfoCache.PushBack(pkgInfo);
+        directories -> PushBack(directory);
     }
-    */
 
     //Convert List To ArrayOf
     List<String>::Iterator iterT;
@@ -281,14 +273,13 @@ ECode CPluginManager::GetPluginsAPKName(
     
     // must be synchronized to ensure the consistency of the cache
     Mutex::Autolock lock(mMutexPackageInfoCache);  //synchronized(mPackageInfoCache)
-    /*
-    for (List<AutoPtr<IPackageInfo> >::Iterator it = mPackageInfoCache -> begin(); it != (mPackageInfoCache -> end()); it++)  {
-        AutoPtr<CPackageInfo> pkgInfo = (CPackageInfo *)((*it).Get());
-        if(pluginLib.Contains(pkgInfo -> mPackageName)) {
-            *pluginsAPKName = pkgInfo -> mPackageName;
+    
+    for (List<AutoPtr<ICapsuleInfo> >::Iterator it = mPackageInfoCache.Begin(); it != (mPackageInfoCache.End()); it++)  {
+        AutoPtr<CCapsuleInfo> pkgInfo = (CCapsuleInfo *)((*it).Get());
+        if(pluginLib.Contains(pkgInfo -> mCapsuleName)) {
+            *pluginsAPKName = pkgInfo -> mCapsuleName;
         }
-    }
-    */
+    }    
 
     // if no apk was found then return null
     return NOERROR;
@@ -311,12 +302,10 @@ ECode CPluginManager::GetPluginClass(
         /* [out] */ Handle32 * pluginClass)
 {
     VALIDATE_NOT_NULL(pluginClass);
-    AutoPtr<IContext> pluginContext;    
-    /*
-    mContext -> CreatePackageContext(packageName,
+    AutoPtr<IContext> pluginContext;
+    mContext -> CreateCapsuleContext(packageName,
             Context_CONTEXT_INCLUDE_CODE | Context_CONTEXT_IGNORE_SECURITY,
             (IContext**)&pluginContext);
-    */
     AutoPtr<IClassLoader> pluginCL;    //IClassLoader appreared in Elastos.Framework.Core.tmp   But it is not declared in the library of the Framework
     pluginContext -> GetClassLoader( (IClassLoader**)&pluginCL );
     pluginCL -> LoadClass(className,pluginClass);
@@ -327,7 +316,6 @@ ECode CPluginManager::constructor(
     /* [in] */ IContext* context)
 {
     mContext = context;
-    /*mPackageInfoCache = new List<IPackageInfo *>; */
 
     AutoPtr<ISignature> pSignatureT;    
     ECode ec = CSignature::New(SIGNATURE_1,(ISignature**)&pSignatureT);
