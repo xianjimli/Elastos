@@ -159,6 +159,12 @@ public:
     CARAPI SetWindowAnimations(
         /* [in] */ Int32 animations);
 
+    CARAPI SetSoftInputMode(
+        /* [in] */ Int32 mode);
+
+    CARAPI GetSoftInputMode(
+        /* [out] */ Int32* mode);
+
     CARAPI ReadFromParcel(
         /* [in] */ IParcel *source);
 

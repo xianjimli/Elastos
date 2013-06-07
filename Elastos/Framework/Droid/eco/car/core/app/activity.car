@@ -197,6 +197,9 @@ module
         OnRetainNonConfigurationInstance(
             [out] IInterface** object);
 
+        OnRetainNonConfigurationChildInstances(
+            [out] IObjectStringMap** objectStringMap);
+
         OnLowMemory();
 
         DispatchNewIntent(
@@ -292,6 +295,12 @@ module
         GetDecorView(
             [out] IView** decor);
 
+        SetVisibleFromServer(
+            [in] Boolean visible);
+
+        IsVisibleFromServer(
+            [out] Boolean * visible);
+
         IsVisibleFromClient(
             [out] Boolean* visible);
 
@@ -338,6 +347,12 @@ module
 
         GetTitleColor(
             [out] Int32* textColor);
+
+        SetConfigChangeFlags(
+            [in] Int32 configChangeFlags);
+
+        GetConfigChangeFlags(
+            [out] Int32* configChangeFlags);
 
         /**
          * Runs the specified action on the UI thread. If the current thread is the UI

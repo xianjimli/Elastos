@@ -68,7 +68,10 @@ CApplicationApartment::CApplicationApartment() :
     mCapsules(11),
     mResourceCapsules(5),
     mActiveResources(5),
-    mProviderMap(5)
+    mProviderMap(5),
+    mNumVisibleActivities(0),
+    mNewActivities(NULL),
+    mPendingConfiguration(NULL)
 {
     mProviderRefCountMap = new HashMap<AutoPtr<IContentProvider>,
             Int32, HashICP, ICPEq>(5);
@@ -612,9 +615,9 @@ ECode CApplicationApartment::HandleBindApplication(
     data->mAppInfo->GetSourceDir(&wdir);
     chdir((const char*)wdir);
 
-//    mBoundApplication = data;
-//    mConfiguration = new Configuration(data.config);
-//
+    mBoundApplication = data;
+    CConfiguration::New(data->mConfig, (IConfiguration**)&mConfiguration);
+
     // send up app name; do this *before* waiting for debugger
     Process::SetArgV0(data->mProcessName);
 //    android.ddm.DdmHandleAppName.setAppName(data.processName);
@@ -675,20 +678,22 @@ ECode CApplicationApartment::HandleBindApplication(
             AutoPtr<IActivityManager> mgr;
             ActivityManagerNative::GetDefault((IActivityManager**)&mgr);
 //            try {
-//                mgr.showWaitingForDebugger(mAppThread, true);
+//            mgr->ShowWaitingForDebugger(mAppApartment, TRUE);
 //            } catch (RemoteException ex) {
 //            }
 //
 //            Debug.waitForDebugger();
 //
 //            try {
-//                mgr.showWaitingForDebugger(mAppThread, false);
+//            mgr->ShowWaitingForDebugger(mAppApartment, FALSE);
 //            } catch (RemoteException ex) {
 //            }
 //
         } else {
-//            Slog.w(TAG, "Application " + data.info.getPackageName()
-//                  + " can be debugged on port 8100...");
+        String cName;
+        data->mInfo->GetCapsuleName(&cName);
+        Slogger::W(TAG, StringBuffer("Application ") + cName
+                  + " can be debugged on port 8100...");
         }
     }
 
@@ -781,8 +786,8 @@ ECode CApplicationApartment::HandleBindApplication(
 
     if (data->mProviders != NULL) {
         InstallContentProviders((IContext*)(IApplication*)app, data->mProviders);
-//        // For process that contain content providers, we want to
-//        // ensure that the JIT is enabled "at some point".
+        // For process that contain content providers, we want to
+        // ensure that the JIT is enabled "at some point".
 //        mH.sendEmptyMessageDelayed(H.ENABLE_JIT, 10*1000);
     }
 
@@ -819,8 +824,8 @@ ECode CApplicationApartment::HandleLaunchActivity(
     PerformLaunchActivity(r, customIntent, (IActivity**)&a);
 
     if (a != NULL) {
-//        r.createdConfig = new Configuration(mConfiguration);
-//        Bundle oldState = r.state;
+        CConfiguration::New(mConfiguration, (IConfiguration**)&r->mCreatedConfig);
+        AutoPtr<CBundle> oldState = r->mState;
         if (localLOGV) {
             Slogger::V(TAG, StringBuffer("Handling resume of activity."));
         }
@@ -840,24 +845,28 @@ ECode CApplicationApartment::HandleLaunchActivity(
             // retain the current state it has.
             r->mActivity->SetCalled(FALSE);
             mInstrumentation->CallActivityOnPause(r->mActivity);
-//            // We need to keep around the original state, in case
-//            // we need to be created again.
-//            r.state = oldState;
-//            if (!r.activity.mCalled) {
+            // We need to keep around the original state, in case
+            // we need to be created again.
+            r->mState = oldState;
+            Boolean called;
+            r->mActivity->IsCalled(&called);
+            if (!called) {
 //                throw new SuperNotCalledException(
 //                    "Activity " + r.intent.getComponent().toShortString() +
 //                    " did not call through to super.onPause()");
-//            }
+            }
 
             r->mPaused = TRUE;
         }
     }
     else {
-//        // If there was an error, for any reason, tell the activity
-//        // manager to stop us.
+        // If there was an error, for any reason, tell the activity
+        // manager to stop us.
 //        try {
-//            ActivityManagerNative.getDefault()
-//                .finishActivity(r.token, Activity.RESULT_CANCELED, null);
+        AutoPtr<IActivityManager> service;
+        ActivityManagerNative::GetDefault((IActivityManager**)&service);
+        Boolean isFinish;
+        service->FinishActivity(r->mToken, Activity_RESULT_CANCELED, NULL, &isFinish);
 //        } catch (RemoteException ex) {
 //        }
     }
@@ -1026,7 +1035,9 @@ void CApplicationApartment::DeliverNewIntents(
     List<AutoPtr<IIntent> >::Iterator it2 = intents->End();
     for (; it1 != it2; ++it1) {
         AutoPtr<IIntent> intent = *it1;
-//        intent.setExtrasClassLoader(r.activity.getClassLoader());
+        AutoPtr<IClassLoader> classLoader;
+        r->mActivity->GetClassLoader((IClassLoader**)&classLoader);
+        intent->SetExtrasClassLoader(classLoader);
         mInstrumentation->CallActivityOnNewIntent(r->mActivity, intent);
     }
 }
@@ -1053,11 +1064,13 @@ ECode CApplicationApartment::DeliverResults(
     for (; it1 != it2; ++it1) {
 //        try {
         AutoPtr<CResultInfo> ri = *it1;
-//        if (ri.mData != null) {
-//            ri.mData.setExtrasClassLoader(r.activity.getClassLoader());
-//        }
-//        if (DEBUG_RESULTS) Slog.v(TAG,
-//                "Delivering result to activity " + r + " : " + ri);
+        if (ri->mData != NULL) {
+            AutoPtr<IClassLoader> classLoader;
+            r->mActivity->GetClassLoader((IClassLoader**)&classLoader);
+            ri->mData->SetExtrasClassLoader(classLoader);
+        }
+        if (DEBUG_RESULTS) Slogger::V(TAG,
+                String("Delivering result to activity ") + r + " : " + ri);
         r->mActivity->DispatchActivityResult(ri->mResultWho,
                 ri->mRequestCode, ri->mResultCode, ri->mData);
 //        } catch (Exception e) {
@@ -1077,16 +1090,19 @@ ECode CApplicationApartment::HandleSendResult(
     /* [in] */ ResultData* res)
 {
     ActivityClientRecord* r = mActivities[res->mToken];
-//    if (DEBUG_RESULTS) Slog.v(TAG, "Handling send result to " + r);
+    if (DEBUG_RESULTS) Slogger::V(TAG, String("Handling send result to ") + r);
     if (r != NULL) {
         Boolean resumed = !r->mPaused;
-//        if (!r->mActivity.mFinished && r.activity.mDecor != null
-//                && r.hideForNow && resumed) {
-//            // We had hidden the activity because it started another
-//            // one...  we have gotten a result back and we are not
-//            // paused, so make sure our window is visible.
+        Boolean isFinish;
+        r->mActivity->IsFinishing(&isFinish);
+        AutoPtr<IView> decorview;
+        r->mActivity->GetDecorView((IView**)&decorview);
+        if (!isFinish && decorview != NULL && r->mHideForNow && resumed) {
+            // We had hidden the activity because it started another
+            // one...  we have gotten a result back and we are not
+            // paused, so make sure our window is visible.
 //            updateVisibility(r, true);
-//        }
+        }
         if (resumed) {
 //            try {
                 // Now we are idle.
@@ -1181,8 +1197,8 @@ ECode CApplicationApartment::HandleResumeActivity(
         // we started another activity, then don't yet make the
         // window visisble.
         } else if (!willBeVisible) {
-//                if (localLOGV) Slog.v(
-//                    TAG, "Launch " + r + " mStartedActivity set");
+            if (localLOGV) Slogger::V(
+                    TAG, String("Launch ") + r + " mStartedActivity set");
             r->mHideForNow = TRUE;
         }
 
@@ -1191,48 +1207,57 @@ ECode CApplicationApartment::HandleResumeActivity(
         r->mActivity->IsFinishing(&finished);
         AutoPtr<IView> decor;
         r->mActivity->GetDecorView((IView**)&decor);
-        if (!finished && willBeVisible
-                  && decor != NULL && !r->mHideForNow) {
-//                if (r.newConfig != null) {
-//                    if (DEBUG_CONFIGURATION) Slog.v(TAG, "Resuming activity "
-//                                + r.activityInfo.name + " with newConfig " + r.newConfig);
-//                    performConfigurationChanged(r.activity, r.newConfig);
-//                    r.newConfig = null;
-//                }
-//                if (localLOGV) Slog.v(TAG, "Resuming " + r + " with isForward="
-//                        + isForward);
-//                WindowManager.LayoutParams l = r.window.getAttributes();
-//                if ((l.softInputMode
-//                        & WindowManager.LayoutParams.SOFT_INPUT_IS_FORWARD_NAVIGATION)
-//                        != forwardBit) {
-//                    l.softInputMode = (l.softInputMode
-//                            & (~WindowManager.LayoutParams.SOFT_INPUT_IS_FORWARD_NAVIGATION))
-//                            | forwardBit;
-//                    if (r.activity.mVisibleFromClient) {
-//                        ViewManager wm = a.getWindowManager();
-//                        View decor = r.window.getDecorView();
-//                        wm.updateViewLayout(decor, l);
-//                    }
-//                }
-//                r.activity.mVisibleFromServer = true;
-//                mNumVisibleActivities++;
-//                if (r.activity.mVisibleFromClient) {
+        if (!finished && willBeVisible && decor != NULL && !r->mHideForNow) {
+            if (r->mNewConfig != NULL) {
+                if (DEBUG_CONFIGURATION) Slogger::V(TAG, String("Resuming activity ")
+                        + r->mActivityInfo->mName + " with newConfig " + r->mNewConfig);
+                // performConfigurationChanged(r.activity, r.newConfig);
+                r->mNewConfig = NULL;
+            }
+            if (localLOGV) Slogger::V(TAG, String("Resuming ") + r + " with isForward="
+                    + isForward);
+            AutoPtr<IWindowManagerLayoutParams> l;
+            r->mWindow->GetAttributes((IWindowManagerLayoutParams**)&l);
+            Int32 mode;
+            l->GetSoftInputMode(&mode);
+            if ((mode & WindowManagerLayoutParams_SOFT_INPUT_IS_FORWARD_NAVIGATION)
+                    != forwardBit) {
+                mode = (mode
+                        & (~WindowManagerLayoutParams_SOFT_INPUT_IS_FORWARD_NAVIGATION))
+                        | forwardBit;
+                Boolean isVisibleFromClient;
+                r->mActivity->IsVisibleFromClient(&isVisibleFromClient);
+                if (isVisibleFromClient) {
+                    AutoPtr<IViewManager> wm;
+                    a->GetWindowManagerEx((ILocalWindowManager**)&wm);
+                    AutoPtr<IView> decor;
+                    r->mWindow->GetDecorView((IView**)&decor);
+                    wm->UpdateViewLayout(decor, l);
+                }
+            }
+            r->mActivity->SetVisibleFromServer(TRUE);
+            mNumVisibleActivities++;
+            Boolean isVisibleFromClient;
+            r->mActivity->IsVisibleFromClient(&isVisibleFromClient);
+            if (isVisibleFromClient) {
                 r->mActivity->MakeVisible();
-//                }
+            }
         }
 
-//            r.nextIdle = mNewActivities;
-//            mNewActivities = r;
-//            if (localLOGV) Slog.v(
-//                TAG, "Scheduling idle handler for " + r);
-//            Looper.myQueue().addIdleHandler(new Idler());
+        r->mNextIdle = mNewActivities;
+        mNewActivities = r;
+        if (localLOGV) Slogger::V(
+                TAG, String("Scheduling idle handler for ") + r);
+//        Looper.myQueue().addIdleHandler(new Idler());
 
     } else {
         // If an exception was thrown when trying to resume, then
         // just end this activity.
 //            try {
-//                ActivityManagerNative.getDefault()
-//                    .finishActivity(token, Activity.RESULT_CANCELED, null);
+        AutoPtr<IActivityManager> serv;
+        ActivityManagerNative::GetDefault((IActivityManager**)&serv);
+        Boolean isFinish;
+        serv->FinishActivity(token, Activity_RESULT_CANCELED, NULL, &isFinish);
 //            } catch (RemoteException ex) {
 //            }
     }
@@ -1245,14 +1270,15 @@ CApplicationApartment::PerformResumeActivity(
     /* [in] */ Boolean clearHide)
 {
     ActivityClientRecord* r = mActivities[token];
-//    if (localLOGV) Slog.v(TAG, "Performing resume of " + r
-//            + " finished=" + r.activity.mFinished);
     Boolean finished;
-    if (r != NULL && (r->mActivity->IsFinishing(&finished), !finished)) {
-//        if (clearHide) {
-//            r.hideForNow = false;
-//            r.activity.mStartedActivity = false;
-//        }
+    r->mActivity->IsFinishing(&finished);
+    if (localLOGV) Slogger::V(TAG, String("Performing resume of ") + r
+           + " finished=" + finished);    
+    if (r != NULL && !finished) {
+        if (clearHide) {
+            r->mHideForNow = FALSE;
+            r->mActivity->SetStartedActivity(FALSE);
+        }
 //        try {
         if (r->mPendingIntents != NULL) {
             DeliverNewIntents(r, r->mPendingIntents);
@@ -1297,7 +1323,9 @@ ECode CApplicationApartment::HandlePauseActivity(
             PerformUserLeavingActivity(r);
         }
 
-//        r.activity.mConfigChangeFlags |= configChanges;
+        Int32 ccFlags;
+        r->mActivity->GetConfigChangeFlags(&ccFlags);
+        r->mActivity->SetConfigChangeFlags(ccFlags | configChanges);
         AutoPtr<IBundle> state;
         PerformPauseActivity(token, finished, TRUE, (IBundle**)&state);
 
@@ -1416,14 +1444,16 @@ ECode CApplicationApartment::HandleStopActivity(
     ECode ec;
 
     ActivityClientRecord* r = mActivities[token];
-//    r.activity.mConfigChangeFlags |= configChanges;
+    Int32 ccFlags;
+    r->mActivity->GetConfigChangeFlags(&ccFlags);
+    r->mActivity->SetConfigChangeFlags(ccFlags | configChanges);
 
     StopInfo* info = new StopInfo();
     PerformStopActivityInner(r, info, show);
 
-//    if (localLOGV) Slog.v(
-//        TAG, "Finishing stop of " + r + ": show=" + show
-//        + " win=" + r.window);
+   if (localLOGV) Slogger::V(
+       TAG, String("Finishing stop of ") + r + ": show=" + show
+       + " win=" + r->mWindow);
 
 //    updateVisibility(r, show);
 
@@ -1447,7 +1477,7 @@ ECode CApplicationApartment::PerformStopActivityInner(
     /* [in] */ StopInfo* info,
     /* [in] */ Boolean keepShown)
 {
-//    if (localLOGV) Slog.v(TAG, "Performing stop of " + r);
+    if (localLOGV) Slogger::V(TAG, String("Performing stop of ") + r);
     if (r != NULL) {
         if (!keepShown && r->mStopped) {
             Boolean finished;
@@ -1509,11 +1539,13 @@ ECode CApplicationApartment::HandleWindowVisibility(
         r->mActivity->PerformRestart();
         r->mStopped = FALSE;
     }
-//    if (r.activity.mDecor != null) {
+    AutoPtr<IView> decorview;
+    r->mActivity->GetDecorView((IView**)&decorview);
+    if (decorview != NULL) {
 //        if (Config.LOGV) Slog.v(
 //            TAG, "Handle window " + r + " visibility: " + show);
 //        updateVisibility(r, show);
-//    }
+   }
     return NOERROR;
 }
 
@@ -1533,9 +1565,11 @@ CApplicationApartment::PerformDestroyActivity(
     /* [in] */ Boolean getNonConfigInstance)
 {
     ActivityClientRecord* r = mActivities[token];
-//    if (localLOGV) Slog.v(TAG, "Performing finish of " + r);
+    if (localLOGV) Slogger::V(TAG, String("Performing finish of ") + r);
     if (r != NULL) {
-//        r.activity.mConfigChangeFlags |= configChanges;
+        Int32 ccFlags;
+        r->mActivity->GetConfigChangeFlags(&ccFlags);
+        r->mActivity->SetConfigChangeFlags(ccFlags | configChanges);
         if (finishing) {
             r->mActivity->SetFinishing(TRUE);
         }
@@ -1577,10 +1611,10 @@ CApplicationApartment::PerformDestroyActivity(
 //            }
             r->mStopped = TRUE;
         }
-//        if (getNonConfigInstance) {
-//            try {
-//                r.lastNonConfigurationInstance
-//                        = r.activity.onRetainNonConfigurationInstance();
+        if (getNonConfigInstance) {
+//           try {
+            r->mActivity->OnRetainNonConfigurationInstance((IInterface**)
+                    &r->mLastNonConfigurationInstance);
 //            } catch (Exception e) {
 //                if (!mInstrumentation.onException(r.activity, e)) {
 //                    throw new RuntimeException(
@@ -1589,9 +1623,9 @@ CApplicationApartment::PerformDestroyActivity(
 //                            + ": " + e.toString(), e);
 //                }
 //            }
-//            try {
-//                r.lastNonConfigurationChildInstances
-//                        = r.activity.onRetainNonConfigurationChildInstances();
+//            try {                
+            r->mActivity->OnRetainNonConfigurationChildInstances((IObjectStringMap**)
+                    &r->mLastNonConfigurationChildInstances);
 //            } catch (Exception e) {
 //                if (!mInstrumentation.onException(r.activity, e)) {
 //                    throw new RuntimeException(
@@ -1601,7 +1635,7 @@ CApplicationApartment::PerformDestroyActivity(
 //                }
 //            }
 //
-//        }
+        }
 //        try {
         r->mActivity->SetCalled(FALSE);
         r->mActivity->Destroy();
@@ -1610,9 +1644,9 @@ CApplicationApartment::PerformDestroyActivity(
 //                "Activity " + safeToComponentShortString(r.intent) +
 //                " did not call through to super.onDestroy()");
 //        }
-//        if (r.window != null) {
-//            r.window.closeAllPanels();
-//        }
+        if (r->mWindow != NULL) {
+            r->mWindow->CloseAllPanels();
+        }
 //        } catch (SuperNotCalledException e) {
 //            throw e;
 //        } catch (Exception e) {
@@ -1642,9 +1676,11 @@ ECode CApplicationApartment::HandleDestroyActivity(
         AutoPtr<IView> v;
         r->mActivity->GetDecorView((IView**)&v);
         if (v != NULL) {
-            // if (r->mActivity.mVisibleFromServer) {
-            //    mNumVisibleActivities--;
-            // }
+            Boolean visible;
+            r->mActivity->IsVisibleFromServer(&visible);
+            if (visible) {
+               mNumVisibleActivities--;
+            }
             AutoPtr<IBinder> wtoken;
             v->GetWindowToken((IBinder**)&wtoken);
             Boolean isAdded = TRUE;
@@ -1689,108 +1725,119 @@ ECode CApplicationApartment::HandleRelaunchActivity(
     /* [in] */ ActivityClientRecord* tmp,
     /* [in] */ Int32 configChanges)
 {
-    return E_NOT_IMPLEMENTED;
-//    // If we are getting ready to gc after going to the background, well
-//        // we are back active so skip it.
+    // If we are getting ready to gc after going to the background, well
+    // we are back active so skip it.
 //        unscheduleGcIdler();
-//
-//        Configuration changedConfig = null;
-//
-//        if (DEBUG_CONFIGURATION) Slog.v(TAG, "Relaunching activity "
-//                + tmp.token + " with configChanges=0x"
-//                + Integer.toHexString(configChanges));
-//
-//        // First: make sure we have the most recent configuration and most
-//        // recent version of the activity, or skip it if some previous call
-//        // had taken a more recent version.
-//        synchronized (mPackages) {
-//            int N = mRelaunchingActivities.size();
-//            IBinder token = tmp.token;
-//            tmp = null;
-//            for (int i=0; i<N; i++) {
-//                ActivityClientRecord r = mRelaunchingActivities.get(i);
-//                if (r.token == token) {
-//                    tmp = r;
-//                    mRelaunchingActivities.remove(i);
-//                    i--;
-//                    N--;
-//                }
-//            }
-//
-//            if (tmp == null) {
-//                if (DEBUG_CONFIGURATION) Slog.v(TAG, "Abort, activity not relaunching!");
-//                return;
-//            }
-//
-//            if (mPendingConfiguration != null) {
-//                changedConfig = mPendingConfiguration;
-//                mPendingConfiguration = null;
-//            }
-//        }
-//
-//        if (tmp.createdConfig != null) {
-//            // If the activity manager is passing us its current config,
-//            // assume that is really what we want regardless of what we
-//            // may have pending.
-//            if (mConfiguration == null
-//                    || (tmp.createdConfig.isOtherSeqNewer(mConfiguration)
-//                            && mConfiguration.diff(tmp.createdConfig) != 0)) {
-//                if (changedConfig == null
-//                        || tmp.createdConfig.isOtherSeqNewer(changedConfig)) {
-//                    changedConfig = tmp.createdConfig;
-//                }
-//            }
-//        }
-//
-//        if (DEBUG_CONFIGURATION) Slog.v(TAG, "Relaunching activity "
-//                + tmp.token + ": changedConfig=" + changedConfig);
-//
-//        // If there was a pending configuration change, execute it first.
-//        if (changedConfig != null) {
+
+    AutoPtr<IConfiguration> changedConfig = NULL;
+
+    if (DEBUG_CONFIGURATION) Slogger::V(TAG, String("Relaunching activity ")
+            + tmp->mToken + " with configChanges=0x"
+            /*+ Integer.toHexString(configChanges)*/);
+
+    // First: make sure we have the most recent configuration and most
+    // recent version of the activity, or skip it if some previous call
+    // had taken a more recent version.
+    {
+        Mutex::Autolock lock(mCapsulesLock);
+        AutoPtr<IBinder> token = tmp->mToken;
+        tmp = NULL;
+        List<ActivityClientRecord*>::Iterator it;
+        for (it = mRelaunchingActivities.Begin(); it != mRelaunchingActivities.End(); ++it) {
+            ActivityClientRecord* r = *it;
+            if (r->mToken == token) {
+                tmp = r;
+                mRelaunchingActivities.Erase(it);
+            }
+        }
+
+        if (tmp == NULL) {
+               if (DEBUG_CONFIGURATION) Slogger::V(TAG, "Abort, activity not relaunching!");
+               return NOERROR;
+           }
+
+        if (mPendingConfiguration != NULL) {
+            changedConfig = mPendingConfiguration;
+            mPendingConfiguration = NULL;
+        }
+    }
+
+    if (tmp->mCreatedConfig != NULL) {
+        // If the activity manager is passing us its current config,
+        // assume that is really what we want regardless of what we
+        // may have pending.
+        Boolean isNewer;
+        tmp->mCreatedConfig->IsOtherSeqNewer(mConfiguration, &isNewer);
+        Int32 diffRes;
+        mConfiguration->Diff(tmp->mCreatedConfig, &diffRes);
+        if (mConfiguration == NULL || (isNewer && diffRes != 0)) {
+            Boolean isother;
+            tmp->mCreatedConfig->IsOtherSeqNewer(changedConfig, &isother);
+            if (changedConfig == NULL || isother) {
+                changedConfig = tmp->mCreatedConfig;
+            }
+        }
+    }
+
+    if (DEBUG_CONFIGURATION) Slogger::V(TAG, String("Relaunching activity ")
+            + tmp->mToken + ": changedConfig=" + changedConfig);
+
+    // If there was a pending configuration change, execute it first.
+        if (changedConfig != NULL) {
 //            handleConfigurationChanged(changedConfig);
-//        }
-//
-//        ActivityClientRecord r = mActivities.get(tmp.token);
-//        if (DEBUG_CONFIGURATION) Slog.v(TAG, "Handling relaunch of " + r);
-//        if (r == null) {
-//            return;
-//        }
-//
-//        r.activity.mConfigChangeFlags |= configChanges;
-//        Intent currentIntent = r.activity.mIntent;
-//
-//        Bundle savedState = null;
-//        if (!r.paused) {
-//            savedState = performPauseActivity(r.token, false, true);
-//        }
-//
-//        handleDestroyActivity(r.token, false, configChanges, true);
-//
-//        r.activity = null;
-//        r.window = null;
-//        r.hideForNow = false;
-//        r.nextIdle = null;
-//        // Merge any pending results and pending intents; don't just replace them
-//        if (tmp.pendingResults != null) {
-//            if (r.pendingResults == null) {
-//                r.pendingResults = tmp.pendingResults;
-//            } else {
-//                r.pendingResults.addAll(tmp.pendingResults);
-//            }
-//        }
-//        if (tmp.pendingIntents != null) {
-//            if (r.pendingIntents == null) {
-//                r.pendingIntents = tmp.pendingIntents;
-//            } else {
-//                r.pendingIntents.addAll(tmp.pendingIntents);
-//            }
-//        }
-//        r.startsNotResumed = tmp.startsNotResumed;
-//        if (savedState != null) {
-//            r.state = savedState;
-//        }
-//
-//        handleLaunchActivity(r, currentIntent);
+        }
+
+    Map<AutoPtr<IBinder>, ActivityClientRecord*>::Iterator it = mActivities.Find(tmp->mToken);
+    ActivityClientRecord* r = it->mSecond;
+        if (DEBUG_CONFIGURATION) Slogger::V(TAG, String("Handling relaunch of ") + r);
+    if (r == NULL) {
+        return NOERROR;
+    }
+
+    Int32 changeFlags;
+    r->mActivity->GetConfigChangeFlags(&changeFlags);
+    r->mActivity->SetConfigChangeFlags(changeFlags | configChanges);
+    AutoPtr<IIntent> currentIntent;
+    r->mActivity->GetIntent((IIntent**)&currentIntent);
+
+    AutoPtr<CBundle> savedState = NULL;
+    if (!r->mPaused) {
+        PerformPauseActivity(r->mToken, FALSE, TRUE, (IBundle**)&savedState);
+    }
+
+    HandleDestroyActivity(r->mToken, FALSE, configChanges, TRUE);
+
+    r->mActivity = NULL;
+    r->mWindow = NULL;
+    r->mHideForNow = FALSE;
+    r->mNextIdle = NULL;
+    // Merge any pending results and pending intents; don't just replace them
+    if (tmp->mPendingResults != NULL) {
+        if (r->mPendingResults == NULL) {
+            r->mPendingResults = tmp->mPendingResults;
+        } else {
+            List<AutoPtr<CResultInfo> >::Iterator it;
+            for (it = tmp->mPendingResults->Begin(); it != tmp->mPendingResults->End(); ++it)
+                r->mPendingResults->PushBack(*it);
+        }
+    }
+    if (tmp->mPendingIntents != NULL) {
+        if (r->mPendingIntents == NULL) {
+            r->mPendingIntents = tmp->mPendingIntents;
+        } else {
+            List<AutoPtr<IIntent> >::Iterator it;
+            for (it = tmp->mPendingIntents->Begin(); it != tmp->mPendingIntents->End(); ++it)
+                r->mPendingIntents->PushBack(*it);
+        }
+    }
+    r->mStartsNotResumed = tmp->mStartsNotResumed;
+    if (savedState != NULL) {
+        r->mState = savedState;
+    }
+
+    HandleLaunchActivity(r, currentIntent);
+
+    return NOERROR;
 }
 
 void CApplicationApartment::PerformNewIntents(
@@ -1875,7 +1922,6 @@ ECode CApplicationApartment::HandleReceiver(
 //        + ", dir=" + packageInfo.getAppDir());
 
     AutoPtr<CContextImpl> context;
-//    ContextImpl context = (ContextImpl)app.getBaseContext();
     app->GetBaseContext((IContext**)(CContextImpl**)&context);
     receiver->SetOrderedHint(TRUE);
     receiver->SetResult(data->mResultCode, data->mResultData,
@@ -1957,7 +2003,7 @@ ECode CApplicationApartment::HandleCreateService(
     service = (IService*)object->Probe(EIID_IService);
 
 //    try {
-//    if (localLOGV) Slog.v(TAG, "Creating service " + data.info.name);
+    if (localLOGV) Slogger::V(TAG, String("Creating service ") + data->mInfo->mName);
 
     AutoPtr<CContextImpl> appContext;
     CContextImpl::NewByFriend((CContextImpl**)&appContext);
@@ -1993,7 +2039,9 @@ ECode CApplicationApartment::HandleBindService(
     AutoPtr<IService> s = mServices[data->mToken];
     if (s != NULL) {
 //        try {
-//        data.intent.setExtrasClassLoader(s.getClassLoader());
+        AutoPtr<IClassLoader> classLoader;
+        s->GetClassLoader((IClassLoader**)&classLoader);
+        data->mIntent->SetExtrasClassLoader(classLoader);
 //        try {
         AutoPtr<IActivityManager> activityManager;
         ActivityManagerNative::GetDefault((IActivityManager**)&activityManager);
@@ -2027,7 +2075,9 @@ ECode CApplicationApartment::HandleUnbindService(
     AutoPtr<IService> s = mServices[data->mToken];
     if (s != NULL) {
 //        try {
-//            data.intent.setExtrasClassLoader(s.getClassLoader());
+        AutoPtr<IClassLoader> classLoader;
+        s->GetClassLoader((IClassLoader**)&classLoader);
+        data->mIntent->SetExtrasClassLoader(classLoader);
 //            try {
         AutoPtr<IActivityManager> activityManager;
         ActivityManagerNative::GetDefault((IActivityManager**)&activityManager);
@@ -2059,9 +2109,11 @@ ECode CApplicationApartment::HandleServiceArgs(
     AutoPtr<IService> s = mServices[data->mToken];
     if (s != NULL) {
 //        try {
-//        if (data.args != null) {
-//            data.args.setExtrasClassLoader(s.getClassLoader());
-//        }
+        if (data->mArgs != NULL) {
+            AutoPtr<IClassLoader> classLoader;
+            s->GetClassLoader((IClassLoader**)&classLoader);
+            data->mArgs->SetExtrasClassLoader(classLoader);
+        }
         Int32 res;
         s->StartCommand(data->mArgs, data->mFlags, data->mStartId, &res);
 //        QueuedWork.waitToFinish();
@@ -2090,7 +2142,7 @@ ECode CApplicationApartment::HandleStopService(
     AutoPtr<IService> s = mServices[token];
     if (s != NULL) {
 //        try {
-//        if (localLOGV) Slog.v(TAG, "Destroying service " + s);
+        if (localLOGV) Slogger::V(TAG, String("Destroying service ") + s);
         s->Destroy();
         AutoPtr<IContext> context;
         s->GetBaseContext((IContext**)&context);
@@ -2286,8 +2338,8 @@ LoadedCap* CApplicationApartment::GetCapsuleInfo(
 //                        ? mBoundApplication.processName : null)
 //                + ")");
         capsuleInfo = new LoadedCap(this,
-                aInfo, this, securityViolation, includeCode /* &&
-                (aInfo.flags&ApplicationInfo.FLAG_HAS_CODE) != 0 */);
+                aInfo, this, securityViolation, includeCode &&
+                (aInfo->mFlags&ApplicationInfo_FLAG_HAS_CODE) != 0);
         if (includeCode) {
             mCapsules[aInfo->mCapsuleName] = capsuleInfo;
         } else {
@@ -2304,7 +2356,7 @@ LoadedCap* CApplicationApartment::GetCapsuleInfo(
 {
     Boolean includeCode = (flags & Context_CONTEXT_INCLUDE_CODE) != 0;
     Boolean securityViolation = includeCode && ai->mUid != 0
-            /*&& ai->mUid != Process.SYSTEM_UID*/ && (mBoundApplication != NULL
+            && ai->mUid != Process::SYSTEM_UID && (mBoundApplication != NULL
                     ? ai->mUid != mBoundApplication->mAppInfo->mUid : TRUE);
     if ((flags & (Context_CONTEXT_INCLUDE_CODE
             | Context_CONTEXT_IGNORE_SECURITY))
@@ -2338,8 +2390,11 @@ LoadedCap* CApplicationApartment::GetCapsuleInfo(
         //Slog.i(TAG, "getPackageInfo " + packageName + ": " + packageInfo);
         //if (packageInfo != null) Slog.i(TAG, "isUptoDate " + packageInfo.mResDir
         //        + ": " + packageInfo.mResources.getAssets().isUpToDate());
-        if (capsuleInfo != NULL /*&& (packageInfo.mResources == null
-                || packageInfo.mResources.getAssets().isUpToDate()) */ ) {
+        AutoPtr<IAssetManager> assertmr;
+        capsuleInfo->mResources->GetAssets((IAssetManager**)&assertmr);
+        Boolean isUpdated;
+        assertmr->IsUpToDate(&isUpdated);
+        if (capsuleInfo != NULL && (capsuleInfo->mResources == NULL || isUpdated) ) {
             if (capsuleInfo->IsSecurityViolation()
                     && (flags & Context_CONTEXT_IGNORE_SECURITY) == 0) {
     //            throw new SecurityException(
@@ -2384,12 +2439,12 @@ ECode CApplicationApartment::InstallContentProviders(
         AutoPtr<CContentProviderInfo> cpi;
         cpi = (CContentProviderInfo*)
                 (IContentProviderInfo*)(IInterface*)itf;
-//        StringBuilder buf = new StringBuilder(128);
-//        buf.append("Pub ");
-//        buf.append(cpi.authority);
-//        buf.append(": ");
-//        buf.append(cpi.name);
-//        Slog.i(TAG, buf.toString());
+       StringBuffer* buf = new StringBuffer(128);
+       *buf += "Pub ";
+       *buf += cpi->mAuthority;
+       *buf += ": ";
+       *buf += cpi->mName;
+       Slogger::I(TAG, buf->ToString());
         AutoPtr<IContentProvider> cp;
         ec = InstallProvider(context, NULL, cpi, TRUE, (IContentProvider**)&cp);
         if (SUCCEEDED(ec) && (cp != NULL)) {
@@ -2453,7 +2508,7 @@ ECode CApplicationApartment::GetProvider(
     holder->GetContentProviderInfo((IContentProviderInfo**)&info);
     holder->GetContentProvider((IContentProvider**)&prov);
     InstallProvider(context, prov, info, TRUE, provider);
-//    //Slog.i(TAG, "noReleaseNeeded=" + holder.noReleaseNeeded);
+    //Slog.i(TAG, "noReleaseNeeded=" + holder.noReleaseNeeded);
 //    if (holder.noReleaseNeeded || holder.provider == null) {
 //        // We are not going to release the provider if it is an external
 //        // provider that doesn't care about being released, or if it is
@@ -2548,7 +2603,7 @@ ECode CApplicationApartment::InstallProvider(
         else {
             context->CreateCapsuleContext(
                     ((CApplicationInfo*)(IApplicationInfo*)ai)->mCapsuleName,
-                    -1 /* Context.CONTEXT_INCLUDE_CODE */, (IContext**)&c);
+                    Context_CONTEXT_INCLUDE_CODE, (IContext**)&c);
         }
         if (c == NULL) {
 //            Slog.w(TAG, "Unable to get context for package " +
@@ -2589,10 +2644,10 @@ ECode CApplicationApartment::InstallProvider(
 //                    TAG, "Instantiating local provider " + info.name);
         localProvider->AttachInfo(c, info);
     }
-//    else if (localLOGV) {
+   else if (localLOGV) {
 //        Slog.v(TAG, "Installing external provider " + info.authority + ": "
 //                + info.name);
-//    }
+   }
 
     {
         Mutex::Autolock lock(mProviderMapLock);

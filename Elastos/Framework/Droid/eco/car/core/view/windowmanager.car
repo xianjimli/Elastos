@@ -705,6 +705,12 @@ module
 
         SetWindowAnimations(
             [in] Int32 animations);
+
+        SetSoftInputMode(
+            [in] Int32 mode);
+
+        GetSoftInputMode(
+            [out] Int32* mode);
     }
 
     interface IWindowManagerLayoutParamsHelper {

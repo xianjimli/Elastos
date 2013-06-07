@@ -575,9 +575,19 @@ public:
 private:
     friend class LoadedCap;
 
+    static const Boolean DEBUG_CONFIGURATION = FALSE;
+
     AutoPtr<IApartment> mApartment;
 
+    AutoPtr<CApplicationApartment> mAppApartment;
     Map<AutoPtr<IBinder>, ActivityClientRecord*> mActivities;
+
+    // List of new activities (via ActivityRecord.nextIdle) that should
+    // be reported when next we idle.
+    ActivityClientRecord* mNewActivities;
+
+    // Number of activities that are currently visible on-screen.
+    Int32 mNumVisibleActivities;
     Map<AutoPtr<IBinder>, AutoPtr<IService> > mServices;
     AppBindData* mBoundApplication;
     AutoPtr<CConfiguration> mConfiguration;
@@ -614,6 +624,7 @@ private:
     };
     HashMap<ResourcesKey*, AutoPtr<CResources>, HashRK, RKEq> mActiveResources;
     List<ActivityClientRecord*> mRelaunchingActivities;
+    AutoPtr<IConfiguration> mPendingConfiguration;
 
     // The lock of mProviderMap protects the following variables.
     Mutex mProviderMapLock;

@@ -10324,7 +10324,7 @@ ECode CActivityManagerService::FinishReceiver(
 
     Boolean doNext;
 
-//    final long origId = Binder.clearCallingIdentity();
+    const Int64 origId = Binder::ClearCallingIdentity();
 
     {
         Mutex::Autolock lock(_m_syncLock);
@@ -10337,7 +10337,7 @@ ECode CActivityManagerService::FinishReceiver(
     }
     TrimApplications();
 
-//    Binder.restoreCallingIdentity(origId);
+    Binder::RestoreCallingIdentity(origId);
     return NOERROR;
 }
 
