@@ -293,6 +293,9 @@ module
             [in] String paragraph,
             [in] Int32 flags);
 
+        constructor(
+            [in] Int64 pBidi);
+
         interface IBidi;
     }
 

@@ -3,8 +3,8 @@
 
 #include <elastos.h>
 #include "Elastos.Text_server.h"
+#include <elastos/AutoPtr.h>
 
-using namespace Elastos;
 /**
  * Dalvik Bidi wrapper. Derived from an old version of Harmony; today they call
  * straight through to ICU4J.
@@ -21,48 +21,52 @@ public:
         /* [in] */ Int64 pBiDi);
 
     // Perform the Unicode BiDi algorithm.
-    static CARAPI_(void) Ubidi_setPara(
+    static CARAPI Ubidi_setPara(
         /* [in] */ Int64 pBiDi,
-        /* [in] */ ArrayOf<Char32> * text,
+        /* [in] */ ArrayOf<Char32>* text,
         /* [in] */ Int32 length,
         /* [in] */ Int32 paraLevel,
-        /* [in] */ ArrayOf<Byte> * embeddingLevels);
+        /* [in] */ ArrayOf<Byte>* embeddingLevels);
 
     // ubidi_setLine() sets a UBiDi to contain the reordering information,
     // especially the resolved levels, for all the characters in a line of
     // text.
-    static CARAPI_(Int64) Ubidi_setLine(
-        /* [in] */ const Int64& pParaBiDi,
+    static CARAPI Ubidi_setLine(
+        /* [in] */ Int64 pParaBiDi,
         /* [in] */ Int32 start,
-        /* [in] */ Int32 limit);
+        /* [in] */ Int32 limit,
+        /* [out] */ Int64* line);
 
     // Get the directionality of the text.
     static CARAPI_(Int32) Ubidi_getDirection(
-        /* [in] */ const Int64& pBiDi);
+        /* [in] */ Int64 pBiDi);
 
     // Get the length of the text.
     static CARAPI_(Int32) Ubidi_getLength(
-        /* [in] */ const Int64& pBiDi);
+        /* [in] */ Int64 pBiDi);
 
     // Get the paragraph level of the text.
     static CARAPI_(Byte) Ubidi_getParaLevel(
-        /* [in] */ const Int64& pBiDi);
+        /* [in] */ Int64 pBiDi);
 
     // Get an array of levels for each character.
-    static CARAPI_(ArrayOf<Byte> *) Ubidi_getLevels(
-        /* [in] */ Int64 pBiDi);
+    static CARAPI Ubidi_getLevels(
+        /* [in] */ Int64 pBiDi,
+        /* [out] */ ArrayOf<Byte>** levels);
 
     // Get the number of runs.
-    static CARAPI_(Int64) Ubidi_countRuns(
-        /* [in] */ Int64 pBiDi);
+    static CARAPI Ubidi_countRuns(
+        /* [in] */ Int64 pBiDi,
+        /* [out] */ Int32* count);
 
     // Get the BidiRuns
-    static CARAPI_(ArrayOf<IBidiRun * > *) Ubidi_getRuns(
-        /* [in] */ Int64 pBidi);
+    static CARAPI Ubidi_getRuns(
+        /* [in] */ Int64 pBidi,
+        /* [out] */ ArrayOf<AutoPtr<IBidiRun> >** runs);
 
     // This is a convenience function that does not use a UBiDi object
-    static CARAPI_(ArrayOf<Int32> *) Ubidi_reorderVisual(
-        /* [in] */ ArrayOf<Byte> * levels,
+    static CARAPI_(ArrayOf<Int32>*) Ubidi_reorderVisual(
+        /* [in] */ ArrayOf<Byte>* levelBytes,
         /* [in] */ Int32 length);
 
 public:

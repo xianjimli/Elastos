@@ -9,12 +9,12 @@ CarClass(CBidi), public Bidi
 {
 public:
     CARAPI constructor(
-        /* [in] */ IAttributedCharacterIterator * pParagraph);
+        /* [in] */ IAttributedCharacterIterator* paragraph);
 
     CARAPI constructor(
-        /* [in] */ ArrayOf<Char32> * pTexts,
+        /* [in] */ ArrayOf<Char32>* pTexts,
         /* [in] */ Int32 textStart,
-        /* [in] */ ArrayOf<Byte> * pEmbeddings,
+        /* [in] */ ArrayOf<Byte>* pEmbeddings,
         /* [in] */ Int32 embStart,
         /* [in] */ Int32 paragraphLength,
         /* [in] */ Int32 flags);
@@ -23,62 +23,51 @@ public:
         /* [in] */ const String& paragraph,
         /* [in] */ Int32 flags);
 
+    CARAPI constructor(
+        /* [in] */ Int64 pBidi);
+
     CARAPI BaseIsLeftToRight(
-        /* [out] */ Boolean * pBaseLevel);
+        /* [out] */ Boolean* baseLevel);
 
     CARAPI CreateLineBidi(
         /* [in] */ Int32 lineStart,
         /* [in] */ Int32 lineLimit,
-        /* [out] */ IBidi ** ppObject);
+        /* [out] */ IBidi** object);
 
     CARAPI GetBaseLevel(
-        /* [out] */ Int32 * pBaseLevel);
+        /* [out] */ Int32* baseLevel);
 
     CARAPI GetLength(
-        /* [out] */ Int32 * pLength);
-
-    CARAPI SetLength(
-        /* [in] */ Int32 length);
-
-    CARAPI GetOffsetLevel(
-        /* [out] */ ArrayOf<Byte>** ppOffsetLevel);
-
-    CARAPI SetOffsetLevel(
-        /* [in] */ ArrayOf<Byte>* pOffsetLevel);
-
-    CARAPI SetUnidirectional(
-        /* [in] */ Boolean unidirectional);
+        /* [out] */ Int32* length);
 
     CARAPI GetLevelAt(
         /* [in] */ Int32 offset,
-        /* [out] */ Int32 * pLevel);
+        /* [out] */ Int32* level);
 
     CARAPI GetRunCount(
-        /* [out] */ Int32 * pRunCount);
+        /* [out] */ Int32* runCount);
 
     CARAPI GetRunLevel(
         /* [in] */ Int32 run,
-        /* [out] */ Int32 * pRunLevel);
+        /* [out] */ Int32* runLevel);
 
     CARAPI GetRunLimit(
         /* [in] */ Int32 run,
-        /* [out] */ Int32 * pRunLimit);
+        /* [out] */ Int32* runLimit);
 
     CARAPI GetRunStart(
         /* [in] */ Int32 run,
-        /* [out] */ Int32 * pRunStart);
+        /* [out] */ Int32* runStart);
 
     CARAPI IsLeftToRight(
-        /* [out] */ Boolean * pIsLefttoRight);
+        /* [out] */ Boolean* isLefttoRight);
 
     CARAPI IsMixed(
-        /* [out] */ Boolean * pIsMixed);
+        /* [out] */ Boolean* isMixed);
 
     CARAPI IsRightToLeft(
-        /* [out] */ Boolean * pIsRightToLeft);
+        /* [out] */ Boolean* isRightToLeft);
 
-private:
-    // TODO: Add your private member variables here.
 };
 
 #endif // __CBIDI_H__

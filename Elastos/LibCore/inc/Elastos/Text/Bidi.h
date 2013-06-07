@@ -5,15 +5,10 @@
 #include "Elastos.Text_server.h"
 #include <elastos.h>
 #include "TextAttribute.h"
-//#include "CBidi.h"
 #include <elastos/List.h>
-using namespace Elastos;
 
 class Bidi {
 public:
-    CARAPI_(PInterface) Probe(
-        /* [in]  */ REIID riid);
-
     Bidi();
 
     virtual ~Bidi();
@@ -105,6 +100,9 @@ public:
         /* [in] */ String paragraph,
         /* [in] */ Int32 flags);
 
+    CARAPI Init(
+        /* [in] */ Int64 pBidi);
+
     /**
      * Returns whether the base level is from left to right.
      *
@@ -148,18 +146,6 @@ public:
      */
     CARAPI GetLength(
         /* [out] */ Int32* length);
-
-    CARAPI SetLength(
-        /* [in] */ Int32 length);
-
-    CARAPI GetOffsetLevel(
-        /* [out] */ ArrayOf<Byte>** offsetLevel);
-
-    CARAPI SetOffsetLevel(
-        /* [in] */ ArrayOf<Byte>* offsetLevel);
-
-    CARAPI SetUnidirectional(
-        /* [in] */ Boolean unidirectional);
 
     /**
      * Returns the level of a specified character.
@@ -294,32 +280,16 @@ public:
         /* [in] */ Int32 limit,
         /* [out] */ Boolean * result);
 
-    /**
-     * Returns the internal message of the {@code Bidi} object, used in
-     * debugging.
-     *
-     * @return a string containing the internal message.
-     */
-    //@Override
-    //public String toString() {
-    //    return getClass().getName()
-    //            + "[direction: " + direction + " baseLevel: " + baseLevel
-    //            + " length: " + length + " runs: " + Arrays.toString(runs) + "]";
-    //}
-
 private:
     // create the native UBiDi struct, need to be closed with ubidi_close().
-    static CARAPI_(Int64) CreateUBiDi(
+    static CARAPI CreateUBiDi(
         /* [in] */ ArrayOf<Char32>* texts,
         /* [in] */ Int32 textStart,
         /* [in] */ ArrayOf<Byte>* embeddings,
         /* [in] */ Int32 embStart,
         /* [in] */ Int32 paragraphLength,
-        /* [in] */ Int32 flags);
-
-    /* private constructor used by createLineBidi() */
-    Bidi(
-        /* [in] */ Int64 pBidi);
+        /* [in] */ Int32 flags,
+        /* [out] */ Int64* uBiDi);
 
     // read info from the native UBiDi struct
     CARAPI_(void) ReadBidiInfo(
@@ -334,9 +304,9 @@ private:
 
     Int32 mLength;
 
-    ArrayOf<Byte> * mOffsetLevel;
+    ArrayOf<Byte>* mOffsetLevel;
 
-    ArrayOf<IBidiRun * > * mRuns;
+    ArrayOf<AutoPtr<IBidiRun> >* mRuns;
 
     Int32 mDirection;
 

@@ -8,14 +8,14 @@ ECode CBidi::constructor(
 }
 
 ECode CBidi::constructor(
-    /* [in] */ ArrayOf<Char32> * pTexts,
+    /* [in] */ ArrayOf<Char32>* texts,
     /* [in] */ Int32 textStart,
-    /* [in] */ ArrayOf<Byte> * pEmbeddings,
+    /* [in] */ ArrayOf<Byte>* embeddings,
     /* [in] */ Int32 embStart,
     /* [in] */ Int32 paragraphLength,
     /* [in] */ Int32 flags)
 {
-    return Bidi::Init(pTexts, textStart, pEmbeddings, embStart, paragraphLength, flags);
+    return Bidi::Init(texts, textStart, embeddings, embStart, paragraphLength, flags);
 }
 
 ECode CBidi::constructor(
@@ -25,104 +25,86 @@ ECode CBidi::constructor(
     return Bidi::Init(paragraph, flags);
 }
 
-ECode CBidi::BaseIsLeftToRight(
-    /* [out] */ Boolean * pBaseLevel)
+ECode CBidi::constructor(
+    /* [in] */ Int64 pBidi)
 {
-    return Bidi::BaseIsLeftToRight(pBaseLevel);
+    return Bidi::Init(pBidi);
+}
+
+ECode CBidi::BaseIsLeftToRight(
+    /* [out] */ Boolean* baseLevel)
+{
+    return Bidi::BaseIsLeftToRight(baseLevel);
 }
 
 ECode CBidi::CreateLineBidi(
     /* [in] */ Int32 lineStart,
     /* [in] */ Int32 lineLimit,
-    /* [out] */ IBidi ** ppObject)
+    /* [out] */ IBidi** object)
 {
-    return Bidi::CreateLineBidi(lineStart, lineLimit, ppObject);
+    return Bidi::CreateLineBidi(lineStart, lineLimit, object);
 }
 
 ECode CBidi::GetBaseLevel(
-    /* [out] */ Int32 * pBaseLevel)
+    /* [out] */ Int32* baseLevel)
 {
-    return Bidi::GetBaseLevel(pBaseLevel);
+    return Bidi::GetBaseLevel(baseLevel);
 }
 
 ECode CBidi::GetLength(
-    /* [out] */ Int32 * pLength)
+    /* [out] */ Int32* length)
 {
-    return Bidi::GetLength(pLength);
-}
-
-ECode CBidi::SetLength(
-        /* [in] */ Int32 length)
-{
-    return Bidi::SetLength(length);    
-}
-
-ECode CBidi::GetOffsetLevel(
-    /* [out] */ ArrayOf<Byte>** ppOffsetLevel)
-{
-    return Bidi::GetOffsetLevel(ppOffsetLevel);    
-}
-
-ECode CBidi::SetOffsetLevel(
-    /* [in] */ ArrayOf<Byte>* pOffsetLevel)
-{
-    return Bidi::SetOffsetLevel(pOffsetLevel);    
-}
-
-ECode CBidi::SetUnidirectional(
-    /* [in] */ Boolean unidirectional)
-{
-    return Bidi::SetUnidirectional(unidirectional);    
+    return Bidi::GetLength(length);
 }
 
 ECode CBidi::GetLevelAt(
     /* [in] */ Int32 offset,
-    /* [out] */ Int32 * pLevel)
+    /* [out] */ Int32* level)
 {
-    return Bidi::GetLevelAt(offset, pLevel);
+    return Bidi::GetLevelAt(offset, level);
 }
 
 ECode CBidi::GetRunCount(
-    /* [out] */ Int32 * pRunCount)
+    /* [out] */ Int32* runCount)
 {
-    return Bidi::GetRunCount(pRunCount);
+    return Bidi::GetRunCount(runCount);
 }
 
 ECode CBidi::GetRunLevel(
     /* [in] */ Int32 run,
-    /* [out] */ Int32 * pRunLevel)
+    /* [out] */ Int32* runLevel)
 {
-    return Bidi::GetRunLevel(run, pRunLevel);
+    return Bidi::GetRunLevel(run, runLevel);
 }
 
 ECode CBidi::GetRunLimit(
     /* [in] */ Int32 run,
-    /* [out] */ Int32 * pRunLimit)
+    /* [out] */ Int32* runLimit)
 {
-    return Bidi::GetRunLimit(run, pRunLimit);
+    return Bidi::GetRunLimit(run, runLimit);
 }
 
 ECode CBidi::GetRunStart(
     /* [in] */ Int32 run,
-    /* [out] */ Int32 * pRunStart)
+    /* [out] */ Int32* runStart)
 {
-    return Bidi::GetRunStart(run, pRunStart);
+    return Bidi::GetRunStart(run, runStart);
 }
 
 ECode CBidi::IsLeftToRight(
-    /* [out] */ Boolean * pIsLefttoRight)
+    /* [out] */ Boolean* isLefttoRight)
 {
-    return Bidi::IsLeftToRight(pIsLefttoRight);
+    return Bidi::IsLeftToRight(isLefttoRight);
 }
 
 ECode CBidi::IsMixed(
-    /* [out] */ Boolean * pIsMixed)
+    /* [out] */ Boolean* isMixed)
 {
-    return Bidi::IsMixed(pIsMixed);
+    return Bidi::IsMixed(isMixed);
 }
 
 ECode CBidi::IsRightToLeft(
-    /* [out] */ Boolean * pIsRightToLeft)
+    /* [out] */ Boolean* isRightToLeft)
 {
-    return Bidi::IsRightToLeft(pIsRightToLeft);
+    return Bidi::IsRightToLeft(isRightToLeft);
 }

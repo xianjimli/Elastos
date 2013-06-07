@@ -3,23 +3,23 @@ module {
      * Constant that indicates the default base level. If there is no strong
      * character, then set the paragraph level to 0 (left-to-right).
      */
-    const Bidi_DIRECTION_DEFAULT_LEFT_TO_RIGHT = -2;
+    const IBidi_DIRECTION_DEFAULT_LEFT_TO_RIGHT = -2;
 
     /**
      * Constant that indicates the default base level. If there is no strong
      * character, then set the paragraph level to 1 (right-to-left).
      */
-    const Bidi_DIRECTION_DEFAULT_RIGHT_TO_LEFT = -1;
+    const IBidi_DIRECTION_DEFAULT_RIGHT_TO_LEFT = -1;
 
     /**
      * Constant that specifies the default base level as 0 (left-to-right).
      */
-    const Bidi_DIRECTION_LEFT_TO_RIGHT = 0;
+    const IBidi_DIRECTION_LEFT_TO_RIGHT = 0;
 
     /**
      * Constant that specifies the default base level as 1 (right-to-left).
      */
-    const Bidi_DIRECTION_RIGHT_TO_LEFT = 1;
+    const IBidi_DIRECTION_RIGHT_TO_LEFT = 1;
 
     [deprecated]
     interface IBidi {
@@ -50,18 +50,6 @@ module {
         GetLength(
             [out] Int32* length);
 
-        SetLength(
-            [in] Int32 length);
-
-        GetOffsetLevel(
-            [out, callee] ArrayOf<Byte>* offsetLevel);
-
-        SetOffsetLevel(
-            [in] ArrayOf<Byte>* offsetLevel);
-
-        SetUnidirectional(
-            [in] Boolean unidirectional);
-
         /**
          * Returns the level of a specified character.
          */
@@ -87,14 +75,14 @@ module {
          */
         GetRunLimit(
             [in] Int32 run,
-            [out] Int32* runLimit);
+            [out] Int32* limitOffset);
 
         /**
          * Returns the start offset of the specified run.
          */
         GetRunStart(
             [in] Int32 run,
-            [out] Int32* runStart);
+            [out] Int32* startOffset);
 
         /**
          * Indicates whether the text is from left to right, that is, both the base
