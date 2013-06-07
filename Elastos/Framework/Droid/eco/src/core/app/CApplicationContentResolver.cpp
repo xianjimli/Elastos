@@ -168,6 +168,15 @@ ECode CApplicationContentResolver::Update(
             values, selection, selectionArgs, rowsAffected);
 }
 
+ECode CApplicationContentResolver::RegisterContentObserverEx(
+    /* [in] */ IUri* uri,
+    /* [in] */ Boolean notifyForDescendents,
+    /* [in] */ ILocalContentObserver* observer)
+{
+    return ContentResolver::RegisterContentObserverEx(
+        uri, notifyForDescendents, observer);
+}
+
 ECode CApplicationContentResolver::RegisterContentObserver(
     /* [in] */ IUri* uri,
     /* [in] */ Boolean notifyForDescendents,
@@ -175,6 +184,12 @@ ECode CApplicationContentResolver::RegisterContentObserver(
 {
     return ContentResolver::RegisterContentObserver(
         uri, notifyForDescendents, observer);
+}
+
+ECode CApplicationContentResolver::UnregisterContentObserverEx(
+    /* [in] */ ILocalContentObserver* observer)
+{
+    return ContentResolver::UnregisterContentObserverEx(observer);
 }
 
 ECode CApplicationContentResolver::UnregisterContentObserver(
@@ -185,14 +200,14 @@ ECode CApplicationContentResolver::UnregisterContentObserver(
 
 ECode CApplicationContentResolver::NotifyChange(
     /* [in] */ IUri* uri,
-    /* [in] */ IContentObserver* observer)
+    /* [in] */ ILocalContentObserver* observer)
 {
     return ContentResolver::NotifyChange(uri, observer);
 }
 
 ECode CApplicationContentResolver::NotifyChange2(
     /* [in] */ IUri* uri,
-    /* [in] */ IContentObserver* observer,
+    /* [in] */ ILocalContentObserver* observer,
     /* [in] */ Boolean syncToNetwork)
 {
     return ContentResolver::NotifyChange2(

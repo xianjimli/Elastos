@@ -123,7 +123,7 @@ module
     interface IContentValues;
     interface IParcelFileDescriptor;
     interface IContentProvider;
-    interface IContentObserver;
+    interface ILocalContentObserver;
 
     /**
      * A resource identified by the {@link Resources} that contains it, and a resource id.
@@ -527,6 +527,11 @@ module
          * @param observer The object that receives callbacks when changes occur.
          * @see #unregisterContentObserver
          */
+        RegisterContentObserverEx(
+            [in] IUri* uri,
+            [in] Boolean notifyForDescendents,
+            [in] ILocalContentObserver* observer);
+            
         RegisterContentObserver(
             [in] IUri* uri,
             [in] Boolean notifyForDescendents,
@@ -538,6 +543,9 @@ module
          * @param observer The previously registered observer that is no longer needed.
          * @see #registerContentObserver
          */
+        UnregisterContentObserverEx(
+            [in] ILocalContentObserver* observer);
+            
         UnregisterContentObserver(
             [in] IContentObserver* observer);
 
@@ -551,7 +559,7 @@ module
          */
         NotifyChange(
             [in] IUri* uri,
-            [in] IContentObserver* observer);
+            [in] ILocalContentObserver* observer);
 
         /**
          * Notify registered observers that a row was updated.
@@ -564,7 +572,7 @@ module
          */
         NotifyChange2(
             [in] IUri* uri,
-            [in] IContentObserver* observer,
+            [in] ILocalContentObserver* observer,
             [in] Boolean syncToNetwork);
 
         /**

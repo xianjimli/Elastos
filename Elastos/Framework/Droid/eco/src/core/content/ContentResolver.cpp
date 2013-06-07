@@ -17,6 +17,8 @@ const char* ContentResolver::SCHEME_CONTENT  = "content";
 const char* ContentResolver::SCHEME_ELASTOS_RESOURCE  = "elastos.resource";
 const char* ContentResolver::SCHEME_FILE  = "file";
 
+const CString ContentResolver::TAG = "ContentResolver";
+
 // Always log queries which take 500ms+; shorter queries are
 // sampled accordingly.
 const Int32 ContentResolver_SLOW_THRESHOLD_MILLIS = 500;
@@ -759,62 +761,105 @@ ECode ContentResolver::Update(
     // }
 }
 
+ECode ContentResolver::RegisterContentObserverEx(
+    /* [in] */ IUri* uri,
+    /* [in] */ Boolean notifyForDescendents,
+    /* [in] */ ILocalContentObserver* observer)
+{
+    // try {
+    if(observer == NULL){
+        return E_INVALID_ARGUMENT;
+    }
+
+    AutoPtr<IContentObserver> contentObserver;
+    FAIL_RETURN(observer->GetContentObserver((IContentObserver**)&contentObserver));
+
+    ECode ec = GetContentService()->RegisterContentObserver(uri, notifyForDescendents, contentObserver.Get());
+    // } catch (RemoteException e) {
+    // }
+    return ec;
+}
+
 ECode ContentResolver::RegisterContentObserver(
     /* [in] */ IUri* uri,
     /* [in] */ Boolean notifyForDescendents,
     /* [in] */ IContentObserver* observer)
 {
     // try {
-    // return GetContentService().RegisterContentObserver(
-    //    uri, notifyForDescendents, observer->GetContentObserver());
+    if(observer == NULL){
+        return E_INVALID_ARGUMENT;
+    }
+
+    ECode ec = GetContentService()->RegisterContentObserver(uri, notifyForDescendents, observer);
     // } catch (RemoteException e) {
     // }
-    // TODO: ALEX need IContentService
-    return E_NOT_IMPLEMENTED;
+    return ec;
+}
+
+/**
+ *
+ */
+ECode ContentResolver::UnregisterContentObserverEx(
+    /* [in] */ ILocalContentObserver* observer)
+{
+    // try {
+    if(observer == NULL){
+        return E_INVALID_ARGUMENT;
+    }
+
+     AutoPtr<IContentObserver> contentObserver;
+     FAIL_RETURN(observer->ReleaseContentObserver((IContentObserver**)&contentObserver));
+
+     if (contentObserver != NULL) {
+         return GetContentService()->UnregisterContentObserver(contentObserver);
+     }
+    // } catch (RemoteException e) {
+    // }
+
+    return NOERROR;
 }
 
 ECode ContentResolver::UnregisterContentObserver(
     /* [in] */ IContentObserver* observer)
 {
     // try {
-    // AutoPtr<IContentObserver> contentObserver;
-    // FAIL_RETURN(observer->ReleaseContentObserver(
-    //     (IContentObserver**)&contentObserver));
-    // if (contentObserver != NULL) {
-    //     return GetContentService()->UnregisterContentObserver(contentObserver);
-    // }
-    // } catch (RemoteException e) {
-    // }
-    // TODO: ALEX need IContentService
-    return E_NOT_IMPLEMENTED;
+    if(observer == NULL){
+        return E_INVALID_ARGUMENT;
+    }
+
+     return GetContentService()->UnregisterContentObserver(observer);
 }
 
 ECode ContentResolver::NotifyChange(
     /* [in] */ IUri* uri,
-    /* [in] */ IContentObserver* observer)
+    /* [in] */ ILocalContentObserver* observer)
 {
     return NotifyChange2(uri, observer, TRUE /* sync to network */);
 }
 
 ECode ContentResolver::NotifyChange2(
     /* [in] */ IUri* uri,
-    /* [in] */ IContentObserver* observer,
+    /* [in] */ ILocalContentObserver* observer,
     /* [in] */ Boolean syncToNetwork)
 {
     // try {
-    // GetContentService()->NotifyChange(
-    //     uri, observer == NULL ? NULL : observer->GetContentObserver(),
-    //     observer != NULL && observer->DeliverSelfNotifications(),
-    //     syncToNetwork);
+    AutoPtr<IContentObserver> contentObserver = NULL;
+    Boolean deliverSelfNotification = FALSE;
+
+    if(observer != NULL){
+        FAIL_RETURN(observer->GetContentObserver((IContentObserver**)&contentObserver));
+        FAIL_RETURN(observer->DeliverSelfNotifications(&deliverSelfNotification));
+    }
+
+    return GetContentService()->NotifyChange(
+        uri, contentObserver,
+        (observer != NULL && deliverSelfNotification),
+        syncToNetwork);
     // } catch (RemoteException e) {
     // }
-    // TODO: ALEX need IContentService
-    return E_NOT_IMPLEMENTED;
 }
 
-// TODO: ALEX need IContentService
-/*
-static AutoPtr<IContentService> sContentService;
+AutoPtr<IContentService> ContentResolver::sContentService;
 
 IContentService* ContentResolver::GetContentService()
 {
@@ -837,7 +882,6 @@ IContentService* ContentResolver::GetContentService()
 
     return (IContentService*)sContentService;
 }
-*/
 
 Void MaybeLogQueryToEventLog(
     Int64 durationMillis,

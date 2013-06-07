@@ -4,8 +4,10 @@
 
 #include "ext/frameworkext.h"
 #include <elastos/AutoPtr.h>
+#include <Logger.h>
 
 using namespace Elastos;
+using namespace Elastos::Utility::Logging;
 
 class ContentResolver
 {
@@ -213,6 +215,11 @@ public:
      * @param observer The object that receives callbacks when changes occur.
      * @see #unregisterContentObserver
      */
+    CARAPI RegisterContentObserverEx(
+        /* [in] */ IUri* uri,
+        /* [in] */ Boolean notifyForDescendents,
+        /* [in] */ ILocalContentObserver* observer);
+
     CARAPI RegisterContentObserver(
         /* [in] */ IUri* uri,
         /* [in] */ Boolean notifyForDescendents,
@@ -224,6 +231,9 @@ public:
      * @param observer The previously registered observer that is no longer needed.
      * @see #registerContentObserver
      */
+    CARAPI UnregisterContentObserverEx(
+        /* [in] */ ILocalContentObserver* observer);
+
     CARAPI UnregisterContentObserver(
         /* [in] */ IContentObserver* observer);
 
@@ -237,7 +247,7 @@ public:
      */
     CARAPI NotifyChange(
         /* [in] */ IUri* uri,
-        /* [in] */ IContentObserver* observer);
+        /* [in] */ ILocalContentObserver* observer);
 
     /**
      * Notify registered observers that a row was updated.
@@ -250,8 +260,17 @@ public:
      */
     CARAPI NotifyChange2(
         /* [in] */ IUri* uri,
-        /* [in] */ IContentObserver* observer,
+        /* [in] */ ILocalContentObserver* observer,
         /* [in] */ Boolean syncToNetwork);
+
+public:
+    static IContentService* GetContentService();
+
+private:
+    static AutoPtr<IContentService> sContentService;
+
+private:
+    static const CString TAG;
 
 private:
 

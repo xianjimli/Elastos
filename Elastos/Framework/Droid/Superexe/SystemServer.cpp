@@ -62,5 +62,11 @@ ECode SystemServer::Init()
     if (FAILED(ec)) return ec;
     // END privacy-added
 
+    AutoPtr<IContentService> contentService;
+    Boolean factoryTest = TRUE;
+    CContentService::New(ctx, factoryTest, (IContentService**)&contentService);
+    ec = serviceManager->AddService(String("content"), contentService.Get());
+    if (FAILED(ec)) return ec;
+
     return NOERROR;
 }
