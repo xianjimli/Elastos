@@ -1,0 +1,73 @@
+module
+{
+	interface ICipherSuite
+	{
+	/**
+	* Returns true if cipher suite is anonymous
+	* @return
+	*/
+		IsAnonymous(
+			[out] Boolean* isAnonymous);
+
+	/**
+	* Returns cipher suite name
+	* @return
+	*/
+		GetName(
+			[out] String* name);
+
+	/**
+     * Returns cipher suite code as byte array
+     * @return
+     */
+    	ToBytes(
+    		[out, callee] ArrayOf<Byte>* array);
+
+   	/**
+     * Returns cipher suite description
+     */
+    	ToString(
+    		[out] String* description);
+
+    /**
+     * Returns cipher algorithm name
+     * @return
+     */
+    	GetBulkEncryptionAlgorithm(
+    		[out] String* name);
+    /**
+     * Returns cipher block size
+     * @return
+     */
+   		GetBlockSize(
+   			[out] Int32* size);
+
+   	/**
+     * Returns MAC algorithm name
+     * @return
+     */
+    	GetHmacName(
+    		[out] String* name);
+
+    /**
+     * Returns hash algorithm name
+     * @return
+     */
+		GetHashName(
+    		[out] String* name);
+
+    /**
+     * Returns hash size
+     * @return
+     */
+	    GetMACLength(
+	    	[out] Int32* len);
+
+	/**
+     * Indicates whether this cipher suite is exportable
+     * @return
+     */
+		IsExportable(
+			[out] Boolean* isExportable);
+	}
+}

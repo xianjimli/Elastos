@@ -1,0 +1,6 @@
+module
+{
+	interface ISSLEngineImpl extends ISSLEngine
+	{
+	}
+}

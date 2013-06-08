@@ -1,0 +1,27 @@
+module
+{
+	interface ISSLServerSessionCache
+	{ 
+	/**
+	* Gets the session data for given session ID.
+	*
+	* @param id from {@link javax.net.ssl.SSLSession#getId()}
+	* @return the session data or null if none is cached
+	* @throws NullPointerException if id is null
+	*/
+		GetSessionData(
+			[in] ArrayOf<Byte> id,
+			[out, callee] ArrayOf<Byte>* array);
+	
+	/**
+	* Stores session data for the given session.
+	*
+	* @param session to cache data for
+	* @param sessionData to cache
+	* @throws NullPointerException if session or data is null
+	*/
+		PutSessionData(
+			[in] ISSLSession* session, 
+			[in] ArrayOf<Byte> sessionData);
+	}
+}

@@ -17,7 +17,8 @@ module
     merge("../../../../../car/Elastos/Net/Extend/SSL/IDefaultSSLSocketFactory.car");
     merge("../../../../../car/Elastos/Net/Extend/SSL/IDefaultSSLServerSocketFactory.car");
     merge("../../../../../car/Elastos/Net/Extend/SSL/IHttpsURLConnection.car");
-
+	merge("../../../../../car/Elastos/Net/Extend/SSL/ISSLContextSpi.car");
+	
     class CSSLContext {
         constructor();
 

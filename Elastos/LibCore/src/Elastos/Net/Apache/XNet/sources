@@ -8,3 +8,13 @@ INCLUDES += $(MAKEDIR)/../../../../../inc/Elastos/common;
 
 SOURCES += CSSLServerSocketImpl.cpp
 SOURCES += CSSLParametersImpl.cpp
+
+SOURCES += CServerSessionContext.cpp
+SOURCES += CCipherSuite.cpp
+SOURCES += CSSLContextImpl.cpp
+SOURCES += CSSLEngineImpl.cpp
+SOURCES += CSSLSessionImpl.cpp
+SOURCES += CSSLSocketFactoryImpl.cpp
+SOURCES += CSSLSocketImpl.cpp
+SOURCES += CSSLSocketInputStream.cpp
+SOURCES += CSSLSocketOutputStream.cpp

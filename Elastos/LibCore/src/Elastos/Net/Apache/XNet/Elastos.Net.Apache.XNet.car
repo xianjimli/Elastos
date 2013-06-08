@@ -2,6 +2,23 @@ module
 {
     merge("../../../../../car/Elastos/Net/Apache/XNet/ISSLParametersImpl.car");
     merge("../../../../../car/Elastos/Net/Apache/XNet/ISSLServerSocketImpl.car");
+    merge("../../../../../car/Elastos/Net/Apache/XNet/IAbstractSessionContext.car");
+    merge("../../../../../car/Elastos/Net/Apache/XNet/IServerSessionContext.car");
+    merge("../../../../../car/Elastos/Net/Apache/XNet/ISSLContextImpl.car");
+    merge("../../../../../car/Elastos/Net/Apache/XNet/ISSLClientSessionCache.car");
+    merge("../../../../../car/Elastos/Net/Apache/XNet/ISSLServerSessionCache.car");
+	merge("../../../../../car/Elastos/Net/Apache/XNet/ISSLInputStream.car");
+    merge("../../../../../car/Elastos/Net/Apache/XNet/ISSLSessionImpl.car");
+    merge("../../../../../car/Elastos/Net/Apache/XNet/ISSLSocketImpl.car");
+    merge("../../../../../car/Elastos/Net/Apache/XNet/ISSLSocketInputStream.car");
+    merge("../../../../../car/Elastos/Net/Apache/XNet/ISSLSocketOutputStream.car");
+    merge("../../../../../car/Elastos/Net/Apache/XNet/ISSLEngineImpl.car");
+    merge("../../../../../car/Elastos/Net/Apache/XNet/ISSLStreamedInput.car");
+	merge("../../../../../car/Elastos/Net/Apache/XNet/ISSLSocketFactoryImpl.car");
+//	merge("../../../../../car/Elastos/Net/Apache/XNet/IOpenSSLContextImpl.car");
+//	merge("../../../../../car/Elastos/Net/Apache/XNet/IDefaultSSLContextImpl.car");
+	merge("../../../../../car/Elastos/Net/Apache/XNet/ICipherSuite.car");
+
 
     class CSSLServerSocketImpl {
         constructor(
@@ -30,4 +47,109 @@ module
     	interface ISSLParametersImpl;
     }
 
+	class CServerSessionContext {
+		constructor();
+		
+		interface IServerSessionContext;
+	}
+	
+	class CSSLSocketInputStream {
+		constructor(
+			[in] ISSLSocketImpl* owner);
+		
+		interface ISSLSocketInputStream;
+	}
+	
+	class CSSLSocketOutputStream {
+		constructor(
+			[in] ISSLSocketImpl* owner);
+		
+		interface ISSLSocketOutputStream;
+	}
+	
+	class CSSLEngineImpl {
+		constructor(
+			[in] ISSLParametersImpl* sslParameters);
+	
+		constructor(
+			[in] String host, 
+			[in] Int32 port, 
+			[in] ISSLParametersImpl* sslParameters);
+		
+		interface ISSLEngineImpl;
+	}
+	
+	class CSSLContextImpl {
+		constructor();
+		
+		//constructor(
+		//	[in] IDefaultSSLContextImpl* dummy);
+
+		interface ISSLContextImpl;
+	}
+	
+	class CSSLSocketImpl {
+		constructor(
+			[in] ISSLParametersImpl* sslParameters);
+	
+		constructor(
+			[in] String host, 
+			[in] Int32 port, 
+			[in] ISSLParametersImpl* sslParameters);
+			
+		constructor(
+			[in] String host, 
+			[in] Int32 port,
+            [in] IInetAddress* localHost, 
+            [in] Int32 localPort,
+            [in] ISSLParametersImpl* sslParameters);
+            
+		constructor(
+			[in] IInetAddress* host, 
+			[in] Int32 port,
+            [in] ISSLParametersImpl* sslParameters); 
+            
+        constructor(
+        	[in] IInetAddress* address, 
+        	[in] Int32 port,
+            [in] IInetAddress* localAddress, 
+            [in] Int32 localPort,
+            [in] ISSLParametersImpl* sslParameters);
+        
+        interface ISSLSocketImpl;         			
+	}
+	
+	class CSSLSocketFactoryImpl {
+		constructor();
+		
+		constructor(
+			[in] ISSLParametersImpl* sslParameters);
+		
+		interface ISSLSocketFactoryImpl;
+	}
+	
+	class CSSLSessionImpl {
+		//constructor(
+		//	[in] ISecureRandom* sr);
+		
+		//constructor(
+		//	[in] ICipherSuite cipher_suite;
+		//	[in] ISecureRandom* sr);
+			
+		interface ISSLSessionImpl;
+	}
+	
+	
+	class CCipherSuite {
+		constructor(
+			[in] String name, 
+			[in] Boolean isExportable, 
+			[in] Int32 keyExchange,
+            [in] String authType, 
+            [in] String cipherName, 
+            [in] String hash, 
+            [in] ArrayOf<Byte> code);
+            
+		interface ICipherSuite;
+	}
 }

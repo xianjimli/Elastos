@@ -1,0 +1,6 @@
+module
+{
+	interface ISSLSocketImpl extends ISSLSocket
+	{
+	}
+}
