@@ -3292,6 +3292,7 @@ CCapsuleManagerService::Settings::GetCapsuleLP(
             AddCapsuleSettingLP(c, name, sharedUser);
         }
     }
+    c->AddRef();
     return c;
 }
 
@@ -5277,35 +5278,34 @@ ECode CCapsuleManagerService::constructor(
 
         // Find base frameworks (resource packages without code).
         String path;
-        //todo:
-        // mFrameworkDir->GetPath(&path);
-        // mFrameworkInstallObserver
-        //     = new AppDirObserver(path, OBSERVER_EVENTS, TRUE, this);
-        // mFrameworkInstallObserver->StartWatching();
-        // ScanDirLI(mFrameworkDir, CapsuleParser::PARSE_IS_SYSTEM
-        //     | CapsuleParser::PARSE_IS_SYSTEM_DIR,
-        //     scanMode | SCAN_NO_DEX, 0);
+        mFrameworkDir->GetPath(&path);
+        mFrameworkInstallObserver
+            = new AppDirObserver(path, OBSERVER_EVENTS, TRUE, this);
+        mFrameworkInstallObserver->StartWatching();
+        ScanDirLI(mFrameworkDir, CapsuleParser::PARSE_IS_SYSTEM
+            | CapsuleParser::PARSE_IS_SYSTEM_DIR,
+            scanMode | SCAN_NO_DEX, 0);
 
         // Collect all system packages.
         //todo:
-        // FAIL_RETURN(CFile::New(Environment::GetRootDirectory(),
-        //         String("app"), (IFile**)&mSystemAppDir));
-        // mSystemAppDir->GetPath(&path);
-        // mSystemInstallObserver
-        //     = new AppDirObserver(path, OBSERVER_EVENTS, TRUE, this);
-        // mSystemInstallObserver->StartWatching();
-        // ScanDirLI(mSystemAppDir, CapsuleParser::PARSE_IS_SYSTEM
-        //     | CapsuleParser::PARSE_IS_SYSTEM_DIR, scanMode, 0);
+        FAIL_RETURN(CFile::New(Environment::GetRootDirectory(),
+                String("app"), (IFile**)&mSystemAppDir));
+        mSystemAppDir->GetPath(&path);
+        mSystemInstallObserver
+            = new AppDirObserver(path, OBSERVER_EVENTS, TRUE, this);
+        mSystemInstallObserver->StartWatching();
+        ScanDirLI(mSystemAppDir, CapsuleParser::PARSE_IS_SYSTEM
+            | CapsuleParser::PARSE_IS_SYSTEM_DIR, scanMode, 0);
 
-        // Collect all vendor packages.
+        // Collect all vendor packages
         //todo:
-        // FAIL_RETURN(CFile::New(String("/vendor/app"), (IFile**)&mVendorAppDir));
-        // mVendorAppDir->GetPath(&path);
-        // mVendorInstallObserver
-        //     = new AppDirObserver(path, OBSERVER_EVENTS, TRUE, this);
-        // mVendorInstallObserver->StartWatching();
-        // ScanDirLI(mVendorAppDir, CapsuleParser::PARSE_IS_SYSTEM
-        //     | CapsuleParser::PARSE_IS_SYSTEM_DIR, scanMode, 0);
+        FAIL_RETURN(CFile::New(String("/vendor/app"), (IFile**)&mVendorAppDir));
+        mVendorAppDir->GetPath(&path);
+        mVendorInstallObserver
+            = new AppDirObserver(path, OBSERVER_EVENTS, TRUE, this);
+        mVendorInstallObserver->StartWatching();
+        ScanDirLI(mVendorAppDir, CapsuleParser::PARSE_IS_SYSTEM
+            | CapsuleParser::PARSE_IS_SYSTEM_DIR, scanMode, 0);
 
         if (mInstaller != NULL) {
             if (DEBUG_UPGRADE) Logger::V(TAG, "Running installd update commands");
@@ -5357,7 +5357,6 @@ ECode CCapsuleManagerService::constructor(
 
 //	        EventLog.writeEvent(EventLogTags.BOOT_PROGRESS_PMS_DATA_SCAN_START,
 //	                SystemClock.uptimeMillis());
-
         mAppInstallDir->GetPath(&path);
         mAppInstallObserver
             = new AppDirObserver(path, OBSERVER_EVENTS, FALSE, this);
@@ -5365,12 +5364,12 @@ ECode CCapsuleManagerService::constructor(
         ScanDirLI(mAppInstallDir, 0, scanMode, 0);
 
         //todo:
-        // mDrmAppPrivateInstallDir->GetPath(&path);
-        // mDrmAppInstallObserver
-        //     = new AppDirObserver(path, OBSERVER_EVENTS, FALSE, this);
-        // mDrmAppInstallObserver->StartWatching();
-        // ScanDirLI(mDrmAppPrivateInstallDir.Get(), CapsuleParser::PARSE_FORWARD_LOCK,
-        //     scanMode, 0);
+        mDrmAppPrivateInstallDir->GetPath(&path);
+        mDrmAppInstallObserver
+            = new AppDirObserver(path, OBSERVER_EVENTS, FALSE, this);
+        mDrmAppInstallObserver->StartWatching();
+        ScanDirLI(mDrmAppPrivateInstallDir.Get(), CapsuleParser::PARSE_FORWARD_LOCK,
+            scanMode, 0);
 
 //	        EventLog.writeEvent(EventLogTags.BOOT_PROGRESS_PMS_SCAN_END,
 //	                SystemClock.uptimeMillis());
@@ -5389,10 +5388,8 @@ ECode CCapsuleManagerService::constructor(
                 + mSettings->mInternalSdkPlatform + " to " + mSdkVersion
                 + "; regranting permissions for Int32ernal storage");
         mSettings->mInternalSdkPlatform = mSdkVersion;
-
         //todo:
-        // UpdatePermissionsLP(String(NULL), NULL, TRUE, regrantPermissions, regrantPermissions);
-
+        UpdatePermissionsLP(String(NULL), NULL, TRUE, regrantPermissions, regrantPermissions);
         // mSettings->WriteLP();
 
 //	        EventLog.writeEvent(EventLogTags.BOOT_PROGRESS_PMS_READY,
@@ -8472,7 +8469,7 @@ CapsuleParser::Capsule* CCapsuleManagerService::ScanCapsuleLI(
         cap->mApplicationInfo->SetFlags(capFlags);
     }
 
-    if (cap->mCapsuleName.Equals("elastos")) {
+    if (cap->mCapsuleName.Equals("elastos") || cap->mCapsuleName.Equals("android")) {
         {
             Mutex::Autolock lock(mCapsulesLock);
 
@@ -8529,7 +8526,7 @@ CapsuleParser::Capsule* CCapsuleManagerService::ScanCapsuleLI(
     ASSERT_SUCCEEDED(CFile::New(capPubSrcDir, (IFile**)&destResourceFile));
 
     SharedUserSetting* suid = NULL;
-    CapsuleSetting* capSetting = NULL;
+    AutoPtr<CapsuleSetting> capSetting = NULL;
 
     if (!IsSystemApp(cap)) {
         // Only system apps can use these features.
@@ -9366,10 +9363,13 @@ CapsuleParser::Capsule* CCapsuleManagerService::ScanCapsuleLI(
             p->mInfo->GetGroup(&pGroup);
             HashMap<String, BasePermission*>& permissionMap = p->mTree
                 ? mSettings->mPermissionTrees : mSettings->mPermissions;
-            HashMap<String, CapsuleParser::PermissionGroup*>::Iterator it
-                = mPermissionGroups.Find(pGroup);
-            if (it != mPermissionGroups.End()) {
-                p->mGroup = it->mSecond;
+            if (!pGroup.IsNull()) {
+                HashMap<String, CapsuleParser::PermissionGroup*>::Iterator it
+                    = mPermissionGroups.Find(pGroup);
+
+                if (it != mPermissionGroups.End()) {
+                    p->mGroup = it->mSecond;
+                }
             }
             if (pGroup.IsNull() || p->mGroup != NULL) {
                 BasePermission* bp = NULL;
@@ -9828,10 +9828,12 @@ void CCapsuleManagerService::UpdatePermissionsLP(
         if (bp->mCapsuleSetting == NULL) {
             // We may not yet have parsed the capsule, so just see if
             // we still know about its settings->
-            HashMap<String, AutoPtr<CapsuleSetting> >::Iterator it
-                    = mSettings->mCapsules.Find(bp->mSourceCapsule);
-            if (it != mSettings->mCapsules.End()) {
-                bp->mCapsuleSetting = it->mSecond;
+            if (!bp->mSourceCapsule.IsNull()) {
+                HashMap<String, AutoPtr<CapsuleSetting> >::Iterator it
+                        = mSettings->mCapsules.Find(bp->mSourceCapsule);
+                if (it != mSettings->mCapsules.End()) {
+                    bp->mCapsuleSetting = it->mSecond;
+                }
             }
         }
         if (bp->mCapsuleSetting == NULL) {

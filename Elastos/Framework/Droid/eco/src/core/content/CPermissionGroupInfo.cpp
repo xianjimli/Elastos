@@ -205,7 +205,7 @@ ECode CPermissionGroupInfo::WriteToParcel(
 ECode CPermissionGroupInfo::constructor()
 {
     // TODO: Add your code here
-    return E_NOT_IMPLEMENTED;
+    return NOERROR;
 }
 
 ECode CPermissionGroupInfo::constructor(

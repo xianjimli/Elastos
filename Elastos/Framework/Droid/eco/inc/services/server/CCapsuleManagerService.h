@@ -2296,19 +2296,19 @@ public:/*package*/
     AutoPtr<IFile> mSecureAppDataDir;
 
     // This is the object monitoring the framework dir.
-    FileObserver* mFrameworkInstallObserver;
+    AutoPtr<IFileObserver> mFrameworkInstallObserver;
 
     // This is the object monitoring the system app dir.
-    FileObserver* mSystemInstallObserver;
+    AutoPtr<IFileObserver> mSystemInstallObserver;
 
     // This is the object monitoring the system app dir.
-    FileObserver* mVendorInstallObserver;
+    AutoPtr<IFileObserver> mVendorInstallObserver;
 
     // This is the object monitoring mAppInstallDir.
-    FileObserver* mAppInstallObserver;
+    AutoPtr<IFileObserver> mAppInstallObserver;
 
     // This is the object monitoring mDrmAppPrivateInstallDir.
-    FileObserver* mDrmAppInstallObserver;
+    AutoPtr<IFileObserver> mDrmAppInstallObserver;
 
     // Used for priviledge escalation.  MUST NOT BE CALLED WITH mPackages
     // LOCK HELD.  Can be called with mInstallLock held.
