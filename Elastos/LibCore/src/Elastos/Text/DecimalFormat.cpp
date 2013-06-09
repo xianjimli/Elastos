@@ -22,7 +22,13 @@ ECode DecimalFormat::Init()
     AutoPtr<ILocale> locale;
     FAIL_RETURN(localeHelper->GetDefault((ILocale**)&locale));
     CDecimalFormatSymbols::New(locale, (IDecimalFormatSymbols**)&mSymbols);
-//    InitNative((LocaleData::Get(pLocale))->mNumberPattern);
+    AutoPtr<ILocaleDataHelper> helper;
+    CLocaleDataHelper::AcquireSingleton((ILocaleDataHelper**)&helper);
+    AutoPtr<ILocaleData> localeData;
+    FAIL_RETURN(helper->Get(locale, (ILocaleData**)&localeData));
+    String numberPattern;
+    localeData->GetNumberPattern(&numberPattern);
+    InitNative(numberPattern);
     return NOERROR;
 }
 

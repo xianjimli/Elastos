@@ -24,6 +24,10 @@
 #include <unicode/udat.h>
 #include <unicode/ustring.h>
 #include <unicode/unum.h>
+#include "Logging/Logger.h"
+#include <StringBuffer.h>
+
+using namespace Elastos::Utility::Logging;
 
 class ScopedResourceBundle
 {
@@ -70,6 +74,181 @@ ArrayOf<String>* ICU::sIsoCountries = NULL;
 
 ArrayOf< AutoPtr<ILocale> >* ICU::sAvailableLocalesCache = NULL;
 
+static Boolean getDayIntVector(
+    /* [in] */ UResourceBundle* gregorian,
+    /* [in] */ Int32* values)
+{
+    // get the First day of week and the minimal days in first week numbers
+    UErrorCode status = U_ZERO_ERROR;
+    ScopedResourceBundle gregorianElems(ures_getByKey(gregorian, "DateTimeElements", NULL, &status));
+    if (U_FAILURE(status)) {
+        return FALSE;
+    }
+
+    Int32 intVectSize;
+    const Int32* result = ures_getIntVector(gregorianElems.get(), &intVectSize, &status);
+    if (U_FAILURE(status) || intVectSize != 2) {
+        return FALSE;
+    }
+
+    values[0] = result[0];
+    values[1] = result[1];
+    return TRUE;
+}
+
+static ArrayOf<String>* getAmPmMarkers(
+    /* [in] */ UResourceBundle* gregorian)
+{
+    UErrorCode status = U_ZERO_ERROR;
+    ScopedResourceBundle gregorianElems(ures_getByKey(gregorian, "AmPmMarkers", NULL, &status));
+    if (U_FAILURE(status)) {
+        return NULL;
+    }
+
+    Int32 lengthAm, lengthPm;
+    UnicodeString am = ures_getStringByIndex(gregorianElems.get(), 0, &lengthAm, &status);
+    UnicodeString pm = ures_getStringByIndex(gregorianElems.get(), 1, &lengthPm, &status);
+
+    if (U_FAILURE(status)) {
+        return NULL;
+    }
+
+    ArrayOf<String>* amPmMarkers = ArrayOf<String>::Alloc(2);
+    String amS("");
+    String pmS("");
+    ElStringByteSink sink1(&amS), sink2(&pmS);
+    am.toUTF8(sink1);
+    pm.toUTF8(sink2);
+    (*amPmMarkers)[0] = amS;
+    (*amPmMarkers)[1] = pmS;
+
+    return amPmMarkers;
+}
+
+static ArrayOf<String>* getEras(
+    /* [in] */ UResourceBundle* gregorian)
+{
+    UErrorCode status = U_ZERO_ERROR;
+    ScopedResourceBundle gregorianElems(ures_getByKey(gregorian, "eras", NULL, &status));
+    if (U_FAILURE(status)) {
+        return NULL;
+    }
+
+    ScopedResourceBundle eraElems(ures_getByKey(gregorianElems.get(), "abbreviated", NULL, &status));
+    if (U_FAILURE(status)) {
+        return NULL;
+    }
+
+    Int32 eraCount = ures_getSize(eraElems.get());
+    ArrayOf<String>* eras = ArrayOf<String>::Alloc(eraCount);
+    for (Int32 i = 0; i < eraCount; ++i) {
+        Int32 eraLength;
+        UnicodeString era = ures_getStringByIndex(eraElems.get(), i, &eraLength, &status);
+        if (U_FAILURE(status)) {
+            ArrayOf<String>::Free(eras);
+            return NULL;
+        }
+        String s("");
+        ElStringByteSink sink(&s);
+        era.toUTF8(sink);
+        (*eras)[i] = s;
+    }
+    return eras;
+}
+
+enum NameType { REGULAR, STAND_ALONE };
+enum NameWidth { LONG, SHORT };
+static ArrayOf<String>* getNames(
+    /* [in] */ UResourceBundle* namesBundle,
+    /* [in] */ Boolean months,
+    /* [in] */ NameType type,
+    /* [in] */ NameWidth width)
+{
+    const char* typeKey = (type == REGULAR) ? "format" : "stand-alone";
+    const char* widthKey = (width == LONG) ? "wide" : "abbreviated";
+    UErrorCode status = U_ZERO_ERROR;
+    ScopedResourceBundle formatBundle(ures_getByKey(namesBundle, typeKey, NULL, &status));
+    ScopedResourceBundle valuesBundle(ures_getByKey(formatBundle.get(), widthKey, NULL, &status));
+    if (U_FAILURE(status)) {
+        return NULL;
+    }
+    // The months array has a trailing empty string. The days array has a leading empty string.
+    Int32 count = ures_getSize(valuesBundle.get());
+    ArrayOf<String>* result = ArrayOf<String>::Alloc(count + 1);
+    assert(result != NULL);
+    if (months) {
+        for (Int32 i = 0; i < count; ++i) {
+            (*result)[i] = String("");
+        }
+    }
+
+    Int32 arrayOffset = months ? 0 : 1;
+    for (Int32 i = 0; i < count; ++i) {
+        Int32 nameLength;
+        UnicodeString name = ures_getStringByIndex(valuesBundle.get(), i, &nameLength, &status);
+        if (U_FAILURE(status)) {
+            ArrayOf<String>::Free(result);
+            return NULL;
+        }
+        String s("");
+        ElStringByteSink sink(&s);
+        name.toUTF8(sink);
+        (*result)[arrayOffset + i] = s;
+    }
+    return result;
+}
+
+static String getIntCurrencyCode(
+    /* [in] */ const String& locale)
+{
+    // Extract the 2-character country name.
+    if (locale.GetLength() < 5) {
+        return String(NULL);
+    }
+    if (locale[3] < 'A' || locale[3] > 'Z' || locale[4] < 'A' || locale[4] > 'Z') {
+        return String(NULL);
+    }
+
+    StringBuffer buffer;
+    buffer += locale[3];
+    buffer += locale[4];
+    return ICU::GetCurrencyCode(String(buffer));
+}
+
+static void getUresString(
+    /* [in] */ UResourceBundle* bundle,
+    /* [in] */ Int32 index,
+    /* [out] */ String* field)
+{
+    UErrorCode status = U_ZERO_ERROR;
+    Int32 charCount;
+    UnicodeString chars = ures_getStringByIndex(bundle, index, &charCount, &status);
+    if (U_SUCCESS(status)) {
+        String s("");
+        ElStringByteSink sink(&s);
+        chars.toUTF8(sink);
+        *field = s;
+    }
+    else {
+//        LOGE("Error setting String field %s from ICU resource: %s", fieldName, u_errorName(status));
+    }
+}
+
+static void getUresChar(
+    /* [in] */ UResourceBundle* bundle,
+    /* [in] */ Int32 index,
+    /* [out] */ Char32* field)
+{
+    UErrorCode status = U_ZERO_ERROR;
+    Int32 charCount;
+    UnicodeString chars = ures_getStringByIndex(bundle, index, &charCount, &status);
+    if (U_SUCCESS(status)) {
+        *field = chars[0];
+    }
+    else {
+        //LOGE("Error setting char field %s from ICU resource: %s", fieldName, u_errorName(status));
+    }
+}
 
 ECode ICU::GetISOLanguages(
     /* [out, callee] */ ArrayOf<String>** languages)
@@ -240,7 +419,7 @@ String ICU::ToLowerCase(
         return s;
     }
     else {
-        String s;
+        String s("");
         ElStringByteSink sink(&s);
         _s.toUTF8(sink);
         return s;
@@ -258,7 +437,7 @@ String ICU::ToUpperCase(
         return s;
     }
     else {
-        String s;
+        String s("");
         ElStringByteSink sink(&s);
         _s.toUTF8(sink);
         return s;
@@ -445,7 +624,7 @@ String ICU::GetDisplayCountry(
     UnicodeString str;
     targetLoc.getDisplayCountry(loc, str);
 
-    String s;
+    String s("");
     ElStringByteSink sink(&s);
     str.toUTF8(sink);
     return s;
@@ -460,7 +639,7 @@ String ICU::GetDisplayLanguage(
     UnicodeString str;
     targetLoc.getDisplayLanguage(loc, str);
 
-    String s;
+    String s("");
     ElStringByteSink sink(&s);
     str.toUTF8(sink);
     return s;
@@ -475,7 +654,7 @@ String ICU::GetDisplayVariant(
     UnicodeString str;
     targetLoc.getDisplayVariant(loc, str);
 
-    String s;
+    String s("");
     ElStringByteSink sink(&s);
     str.toUTF8(sink);
     return s;
@@ -519,128 +698,120 @@ ArrayOf<String>* ICU::GetISOCountriesNative()
 }
 
 Boolean ICU::InitLocaleDataImpl(
-    /* [in] */ const String& locale,
-    /* [in] */ LocaleData* result)
+    /* [in] */ const String& localeName,
+    /* [in] */ LocaleData* localeData)
 {
-    // ScopedUtfChars localeName(env, locale);
-    // UErrorCode status = U_ZERO_ERROR;
-    // ScopedResourceBundle root(ures_open(NULL, localeName.c_str(), &status));
-    // if (U_FAILURE(status)) {
-    //     LOGE("Error getting ICU resource bundle: %s", u_errorName(status));
-    //     status = U_ZERO_ERROR;
-    //     return JNI_FALSE;
-    // }
+    //ScopedUtfChars localeName(env, locale);
+    UErrorCode status = U_ZERO_ERROR;
+    ScopedResourceBundle root(ures_open(NULL, localeName, &status));
+    if (U_FAILURE(status)) {
+        //Logger::E("Trying to pause when pause is already pending for ", u_errorName(status));
+        status = U_ZERO_ERROR;
+        return FALSE;
+    }
 
-    // ScopedResourceBundle calendar(ures_getByKey(root.get(), "calendar", NULL, &status));
-    // if (U_FAILURE(status)) {
-    //     LOGE("Error getting ICU calendar resource bundle: %s", u_errorName(status));
-    //     return JNI_FALSE;
-    // }
+    ScopedResourceBundle calendar(ures_getByKey(root.get(), "calendar", NULL, &status));
+    if (U_FAILURE(status)) {
+        //LOGE("Error getting ICU calendar resource bundle: %s", u_errorName(status));
+        return FALSE;
+    }
 
-    // ScopedResourceBundle gregorian(ures_getByKey(calendar.get(), "gregorian", NULL, &status));
-    // if (U_FAILURE(status)) {
-    //     LOGE("Error getting ICU gregorian resource bundle: %s", u_errorName(status));
-    //     return JNI_FALSE;
-    // }
+    ScopedResourceBundle gregorian(ures_getByKey(calendar.get(), "gregorian", NULL, &status));
+    if (U_FAILURE(status)) {
+        //Logger::E("Error getting ICU gregorian resource bundle: ", u_errorName(status));
+        return FALSE;
+    }
 
-    // int firstDayVals[] = { 0, 0 };
-    // if (getDayIntVector(env, gregorian.get(), firstDayVals)) {
-    //     setIntegerField(env, localeData, "firstDayOfWeek", firstDayVals[0]);
-    //     setIntegerField(env, localeData, "minimalDaysInFirstWeek", firstDayVals[1]);
-    // }
+    Int32 firstDayVals[] = { 0, 0 };
+    if (getDayIntVector(gregorian.get(), firstDayVals)) {
+        CInteger32::New(firstDayVals[0], (IInteger32**)&localeData->mFirstDayOfWeek);
+        CInteger32::New(firstDayVals[1], (IInteger32**)&localeData->mMinimalDaysInFirstWeek);
+    }
 
-    // setStringArrayField(env, localeData, "amPm", getAmPmMarkers(env, gregorian.get()));
-    // setStringArrayField(env, localeData, "eras", getEras(env, gregorian.get()));
+    localeData->mAmPm = getAmPmMarkers(gregorian.get());
+    localeData->mEras = getEras(gregorian.get());
 
-    // ScopedResourceBundle dayNames(ures_getByKey(gregorian.get(), "dayNames", NULL, &status));
-    // ScopedResourceBundle monthNames(ures_getByKey(gregorian.get(), "monthNames", NULL, &status));
+    ScopedResourceBundle dayNames(ures_getByKey(gregorian.get(), "dayNames", NULL, &status));
+    ScopedResourceBundle monthNames(ures_getByKey(gregorian.get(), "monthNames", NULL, &status));
 
-    // // Get the regular month and weekday names.
-    // jobjectArray longMonthNames = getNames(env, monthNames.get(), true, REGULAR, LONG);
-    // jobjectArray shortMonthNames = getNames(env, monthNames.get(), true, REGULAR, SHORT);
-    // jobjectArray longWeekdayNames = getNames(env, dayNames.get(), false, REGULAR, LONG);
-    // jobjectArray shortWeekdayNames = getNames(env, dayNames.get(), false, REGULAR, SHORT);
-    // setStringArrayField(env, localeData, "longMonthNames", longMonthNames);
-    // setStringArrayField(env, localeData, "shortMonthNames", shortMonthNames);
-    // setStringArrayField(env, localeData, "longWeekdayNames", longWeekdayNames);
-    // setStringArrayField(env, localeData, "shortWeekdayNames", shortWeekdayNames);
+    // Get the regular month and weekday names.
+    localeData->mLongMonthNames = getNames(monthNames.get(), TRUE, REGULAR, LONG);
+    localeData->mShortMonthNames = getNames(monthNames.get(), TRUE, REGULAR, SHORT);
+    localeData->mLongWeekdayNames = getNames(dayNames.get(), FALSE, REGULAR, LONG);
+    localeData->mShortWeekdayNames = getNames(dayNames.get(), FALSE, REGULAR, SHORT);
 
-    // // Get the stand-alone month and weekday names. If they're not available (as they aren't for
-    // // English), we reuse the regular names. If we returned null to Java, the usual fallback
-    // // mechanisms would come into play and we'd end up with the bogus stand-alone names from the
-    // // root locale ("1" for January, and so on).
-    // jobjectArray longStandAloneMonthNames = getNames(env, monthNames.get(), true, STAND_ALONE, LONG);
-    // if (longStandAloneMonthNames == NULL) {
-    //     longStandAloneMonthNames = longMonthNames;
-    // }
-    // jobjectArray shortStandAloneMonthNames = getNames(env, monthNames.get(), true, STAND_ALONE, SHORT);
-    // if (shortStandAloneMonthNames == NULL) {
-    //     shortStandAloneMonthNames = shortMonthNames;
-    // }
-    // jobjectArray longStandAloneWeekdayNames = getNames(env, dayNames.get(), false, STAND_ALONE, LONG);
-    // if (longStandAloneWeekdayNames == NULL) {
-    //     longStandAloneWeekdayNames = longWeekdayNames;
-    // }
-    // jobjectArray shortStandAloneWeekdayNames = getNames(env, dayNames.get(), false, STAND_ALONE, SHORT);
-    // if (shortStandAloneWeekdayNames == NULL) {
-    //     shortStandAloneWeekdayNames = shortWeekdayNames;
-    // }
-    // setStringArrayField(env, localeData, "longStandAloneMonthNames", longStandAloneMonthNames);
-    // setStringArrayField(env, localeData, "shortStandAloneMonthNames", shortStandAloneMonthNames);
-    // setStringArrayField(env, localeData, "longStandAloneWeekdayNames", longStandAloneWeekdayNames);
-    // setStringArrayField(env, localeData, "shortStandAloneWeekdayNames", shortStandAloneWeekdayNames);
+    // Get the stand-alone month and weekday names. If they're not available (as they aren't for
+    // English), we reuse the regular names. If we returned null to Java, the usual fallback
+    // mechanisms would come into play and we'd end up with the bogus stand-alone names from the
+    // root locale ("1" for January, and so on).
+    localeData->mLongStandAloneMonthNames = getNames(monthNames.get(), TRUE, STAND_ALONE, LONG);
+    if (localeData->mLongStandAloneMonthNames == NULL) {
+        CLONE_ARRAY_OF_STRING(&localeData->mLongStandAloneMonthNames, localeData->mLongMonthNames);
+    }
+    localeData->mShortStandAloneMonthNames = getNames(monthNames.get(), TRUE, STAND_ALONE, SHORT);
+    if (localeData->mShortStandAloneMonthNames == NULL) {
+        CLONE_ARRAY_OF_STRING(&localeData->mShortStandAloneMonthNames, localeData->mShortMonthNames);
+    }
+    localeData->mLongStandAloneWeekdayNames = getNames(dayNames.get(), FALSE, STAND_ALONE, LONG);
+    if (localeData->mLongStandAloneWeekdayNames == NULL) {
+        CLONE_ARRAY_OF_STRING(&localeData->mLongStandAloneWeekdayNames, localeData->mLongWeekdayNames);
+    }
+    localeData->mShortStandAloneWeekdayNames = getNames(dayNames.get(), FALSE, STAND_ALONE, SHORT);
+    if (localeData->mShortStandAloneWeekdayNames == NULL) {
+        CLONE_ARRAY_OF_STRING(&localeData->mShortStandAloneWeekdayNames, localeData->mShortWeekdayNames);
+    }
 
-    // ScopedResourceBundle dateTimePatterns(ures_getByKey(gregorian.get(), "DateTimePatterns", NULL, &status));
-    // if (U_SUCCESS(status)) {
-    //     setStringField(env, localeData, "fullTimeFormat", dateTimePatterns.get(), 0);
-    //     setStringField(env, localeData, "longTimeFormat", dateTimePatterns.get(), 1);
-    //     setStringField(env, localeData, "mediumTimeFormat", dateTimePatterns.get(), 2);
-    //     setStringField(env, localeData, "shortTimeFormat", dateTimePatterns.get(), 3);
-    //     setStringField(env, localeData, "fullDateFormat", dateTimePatterns.get(), 4);
-    //     setStringField(env, localeData, "longDateFormat", dateTimePatterns.get(), 5);
-    //     setStringField(env, localeData, "mediumDateFormat", dateTimePatterns.get(), 6);
-    //     setStringField(env, localeData, "shortDateFormat", dateTimePatterns.get(), 7);
-    // }
-    // status = U_ZERO_ERROR;
+    ScopedResourceBundle dateTimePatterns(ures_getByKey(gregorian.get(), "DateTimePatterns", NULL, &status));
+    if (U_SUCCESS(status)) {
+        getUresString(dateTimePatterns.get(), 0, &localeData->mFullTimeFormat);
+        getUresString(dateTimePatterns.get(), 1, &localeData->mLongTimeFormat);
+        getUresString(dateTimePatterns.get(), 2, &localeData->mMediumTimeFormat);
+        getUresString(dateTimePatterns.get(), 3, &localeData->mShortTimeFormat);
+        getUresString(dateTimePatterns.get(), 4, &localeData->mFullDateFormat);
+        getUresString(dateTimePatterns.get(), 5, &localeData->mLongDateFormat);
+        getUresString(dateTimePatterns.get(), 6, &localeData->mMediumDateFormat);
+        getUresString(dateTimePatterns.get(), 7, &localeData->mShortDateFormat);
+    }
+    status = U_ZERO_ERROR;
 
-    // ScopedResourceBundle numberElements(ures_getByKey(root.get(), "NumberElements", NULL, &status));
-    // if (U_SUCCESS(status) && ures_getSize(numberElements.get()) >= 11) {
-    //     setCharField(env, localeData, "zeroDigit", numberElements.get(), 4);
-    //     setCharField(env, localeData, "digit", numberElements.get(), 5);
-    //     setCharField(env, localeData, "decimalSeparator", numberElements.get(), 0);
-    //     setCharField(env, localeData, "groupingSeparator", numberElements.get(), 1);
-    //     setCharField(env, localeData, "patternSeparator", numberElements.get(), 2);
-    //     setCharField(env, localeData, "percent", numberElements.get(), 3);
-    //     setCharField(env, localeData, "perMill", numberElements.get(), 8);
-    //     setCharField(env, localeData, "monetarySeparator", numberElements.get(), 0);
-    //     setCharField(env, localeData, "minusSign", numberElements.get(), 6);
-    //     setStringField(env, localeData, "exponentSeparator", numberElements.get(), 7);
-    //     setStringField(env, localeData, "infinity", numberElements.get(), 9);
-    //     setStringField(env, localeData, "NaN", numberElements.get(), 10);
-    // }
-    // status = U_ZERO_ERROR;
+    ScopedResourceBundle numberElements(ures_getByKey(root.get(), "NumberElements", NULL, &status));
+    if (U_SUCCESS(status) && ures_getSize(numberElements.get()) >= 11) {
+        getUresChar(numberElements.get(), 4, &localeData->mZeroDigit);
+        getUresChar(numberElements.get(), 5, &localeData->mDigit);
+        getUresChar(numberElements.get(), 0, &localeData->mDecimalSeparator);
+        getUresChar(numberElements.get(), 1, &localeData->mGroupingSeparator);
+        getUresChar(numberElements.get(), 2, &localeData->mPatternSeparator);
+        getUresChar(numberElements.get(), 3, &localeData->mPercent);
+        getUresChar(numberElements.get(), 8, &localeData->mPerMill);
+        getUresChar(numberElements.get(), 0, &localeData->mMonetarySeparator);
+        getUresChar(numberElements.get(), 6, &localeData->mMinusSign);
+        getUresString(numberElements.get(), 7, &localeData->mExponentSeparator);
+        getUresString(numberElements.get(), 9, &localeData->mInfinity);
+        getUresString(numberElements.get(), 10, &localeData->mNaN);
+    }
+    status = U_ZERO_ERROR;
 
-    // jstring internationalCurrencySymbol = getIntCurrencyCode(env, locale);
-    // jstring currencySymbol = NULL;
-    // if (internationalCurrencySymbol != NULL) {
-    //     currencySymbol = ICU_getCurrencySymbolNative(env, NULL, locale, internationalCurrencySymbol);
-    // } else {
-    //     internationalCurrencySymbol = env->NewStringUTF("XXX");
-    // }
-    // if (currencySymbol == NULL) {
-    //     // This is the UTF-8 encoding of U+00A4 (CURRENCY SIGN).
-    //     currencySymbol = env->NewStringUTF("\xc2\xa4");
-    // }
-    // setStringField(env, localeData, "currencySymbol", currencySymbol);
-    // setStringField(env, localeData, "internationalCurrencySymbol", internationalCurrencySymbol);
+    String internationalCurrencySymbol = getIntCurrencyCode(localeName);
+    String currencySymbol = String(NULL);
+    if (!internationalCurrencySymbol.IsNull()) {
+        currencySymbol = GetCurrencySymbol(localeName, internationalCurrencySymbol);
+    }
+    else {
+        internationalCurrencySymbol = "XXX";
+    }
+    if (currencySymbol.IsNull()) {
+        // This is the UTF-8 encoding of U+00A4 (CURRENCY SIGN).
+        currencySymbol = "\xc2\xa4";
+    }
+    localeData->mCurrencySymbol = currencySymbol;
+    localeData->mInternationalCurrencySymbol = internationalCurrencySymbol;
 
-    // ScopedResourceBundle numberPatterns(ures_getByKey(root.get(), "NumberPatterns", NULL, &status));
-    // if (U_SUCCESS(status) && ures_getSize(numberPatterns.get()) >= 3) {
-    //     setStringField(env, localeData, "numberPattern", numberPatterns.get(), 0);
-    //     setStringField(env, localeData, "currencyPattern", numberPatterns.get(), 1);
-    //     setStringField(env, localeData, "percentPattern", numberPatterns.get(), 2);
-    // }
+    ScopedResourceBundle numberPatterns(ures_getByKey(root.get(), "NumberPatterns", NULL, &status));
+    if (U_SUCCESS(status) && ures_getSize(numberPatterns.get()) >= 3) {
+        getUresString(numberPatterns.get(), 0, &localeData->mNumberPattern);
+        getUresString(numberPatterns.get(), 1, &localeData->mCurrencyPattern);
+        getUresString(numberPatterns.get(), 2, &localeData->mPercentPattern);
+    }
 
-    // return JNI_TRUE;
-    return FALSE;
+    return TRUE;
 }
