@@ -46,20 +46,16 @@ int main(int argc, char *argv[])
 //     return nQuitCode;
 
     Double num = 12345.321;
-    printf("==== File: %s, Line: %d, num: %f ====\n", __FILE__, __LINE__, num);
     Double percent = 0.123;
-
-    printf("==== File: %s, Line: %d ====\n", __FILE__, __LINE__);
     AutoPtr<INumberFormatHelper> helper;
     ASSERT_SUCCEEDED(CNumberFormatHelper::AcquireSingleton((INumberFormatHelper**)&helper));
 
-    printf("==== File: %s, Line: %d ====\n", __FILE__, __LINE__);
     AutoPtr<INumberFormat> format;
     String result;
     ASSERT_SUCCEEDED(helper->GetInstance((INumberFormat**)&format));
     printf("==== File: %s, Line: %d ====\n", __FILE__, __LINE__);
     ASSERT_SUCCEEDED(format->FormatDouble(num, &result));
-    printf("==== File: %s, Line: %d, result: %s ====\n", __FILE__, __LINE__, (const char*)&result);
+    printf("==== File: %s, Line: %d, result: %s ====\n", __FILE__, __LINE__, (const char*)result);
 
     // ASSERT_SUCCEEDED(helper->GetCurrencyInstance((INumberFormat**)&format));
     // printf("==== File: %s, Line: %d ====\n", __FILE__, __LINE__);

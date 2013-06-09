@@ -17,12 +17,12 @@
 
 #define CLONE_ARRAY_OF_STRING(dest, src) \
     if (src != NULL) { \
-        dest = ArrayOf<String>::Alloc(src->GetLength()); \
+        *dest = ArrayOf<String>::Alloc(src->GetLength()); \
         for (Int32 i = 0; i < src->GetLength(); ++i) { \
-            (*dest)[i] = (*src)[i]; \
+            (**dest)[i] = (*src)[i]; \
         } \
     } \
-    else dest = NULL;
+    else *dest = NULL;
 
 #define FREE_ARRAY_OF_STRING(var) \
     if (var != NULL) { \
