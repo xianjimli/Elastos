@@ -1,7 +1,7 @@
 
 #include "LocaleData.h"
 #include "CLocale.h"
-// #include "ICU.h"
+#include "ICU.h"
 
 HashMap< String, AutoPtr<LocaleData> > LocaleData::sLocaleDataCache(11);
 Mutex LocaleData::sLocaleDataCacheLock;
@@ -93,6 +93,7 @@ AutoPtr<ILocaleData> LocaleData::Get(
             return (ILocaleData*)it->mSecond.Get();
         }
     }
+
     AutoPtr<LocaleData> newLocaleData = MakeLocaleData(locale);
     {
         Mutex::Autolock lock(&sLocaleDataCacheLock);
@@ -100,7 +101,7 @@ AutoPtr<ILocaleData> LocaleData::Get(
         HashMap< String, AutoPtr<LocaleData> >::Iterator it =
                 sLocaleDataCache.Find(localeName);
         if (it != sLocaleDataCache.End()) {
-            return it->mSecond;
+            return (ILocaleData*)it->mSecond.Get();
         }
         sLocaleDataCache[localeName] = newLocaleData;
         return (ILocaleData*)newLocaleData.Get();
@@ -183,7 +184,6 @@ void LocaleData::OverrideWithDataFrom(
     /* [in] */ ILocaleData* _overrides)
 {
     LocaleData* overrides = (LocaleData*)_overrides;
-
     if (overrides->mFirstDayOfWeek != NULL) {
         mFirstDayOfWeek = overrides->mFirstDayOfWeek;
     }
@@ -192,43 +192,43 @@ void LocaleData::OverrideWithDataFrom(
     }
     if (overrides->mAmPm != NULL) {
         FREE_ARRAY_OF_STRING(mAmPm);
-        CLONE_ARRAY_OF_STRING(mAmPm, overrides->mAmPm);
+        CLONE_ARRAY_OF_STRING(&mAmPm, overrides->mAmPm);
     }
     if (overrides->mEras != NULL) {
         FREE_ARRAY_OF_STRING(mEras);
-        CLONE_ARRAY_OF_STRING(mEras, overrides->mEras);
+        CLONE_ARRAY_OF_STRING(&mEras, overrides->mEras);
     }
     if (overrides->mLongMonthNames != NULL) {
         FREE_ARRAY_OF_STRING(mLongMonthNames);
-        CLONE_ARRAY_OF_STRING(mLongMonthNames, overrides->mLongMonthNames);
+        CLONE_ARRAY_OF_STRING(&mLongMonthNames, overrides->mLongMonthNames);
     }
     if (overrides->mShortMonthNames != NULL) {
         FREE_ARRAY_OF_STRING(mShortMonthNames);
-        CLONE_ARRAY_OF_STRING(mShortMonthNames, overrides->mShortMonthNames);
+        CLONE_ARRAY_OF_STRING(&mShortMonthNames, overrides->mShortMonthNames);
     }
     if (overrides->mLongStandAloneMonthNames != NULL) {
         FREE_ARRAY_OF_STRING(mLongStandAloneMonthNames);
-        CLONE_ARRAY_OF_STRING(mLongStandAloneMonthNames, overrides->mLongStandAloneMonthNames);
+        CLONE_ARRAY_OF_STRING(&mLongStandAloneMonthNames, overrides->mLongStandAloneMonthNames);
     }
     if (overrides->mShortStandAloneMonthNames != NULL) {
         FREE_ARRAY_OF_STRING(mShortStandAloneMonthNames);
-        CLONE_ARRAY_OF_STRING(mShortStandAloneMonthNames, overrides->mShortStandAloneMonthNames);
+        CLONE_ARRAY_OF_STRING(&mShortStandAloneMonthNames, overrides->mShortStandAloneMonthNames);
     }
     if (overrides->mLongWeekdayNames != NULL) {
         FREE_ARRAY_OF_STRING(mLongWeekdayNames);
-        CLONE_ARRAY_OF_STRING(mLongWeekdayNames, overrides->mLongWeekdayNames);
+        CLONE_ARRAY_OF_STRING(&mLongWeekdayNames, overrides->mLongWeekdayNames);
     }
     if (overrides->mShortWeekdayNames != NULL) {
         FREE_ARRAY_OF_STRING(mShortWeekdayNames);
-        CLONE_ARRAY_OF_STRING(mShortWeekdayNames, overrides->mShortWeekdayNames);
+        CLONE_ARRAY_OF_STRING(&mShortWeekdayNames, overrides->mShortWeekdayNames);
     }
     if (overrides->mLongStandAloneWeekdayNames != NULL) {
         FREE_ARRAY_OF_STRING(mLongStandAloneWeekdayNames);
-        CLONE_ARRAY_OF_STRING(mLongStandAloneWeekdayNames, overrides->mLongStandAloneWeekdayNames);
+        CLONE_ARRAY_OF_STRING(&mLongStandAloneWeekdayNames, overrides->mLongStandAloneWeekdayNames);
     }
     if (overrides->mShortStandAloneWeekdayNames != NULL) {
         FREE_ARRAY_OF_STRING(mShortStandAloneWeekdayNames);
-        CLONE_ARRAY_OF_STRING(mShortStandAloneWeekdayNames, overrides->mShortStandAloneWeekdayNames);
+        CLONE_ARRAY_OF_STRING(&mShortStandAloneWeekdayNames, overrides->mShortStandAloneWeekdayNames);
     }
     if (!overrides->mFullTimeFormat.IsNull()) {
         mFullTimeFormat = overrides->mFullTimeFormat;
@@ -498,10 +498,11 @@ AutoPtr<ILocaleData> LocaleData::InitLocaleData(
     /* [in] */ ILocale* locale)
 {
     LocaleData* localeData = new LocaleData();
-//    if (!ICU::InitLocaleDataImpl(((CLocale*)locale)->ToString(), localeData)) {
-//        return NULL;
-//    }
-
+    String localeName;
+    locale->ToString(&localeName);
+    if (!ICU::InitLocaleDataImpl(localeName, localeData)) {
+        return NULL;
+    }
     if (!localeData->mFullTimeFormat.IsNull()) {
         // There are some full time format patterns in ICU that use the pattern character 'v'.
         // Java doesn't accept this, so we replace it with 'z' which has about the same result
