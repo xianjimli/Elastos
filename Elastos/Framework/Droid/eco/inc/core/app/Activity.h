@@ -359,6 +359,17 @@ public:
     CARAPI GetWindowEx(
         /* [out] */ IWindow** window);
 
+    /**
+     * The hook for {@link ActivityThread} to restore the state of this activity.
+     *
+     * Calls {@link #onSaveInstanceState(android.os.Bundle)} and
+     * {@link #restoreManagedDialogs(android.os.Bundle)}.
+     *
+     * @param savedInstanceState contains the saved state
+     */
+    CARAPI PerformRestoreInstanceState(
+        /* [in] */ IBundle* savedInstanceState);
+
     CARAPI SetDecorView(
         /* [in] */ IView* decor);
 
@@ -748,6 +759,20 @@ protected:
 
 private:
     CARAPI InitializeTheme();
+
+    /**
+     * Restore the state of any saved managed dialogs.
+     *
+     * @param savedInstanceState The bundle to restore from.
+     */
+    CARAPI_(void) RestoreManagedDialogs(
+        /* [in] */ IBundle* savedInstanceState);
+
+    static CARAPI_(String) SavedDialogKeyFor(
+        /* [in] */ Int32 key);
+
+    static CARAPI_(String) SavedDialogArgsKeyFor(
+        /* [in] */ Int32 key);
 
 private:
     class ManagedDialog

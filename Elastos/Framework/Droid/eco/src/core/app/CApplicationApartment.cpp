@@ -993,7 +993,7 @@ ECode CApplicationApartment::PerformLaunchActivity(
         r->mActivity->IsFinishing(&finished);
         if (!finished) {
             if (r->mState != NULL) {
-//                mInstrumentation.callActivityOnRestoreInstanceState(activity, r.state);
+                mInstrumentation->CallActivityOnRestoreInstanceState(a, r->mState);
             }
         }
         r->mActivity->IsFinishing(&finished);

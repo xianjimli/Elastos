@@ -124,6 +124,48 @@ ECode CDefaultInstrumentation::CallActivityOnCreate(
     return NOERROR;
 }
 
+ECode CDefaultInstrumentation::CallActivityOnDestroy(
+    /* [in] */ IActivity* activity)
+{
+    if (mWaitingActivities != NULL) {
+        Mutex::Autolock lock(mSync);
+        List<ActivityWaiter*>::Iterator it;
+        for (it = mWaitingActivities->Begin(); it != mWaitingActivities->End(); ++it) {
+            ActivityWaiter* aw = *it;
+            AutoPtr<IIntent> intent = aw->mIntent;
+            AutoPtr<IIntent> aIntent;
+            activity->GetIntent((IIntent**)&aIntent);
+            Boolean isEqual;
+            intent->FilterEquals(aIntent, &isEqual);
+            if (isEqual) {
+                aw->mActivity = activity;
+//                mMessageQueue.addIdleHandler(new ActivityGoing(aw));
+            }
+        }
+	}
+	
+    activity->Destroy();
+	
+	if (mActivityMonitors != NULL) {
+        Mutex::Autolock lock(mSync);
+        List<AutoPtr<IActivityMonitor> >::Iterator it;
+        for (it = mActivityMonitors->Begin(); it != mActivityMonitors->End(); ++it) {
+            CActivityMonitor* am = (CActivityMonitor*)(IActivityMonitor*)*it;
+            AutoPtr<IIntent> aIntent;
+            activity->GetIntent((IIntent**)&aIntent);
+            am->Match(activity, activity, aIntent);
+        }
+	}
+    return NOERROR;
+}
+
+ECode CDefaultInstrumentation::CallActivityOnRestoreInstanceState(
+    /* [in] */ IActivity* activity,
+    /* [in] */ IBundle* savedInstanceState)
+{
+    return activity->PerformRestoreInstanceState(savedInstanceState);
+}
+
 ECode CDefaultInstrumentation::CallActivityOnPostCreate(
     /* [in] */ IActivity* activity,
     /* [in] */ IBundle* icicle)

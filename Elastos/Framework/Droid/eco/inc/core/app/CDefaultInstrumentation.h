@@ -82,6 +82,20 @@ public:
         /* [in] */ IActivity* activity,
         /* [in] */ IBundle* icicle);
 
+	CARAPI CallActivityOnDestroy(
+		/* [in] */ IActivity* activity);
+
+	/**
+     * Perform calling of an activity's {@link Activity#onRestoreInstanceState}
+     * method.  The default implementation simply calls through to that method.
+     * 
+     * @param activity The activity being restored.
+     * @param savedInstanceState The previously saved state being restored.
+     */
+    CARAPI CallActivityOnRestoreInstanceState(
+        /* [in] */ IActivity* activity,
+        /* [in] */ IBundle* savedInstanceState);
+
     /**
      * Perform calling of an activity's {@link Activity#onPostCreate} method.
      * The default implementation simply calls through to that method.
