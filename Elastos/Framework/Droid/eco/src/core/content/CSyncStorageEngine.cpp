@@ -10,6 +10,7 @@
 #include "content/CSyncStorageEnginePendingOperation.h"
 #include "content/CSyncStorageEngineSyncHistoryItem.h"
 #include "database/sqlite/CSQLiteQueryBuilder.h"
+#include "os/CApartment.h"
 #include "os/CBundle.h"
 #include "utils/CParcelableObjectContainer.h"
 #include <Logger.h>
@@ -108,6 +109,7 @@ CSyncStorageEngine::CSyncStorageEngine()
     mPendingOperations = new  List<AutoPtr<ISyncStorageEnginePendingOperation> >();
     mDayStats = ArrayOf<AutoPtr<ISyncStorageEngineDayStats> >::Alloc(7*4);
     mSyncHistory = new List<AutoPtr<ISyncStorageEngineSyncHistoryItem> >();
+    assert(SUCCEEDED(CApartment::GetMainApartment((IApartment**)&mApartment)) && (NULL !=mApartment));
 }
 
 CSyncStorageEngine::~CSyncStorageEngine()
@@ -131,22 +133,6 @@ CSyncStorageEngine::~CSyncStorageEngine()
     }
 }
 
-ECode CSyncStorageEngine::HandleMessage(
-    /* [in] */ IMessage* msg)
-{
-    //TODO:
-    //if (msg.what == MSG_WRITE_STATUS) {
-    //    synchronized (mAuthorities) {
-    //        writeStatusLocked();
-    //    }
-    //} else if (msg.what == MSG_WRITE_STATISTICS) {
-    //    synchronized (mAuthorities) {
-    //        writeStatisticsLocked();
-    //    }
-    //}
-    return E_NOT_IMPLEMENTED;
-}
-
 ECode CSyncStorageEngine::AddStatusChangeListener(
     /* [in] */ Int32 mask,
     /* [in] */ ISyncStatusObserver* syncStatusObserver)
@@ -154,7 +140,7 @@ ECode CSyncStorageEngine::AddStatusChangeListener(
     Mutex::Autolock lock(mAuthoritiesLock);
     AutoPtr<IInteger32> maskObj;
     FAIL_RETURN(CInteger32::New(mask, (IInteger32**) &maskObj));
-    Boolean result;
+    Boolean result = FALSE;
     FAIL_RETURN(mChangeListeners->RegisterEx(syncStatusObserver, maskObj, &result));
     return NOERROR;
 }
@@ -163,7 +149,7 @@ ECode CSyncStorageEngine::RemoveStatusChangeListener(
     /* [in] */ ISyncStatusObserver* syncStatusObserver)
 {
     Mutex::Autolock lock(mAuthoritiesLock);
-    Boolean result;
+    Boolean result = FALSE;
     FAIL_RETURN(mChangeListeners->Unregister(syncStatusObserver, &result));
     return NOERROR;
 }
@@ -180,7 +166,7 @@ ECode CSyncStorageEngine::GetSyncAutomatically(
         AutoPtr<ISyncStorageEngineAuthorityInfo> authority;
         FAIL_RETURN(GetAuthorityLocked(account, providerName, String("getSyncAutomatically"), (ISyncStorageEngineAuthorityInfo**)&authority));
         if (NULL != authority) {
-            Boolean isEnable;
+            Boolean isEnable = FALSE;
             authority->GetEnabled(&isEnable);
             if (isEnable) {
                 *result = TRUE;
@@ -201,7 +187,7 @@ ECode CSyncStorageEngine::GetSyncAutomatically(
         authorityInfo->GetAuthority(&strAuthority);
    
         if (!strAuthority.Compare(providerName)) {
-            Boolean isEnable;
+            Boolean isEnable = FALSE;
             FAIL_RETURN(authorityInfo->GetEnabled(&isEnable));
             if (isEnable) {
                 *result = TRUE;
@@ -229,7 +215,7 @@ ECode CSyncStorageEngine::SetSyncAutomatically(
     Mutex::Autolock lock(mAuthoritiesLock);
     AutoPtr<ISyncStorageEngineAuthorityInfo> authorityInfo;
     FAIL_RETURN(GetOrCreateAuthorityLocked(account, providerName, -1, FALSE, (ISyncStorageEngineAuthorityInfo**)&authorityInfo));
-    Boolean isEnable;
+    Boolean isEnable = FALSE;
     FAIL_RETURN(authorityInfo->GetEnabled(&isEnable));
 
     if (isEnable == sync) {
@@ -304,14 +290,16 @@ ECode CSyncStorageEngine::SetIsSyncable(
 {
     if (syncable > 1) {
         syncable = 1;
-    } else if (syncable < -1) {
+    }
+    else if (syncable < -1) {
         syncable = -1;
     }
 
     String str("setIsSyncable: ");
     if (NULL != account) {
         //TODO: account->ToString();
-    } else {
+    }
+    else {
         str.Append(" null ");
     }
     str.Append(", provider ");
@@ -360,7 +348,8 @@ ECode CSyncStorageEngine::SetBackoff(
         String str("setBackoff: ");
         if (NULL != account) {
             //TODO: account->ToString();
-        } else {
+        }
+        else {
             str.Append(" null ");
         }
         str.Append(", provider ");
@@ -405,7 +394,8 @@ ECode CSyncStorageEngine::SetBackoff(
             }
         }
 
-    } else {
+    }
+    else {
         AutoPtr<ISyncStorageEngineAuthorityInfo> authorityInfo;
         FAIL_RETURN(GetOrCreateAuthorityLocked(account, providerName, -1, TRUE, (ISyncStorageEngineAuthorityInfo**)&authorityInfo));
         Int64 backoffTime;
@@ -495,7 +485,8 @@ ECode CSyncStorageEngine::SetDelayUntilTime(
         String str("setDelayUntil: ");
         if (NULL != account) {
             //TODO: account->ToString();
-        } else {
+        } 
+        else {
             str.Append(" null ");
         }
         str.Append(", provider ");
@@ -653,6 +644,7 @@ ECode CSyncStorageEngine::GetAuthority(
     VALIDATE_NOT_NULL(authorityInfo);
     Mutex::Autolock lock(mAuthoritiesLock);
     *authorityInfo = (ISyncStorageEngineAuthorityInfo*) mAuthorities->Get(authorityId);
+    (*authorityInfo)->AddRef();
     return NOERROR;
 }
 
@@ -728,7 +720,8 @@ ECode CSyncStorageEngine::InsertIntoPending(
         String str("insertIntoPending: account=");
         if (NULL != account) {
             //TODO: account->ToString();
-        } else {
+        } 
+        else {
             str.Append(" null ");
         }
         str.Append(" auth=");
@@ -784,7 +777,8 @@ ECode CSyncStorageEngine::DeleteFromPending(
         String str("deleteFromPending: account=");
         if (NULL != account) {
             //TODO: account->ToString();
-        } else {
+        } 
+        else {
             str.Append(" null ");
         }
         str.Append(" auth=");
@@ -815,7 +809,8 @@ ECode CSyncStorageEngine::DeleteFromPending(
         if (0 == N || mNumPendingFinished >= CSyncStorageEngine::PENDING_FINISH_TO_WRITE) {
             FAIL_RETURN(WritePendingOperationsLocked());
             mNumPendingFinished = 0;
-        } else {
+        } 
+        else {
             mNumPendingFinished++;
         }
 
@@ -1039,7 +1034,8 @@ ECode CSyncStorageEngine::InsertStartSyncEvent(
         String str("insertStartSyncEvent: account=");
         if (NULL != accountName) {
             //TODO: accountName->ToString();
-        } else {
+        } 
+        else {
             str.Append(" null ");
         }
         str.Append(" auth=");
@@ -1204,7 +1200,8 @@ ECode CSyncStorageEngine::StopSyncEvent(
 
     if (NULL == (*mDayStats)[0]) {
         FAIL_RETURN(CSyncStorageEngineDayStats::New(day, (ISyncStorageEngineDayStats**)&(*mDayStats)[0]));
-    } else if (day != ((*mDayStats)[0]->GetDay(&tmpDay), tmpDay)) {
+    } 
+    else if (day != ((*mDayStats)[0]->GetDay(&tmpDay), tmpDay)) {
         mDayStats->Replace(1, mDayStats->GetPayload(), mDayStats->GetLength() - 1); //System.arraycopy(mDayStats, 0, mDayStats, 1, mDayStats.length-1);
         FAIL_RETURN(CSyncStorageEngineDayStats::New(day, (ISyncStorageEngineDayStats**)&(*mDayStats)[0]));
         writeStatisticsNow = TRUE;
@@ -1240,7 +1237,8 @@ ECode CSyncStorageEngine::StopSyncEvent(
         FAIL_RETURN(ds->GetSuccessTime(&successTime));
         successTime += elapsedTime;
         FAIL_RETURN(ds->SetSuccessTime(successTime));
-    } else if (!String(SyncStorageEngine_MESG_CANCELED).Compare(resultMessage)) {
+    } 
+    else if (!String(SyncStorageEngine_MESG_CANCELED).Compare(resultMessage)) {
         if (0 == lastFailureTime) {
             writeStatusNow = TRUE;
         }
@@ -1262,15 +1260,26 @@ ECode CSyncStorageEngine::StopSyncEvent(
         FAIL_RETURN(ds->SetFailureTime(failureTime));
     }
 
+    ECode (STDCALL CSyncStorageEngine::*pHandlerFunc)();
+    pHandlerFunc = &CSyncStorageEngine::HandleWriteStatus;
+    Boolean hasMessages = FALSE;
+
     if (writeStatusNow) {
         FAIL_RETURN(WriteStatusLocked());
-    //TODO: } else if (!hasMessages(CSyncStorageEngine::MSG_WRITE_STATUS)) {
-    //TODO:     sendMessageDelayed(obtainMessage(MSG_WRITE_STATUS), WRITE_STATUS_DELAY);
     }
+    else if (!(mApartment->HasCppCallbacks((Handle32)this, *(Handle32*)&pHandlerFunc, &hasMessages), hasMessages)) {
+        AutoPtr<IParcel> params;
+        FAIL_RETURN(SendMessageAtTime(*(Handle32*)&pHandlerFunc, params, WRITE_STATUS_DELAY));
+    }
+
+    pHandlerFunc = &CSyncStorageEngine::HandleWriteStatistics;
+
     if (writeStatisticsNow) {
         FAIL_RETURN(WriteStatisticsLocked());
-    //TODO: } else if (!hasMessages(MSG_WRITE_STATISTICS)) {
-    //TODO:     sendMessageDelayed(obtainMessage(MSG_WRITE_STATISTICS), WRITE_STATISTICS_DELAY);
+    }
+    else if (!(mApartment->HasCppCallbacks((Handle32)this, *(Handle32*)&pHandlerFunc, &hasMessages), hasMessages)) {
+        AutoPtr<IParcel> params;
+        FAIL_RETURN(SendMessageAtTime(*(Handle32*)&pHandlerFunc, params, WRITE_STATISTICS_DELAY));
     }
     
     FAIL_RETURN(ReportChange(ContentResolver_SYNC_OBSERVER_TYPE_STATUS));
@@ -1283,6 +1292,7 @@ ECode CSyncStorageEngine::GetCurrentSync(
     VALIDATE_NOT_NULL(syncInfo);
     Mutex::Autolock lock(mAuthoritiesLock);
     *syncInfo = mCurrentSync;
+    (*syncInfo)->AddRef();
     return NOERROR;
 }
 
@@ -1346,6 +1356,7 @@ ECode CSyncStorageEngine::GetStatusByAccountAndAuthority(
             FAIL_RETURN(ainfo->GetAccount((IAccount**)&tmpAccount));
             if (!tmpAuthority.Compare(authority) && _CObject_Compare(account, tmpAccount)) {
                 *result = cur;
+                (*result)->AddRef();
                 return NOERROR;
             }
         }
@@ -1385,7 +1396,7 @@ ECode CSyncStorageEngine::IsSyncPending(
 
         String strAuthority;
         FAIL_RETURN(ainfo->GetAuthority(&strAuthority));
-        Boolean pending;
+        Boolean pending = FALSE;
         FAIL_RETURN(cur->GetPending(&pending));
 
         if (!strAuthority.Compare(authority) && pending) {
@@ -1441,7 +1452,7 @@ ECode CSyncStorageEngine::GetInitialSyncFailureTime(
         return NOERROR;
     }
 
-    Boolean enabled;
+    Boolean enabled = FALSE;
     Int64 oldest = 0;
     Int32 i = mSyncStatus->Size();
     AutoPtr<ISyncStatusInfo> stats;
@@ -1532,7 +1543,7 @@ ECode CSyncStorageEngine::constructor(
     CFile::New(dataDir, String("system"), (IFile**) &systemDir);
     AutoPtr<IFile> syncDir;
     CFile::New(systemDir, String("sync"), (IFile**) &syncDir);
-    Boolean succeeded;
+    Boolean succeeded = FALSE;
     FAIL_RETURN(syncDir->Mkdirs(&succeeded));
 
     //TODO: mAccountInfoFile = new AtomicFile(new File(syncDir, "accounts.xml"));
@@ -1713,7 +1724,8 @@ ECode CSyncStorageEngine::UpdateOrRemovePeriodicSync(
         String str("addOrRemovePeriodicSync: ");
         if (NULL != account) {
             //TODO: account->ToString();
-        } else {
+        } 
+        else {
             str.Append(" null ");
         }
         str.Append(", provider ");
@@ -1775,7 +1787,8 @@ ECode CSyncStorageEngine::UpdateOrRemovePeriodicSync(
                 ecode = status->SetPeriodicSyncTime(size - 1, 0);
                 FAIL_WithGoto(ecode);
             }
-        } else {
+        } 
+        else {
             // remove any periodic syncs that match the authority and extras
             status = (ISyncStatusInfo*) mSyncStatus->Get(ident);
             Boolean changed = FALSE;
@@ -1793,7 +1806,8 @@ ECode CSyncStorageEngine::UpdateOrRemovePeriodicSync(
                         ecode = status->RemovePeriodicSyncTime(index);
                         FAIL_WithGoto(ecode);
                     }
-                } else {
+                } 
+                else {
                     index++;
                 }
             }
@@ -1844,7 +1858,8 @@ ECode CSyncStorageEngine::GetAuthorityLocked(
                 str.Append(": unknown account ");
                 if (NULL != accountName) {
                     //TODO: accountName->ToString();
-                } else {
+                } 
+                else {
                     str.Append(" null ");
                 }
                 Logger::V(TAG, str);
@@ -1894,6 +1909,8 @@ ECode CSyncStorageEngine::GetOrCreateAuthorityLocked(
     *authorityInfo = iter->mSecond;
 
     if (NULL == authorityInfo) {
+        (*authorityInfo)->AddRef();
+
         if (ident < 0) {
             ident = mNextAuthorityId;
             mNextAuthorityId++;
@@ -1904,7 +1921,8 @@ ECode CSyncStorageEngine::GetOrCreateAuthorityLocked(
             String str("created a new AuthorityInfo for ");
             if (NULL != accountName) {
             //TODO: accountName->ToString();
-            } else {
+            } 
+            else {
                 str.Append(" null ");
             }
             str.Append(", provider ");
@@ -1964,6 +1982,7 @@ ECode CSyncStorageEngine::GetOrCreateSyncStatusLocked(
         mSyncStatus->Put(authorityId, *syncStatusInfo);
     }
 
+    (*syncStatusInfo)->AddRef();
     return NOERROR;
 }
 
@@ -2034,11 +2053,13 @@ ECode CSyncStorageEngine::ReadAccountInfoLocked()
                                 highestAuthorityId = ident;
                             }
                         }
-                    } else if (3 == depth) {
+                    } 
+                    else if (3 == depth) {
                         if (!String("periodicSync").Compare(tagName) && NULL != authority) {
                             periodicSync = ParsePeriodicSync(parser, authority);
                         }
-                    } else if (4 == depth && NULL != periodicSync) {
+                    } 
+                    else if (4 == depth && NULL != periodicSync) {
                         if (!String("extra").Compare(tagName)) {
                             ParseExtra(parser, periodicSync);
                         }
@@ -2058,7 +2079,8 @@ ECode CSyncStorageEngine::ReadAccountInfoLocked()
         if (NULL == fis) {
             String str("No initial accounts");
             Logger::I(TAG, str);
-        } else {
+        } 
+        else {
             String str("Error reading accounts ecode = E_IO_EXCEPTION");
             Logger::W(TAG, str);
         }
@@ -2070,7 +2092,7 @@ ECode CSyncStorageEngine::ReadAccountInfoLocked()
     }
 
     FAIL_RETURN(ecode);
-    Boolean isChange;
+    Boolean isChange = FALSE;
     FAIL_RETURN(MaybeMigrateSettingsForRenamedAuthorities(&isChange));
     return NOERROR;
 }
@@ -2103,7 +2125,7 @@ ECode CSyncStorageEngine::MaybeMigrateSettingsForRenamedAuthorities(
 
         // this authority isn't enabled, no need to copy it to the new authority name since
         // the default is "disabled"
-        Boolean enabled;
+        Boolean enabled = FALSE;
         FAIL_RETURN(authority->GetEnabled(&enabled));
         if (!enabled) {
             continue;
@@ -2164,7 +2186,8 @@ ECode CSyncStorageEngine::ParseAuthority(
     if (strValue.IsNull()) {
         String str("error parsing the id of the authority, the id of the authority is null");
         Logger::E(TAG, str);
-    } else {
+    } 
+    else {
         id = strValue.ToInt32();
     }
     
@@ -2228,10 +2251,12 @@ ECode CSyncStorageEngine::ParseAuthority(
             FAIL_RETURN((*authority)->SetEnabled(enabled.IsNull() || enabled.ToBoolean()));
             if (String("unknown").Compare(syncable)) {
                 FAIL_RETURN((*authority)->SetSyncable(-1));
-            } else {
+            } 
+            else {
                 FAIL_RETURN((*authority)->SetSyncable((syncable.IsNull() || syncable.ToBoolean()) ? 1 : 0));
             }
-        } else {
+        } 
+        else {
             String str("Failure adding authority: account=");
             str.Append(accountName);
             str.Append(" auth=");
@@ -2262,7 +2287,8 @@ Pair<AutoPtr<IBundle>, Int64>* CSyncStorageEngine::ParsePeriodicSync(
         String str("error parsing the period of a periodic sync. the period of a periodic sync is null");
         Logger::E(TAG, str);
         return NULL;
-    } else {
+    } 
+    else {
         period = periodValue.ToInt64();
     }
 
@@ -2293,45 +2319,56 @@ void CSyncStorageEngine::ParseExtra(
         if (strValue1.IsNull()) {
             String str("error parsing bundle value. strValue1 is null");
             Logger::E(TAG, str);
-        } else {
+        } 
+        else {
             Int64 value1 = strValue1.ToInt64();
             extras->PutInt64(name, value1);
         }
-    } else if (!String("integer").Compare(type)) {
+    } 
+    else if (!String("integer").Compare(type)) {
         if (strValue1.IsNull()) {
             String str("error parsing bundle value. strValue1 is null");
             Logger::E(TAG, str);
-        } else {
+        } 
+        else {
             Int32 value1 = strValue1.ToInt32();
             extras->PutInt32(name, value1);
         }
-    } else if (!String("double").Compare(type)) {
+    } 
+    else if (!String("double").Compare(type)) {
         if (strValue1.IsNull()) {
             String str("error parsing bundle value. strValue1 is null");
             Logger::E(TAG, str);
-        } else {
+        } 
+        else {
             Double value1 = strValue1.ToDouble();
             extras->PutDouble(name, value1);
         }
-    } else if (!String("float").Compare(type)) {
+    } 
+    else if (!String("float").Compare(type)) {
         if (strValue1.IsNull()) {
             String str("error parsing bundle value. strValue1 is null");
             Logger::E(TAG, str);
-        } else {
+        } 
+        else {
             Float value1 = (Float) strValue1.ToDouble();
             extras->PutFloat(name, value1);
         }
-    } else if (!String("boolean").Compare(type)) {
+    } 
+    else if (!String("boolean").Compare(type)) {
         if (strValue1.IsNull()) {
             String str("error parsing bundle value. strValue1 is null");
             Logger::E(TAG, str);
-        } else {
+        } 
+        else {
             Boolean value1 = strValue1.ToBoolean();
             extras->PutBoolean(name, value1);
         }
-    } else if (!String("string").Compare(type)) {
+    } 
+    else if (!String("string").Compare(type)) {
         extras->PutString(name, strValue1);
-    } else if (!String("account").Compare(type)) {
+    } 
+    else if (!String("account").Compare(type)) {
         AutoPtr<IAccount> account;
         CAccount::New(strValue1, strValue2, (IAccount**) &account);
         //TODO: extras->PutParcelable(name, account);
@@ -2383,7 +2420,8 @@ ECode CSyncStorageEngine::WriteAccountInfoLocked()
             FAIL_WithGoto(ecode);
             if (syncable < 0) {
                 //TODO: out.attribute(null, "syncable", "unknown");
-            } else {
+            } 
+            else {
                 //TODO: out.attribute(null, "syncable", Boolean.toString(authority.syncable != 0));
             }
             CSyncStorageEngineAuthorityInfo* authorityInfo = (CSyncStorageEngineAuthorityInfo*) authority.Get();
@@ -2404,7 +2442,7 @@ ECode CSyncStorageEngine::WriteAccountInfoLocked()
                     AutoPtr<ICharSequence> stringKey;
                     AutoPtr<IInterface> value;
                     String key;
-                    Boolean hasNext;
+                    Boolean hasNext = FALSE;
                     ecode = stringSet->GetObjectEnumerator((IObjectEnumerator**)&ObjEnumerator);
                     FAIL_WithGoto(ecode);
                     while ((ObjEnumerator->MoveNext(&hasNext), hasNext)) {
@@ -2419,22 +2457,28 @@ ECode CSyncStorageEngine::WriteAccountInfoLocked()
                         if (IInteger64::Probe(value) != NULL) {
                             //TODO: out.attribute(null, "type", "long");
                             //TODO: out.attribute(null, "value1", value.toString());
-                        } else if (IInteger32::Probe(value) != NULL) {
+                        } 
+                        else if (IInteger32::Probe(value) != NULL) {
                             //TODO: out.attribute(null, "type", "integer");
                             //TODO: out.attribute(null, "value1", value.toString());
-                        } else if (IBoolean::Probe(value) != NULL) {
+                        } 
+                        else if (IBoolean::Probe(value) != NULL) {
                             //TODO: out.attribute(null, "type", "boolean");
                             //TODO: out.attribute(null, "value1", value.toString());
-                        } else if (IFloat::Probe(value) != NULL) {
+                        } 
+                        else if (IFloat::Probe(value) != NULL) {
                             //TODO: out.attribute(null, "type", "float");
                             //TODO: out.attribute(null, "value1", value.toString());
-                        } else if (IDouble::Probe(value) != NULL) {
+                        } 
+                        else if (IDouble::Probe(value) != NULL) {
                             //TODO: out.attribute(null, "type", "double");
                             //TODO: out.attribute(null, "value1", value.toString());
-                        } else if (ICharSequence::Probe(value) != NULL) {
+                        } 
+                        else if (ICharSequence::Probe(value) != NULL) {
                             //TODO: out.attribute(null, "type", "string");
                             //TODO: out.attribute(null, "value1", value.toString());
-                        } else if (IAccount::Probe(value) != NULL) {
+                        } 
+                        else if (IAccount::Probe(value) != NULL) {
                             //TODO: out.attribute(null, "type", "account");
                             //TODO: out.attribute(null, "value1", ((Account)value).name);
                             //TODO: out.attribute(null, "value2", ((Account)value).type);
@@ -2468,7 +2512,7 @@ ECode CSyncStorageEngine::ReadAndDeleteLegacyAccountInfoLocked()
     // Look for old database to initialize from.
     AutoPtr<IFile> file;
     //TODO: file = mContext.getDatabasePath("syncmanager.db");
-    Boolean isExist;
+    Boolean isExist = FALSE;
     FAIL_RETURN(file->Exists(&isExist));
     if (!isExist) {
         return NOERROR;
@@ -2521,7 +2565,7 @@ ECode CSyncStorageEngine::ReadAndDeleteLegacyAccountInfoLocked()
         String strNull;
         AutoPtr<ICursor> c;
         FAIL_RETURN(qb->Query(db, NULL, strNull, NULL, strNull, strNull, strNull, (ICursor**) &c));
-        Boolean hasNext;
+        Boolean hasNext = FALSE;
         Int32 columnIndex;
         
         while ((c->MoveToNext(&hasNext),hasNext)) {
@@ -2615,7 +2659,8 @@ ECode CSyncStorageEngine::ReadAndDeleteLegacyAccountInfoLocked()
             if (name.IsNull()) continue;
             if (!name.Compare(String("listen_for_tickles"))) {
                 FAIL_RETURN(SetMasterSyncAutomatically(value.IsNull() || value.ToBoolean()));
-            } else if (name.StartWith("sync_provider_")) {
+            } 
+            else if (name.StartWith("sync_provider_")) {
                 String provider = name.Substring(String("sync_provider_").GetLength(), name.GetLength() - String("sync_provider_").GetLength());
                 Int32 i = mAuthorities->Size();
                 while (i > 0) {
@@ -2634,7 +2679,7 @@ ECode CSyncStorageEngine::ReadAndDeleteLegacyAccountInfoLocked()
         FAIL_RETURN(c->Close());
         FAIL_RETURN(db->Close());
         AutoPtr<IFile> newFile;
-        Boolean isDelete;
+        Boolean isDelete = FALSE;
         FAIL_RETURN(CFile::New(path, (IFile**) &newFile));
         newFile->Delete(&isDelete);
 
@@ -2683,7 +2728,8 @@ ECode CSyncStorageEngine::ReadStatusLocked()
                 }
                 mSyncStatus->Put(authorityId, status);
             }
-        } else {
+        } 
+        else {
             // Ooops.
             String str("Unknown status token: ");
             String strToken = String::FromInt32(token);
@@ -2712,7 +2758,9 @@ ECode CSyncStorageEngine::WriteStatusLocked()
 
     // The file is being written, so we don't need to have a scheduled
     // write until the next change.
-    //TODO: removeMessages(CSyncStorageEngine::MSG_WRITE_STATUS);
+    ECode (STDCALL CSyncStorageEngine::*pHandlerFunc)();
+    pHandlerFunc = &CSyncStorageEngine::HandleWriteStatus;
+    RemoveMessage(*(Handle32*)&pHandlerFunc);
 
     AutoPtr<IFileOutputStream> fos;
     ECode ecode = NOERROR;
@@ -2791,14 +2839,15 @@ ECode CSyncStorageEngine::ReadPendingOperationsLocked()
             FAIL_WithGoto(ecode);
             AutoFree<ArrayOf<Byte> > flatExtras;
             //TODO: flatExtras = in.createByteArray();
-            Boolean expedited;
+            Boolean expedited = FALSE;
 
             if (version == SyncStorageEngine_PENDING_OPERATION_VERSION) {
                 Int32 tmp;
                 ecode = in->ReadInt32(&tmp);
                 FAIL_WithGoto(ecode);
                 expedited =  tmp != 0;
-            } else {
+            } 
+            else {
                 expedited = FALSE;
             }
 
@@ -2827,7 +2876,8 @@ ECode CSyncStorageEngine::ReadPendingOperationsLocked()
                     String str("Adding pending op: account=");
                     if(NULL != account){
                         //TODO: account->ToString();
-                    } else {
+                    } 
+                    else {
                         str.Append(" null ");
                     }
                     str.Append(" auth=");
@@ -2838,7 +2888,8 @@ ECode CSyncStorageEngine::ReadPendingOperationsLocked()
                     str.Append(" expedited=");
                     if(expedited) {
                         str.Append(" true ");
-                    } else {
+                    } 
+                    else {
                         str.Append(" false ");
                     }
                     str.Append(" extras=");
@@ -2881,7 +2932,7 @@ ECode CSyncStorageEngine::WritePendingOperationLocked(
         FAIL_RETURN(op->SetFlatExtras(flatExtras));
     }
     FAIL_RETURN(out->WriteArrayOf((Handle32)flatExtras.Get()));
-    Boolean expedited;
+    Boolean expedited = FALSE;
     FAIL_RETURN(op->GetExpedited(&expedited));
     FAIL_RETURN(out->WriteInt32(expedited ? 1 : 0));
     return NOERROR;
@@ -3026,7 +3077,8 @@ ECode CSyncStorageEngine::ReadStatisticsLocked()
                     (*mDayStats)[index] = ds;
                     index++;
                 }
-            } else {
+            } 
+            else {
                 // Ooops.
                 String str("Unknown stats token: ");
                 String strToken = String::FromInt32(token);
@@ -3055,7 +3107,9 @@ ECode CSyncStorageEngine::WriteStatisticsLocked()
 
     // The file is being written, so we don't need to have a scheduled
     // write until the next change.
-    //TODO: removeMessages(CSyncStorageEngine::MSG_WRITE_STATISTICS);
+    ECode (STDCALL CSyncStorageEngine::*pHandlerFunc)();
+    pHandlerFunc = &CSyncStorageEngine::HandleWriteStatistics;
+    RemoveMessage(*(Handle32*)&pHandlerFunc);
 
     AutoPtr<IFileOutputStream> fos;
     ECode ecode = NOERROR;
@@ -3113,3 +3167,30 @@ ECode CSyncStorageEngine::WriteStatisticsLocked()
     return E_NOT_IMPLEMENTED;
 }
 
+ECode CSyncStorageEngine::SendMessageAtTime(
+    /* [in] */ Handle32 pvFunc,
+    /* [in] */ IParcel* params,
+    /* [in] */ Millisecond64 uptimeMillis)
+{
+    return mApartment->PostCppCallback((Handle32)this, pvFunc, params, uptimeMillis);
+}
+
+ECode CSyncStorageEngine::RemoveMessage(
+    /* [in] */ Handle32 func)
+{
+    return mApartment->RemoveCppCallbacks((Handle32)this, func);
+}
+
+ECode CSyncStorageEngine::HandleWriteStatus()
+{
+    Mutex::Autolock lock(mAuthoritiesLock);
+    FAIL_RETURN(WriteStatusLocked());
+    return NOERROR;
+}
+
+ECode CSyncStorageEngine::HandleWriteStatistics()
+{
+    Mutex::Autolock lock(mAuthoritiesLock);
+    FAIL_RETURN(WriteStatisticsLocked());
+    return NOERROR;
+}

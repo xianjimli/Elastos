@@ -77,9 +77,6 @@ public:
 
     ~CSyncStorageEngine();
 
-    CARAPI HandleMessage(
-        /* [in] */ IMessage* msg);
-
     CARAPI AddStatusChangeListener(
         /* [in] */ Int32 mask,
         /* [in] */ ISyncStatusObserver* syncStatusObserver);
@@ -335,7 +332,7 @@ private:
         /* [in] */ IXmlPullParser* parser,
         /* [in] */ ISyncStorageEngineAuthorityInfo* authority);
         
-    void ParseExtra(
+    CARAPI_(void) ParseExtra(
         /* [in] */ IXmlPullParser* parser,
         /* [in] */ Pair<AutoPtr<IBundle>, Int64>* periodicSync);
 
@@ -391,6 +388,18 @@ private:
      * Write all sync statistics to the sync status file.
      */
     CARAPI WriteStatisticsLocked();
+
+    CARAPI SendMessageAtTime(
+        /* [in] */ Handle32 pvFunc,
+        /* [in] */ IParcel* params,
+        /* [in] */ Millisecond64 uptimeMillis);
+
+    CARAPI RemoveMessage(
+        /* [in] */ Handle32 func);
+
+    CARAPI HandleWriteStatus();
+
+    CARAPI HandleWriteStatistics();
 
 private:
     static const CString TAG;
@@ -475,6 +484,7 @@ private:
     Int32 mNextHistoryId;
     Boolean mMasterSyncAutomatically;
     Mutex mAuthoritiesLock;
+    AutoPtr<IApartment> mApartment;
 };
 
 #endif // __CSYNCSTORAGEENGINE_H__

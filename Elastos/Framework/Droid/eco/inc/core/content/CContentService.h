@@ -16,7 +16,7 @@ CarClass(CContentService)
 {
     class ObserverNode;
 
-    class ObserverCall
+    class ObserverCall: public ElRefBase
     {
     public:
         ObserverCall(
@@ -25,6 +25,17 @@ CarClass(CContentService)
             /* [in] */ Boolean selfNotify);
 
         ~ObserverCall();
+
+        CARAPI_(PInterface) Probe(
+            /* [in] */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
 
     public:
         AutoPtr<ObserverNode> mNode;
@@ -35,6 +46,7 @@ CarClass(CContentService)
 
     class ObserverNode: public ElRefBase
     {
+    public:
         class ObserverEntry :  public ElRefBase, public IBinderDeathRecipient
             {
             public:
@@ -99,7 +111,7 @@ CarClass(CContentService)
                 /* [in] */ Int32 index,
                 /* [in] */ IContentObserver* observer,
                 /* [in] */ Boolean selfNotify,
-                /* [in] */ List<ObserverCall*>* calls);
+                /* [in] */ List<AutoPtr<ObserverCall> >* calls);
 
         public:
             static const Int32 INSERT_TYPE = 0;
@@ -126,12 +138,12 @@ CarClass(CContentService)
                 /* [in] */ Boolean leaf,
                 /* [in] */ IContentObserver* observer,
                 /* [in] */ Boolean selfNotify,
-                /* [in] */ List<ObserverCall*>* calls);
+                /* [in] */ List<AutoPtr<ObserverCall> >* calls);
 
-        private:
+        public:
             String mName;
-            List<AutoPtr<ObserverNode> > mChildren;
-            List<AutoPtr<ObserverEntry> > mObservers;
+            List<AutoPtr<ObserverNode> >* mChildren;
+            List<AutoPtr<ObserverNode::ObserverEntry> >* mObservers;
     };
 
 public:
@@ -212,39 +224,39 @@ public:
     CARAPI IsSyncActive(
         /*[in]*/ IAccount* account,
         /*[in]*/ const String& authority,
-        /*[in]*/ Boolean* isActive);
+        /*[out]*/ Boolean* isActive);
 
-    //CARAPI GetCurrentSync(
-    //    /*[out]*/ ISyncInfo** syncInfo);
+    CARAPI GetCurrentSync(
+        /*[out]*/ ISyncInfo** syncInfo);
 
     CARAPI GetSyncAdapterTypes(
         /*[out, callee]*/ ArrayOf<ISyncAdapterType*>** result);
 
-    //CARAPI GetSyncStatus(
-    //    /*[in]*/ IAccount* account,
-    //    /*[in]*/ const String& authority,
-    //    /*[out]*/ ISyncStatusInfo** result);
+    CARAPI GetSyncStatus(
+        /*[in]*/ IAccount* account,
+        /*[in]*/ const String& authority,
+        /*[out]*/ ISyncStatusInfo** result);
 
     CARAPI IsSyncPending(
         /*[in]*/ IAccount* account,
         /*[in]*/ const String& authority,
         /*[out]*/ Boolean* isPending);
 
-    //CARAPI AddStatusChangeListener(
-    //    /*[in]*/ Int32 mask,
-    //    /*[in]*/ ISyncStatusObserver* callback);
+    CARAPI AddStatusChangeListener(
+        /*[in]*/ Int32 mask,
+        /*[in]*/ ISyncStatusObserver* observer);
 
-    //CARAPI RemoveStatusChangeListener(
-    //    /*[in]*/ ISyncStatusObserver* callback);
+    CARAPI RemoveStatusChangeListener(
+        /*[in]*/ ISyncStatusObserver* observer);
 
 private:
-    //CARAPI_(AutoPtr<ISyncManager>) GetSyncManager();
+    CARAPI_(AutoPtr<ISyncManager>) GetSyncManager();
 
 private:
     static CString TAG;
     AutoPtr<IContext> mContext;
     AutoPtr<ObserverNode> mRootNode;
-    //AutoPtr<ISyncManager> mSyncManager;
+    AutoPtr<ISyncManager> mSyncManager;
     Boolean mFactoryTest;
     Mutex mSyncManagerLock;
     Mutex mRootNodeLock;

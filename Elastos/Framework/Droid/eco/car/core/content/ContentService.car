@@ -2,8 +2,8 @@
 module
 {
     interface ISyncAdapterType;
-    //interface ISyncInfo;
-    //interface ISyncStatusObserver;
+    interface ISyncInfo;
+    interface ISyncStatusObserver;
     interface IAccount;
     interface IBundle;
     interface IContentObserver;
@@ -125,8 +125,8 @@ module
             [in] String authority,
             [out] Boolean* isActive);
 
-        //GetCurrentSync(
-        //    [out] ISyncInfo** syncInfo);
+        GetCurrentSync(
+            [out] ISyncInfo** syncInfo);
 
         /**
         * Returns the types of the SyncAdapters that are registered with the system.
@@ -141,10 +141,10 @@ module
         * @param authority the authority whose row should be selected
         * @return the SyncStatusInfo for the authority, or null if none exists
         */
-        //GetSyncStatus(
-        //    [in] IAccount* account,
-        //    [in] String authority,
-        //    [out] ISyncStatusInfo** result);
+        GetSyncStatus(
+            [in] IAccount* account,
+            [in] String authority,
+            [out] ISyncStatusInfo** result);
 
         /**
         * Return true if the pending status is true of any matching authorities.
@@ -154,12 +154,12 @@ module
             [in] String authority,
             [out] Boolean* isPending);
 
-        //AddStatusChangeListener(
-        //    [in] Int32 mask,
-        //    [in] ISyncStatusObserver* callback);
+        AddStatusChangeListener(
+            [in] Int32 mask,
+            [in] ISyncStatusObserver* observer);
 
-        //RemoveStatusChangeListener(
-        //    [in] ISyncStatusObserver* callback);
+        RemoveStatusChangeListener(
+            [in] ISyncStatusObserver* observer);
     }
     
 }
