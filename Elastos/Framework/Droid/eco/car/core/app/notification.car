@@ -194,5 +194,26 @@ module
 
         SetFlags(
             [in] Int32 flags);
+
+        /**
+         * Sets the {@link #contentView} field to be a view with the standard "Latest Event"
+         * layout.
+         *
+         * <p>Uses the {@link #icon} and {@link #when} fields to set the icon and time fields
+         * in the view.</p>
+         * @param context       The context for your application / activity.
+         * @param contentTitle The title that goes in the expanded entry.
+         * @param contentText  The text that goes in the expanded entry.
+         * @param contentIntent The intent to launch when the user clicks the expanded notification.
+         * If this is an activity, it must include the
+         * {@link android.content.Intent#FLAG_ACTIVITY_NEW_TASK} flag, which requires
+         * that you take care of task management as described in
+         * <a href="{@docRoot}guide/topics/fundamentals.html#lcycles">Application Fundamentals: Activities and Tasks</a>.
+         */
+        SetLatestEventInfo(
+            [in] IContext* context,
+            [in] ICharSequence* contentTitle,
+            [in] ICharSequence* contentText,
+            [in] IPendingIntent* contentIntent);
     }
 }

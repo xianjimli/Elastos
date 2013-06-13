@@ -95,6 +95,12 @@ public:
     CARAPI SetFlags(
         /* [in] */ Int32 flags);
 
+    CARAPI SetLatestEventInfo(
+        /* [in] */ IContext* context,
+        /* [in] */ ICharSequence* contentTitle,
+        /* [in] */ ICharSequence* contentText,
+        /* [in] */ IPendingIntent* contentIntent);
+
     CARAPI ReadFromParcel(
         /* [in] */ IParcel *source);
 
