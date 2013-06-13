@@ -277,6 +277,9 @@ module
         PerformSaveInstanceState(
             [in] IBundle* outState);
 
+        PerformRestoreInstanceState(
+            [in] IBundle* savedInstanceState);
+
         StartActivityFromChild(
             [in] IActivity* child,
             [in] IIntent* intent,

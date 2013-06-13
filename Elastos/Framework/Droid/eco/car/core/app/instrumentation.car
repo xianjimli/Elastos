@@ -39,6 +39,13 @@ module
             [in] IActivity* activity,
             [in] IBundle* icicle);
 
+        CallActivityOnDestroy(
+            [in] IActivity* activity);
+
+        CallActivityOnRestoreInstanceState(
+            [in] IActivity* activity,
+            [in] IBundle* savedInstanceState);
+
         /**
          * Perform calling of an activity's {@link Activity#onPostCreate} method.
          * The default implementation simply calls through to that method.

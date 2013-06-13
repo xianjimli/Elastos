@@ -11,6 +11,7 @@
 #endif
 
 #include <stdio.h>
+#include <StringBuffer.h>
 #include <elastos/Thread.h>
 
 const String Activity::WINDOW_HIERARCHY_TAG = String("android:viewHierarchyState");
@@ -571,6 +572,14 @@ ECode Activity::OnCreate(
     return NOERROR;
 }
 
+ECode Activity::PerformRestoreInstanceState(
+    /* [in] */ IBundle* savedInstanceState)
+{
+    OnRestoreInstanceState(savedInstanceState);
+    RestoreManagedDialogs(savedInstanceState);
+    return NOERROR;
+}
+
 ECode Activity::OnRestoreInstanceState(
     /* [in] */ IBundle* savedInstanceState)
 {
@@ -582,6 +591,45 @@ ECode Activity::OnRestoreInstanceState(
         }
     }
     return NOERROR;
+}
+
+void Activity::RestoreManagedDialogs(
+    /* [in] */ IBundle* savedInstanceState)
+{
+    AutoPtr<IBundle> b;
+    savedInstanceState->GetBundle(SAVED_DIALOGS_TAG, (IBundle**)&b);
+    if (b == NULL) {
+        return;
+    }
+    
+    AutoPtr<IObjectContainer> ids;
+    b->GetIntegerArrayList(SAVED_DIALOG_IDS_KEY, (IObjectContainer**)&ids);
+    Int32 numDialogs;
+    ids->GetObjectCount(&numDialogs);
+    mManagedDialogs = new HashMap<Int32, ManagedDialog*>(numDialogs);
+    AutoPtr<IObjectEnumerator> enumerator;
+    ids->GetObjectEnumerator((IObjectEnumerator**)&enumerator);
+    Boolean hasNext = FALSE;
+    while ( enumerator->MoveNext(&hasNext), hasNext) {
+        AutoPtr<IInteger32> id;
+        enumerator->Current((IInterface**)&id);
+        Int32 dialogId;
+        id->GetValue(&dialogId);
+        AutoPtr<IBundle> dialogState;
+        b->GetBundle(SavedDialogKeyFor(dialogId), (IBundle**)&dialogState);
+        if (dialogState != NULL) {
+            // Calling onRestoreInstanceState() below will invoke dispatchOnCreate
+            // so tell createDialog() not to do it, otherwise we get an exception
+            ManagedDialog* md = new ManagedDialog();
+            b->GetBundle(SavedDialogArgsKeyFor(dialogId), (IBundle**)&md->mArgs);
+            md->mDialog = CreateDialog(dialogId, dialogState, md->mArgs);
+            if (md->mDialog != NULL) {
+                mManagedDialogs->Insert(HashMap<Int32, ManagedDialog*>::ValueType(dialogId, md));
+                OnPrepareDialog(dialogId, md->mDialog, md->mArgs);
+                md->mDialog->OnRestoreInstanceState(dialogState);
+            }
+        }
+    }
 }
 
 AutoPtr<IDialog> Activity::CreateDialog(
@@ -598,13 +646,21 @@ AutoPtr<IDialog> Activity::CreateDialog(
     return dialog;
 }
 
-//private static String Activity::savedDialogKeyFor(Int32 key) {
-//    return SAVED_DIALOG_KEY_PREFIX + key;
-//}
-//
-//private static String Activity::savedDialogArgsKeyFor(Int32 key) {
-//    return SAVED_DIALOG_ARGS_KEY_PREFIX + key;
-//}
+String Activity::SavedDialogKeyFor(
+    /* [in] */ Int32 key)
+{
+    StringBuffer temp = StringBuffer(SAVED_DIALOG_KEY_PREFIX);
+    temp += key;
+    return temp.ToString();
+}
+
+String Activity::SavedDialogArgsKeyFor(
+        /* [in] */ Int32 key)
+{
+    StringBuffer temp = StringBuffer(SAVED_DIALOG_ARGS_KEY_PREFIX);
+    temp += key;
+    return temp.ToString();
+}
 
 ECode Activity::OnPostCreate(
     /* [in] */ IBundle* savedInstanceState)
