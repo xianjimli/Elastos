@@ -356,17 +356,20 @@ ECode ActivityStack::RealStartActivityLocked(
         app->mInfo->GetCapsuleName(&cName);
         if (app->mProcessName.Equals(cName)) {
 
-//            if (mService.mHeavyWeightProcess != null
-//                    && mService.mHeavyWeightProcess != app) {
-//                Log.w(TAG, "Starting new heavy weight process " + app
-//                        + " when already running "
-//                        + mService.mHeavyWeightProcess);
-//            }
-//            mService.mHeavyWeightProcess = app;
-//            Message msg = mService.mHandler.obtainMessage(
-//                    ActivityManagerService.POST_HEAVY_NOTIFICATION_MSG);
-//            msg.obj = r;
-//            mService.mHandler.sendMessage(msg);
+            if (mService->mHeavyWeightProcess != NULL
+                    && mService->mHeavyWeightProcess != app) {
+                Slogger::W(TAG, StringBuffer("Starting new heavy weight process ") + app
+                        + " when already running "
+                        + mService->mHeavyWeightProcess);
+            }
+            mService->mHeavyWeightProcess = app;
+            ECode (STDCALL CActivityManagerService::*pHandlerFunc)(CActivityRecord* root);
+            pHandlerFunc = &CActivityManagerService::HandlePostHeavyNotification;
+            AutoPtr<IParcel> params;
+            CCallbackParcel::New((IParcel**)&params);
+            params->WriteInt32((Handle32)r);
+            mService->mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, 
+                    params, 0);
         }
     }
 
@@ -597,9 +600,6 @@ ECode ActivityStack::StartPausingLocked(
         // Schedule a pause timeout in case the app doesn't respond.
         // We don't give it much time because this directly impacts the
         // responsiveness seen by the user.
-//        Message msg = mHandler.obtainMessage(PAUSE_TIMEOUT_MSG);
-//        msg.obj = prev;
-//        mHandler.sendMessageDelayed(msg, PAUSE_TIMEOUT);
         ECode (STDCALL ActivityStack::*pHandlerFunc)(IBinder* token);
         pHandlerFunc = &ActivityStack::HandlePauseTimeout;
         AutoPtr<IParcel> params;
@@ -782,9 +782,6 @@ void ActivityStack::CompleteResumeLocked(
     next->mNewIntents = NULL;
 
     // schedule an idle timeout in case the app doesn't do it for us.
-//    Message msg = mHandler.obtainMessage(IDLE_TIMEOUT_MSG);
-//    msg.obj = next;
-//    mHandler.sendMessageDelayed(msg, IDLE_TIMEOUT);
     ECode (STDCALL ActivityStack::*pHandlerFunc)(IBinder* token);
     pHandlerFunc = &ActivityStack::HandleIdleTimeout;
     AutoPtr<IParcel> params;
@@ -797,9 +794,6 @@ void ActivityStack::CompleteResumeLocked(
         // things going as-is.  To maintain our own state,
         // we need to emulate it coming back and saying it is
         // idle.
-//        msg = mHandler.obtainMessage(IDLE_NOW_MSG);
-//        msg.obj = next;
-//        mHandler.sendMessage(msg);
         AutoPtr<IParcel> nowparams;
         CCallbackParcel::New((IParcel**)&nowparams);
         nowparams->WriteInterfacePtr((IBinder*)next);
@@ -1308,10 +1302,13 @@ Boolean ActivityStack::ResumeTopActivityLocked(
                 Slogger::I(TAG, StringBuffer("Activity config changed during resume: ")
                         + nDes + ", new next: " + nnDes);
             }
-//            if (nextNext != next) {
-//                // Do over!
-//                mHandler.sendEmptyMessage(RESUME_TOP_ACTIVITY_MSG);
-//            }
+            if (nextNext != next) {
+                // Do over!
+                ECode (STDCALL ActivityStack::*pHandlerFunc)();
+                pHandlerFunc = &ActivityStack::HandleResumeTopActivity;
+                mApartment->PostCppCallback((Handle32)this, *(Handle32*)&pHandlerFunc, 
+                        NULL, 0);
+            }
             if (mMainStack) {
                 mService->SetFocusedActivityLocked(next);
             }
@@ -1331,9 +1328,9 @@ Boolean ActivityStack::ResumeTopActivityLocked(
                 for (; it != next->mResults->End(); ++it) {
                     res->Add((*it)->mResultInfo);
                 }
-    //            if (DEBUG_RESULTS) Slog.v(
-    //                    TAG, "Delivering results to " + next
-    //                    + ": " + a);
+                if (DEBUG_RESULTS) Slogger::V(
+                        TAG, StringBuffer("Delivering results to ") + next
+                        + ": " + next->mResults);
                 next->mApp->mAppApartment->ScheduleSendResult(next,
                         (IObjectContainer*)res);
             }
@@ -3649,9 +3646,6 @@ Boolean ActivityStack::DestroyActivityLocked(
 
         if (r->mFinishing && !skipDestroy) {
             r->mState = ActivityState_DESTROYING;
-//            Message msg = mHandler.obtainMessage(DESTROY_TIMEOUT_MSG);
-//            msg.obj = r;
-//            mHandler.sendMessageDelayed(msg, DESTROY_TIMEOUT);
         ECode (STDCALL ActivityStack::*pHandlerFunc)(IBinder* token);
         pHandlerFunc = &ActivityStack::HandleDestroyTimeout;
         AutoPtr<IParcel> params;
@@ -3700,9 +3694,9 @@ ECode ActivityStack::ActivityDestroyed(
     if (index >= 0) {
         AutoPtr<CActivityRecord> r = mHistory[index];
         if (r->mState == ActivityState_DESTROYING) {
-//            final long origId = Binder.clearCallingIdentity();
+            const Int64 origId = Binder::ClearCallingIdentity();
             RemoveActivityFromHistoryLocked(r);
-//            Binder.restoreCallingIdentity(origId);
+            Binder::RestoreCallingIdentity(origId);
         }
     }
     mService->Unlock();
@@ -4276,5 +4270,12 @@ ECode ActivityStack::HandleLaunchTimeout()
     //     Slogger::W(TAG, "Launch timeout has expired, giving up wake lock!");
     //     mLaunchingActivity->Release();
     // }
+    return NOERROR;
+}
+
+ECode ActivityStack::HandleResumeTopActivity()
+{
+    Mutex::Autolock lock(mService->_m_syncLock);
+    ResumeTopActivityLocked(NULL);
     return NOERROR;
 }

@@ -1502,6 +1502,9 @@ private:
 
     CARAPI_(void) Unlock();
 
+    CARAPI HandlePostHeavyNotification(
+        /* [in] */ CActivityRecord* root);
+
 private:
     //todo: sSystemContext maybe not its memeber
     static AutoPtr<IContext> sSystemContext;
