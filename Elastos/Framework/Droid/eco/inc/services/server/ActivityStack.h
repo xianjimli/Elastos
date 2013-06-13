@@ -322,7 +322,7 @@ private:
 
     CARAPI HandleLaunchTimeout();
 
-    CARAPI HandleResumeTop();
+    CARAPI HandleResumeTopActivity();
 
 private:
     friend class CActivityManagerService;

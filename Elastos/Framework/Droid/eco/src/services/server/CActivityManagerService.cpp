@@ -11,9 +11,11 @@
 #include "os/Process.h"
 #include "os/SystemProperties.h"
 #include "os/Binder.h"
+#include "os/ServiceManager.h"
 #include "utils/EventLogTags.h"
 #include "utils/AutoStringArray.h"
 #include "view/WindowManagerPolicy.h"
+#include "app/NotificationManager.h"
 #include <elastos/AutoPtr.h>
 #include <elastos/Algorithm.h>
 #include <unistd.h>
@@ -12363,4 +12365,51 @@ ECode CActivityManagerService::SetDidDexOpt(
 {
     mDidDexOpt = dexopt;
     return NOERROR;
+}
+
+ECode CActivityManagerService::HandlePostHeavyNotification(
+    /* [in] */ CActivityRecord* root)
+{
+    // INotificationManager inm = NotificationManager.getService();
+    AutoPtr<INotificationManager> inm = INotificationManager::Probe(
+            ServiceManager::GetService(String("notification")).Get());
+    if (inm == NULL) {
+        return NOERROR;
+    }
+
+    ProcessRecord* process = root->mApp;
+    if (process == NULL) {
+        return NOERROR;
+    }
+
+//     try {
+//         Context context = mContext.createPackageContext(process.info.packageName, 0);
+//         String text = mContext.getString(R.string.heavy_weight_notification,
+//                 context.getApplicationInfo().loadLabel(context.getPackageManager()));
+    AutoPtr<INotification> notification;
+    CNotification::New((INotification**)&notification);
+    notification->SetIcon(0 /*com.android.internal.R.drawable.stat_sys_adb*/); //context.getApplicationInfo().icon;
+    notification->SetWhen(0);
+    notification->SetFlags(Notification_FLAG_ONGOING_EVENT);
+//        notification->SetTickerText(text);
+    notification->SetDefaults(0); // please be quiet
+    notification->SetSound(NULL);
+    notification->SetVibrate(NULL);
+//         notification.setLatestEventInfo(context, text,
+//                 mContext.getText(R.string.heavy_weight_notification_detail),
+//                 PendingIntent.getActivity(mContext, 0, root.intent,
+//                         PendingIntent.FLAG_CANCEL_CURRENT));
+
+//         try {
+//             int[] outId = new int[1];
+//             inm.enqueueNotification("android", R.string.heavy_weight_notification,
+//                     notification, outId);
+//         } catch (RuntimeException e) {
+//             Slog.w(ActivityManagerService.TAG,
+//                     "Error showing notification for heavy-weight app", e);
+//         } catch (RemoteException e) {
+//         }
+//     } catch (NameNotFoundException e) {
+//         Slog.w(TAG, "Unable to create context for heavy notification", e);
+//     }
 }
