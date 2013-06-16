@@ -118,6 +118,7 @@ static const KeywordToken s_keywords_e[] = {
 static const KeywordToken s_keywords_f[] = {
     DEFINE_TOKEN(first),
     DEFINE_TOKEN(false),
+    DEFINE_TOKEN(fullname),
     DEFINE_TOKEN(function),
     DEFINE_TOKEN(functions),
 };
@@ -157,6 +158,7 @@ static const KeywordToken s_keywords_m[] = {
 
 static const KeywordToken s_keywords_n[] = {
     DEFINE_TOKEN(name),
+    DEFINE_TOKEN(namespace),
     DEFINE_TOKEN(not),
 };
 

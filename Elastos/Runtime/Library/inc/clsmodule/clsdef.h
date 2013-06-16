@@ -371,8 +371,8 @@ extern int CreateMethodParam(const char *, MethodDescriptor *);
 extern int CreateStructElement(const char *, StructDescriptor *);
 extern int CreateEnumElement(const char *, CLSModule *, EnumDescriptor *);
 
-extern int SelectClassDirEntry(const char *, const CLSModule *);
-extern int SelectInterfaceDirEntry(const char *, const CLSModule *);
+extern int SelectClassDirEntry(const char *, const char *, const CLSModule *);
+extern int SelectInterfaceDirEntry(const char *, const char *, const CLSModule *);
 extern int SelectStructDirEntry(const char *, const CLSModule *);
 extern int SelectEnumDirEntry(const char *, const CLSModule *);
 extern int SelectAliasDirEntry(const char *, const CLSModule *);
@@ -397,7 +397,7 @@ typedef enum GlobalSymbolType
     GType_Const             = Type_const,
 }   GlobalObjectType;
 
-extern int GlobalSelectSymbol(const char *,
+extern int GlobalSelectSymbol(const char *, const char *,
                 const CLSModule *, GlobalSymbolType, GlobalSymbolType *);
 extern EnumElement *GlobalSelectEnumElement(const char *, const CLSModule *);
 

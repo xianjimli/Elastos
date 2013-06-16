@@ -73,7 +73,8 @@ typedef enum LubeToken {
     Token_K_uunm,           Token_K_clsid,          Token_K_iid,
     Token_K_uuid,           Token_K_type,           Token_K_value,
     Token_K_dimention,      Token_K_majorversion,   Token_K_minorversion,
-    Token_K_carcode,        Token_K_builddate,
+    Token_K_carcode,        Token_K_builddate,      Token_K_namespace,
+    Token_K_fullname,
 
     // Redundant definitions of members
     Token_K_attribute   = Token_K_attrib,

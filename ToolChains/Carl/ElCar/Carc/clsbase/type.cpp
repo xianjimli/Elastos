@@ -74,7 +74,7 @@ int GetIdentifyType(
         _Return (CLS_NoError);
     }
 
-    n = SelectInterfaceDirEntry(pszName, pModule);
+    n = SelectInterfaceDirEntry(pszName, NULL, pModule);
     if (n >= 0) {
         pType->type = Type_interface;
         pType->sIndex = n;
@@ -320,11 +320,6 @@ void CalcStructAlignedSize(const CLSModule *pModule, StructDescriptor *pDesc)
         pDest->pszNameSpace = new char[strlen(pSrc->pszNameSpace) + 1]; \
         if (!pDest->pszNameSpace) _ReturnError (CLSError_OutOfMemory);  \
         strcpy(pDest->pszNameSpace, pSrc->pszNameSpace);                \
-    }                                                                   \
-    else if (bNameSpace) {                                              \
-        pDest->pszNameSpace = new char[strlen(pSrcCLS->pszName) + 1];   \
-        if (!pDest->pszNameSpace) _ReturnError (CLSError_OutOfMemory);  \
-        strcpy(pDest->pszNameSpace, pSrcModule->pszName);               \
     }
 
 int ClassDescriptorCopy(
@@ -394,7 +389,7 @@ int ClassDescriptorCopy(
                     pSrcModule->ppInterfaceDir[pSrc->ppInterfaces[n]->sIndex]->
                                                                     pszName);
                 strcat(szName, "Handler");
-                i = SelectInterfaceDirEntry(szName, pSrcModule);
+                i = SelectInterfaceDirEntry(szName, NULL, pSrcModule);
                 if (i < 0) _Return (i);
 
                 i = InterfaceCopy(pSrcModule,
@@ -462,7 +457,7 @@ int ClassCopy(
     char szClassObjName[64];
 
     pSrc = pSrcModule->ppClassDir[nIndex];
-    n = SelectClassDirEntry(pSrc->pszName, pDestModule);
+    n = SelectClassDirEntry(pSrc->pszName, NULL, pDestModule);
     if (n >= 0) {
         if (pDestModule->ppClassDir[n]->pDesc->cInterfaces > 0)
             _Return (n);
@@ -480,10 +475,12 @@ int ClassCopy(
                     pDestModule, pDest->pDesc, bNameSpace);
     if (r < 0) _Return (r);
 
+    pDest->pDesc->dwAttribs |= ClassAttrib_t_external;
+
     if ((pDest->pDesc->dwAttribs & ClassAttrib_hasctor) &&
         !(pDest->pDesc->dwAttribs & ClassAttrib_t_clsobj)) {
         sprintf(szClassObjName, "_%sClassObject_", pDest->pszName);
-        r = SelectClassDirEntry(szClassObjName, pSrcModule);
+        r = SelectClassDirEntry(szClassObjName, NULL, pSrcModule);
         if (r >= 0) {
             r = ClassCopy(pSrcModule, r, pDestModule, bNameSpace);
             if (r < 0) _Return (r);
@@ -502,7 +499,7 @@ int ClassXCopy(
     ClassDirEntry *pSrc, *pDest;
 
     pSrc = pSrcModule->ppClassDir[nIndex];
-    n = SelectClassDirEntry(pSrc->pszName, pDestModule);
+    n = SelectClassDirEntry(pSrc->pszName, NULL, pDestModule);
     if (n >= 0) {
         if (pDestModule->ppClassDir[n]->pDesc->cInterfaces > 0)
             _Return (n);
@@ -519,6 +516,8 @@ int ClassXCopy(
     r = ClassDescriptorXCopy(pSrcModule, pSrc->pDesc,
                     pDestModule, pDest->pDesc, bNameSpace);
     if (r < 0) _Return (r);
+
+    pDest->pDesc->dwAttribs |= ClassAttrib_t_external;
 
     _Return (n);
 }
@@ -647,7 +646,7 @@ int InterfaceCopy(
         nParent = 0;
     }
 
-    n = SelectInterfaceDirEntry(pSrc->pszName, pDestModule);
+    n = SelectInterfaceDirEntry(pSrc->pszName, NULL, pDestModule);
     if (n >= 0) {
         if (pDestModule->ppInterfaceDir[n]->pDesc->cMethods > 0)
             _Return (n);
@@ -669,6 +668,8 @@ int InterfaceCopy(
                     pDestModule, pDest->pDesc, bNameSpace);
     if (r < 0) _Return (r);
 
+    pDest->pDesc->dwAttribs |= InterfaceAttrib_t_external;
+
     _Return (n);
 }
 
@@ -685,7 +686,7 @@ int InterfaceXCopy(
 
     nParent = pSrc->pDesc->sParentIndex;
 
-    n = SelectInterfaceDirEntry(pSrc->pszName, pDestModule);
+    n = SelectInterfaceDirEntry(pSrc->pszName, NULL, pDestModule);
     if (n >= 0) {
         if (pDestModule->ppInterfaceDir[n]->pDesc->cMethods > 0)
             _Return (n);
@@ -703,6 +704,8 @@ int InterfaceXCopy(
     r = InterfaceDescriptorXCopy(pSrcModule, pSrc->pDesc,
                     pDestModule, pDest->pDesc, bNameSpace);
     if (r < 0) _Return (r);
+
+    pDest->pDesc->dwAttribs |= InterfaceAttrib_t_external;
 
     _Return (n);
 }

@@ -11,6 +11,7 @@ $OUTPUT "${name}.h"
 #include "${module.name}_server.h"
 #include <sys/atomics.h>
 
+${ClassNamespaceBegin(class)}
 class ${name} :
     public IObject,
     public I${ClassNameOfClassObj(name)}ClassObject
@@ -59,6 +60,7 @@ private:
     Int32 m_cRef;
 };
 
+${ClassNamespaceEnd(class)}
 #endif // __CAR_${Upper(name)}_H__
 $
 $END OUTPUT

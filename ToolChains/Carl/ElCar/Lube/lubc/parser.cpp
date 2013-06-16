@@ -257,6 +257,10 @@ MemberType GetMemberType(ObjectType obj, LubeToken token)
     switch (token) {
         case Token_K_name:
             return Member_Name;
+        case Token_K_namespace:
+            return Member_NameSpace;
+        case Token_K_fullname:
+            return Member_FullName;
         case Token_K_type:
             return Member_Type;
         case Token_K_attrib:

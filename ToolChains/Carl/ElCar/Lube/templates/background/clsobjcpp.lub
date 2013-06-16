@@ -9,9 +9,10 @@ $OUTPUT "${name}.cpp"
 #include "${name}.h"
 
 extern "C" Int32 g_dllLockCount;
-extern "C" ${name} _g_${ClassNameOfClassObj(name)}_ClsObj;
 
-${name} _g_${ClassNameOfClassObj(name)}_ClsObj;
+${namespace}${name} _g_${ClassNameOfClassObj(name)}_ClsObj;
+
+${ClassNamespaceBegin(class)}$^
 
 PInterface ${name}::Probe(
     /* [in] */ _ELASTOS REIID riid)
@@ -156,5 +157,5 @@ $
 $IF type is "generic"
 $ImplOfGenericClassObjects(class)
 $END IF
-
+${ClassNamespaceEnd(class)}
 $END OUTPUT

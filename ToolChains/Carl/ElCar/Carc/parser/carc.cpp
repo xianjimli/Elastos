@@ -105,6 +105,9 @@ bool GenCarBarcode(CLSModule *pModule)
     return true;
 }
 
+extern void InitNamespace();
+extern void UninitNamespace();
+
 CLSModule * CompileCAR(const char *pszName, DWORD dwAttribs)
 {
     CLSModule *pModule;
@@ -152,9 +155,13 @@ CLSModule * CompileCAR(const char *pszName, DWORD dwAttribs)
         delete psztmp;
     }
 
+    InitNamespace();
+
     // compiling
     //
     DoCompiling(pszName, pModule);
+
+    UninitNamespace();
 
     if (0 != g_nErrorNumber) {
         fprintf(stderr, "[INFO] carc (0x1003) : Aborting compilation.\n");

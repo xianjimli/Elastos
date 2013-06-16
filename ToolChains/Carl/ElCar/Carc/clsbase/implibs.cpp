@@ -109,7 +109,7 @@ int RetrieveStruct(const char *pszName,
     return -1;
 }
 
-int RetrieveInterface(const char *pszName,
+int RetrieveInterface(const char *pszName, const char *pszNamespace,
     CLSModule *pModule, BOOL bLibOnly)
 {
     int n, m;
@@ -117,11 +117,11 @@ int RetrieveInterface(const char *pszName,
     assert(pszName && pModule);
 
     if (!bLibOnly) {
-        n = SelectInterfaceDirEntry(pszName, pModule);
+        n = SelectInterfaceDirEntry(pszName, pszNamespace, pModule);
         if (n >= 0) return n;
     }
     for (n = s_cModules - 1; n >= 0; n--) {
-        m = SelectInterfaceDirEntry(pszName, s_modules[n]);
+        m = SelectInterfaceDirEntry(pszName, pszNamespace, s_modules[n]);
         if (m >= 0)
             return InterfaceCopy(s_modules[n], m, pModule, TRUE);
     }
@@ -162,7 +162,7 @@ int RetrieveIdentifyType(const char *pszName,
     return -1;
 }
 
-int RetrieveClass(const char *pszName,
+int RetrieveClass(const char *pszName, const char *pszNamespace,
     CLSModule *pModule, BOOL bLibOnly)
 {
     int n, m;
@@ -170,11 +170,11 @@ int RetrieveClass(const char *pszName,
     assert(pszName && pModule);
 
     if (!bLibOnly) {
-        n = SelectClassDirEntry(pszName, pModule);
+        n = SelectClassDirEntry(pszName, pszNamespace, pModule);
         if (n >= 0) return n;
     }
     for (n = s_cModules - 1; n >= 0; n--) {
-        m = SelectClassDirEntry(pszName, s_modules[n]);
+        m = SelectClassDirEntry(pszName, pszNamespace, s_modules[n]);
         if (m >= 0)
             return ClassCopy(s_modules[n], m, pModule, TRUE);
     }

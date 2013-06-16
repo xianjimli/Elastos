@@ -19,7 +19,7 @@ typedef enum CARToken {
     Token_S_lparen,         Token_S_rparen,         Token_S_lbrace,
     Token_S_rbrace,         Token_S_colon,          Token_S_semicolon,
     Token_S_star,           Token_S_langle,         Token_S_rangle,
-    Token_S_assign,
+    Token_S_assign,         Token_S_dot,
 
     // Keywords --> Token_K_xxx
     Token_keywords  = 1000,
@@ -60,7 +60,8 @@ typedef enum CARToken {
     Token_K_mergelib,       Token_K_substitutes,    Token_K_inherits,
     Token_K_pertainsto,     Token_K_extends,        Token_K_final,
     Token_K_affiliates,     Token_K_callbacks,      Token_K_delegates,
-    Token_K_callbacksink,   Token_K_delegatesink,
+    Token_K_callbacksink,   Token_K_delegatesink,   Token_K_namespace,
+    Token_K_using,
 
     // Others --> Token_xxx
     Token_others    = 10000,

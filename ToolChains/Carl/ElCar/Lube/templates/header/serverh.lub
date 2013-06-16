@@ -18,26 +18,31 @@ $END DO
 #endif // !_NO_INCLIST
 $
 $   WITH all classes DO
-EXTERN_C const _ELASTOS ClassID ECLSID_${name};
+${ClassNamespaceBegin(class)}$^
+EXTERN const _ELASTOS ClassID ECLSID_${name};
+${ClassNamespaceEnd(class)}$^
 $   END DO
 
 $   WITH all interfaces DO
-EXTERN_C const _ELASTOS InterfaceID EIID_${name};
+${InterfaceNamespaceBegin(interface)}$^
+EXTERN const _ELASTOS InterfaceID EIID_${name};
+${InterfaceNamespaceEnd(interface)}$^
 $   END DO
 $
 $TEMPLATE "decltype.lub"
 $
 $WITH all classes DO
 $   IF attrib is "hascallback" and type is not "generic"
+${ClassNamespaceBegin(class)}$^
 class ${name}Sink;
 class ${name}Connector : public ICallbackConnector
 {
 public:
-$      IF class.type is "aspect"    
+$      IF class.type is "aspect"
     ${name}Connector(IAspect *pServer) : _m_pServer(pServer), _m_pCBSink(NULL) {}
 $      ELSE
     ${name}Connector(IObject *pServer) : _m_pServer(pServer), _m_pCBSink(NULL) {}
-$      END IF   
+$      END IF
 
     CARAPI_(_ELASTOS UInt32) AddRef();
     CARAPI_(_ELASTOS UInt32) Release();
@@ -64,6 +69,7 @@ $           IF attrib is "callback"
 $           END IF
 $       END DO ;; all interfaces
 };
+${ClassNamespaceEnd(class)}
 $   END IF ;; hascallback and !generic
 $END DO ;; all classes
 

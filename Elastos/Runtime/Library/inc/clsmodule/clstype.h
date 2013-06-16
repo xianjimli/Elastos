@@ -102,6 +102,7 @@ typedef enum ClassAttrib
     ClassAttrib_t_aspect        = 0x10000000,
     ClassAttrib_t_generic       = 0x20000000,
     ClassAttrib_t_regime        = 0x40000000,
+    ClassAttrib_t_external      = 0x80000000,
 
     ClassAttrib_AttrMask        = 0x0000ffff,
     ClassAttrib_TypeMask        = 0xff000000,
@@ -109,7 +110,7 @@ typedef enum ClassAttrib
 } ClassAttrib;
 
 #define CLASS_ATTR(a)           ((a) & ClassAttrib_AttrMask)
-#define CLASS_TYPE(a)           ((a) & ClassAttrib_TypeMask)
+#define CLASS_TYPE(a)           ((a & ~ClassAttrib_t_external) & ClassAttrib_TypeMask)
 
 typedef enum ClassInterfaceAttrib
 {
@@ -148,6 +149,7 @@ typedef enum InterfaceAttrib
     InterfaceAttrib_t_normal    = 0x01000000,
     InterfaceAttrib_t_callbacks = 0x02000000,
     InterfaceAttrib_t_delegates = 0x04000000,
+    InterfaceAttrib_t_external  = 0x08000000,
 
     InterfaceAttrib_TypeMask    = 0xff000000,
     InterfaceAttrib_AutoMask    = 0x00ff0000,
@@ -163,7 +165,7 @@ typedef enum MethodAttrib
 } MethodAttrib;
 
 #define INTERFACE_ATTR(a)       ((a) & InterfaceAttrib_AttrMask)
-#define INTERFACE_TYPE(a)       ((a) & InterfaceAttrib_TypeMask)
+#define INTERFACE_TYPE(a)       ((a & ~InterfaceAttrib_t_external) & InterfaceAttrib_TypeMask)
 
 typedef enum ParamAttrib
 {

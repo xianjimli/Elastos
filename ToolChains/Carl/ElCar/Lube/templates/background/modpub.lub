@@ -21,31 +21,27 @@ $   END DO ;; all classes
 #define __UUNM_${MacroRewrite(name)}_DEFINED__
 #define c_p${MacroRewrite(name)}Uunm ${uunm}
 #endif // __UUNM_${MacroRewrite(name)}_DEFINED__
-$   WITH all classes DO
 
-#ifndef __ECLSID_${name}_DEFINED__
-#define __ECLSID_${name}_DEFINED__
-EXTERN_C const _ELASTOS ClassID ECLSID_${name} = {
+$   WITH all classes DO
+${ClassNamespaceBegin(class)}$^
+const _ELASTOS ClassID ECLSID_${name} = {
     ${uuid},
     (char *)c_p${MacroRewrite(module.name)}Uunm,
     0x${module.carcode} };
-#endif // __CLSID_${name}_DEFINED__
-
+${ClassNamespaceEnd(class)}$^
 $   END DO ;; all classes
-$
-$   WITH all interfaces DO
 
-#ifndef __EIID_${name}_DEFINED__
-#define __EIID_${name}_DEFINED__
-EXTERN_C const _ELASTOS InterfaceID EIID_${name} = \
+$   WITH all interfaces DO
+${InterfaceNamespaceBegin(interface)}$^
+const _ELASTOS InterfaceID EIID_${name} = \
     ${iid};
-#endif // __EIID_${name}_DEFINED__
+${InterfaceNamespaceEnd(interface)}$^
 $   END DO ;; all interfaces
 $
 
 $WITH all classes DO
 $   IF type is not "sink" and type is not "clsobj"
-extern "C" ${name}ClassObject _g_${name}_ClsObj;
+extern ${namespace}${name}ClassObject _g_${name}_ClsObj;
 $   END IF
 $END DO
 extern CIClassInfo *g_${MacroRewrite(name)}_classInfo;
@@ -56,7 +52,7 @@ EXTERN_C CARAPI DllGetClassObject(
     ECode ec = NOERROR;
 $WITH all classes DO
 $IF attrib is not "private" and class.type is not "clsobj"
-    if (ECLSID_${name} == clsid) {
+    if (${namespace}ECLSID_${name} == clsid) {
 $       IF class.type is not "sink"
         *ppObj = _g_${class.name}_ClsObj.Probe(riid);
         if (*ppObj) (*ppObj)->AddRef();

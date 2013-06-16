@@ -28,7 +28,9 @@ int WithAllClass(PLUBECTX pCtx, PSTATEDESC pDesc)
     pOrigParent = pCtx->m_pClassParent;
 
     for (n = 0; n < pCtx->m_pModule->cClasses; n++) {
-        if (NULL == pCtx->m_pModule->ppClassDir[n]->pszNameSpace) {
+        if (!(pCtx->m_pModule->ppClassDir[n]->pDesc->dwAttribs & ClassAttrib_t_external) &&
+            (pCtx->m_pModule->ppClassDir[n]->pszNameSpace == NULL ||
+            strcmp("systypes", pCtx->m_pModule->ppClassDir[n]->pszNameSpace))) {
             pCtx->m_pClass = pCtx->m_pModule->ppClassDir[n];
             if (pCtx->m_pClass->pDesc->dwAttribs & ClassAttrib_hasparent) {
                 pCtx->m_pClassParent = pCtx->m_pModule-> \

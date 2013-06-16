@@ -11,6 +11,7 @@ EXTERN_C ELAPI _Impl_CheckClsId(
     const _ELASTOS ClassID* pClassid,
     PInterface *ppServerObj);
 
+${ClassNamespaceBegin(class)}$^
 class ${name}
 {
 public:
@@ -27,13 +28,14 @@ $     END IF
 $   END DO ;; super
 $ END DO ;; supers
 };
+${ClassNamespaceEnd(class)}$^
 $   END IF ;; is not sink and is not private and is not clsobj and is not "generic"
-
 $END DO ;; all classes
 $
 $
 $WITH all classes DO
 $IF attrib is "hasctor" and type is "generic" and attrib is not "private"
+${ClassNamespaceBegin(class)}$^
 class ${name}
 {
 public:
@@ -42,6 +44,6 @@ $ IF attrib is "hascallback"
 $     TEMPLATE "genericcallback.lub"
 $ END IF
 };
-
+${ClassNamespaceEnd(class)}$^
 $END IF
 $END DO ;; all classes

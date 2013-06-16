@@ -25,7 +25,7 @@ $
 $TEMPLATE "classobj.lub"
 
 #else // !__cplusplus
-#include <_${name}_c.h>
+#error // doesn't support C compiler
 #endif // __cplusplus
 
 #endif // __CAR_${Upper(name)}_H__

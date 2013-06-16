@@ -6,18 +6,20 @@ $INPUT module
 $OUTPUT "_${name}.h"
 $
 $WITH all interfaces DO
+${InterfaceNamespaceBegin(interface)}$^
 interface ${name};
+${InterfaceNamespaceEnd(interface)}$^
 $END DO
 $
 EXTERN_C ELAPI _Impl_AcquireCallbackHandler(PInterface pServerObj, _ELASTOS REIID iid, PInterface *ppHandler);
 
 $WITH all interfaces DO
 $  IF interface.attrib is "sink" and interface.attrib is "defined"
-#ifndef __INTERFACE_${name}_DEFINED__
-#define __INTERFACE_${name}_DEFINED__
-
+#ifndef __INTERFACE_${fullname}_DEFINED__
+#define __INTERFACE_${fullname}_DEFINED__
+${InterfaceNamespaceBegin(interface)}$^
 CAR_INTERFACE("${FormatUuid(iid)}")
-${name} : public ${parent.name}
+${name} : public ${parent.namespace}${parent.name}
 {
     virtual CARAPI_(PInterface) Probe(
             /* [in] */ _ELASTOS REIID riid) = 0;
@@ -52,18 +54,18 @@ $IF attrib is "generic"
 $NewHeaderOfGenericInterfaces(interface)
 $END IF
 };
-
-#endif // __INTERFACE_${name}_DEFINED__
+${InterfaceNamespaceEnd(interface)}$^
+#endif // __INTERFACE_${fullname}_DEFINED__
 $  END IF;; sink
 $END DO ;; all interfaces
 
 $WITH all interfaces DO
 $  IF interface.attrib is not "sink"
-#ifndef __INTERFACE_${name}_DEFINED__
-#define __INTERFACE_${name}_DEFINED__
-
+#ifndef __INTERFACE_${fullname}_DEFINED__
+#define __INTERFACE_${fullname}_DEFINED__
+${InterfaceNamespaceBegin(interface)}$^
 CAR_INTERFACE("${FormatUuid(iid)}")
-${name} : public ${parent.name}
+${name} : public ${parent.namespace}${parent.name}
 {
 $   IF interface.type is "normal"
     virtual CARAPI_(PInterface) Probe(
@@ -93,7 +95,7 @@ $       END DO ;; all parameters
 ) = 0;
 $   END IF ;; "normal"
 $
-$       IF interface.type is "callbacks" 
+$       IF interface.type is "callbacks"
     // callback helper method
     static _ELASTOS ECode Add${name}Callback(
                     PInterface pServerObj,
@@ -227,8 +229,8 @@ $IF attrib is "generic"
 $NewHeaderOfGenericInterfaces(interface)
 $END IF
 };
-
-#endif // __INTERFACE_${name}_DEFINED__
+${InterfaceNamespaceEnd(interface)}$^
+#endif // __INTERFACE_${fullname}_DEFINED__
 $  END IF;; not sink
 $END DO ;; all interfaces
 $

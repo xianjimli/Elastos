@@ -47,6 +47,7 @@ static const SymbolToken s_symbolTable[] = {
     { '=', Token_S_assign },
     { '<', Token_S_langle },
     { '>', Token_S_rangle },
+    { '.', Token_S_dot },
     { EOF, Token_EOF },
 };
 const int c_symbolNumber = sizeof(s_symbolTable) / sizeof(SymbolToken);
@@ -125,6 +126,10 @@ static const KeywordToken s_keywords_m[] = {
     { "module", Token_K_module },
 };
 
+static const KeywordToken s_keywords_n[] = {
+    { "namespace", Token_K_namespace },
+};
+
 static const KeywordToken s_keywords_o[] = {
     { "out", Token_K_out },
 };
@@ -152,7 +157,7 @@ static const KeywordToken s_keywords_t[] = {
 };
 
 static const KeywordToken s_keywords_u[] = {
-    { },
+    { "using", Token_K_using },
 };
 
 static const KeywordToken s_keywords_v[] = {
@@ -246,14 +251,14 @@ static const KeywordIndex s_lowerIndexTable[26] = {
     { 0, NULL },                                                    // k
     { sizeof(s_keywords_l) / sizeof(KeywordToken), s_keywords_l },  // l
     { sizeof(s_keywords_m) / sizeof(KeywordToken), s_keywords_m },  // m
-    { 0, NULL },                                                    // n
+    { sizeof(s_keywords_n) / sizeof(KeywordToken), s_keywords_n },  // n
     { sizeof(s_keywords_o) / sizeof(KeywordToken), s_keywords_o },  // o
     { sizeof(s_keywords_p) / sizeof(KeywordToken), s_keywords_p },  // p
     { 0, NULL },                                                    // q
     { sizeof(s_keywords_r) / sizeof(KeywordToken), s_keywords_r },  // r
     { sizeof(s_keywords_s) / sizeof(KeywordToken), s_keywords_s },  // s
     { sizeof(s_keywords_t) / sizeof(KeywordToken), s_keywords_t },  // t
-    { 0, NULL },                                                    // u
+    { sizeof(s_keywords_u) / sizeof(KeywordToken), s_keywords_u },  // u
     { sizeof(s_keywords_v) / sizeof(KeywordToken), s_keywords_v },  // v
     { 0, NULL },                                                    // w
     { 0, NULL },                                                    // x
@@ -463,7 +468,7 @@ CARToken GetIdentifyToken(FILE *fp)
 
     while (!feof(fp)) {
         c = fgetc(fp);
-        if (isalnum(c) || '_' == c) {
+        if (isalnum(c) || '_' == c || '.' == c) {
             AddCurrentToken(c);
         }
         else {

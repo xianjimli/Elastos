@@ -48,8 +48,8 @@ extern void SetSourcePath(const char *);
 extern void SetFactoryUrl(const char *);
 
 extern int AddCLSLibrary(CLSModule *);
-extern int RetrieveClass(const char *, CLSModule *, BOOL);
-extern int RetrieveInterface(const char *, CLSModule *, BOOL);
+extern int RetrieveClass(const char *, const char *, CLSModule *, BOOL);
+extern int RetrieveInterface(const char *, const char *, CLSModule *, BOOL);
 extern int RetrieveStruct(const char *, CLSModule *, BOOL);
 extern int RetrieveEnum(const char *, CLSModule *, BOOL);
 extern int RetrieveConst(const char *, CLSModule *, BOOL);

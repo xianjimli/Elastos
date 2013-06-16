@@ -2,6 +2,7 @@
 // Copyright (c) 2000-2009,  Elastos, Inc.  All Rights Reserved.
 //==========================================================================
 
+#include <stdlib.h>
 #include <lube.h>
 
 int LubeContext::ModuleMember(MemberType member, char *pszBuffer)
@@ -107,6 +108,47 @@ int LubeContext::ClassMember(MemberType member, char *pszBuffer)
         case Member_Name:
             pszOutput = m_pClass->pszName;
             break;
+        case Member_NameSpace:
+            if (m_pClass->pszNameSpace != NULL && m_pClass->pszNameSpace[0] != '\0' &&
+                strcmp(m_pClass->pszNameSpace, "systypes")) {
+                char *pszNamespace = (char*)malloc(strlen(m_pClass->pszNameSpace) + 1);
+                strcpy(pszNamespace, m_pClass->pszNameSpace);
+                char buffer[1024];
+                buffer[0] = '\0';
+                char *begin = pszNamespace;
+                while (begin != NULL) {
+                    char *dot = strchr(begin, '.');
+                    if (dot != NULL) *dot = '\0';
+                    strcat(buffer, begin);
+                    strcat(buffer, "::");
+                    if (dot != NULL) begin = dot + 1;
+                    else begin = NULL;
+                }
+                free(pszNamespace);
+                sprintf(pszBuffer, "%s", buffer);
+            }
+            return LUBE_OK;
+        case Member_FullName:
+            char buffer[1024];
+            buffer[0] = '\0';
+            if (m_pClass->pszNameSpace != NULL && m_pClass->pszNameSpace[0] != '\0' &&
+                strcmp(m_pClass->pszNameSpace, "systypes")) {
+                char *pszNamespace = (char*)malloc(strlen(m_pClass->pszNameSpace) + 1);
+                strcpy(pszNamespace, m_pClass->pszNameSpace);
+                char *begin = pszNamespace;
+                while (begin != NULL) {
+                    char *dot = strchr(begin, '.');
+                    if (dot != NULL) *dot = '\0';
+                    strcat(buffer, begin);
+                    strcat(buffer, "_");
+                    if (dot != NULL) begin = dot + 1;
+                    else begin = NULL;
+                }
+                free(pszNamespace);
+            }
+            strcat(buffer, m_pClass->pszName);
+            sprintf(pszBuffer, "%s", buffer);
+            return LUBE_OK;
         case Member_Attrib:
             sprintf(pszBuffer, "%08x", m_pClass->pDesc->dwAttribs);
             return LUBE_OK;
@@ -145,6 +187,47 @@ int LubeContext::InterfaceMember(MemberType member, char *pszBuffer)
         case Member_Name:
             pszOutput = m_pInterface->pszName;
             break;
+        case Member_NameSpace:
+            if (m_pInterface->pszNameSpace != NULL && m_pInterface->pszNameSpace[0] != '\0' &&
+                strcmp(m_pInterface->pszNameSpace, "systypes")) {
+                char *pszNamespace = (char*)malloc(strlen(m_pInterface->pszNameSpace) + 1);
+                strcpy(pszNamespace, m_pInterface->pszNameSpace);
+                char buffer[1024];
+                buffer[0] = '\0';
+                char *begin = pszNamespace;
+                while (begin != NULL) {
+                    char *dot = strchr(begin, '.');
+                    if (dot != NULL) *dot = '\0';
+                    strcat(buffer, begin);
+                    strcat(buffer, "::");
+                    if (dot != NULL) begin = dot + 1;
+                    else begin = NULL;
+                }
+                free(pszNamespace);
+                sprintf(pszBuffer, "%s", buffer);
+            }
+            return LUBE_OK;
+        case Member_FullName:
+            char buffer[1024];
+            buffer[0] = '\0';
+            if (m_pInterface->pszNameSpace != NULL && m_pInterface->pszNameSpace[0] != '\0' &&
+                strcmp(m_pInterface->pszNameSpace, "systypes")) {
+                char *pszNamespace = (char*)malloc(strlen(m_pInterface->pszNameSpace) + 1);
+                strcpy(pszNamespace, m_pInterface->pszNameSpace);
+                char *begin = pszNamespace;
+                while (begin != NULL) {
+                    char *dot = strchr(begin, '.');
+                    if (dot != NULL) *dot = '\0';
+                    strcat(buffer, begin);
+                    strcat(buffer, "_");
+                    if (dot != NULL) begin = dot + 1;
+                    else begin = NULL;
+                }
+                free(pszNamespace);
+            }
+            strcat(buffer, m_pInterface->pszName);
+            sprintf(pszBuffer, "%s", buffer);
+            return LUBE_OK;
         case Member_Attrib:
             sprintf(pszBuffer, "%08x", m_pInterface->pDesc->dwAttribs);
             return LUBE_OK;

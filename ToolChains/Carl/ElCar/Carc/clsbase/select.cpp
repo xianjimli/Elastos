@@ -3,11 +3,12 @@
 //==========================================================================
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <assert.h>
 
 #include <clsbase.h>
 
-int SelectClassDirEntry(const char *pszName, const CLSModule *pModule)
+int SelectClassDirEntry(const char *pszName, const char *pszNamespaces, const CLSModule *pModule)
 {
     int n;
 
@@ -15,14 +16,28 @@ int SelectClassDirEntry(const char *pszName, const CLSModule *pModule)
     assert(pszName != NULL);
 
     for (n = 0; n < pModule->cClasses; n++) {
-        if (!strcmp(pszName, pModule->ppClassDir[n]->pszName))
-            _ReturnOK (n);
+        if (!strcmp(pszName, pModule->ppClassDir[n]->pszName)) {
+            if (pModule->ppClassDir[n]->pszNameSpace == NULL) _ReturnOK (n);
+            //temp
+            if (!strcmp("systypes", pModule->ppClassDir[n]->pszNameSpace)) _ReturnOK (n);
+
+            const char *begin, *end, *semicolon;
+            begin = pszNamespaces;
+            end = NULL;
+            while (begin != NULL) {
+                semicolon = strchr(begin, ';');
+                end = semicolon != NULL ? semicolon : begin + strlen(begin);
+                if (!strncmp(begin, pModule->ppClassDir[n]->pszNameSpace, end - begin)) _ReturnOK (n);
+                if (end < pszNamespaces + strlen(pszNamespaces)) begin += 2;
+                else begin = NULL;
+            }
+        }
     }
 
     _ReturnError (CLSError_NotFound);
 }
 
-int SelectInterfaceDirEntry(const char *pszName, const CLSModule *pModule)
+int SelectInterfaceDirEntry(const char *pszName, const char *pszNamespaces, const CLSModule *pModule)
 {
     int n;
 
@@ -30,8 +45,22 @@ int SelectInterfaceDirEntry(const char *pszName, const CLSModule *pModule)
     assert(pszName != NULL);
 
     for (n = 0; n < pModule->cInterfaces; n++) {
-        if (!strcmp(pszName, pModule->ppInterfaceDir[n]->pszName))
-            _ReturnOK (n);
+        if (!strcmp(pszName, pModule->ppInterfaceDir[n]->pszName)) {
+            if (pModule->ppInterfaceDir[n]->pszNameSpace == NULL) _ReturnOK (n);
+            //temp
+            if (!strcmp("systypes", pModule->ppInterfaceDir[n]->pszNameSpace)) _ReturnOK (n);
+
+            const char *begin, *end, *semicolon;
+            begin = pszNamespaces;
+            end = NULL;
+            while (begin != NULL) {
+                semicolon = strchr(begin, ';');
+                end = semicolon != NULL ? semicolon : begin + strlen(begin);
+                if (!strncmp(begin, pModule->ppInterfaceDir[n]->pszNameSpace, end - begin)) _ReturnOK (n);
+                if (end < pszNamespaces + strlen(pszNamespaces)) begin += 2;
+                else begin = NULL;
+            }
+        }
     }
 
     _ReturnError (CLSError_NotFound);
@@ -197,7 +226,7 @@ int SelectEnumElement(const char *pszName, const EnumDescriptor *pDesc)
 }
 
 int GlobalSelectSymbol(
-    const char *pszName, const CLSModule *pModule,
+    const char *pszName, const char *pszNamespace, const CLSModule *pModule,
     GlobalSymbolType except, GlobalSymbolType *pType)
 {
     int n;
@@ -206,7 +235,7 @@ int GlobalSelectSymbol(
     assert(pszName != NULL);
 
     if (except != GType_Class) {
-        n = SelectClassDirEntry(pszName, pModule);
+        n = SelectClassDirEntry(pszName, pszNamespace, pModule);
         if (n >= 0) {
             ExtraMessage(pModule->ppClassDir[n]->pszNameSpace,
                         "class", pszName);
@@ -216,7 +245,7 @@ int GlobalSelectSymbol(
     }
 
     if (except != GType_Interface) {
-        n = SelectInterfaceDirEntry(pszName, pModule);
+        n = SelectInterfaceDirEntry(pszName, pszNamespace, pModule);
         if (n >= 0) {
             ExtraMessage(pModule->ppInterfaceDir[n]->pszNameSpace,
                         "interface", pszName);

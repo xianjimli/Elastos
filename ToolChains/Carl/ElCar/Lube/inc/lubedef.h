@@ -17,7 +17,8 @@ typedef enum MemberType {
     Member_Version,     Member_Uuid,        Member_Uunm,
     Member_Clsid,       Member_Iid,         Member_Value,
     Member_Dimention,   Member_Major_Version,   Member_Minor_Version,
-    Member_CarCode,     Member_BuildDate,
+    Member_CarCode,     Member_BuildDate,  Member_NameSpace,
+    Member_FullName,
 }   MemberType;
 
 typedef enum ObjectType {
@@ -73,7 +74,7 @@ typedef enum ConditionAttrib {
 }   ConditionAttrib;
 
 const int c_nEmbedPrefix = 0x1f;
-const int c_nStrBufSize = 384;
+const int c_nStrBufSize = 1024;
 
 typedef struct LubeTemplate {
     char *              pszName;

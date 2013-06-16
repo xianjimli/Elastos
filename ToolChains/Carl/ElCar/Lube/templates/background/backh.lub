@@ -19,6 +19,7 @@ $END IF
 
 using namespace Elastos::Core::Threading;
 
+${ClassNamespaceBegin(class)}
 $IF class.type is not "sink"
 $  IF class.attrib is not "hasctor"
 CARAPI _${class.name}CreateObject(IInterface **ppObj);
@@ -44,7 +45,7 @@ $   IF attrib is not "callback" and attrib is not "callbacksink" and attrib is n
 $       IF interfaces is not first
 ,
 $       END IF
-    public ${name}$^
+    public ${namespace}${name}$^
 $   END IF ;; !callback, !callbacksink, !delegatesink, !clsobj and !filter
 $ END DO
 $
@@ -266,6 +267,7 @@ $ELSE
 $END IF
 };
 
+${ClassNamespaceEnd(class)}
 #endif // __CAR_${Upper(name)}_H__
 $
 $END OUTPUT

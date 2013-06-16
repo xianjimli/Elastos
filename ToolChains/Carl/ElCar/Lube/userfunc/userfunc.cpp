@@ -86,6 +86,10 @@ DECL_USERFUNC(HasDefaultConstructor);
 DECL_USERFUNC(ParcelParameter);
 DECL_USERFUNC(HasParameters);
 DECL_USERFUNC(OrgClassIsAspect);
+DECL_USERFUNC(ClassNamespaceBegin);
+DECL_USERFUNC(ClassNamespaceEnd);
+DECL_USERFUNC(InterfaceNamespaceBegin);
+DECL_USERFUNC(InterfaceNamespaceEnd);
 
 const UserFuncEntry g_userFuncs[] = {
     USERFUNC_(Embed, ARGTYPE_STRING, \
@@ -196,6 +200,14 @@ const UserFuncEntry g_userFuncs[] = {
             "Judge if the method has some parameters"),
     USERFUNC_(OrgClassIsAspect, ARGTYPE_(Object_Class, Member_None), \
             "Judge whether the original class of this sink class is aspect"),
+    USERFUNC_(ClassNamespaceBegin, ARGTYPE_(Object_Class, Member_None), \
+            "Generate the namespace beginning of the class"),
+    USERFUNC_(ClassNamespaceEnd, ARGTYPE_(Object_Class, Member_None), \
+            "Generate the namespace end of the class"),
+    USERFUNC_(InterfaceNamespaceBegin, ARGTYPE_(Object_Interface, Member_None), \
+            "Generate the namespace beginning of the interface"),
+    USERFUNC_(InterfaceNamespaceEnd, ARGTYPE_(Object_Interface, Member_None), \
+            "Generate the namespace end of the interface"),
 };
 const int c_cUserFuncs = sizeof(g_userFuncs) / sizeof(UserFuncEntry);
 
@@ -710,7 +722,7 @@ IMPL_USERFUNC(UsageNewOfCtor)(PLUBECTX pCtx, PSTATEDESC pDesc, PVOID pvArg)
     char szName[c_nStrBufSize];\
     strcpy(szName, (char *)pszName + before);\
     szName[strlen(szName) - after] = 0;\
-    int r = SelectClassDirEntry(szName, pCtx->m_pModule);\
+    int r = SelectClassDirEntry(szName, NULL, pCtx->m_pModule);\
     if (r < 0) { /* Should never be in here! */ \
         /* ignore non existed generic class silently! */ \
         return LUBE_OK;\
@@ -3242,4 +3254,96 @@ IMPL_USERFUNC(HasParameters)(PLUBECTX pCtx, PSTATEDESC pDesc, PVOID pvArg)
     if (pCtx->m_pMethod->cParams > 1) return true;
 
     return false;
+}
+
+IMPL_USERFUNC(ClassNamespaceBegin)(PLUBECTX pCtx, PSTATEDESC pDesc, PVOID pvArg)
+{
+    assert(NULL != pCtx->m_pClass && pvArg == pCtx->m_pClass);
+
+    ClassDirEntry *pClsDir = pCtx->m_pClass;
+    if (pClsDir->pszNameSpace != NULL && pClsDir->pszNameSpace[0] != '\0') {
+        char *pszNamespace = (char*)malloc(strlen(pClsDir->pszNameSpace) + 1);
+        strcpy(pszNamespace, pClsDir->pszNameSpace);
+        char *begin = pszNamespace;
+        while (begin != NULL) {
+            char *dot = strchr(begin, '.');
+            if (dot != NULL) *dot = '\0';
+            pCtx->PutString("namespace ");
+            pCtx->PutString(begin);
+            pCtx->PutString(" {\n");
+            if (dot != NULL) begin = dot + 1;
+            else begin = NULL;
+        }
+        free(pszNamespace);
+    }
+
+    return LUBE_OK;
+}
+
+IMPL_USERFUNC(ClassNamespaceEnd)(PLUBECTX pCtx, PSTATEDESC pDesc, PVOID pvArg)
+{
+    assert(NULL != pCtx->m_pClass && pvArg == pCtx->m_pClass);
+
+    ClassDirEntry *pClsDir = pCtx->m_pClass;
+    if (pClsDir->pszNameSpace != NULL && pClsDir->pszNameSpace[0] != '\0') {
+        char *pszNamespace = (char*)malloc(strlen(pClsDir->pszNameSpace) + 1);
+        strcpy(pszNamespace, pClsDir->pszNameSpace);
+        char *begin = pszNamespace;
+        while (begin != NULL) {
+            char *dot = strchr(begin, '.');
+            if (dot != NULL) *dot = '\0';
+            pCtx->PutString("}\n");
+            if (dot != NULL) begin = dot + 1;
+            else begin = NULL;
+        }
+        free(pszNamespace);
+    }
+
+    return LUBE_OK;
+}
+
+IMPL_USERFUNC(InterfaceNamespaceBegin)(PLUBECTX pCtx, PSTATEDESC pDesc, PVOID pvArg)
+{
+    assert(NULL != pCtx->m_pInterface && pvArg == pCtx->m_pInterface);
+
+    InterfaceDirEntry *pItfDir = pCtx->m_pInterface;
+    if (pItfDir->pszNameSpace != NULL && pItfDir->pszNameSpace[0] != '\0') {
+        char *pszNamespace = (char*)malloc(strlen(pItfDir->pszNameSpace) + 1);
+        strcpy(pszNamespace, pItfDir->pszNameSpace);
+        char *begin = pszNamespace;
+        while (begin != NULL) {
+            char *dot = strchr(begin, '.');
+            if (dot != NULL) *dot = '\0';
+            pCtx->PutString("namespace ");
+            pCtx->PutString(begin);
+            pCtx->PutString(" {\n");
+            if (dot != NULL) begin = dot + 1;
+            else begin = NULL;
+        }
+        free(pszNamespace);
+    }
+
+    return LUBE_OK;
+}
+
+IMPL_USERFUNC(InterfaceNamespaceEnd)(PLUBECTX pCtx, PSTATEDESC pDesc, PVOID pvArg)
+{
+    assert(NULL != pCtx->m_pInterface && pvArg == pCtx->m_pInterface);
+
+    InterfaceDirEntry *pItfDir = pCtx->m_pInterface;
+    if (pItfDir->pszNameSpace != NULL && pItfDir->pszNameSpace[0] != '\0') {
+        char *pszNamespace = (char*)malloc(strlen(pItfDir->pszNameSpace) + 1);
+        strcpy(pszNamespace, pItfDir->pszNameSpace);
+        char *begin = pszNamespace;
+        while (begin != NULL) {
+            char *dot = strchr(begin, '.');
+            if (dot != NULL) *dot = '\0';
+            pCtx->PutString("}\n");
+            if (dot != NULL) begin = dot + 1;
+            else begin = NULL;
+        }
+        free(pszNamespace);
+    }
+
+    return LUBE_OK;
 }

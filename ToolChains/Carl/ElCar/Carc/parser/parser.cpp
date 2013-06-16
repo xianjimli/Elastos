@@ -56,6 +56,88 @@ static const CLSID CLSID_XOR_CallbackSink = \
 /* e724df56-e16a-4599-8edd-a97ab245d583 */
 {0xe724df56,0xe16a,0x4599,{0x8e,0xdd,0xa9,0x7a,0xb2,0x45,0xd5,0x83}};
 
+static char *s_pszNamespace = NULL;
+static int s_nsCap = 0;
+static int s_nsUsed = 0;
+
+static char *s_pszUsingNS = NULL;
+static int s_usingCap = 0;
+static int s_usingUsed = 0;
+
+char* GetNamespace()
+{
+    return s_pszNamespace;
+}
+
+void InitNamespace()
+{
+    s_nsCap = 1024;
+    s_pszNamespace = (char*)malloc(s_nsCap + 1);
+    memset(s_pszNamespace, 0, s_nsCap + 1);
+
+    s_usingCap = 1024;
+    s_pszUsingNS = (char*)malloc(s_usingCap + 1);
+    memset(s_pszUsingNS, 0, s_usingCap + 1);
+}
+
+void UninitNamespace()
+{
+    free(s_pszNamespace);
+    s_nsCap = 0;
+    s_nsUsed = 0;
+    s_pszNamespace = NULL;
+
+    free(s_pszUsingNS);
+    s_usingCap = 0;
+    s_usingUsed = 0;
+    s_pszUsingNS = NULL;
+}
+
+void PushNamespace(const char *pszNamespace)
+{
+    int reqSize = strlen(pszNamespace);
+    if (s_nsCap - s_nsUsed < reqSize) {
+        char *newStr = (char*)malloc(s_nsCap * 2 + 1);
+        strcpy(newStr, s_pszNamespace);
+        free(s_pszNamespace);
+        s_pszNamespace = newStr;
+        s_nsCap *= 2;
+    }
+
+    if (s_nsUsed > 0) strcat(s_pszNamespace, ".");
+    strcat(s_pszNamespace, pszNamespace);
+    s_nsUsed += reqSize;
+}
+
+void PopNamespace()
+{
+    char *dot = strrchr(s_pszNamespace, '.');
+    if (dot != NULL) {
+        *dot = '\0';
+        s_nsUsed = dot - s_pszNamespace;
+    }
+    else {
+        *s_pszNamespace = '\0';
+        s_nsUsed = 0;
+    }
+}
+
+void AddUsingNS(const char *pszNamespace)
+{
+    int reqSize = strlen(pszNamespace);
+    if (s_usingCap - s_usingUsed < reqSize) {
+        char *newStr = (char*)malloc(s_usingCap * 2 + 1);
+        strcpy(newStr, s_pszUsingNS);
+        free(s_pszUsingNS);
+        s_pszUsingNS = newStr;
+        s_usingCap *= 2;
+    }
+
+    if (s_usingUsed > 0) strcat(s_pszUsingNS, ";");
+    strcat(s_pszUsingNS, pszNamespace);
+    s_usingUsed += reqSize;
+}
+
 void SetFactoryUrl(const char *pszUrl)
 {
     s_pszFactoryUrl = pszUrl;
@@ -1215,12 +1297,13 @@ int P_Pragma()
 
 void AddConstClassInterface(
     const char *pszName,
+    const char *pszNamespace,
     CLSModule *pModule,
     ClassDescriptor *pDesc)
 {
     int n;
 
-    n = RetrieveInterface(pszName, pModule, FALSE);
+    n = RetrieveInterface(pszName, pszNamespace, pModule, FALSE);
     if (n < 0) {
         //ErrorReport(CAR_E_NotFound, "interface", pszName);
         return;
@@ -1237,11 +1320,11 @@ void AddConstClassInterface(
     }
 }
 
-int AddConstClassInterface(const char *pszName, ClassDescriptor *pDesc)
+int AddConstClassInterface(const char *pszName, const char *pszNamespace, ClassDescriptor *pDesc)
 {
     int n;
 
-    n = RetrieveInterface(pszName, s_pModule, FALSE);
+    n = RetrieveInterface(pszName, pszNamespace, s_pModule, FALSE);
     if (n < 0) {
         ErrorReport(CAR_E_NotFound, "interface", pszName);
         return n;
@@ -1343,13 +1426,13 @@ void GenerateSinkClass(
     pSinkClsid->Data4[6] = pClsid->Data4[6] ^ CLSID_XOR_CallbackSink.Data4[6];
     pSinkClsid->Data4[7] = pClsid->Data4[7] ^ CLSID_XOR_CallbackSink.Data4[7];
 
-    AddConstClassInterface("IObject", pModule, pSinkDesc);
-    AddConstClassInterface("ICallbackSink", pModule, pSinkDesc);
+    AddConstClassInterface("IObject", NULL, pModule, pSinkDesc);
+    AddConstClassInterface("ICallbackSink", NULL, pModule, pSinkDesc);
     for (n = 0; n < pDesc->cInterfaces; n++) {
         if (pDesc->ppInterfaces[n]->wAttribs & ClassInterfaceAttrib_callback){
             strcpy(szInterfaceName, pModule->ppInterfaceDir[pDesc->ppInterfaces[n]->sIndex]->pszName);
             strcat(szInterfaceName, "Callback");
-            int x = SelectInterfaceDirEntry(szInterfaceName, pModule);
+            int x = SelectInterfaceDirEntry(szInterfaceName, NULL, pModule);
             if (x < 0) continue;
             int m = CreateClassInterface(x, pSinkDesc);
             if (m > 0 && (pDesc->ppInterfaces[n]->wAttribs & ClassInterfaceAttrib_async)) {
@@ -1362,7 +1445,7 @@ void GenerateSinkClass(
                 && !(pDesc->ppInterfaces[n]->wAttribs & ClassInterfaceAttrib_delegate)) {
                 szInterfaceName[strlen(szInterfaceName)-8] = '\0';
                 strcat(szInterfaceName, "Handler");
-                x = AddConstClassInterface(szInterfaceName, pSinkDesc);
+                x = AddConstClassInterface(szInterfaceName, NULL, pSinkDesc);
                 if (x > 0) pSinkDesc->ppInterfaces[x]->wAttribs |= ClassInterfaceAttrib_handler;
             }
         }
@@ -1385,7 +1468,7 @@ int GenerateSinkInterface(
     strcpy(szSinkName, pszName);
     strcat(szSinkName, "Callback");
 
-    x = SelectInterfaceDirEntry(szSinkName, pModule);
+    x = SelectInterfaceDirEntry(szSinkName, NULL, pModule);
     if (x >= 0)
         return x;
     x = n = CreateInterfaceDirEntry(szSinkName, pModule, InterfaceAttrib_sink);
@@ -1432,7 +1515,7 @@ int GenerateAsyncCallbackInterface(
     strcpy(szSinkName, pszName);
     strcat(szSinkName, "Async");
 
-    x = SelectInterfaceDirEntry(szSinkName, pModule);
+    x = SelectInterfaceDirEntry(szSinkName, NULL, pModule);
     if (x >= 0)
         return x;
     x = n = CreateInterfaceDirEntry(szSinkName, pModule, InterfaceAttrib_defined);
@@ -1470,11 +1553,11 @@ int GenerateHandlerInterface(
     strcpy(szSinkName, pszName);
     strcat(szSinkName, "Handler");
 
-    x = RetrieveInterface(szSinkName, pModule, TRUE);
+    x = RetrieveInterface(szSinkName, NULL, pModule, TRUE);
     if (x >= 0) return x;
     x = n = CreateInterfaceDirEntry(szSinkName, pModule, InterfaceAttrib_defined);
     if (n < 0) return 0;
-    r = RetrieveInterface("ICallbackRendezvous", pModule, FALSE);
+    r = RetrieveInterface("ICallbackRendezvous", NULL, pModule, FALSE);
     if (r < 0) return 0;
 
     pSinkDesc = pModule->ppInterfaceDir[n]->pDesc;
@@ -1677,7 +1760,7 @@ int GenerateEnums(CLSModule *pModule)
                      * check callback interface of original class
                      */
                     strcpy(szInterfaceName, pIntf->pszName);
-                    j = RetrieveInterface(szInterfaceName, pModule, FALSE);
+                    j = RetrieveInterface(szInterfaceName, NULL, pModule, FALSE);
                     if (j < 0) {
                         return -1;
                     }
@@ -1734,11 +1817,11 @@ int ExtendCLS(CLSModule *pModule, BOOL bNoElastos)
         pDesc = pClass->pDesc;
         if ((pDesc->dwAttribs & ClassAttrib_hascallback) &&
                 !(pDesc->dwAttribs & ClassAttrib_t_generic) &&
-                (pClass->pszNameSpace == NULL)) {
+                !(pDesc->dwAttribs & ClassAttrib_t_external)) {
             if (!bNoElastos) {
-                if ((CLS_NoError == LoadCLSFromDll("Elastos.Runtime.CarRuntime.eco", &pModuleTmp))
+                if ((CLS_NoError == LoadCLSFromDll("Elastos.Runtime.eco", &pModuleTmp))
                     || (LoadCLS("ElastosCore.cls", &pModule) == CLS_NoError)) {
-                    int nIndex = SelectInterfaceDirEntry("ICallbackSink", pModuleTmp);
+                    int nIndex = SelectInterfaceDirEntry("ICallbackSink", NULL, pModuleTmp);
                     if (nIndex >= 0) InterfaceCopy(pModuleTmp, nIndex, pModule, FALSE);
                     DisposeFlattedCLS(pModuleTmp);
                 }
@@ -1753,7 +1836,7 @@ int ExtendCLS(CLSModule *pModule, BOOL bNoElastos)
                      * check callback interface of original class
                      */
                     strcpy(szInterfaceName, pIntf->pszName);
-                    j = RetrieveInterface(szInterfaceName, pModule, FALSE);
+                    j = RetrieveInterface(szInterfaceName, NULL, pModule, FALSE);
                     if (j < 0) {
                         return -1;
                     }
@@ -1901,9 +1984,9 @@ int ImportLibrary(const char *pszName)
     int n;
     CLSModule *pModule;
 
-    // skip Elastos.Runtime.CarRuntime.eco
+    // skip Elastos.Runtime.eco
     //
-    if (!_stricmp(pszName, "Elastos.Runtime.CarRuntime.eco")) return Ret_Continue;
+    if (!_stricmp(pszName, "Elastos.Runtime.eco")) return Ret_Continue;
 
     // check same entry
     //
@@ -2247,7 +2330,30 @@ void AddInterfaceParent(const char *pszName, InterfaceDescriptor *pDesc)
     int n;
     InterfaceDescriptor *pParent;
 
-    n = RetrieveInterface(pszName, s_pModule, FALSE);
+    char *pszNamespaces = NULL;
+    const char *dot = strrchr(pszName, '.');
+    if (dot != NULL) {
+        pszNamespaces = (char *)malloc(dot - pszName + 1);
+        memset(pszNamespaces, 0, dot - pszName + 1);
+        memcpy(pszNamespaces, pszName, dot - pszName);
+        pszName = dot + 1;
+    }
+    else {
+        int nsLen = strlen(GetNamespace());
+        int usingLen = strlen(s_pszUsingNS);
+        if (nsLen + usingLen != 0) {
+            int len = nsLen + 1 + usingLen + 1;
+            pszNamespaces = (char *)malloc(len);
+            memset(pszNamespaces, 0, len);
+            if (nsLen != 0) strcpy(pszNamespaces, GetNamespace());
+            if (usingLen != 0) {
+                if (pszNamespaces[0] != '\0') strcat(pszNamespaces, ";");
+                strcat(pszNamespaces, s_pszUsingNS);
+            }
+        }
+    }
+    n = RetrieveInterface(pszName, pszNamespaces, s_pModule, FALSE);
+    if (pszNamespaces != NULL) free(pszNamespaces);
     if (n < 0) {
         ErrorReport(CAR_E_NotFound, "interface", pszName);
         return;
@@ -2354,7 +2460,16 @@ int P_Interface(CARToken token, DWORD properties)
         ErrorReport(CAR_E_LocalConflict);
     }
 
-    r = CreateInterfaceDirEntry(g_szCurrentToken, s_pModule, dwAttribs);
+    int len = strlen(GetNamespace()) + strlen(g_szCurrentToken);
+    char *pszFullName = (char*)malloc(len + 2);
+    memset(pszFullName, 0, len + 2);
+    if (GetNamespace()[0] != 0) {
+        strcpy(pszFullName, GetNamespace());
+        strcat(pszFullName, ".");
+    }
+    strcat(pszFullName, g_szCurrentToken);
+    r = CreateInterfaceDirEntry(pszFullName, s_pModule, dwAttribs);
+    free(pszFullName);
 
     if (Token_S_semicolon == PeekToken(s_pFile)) {
         GetToken(s_pFile); // ignore ";"
@@ -2557,14 +2672,14 @@ void CheckClassAttribs(ClassDescriptor *pDesc)
     }
 
     if (!(pDesc->dwAttribs & ClassAttrib_t_aspect)) {
-        AddConstClassInterface("IObject", pDesc);
+        AddConstClassInterface("IObject", NULL, pDesc);
     }
     else {
-        AddConstClassInterface("IAspect", pDesc);
+        AddConstClassInterface("IAspect", NULL, pDesc);
     }
 
     if (pDesc->dwAttribs & ClassAttrib_t_regime) {
-        AddConstClassInterface("IRegime", pDesc);
+        AddConstClassInterface("IRegime", NULL, pDesc);
     }
 
     CheckClassDupMethodName(pDesc);
@@ -2583,7 +2698,7 @@ int GetClasses(USHORT *pClassIndexs)
             ErrorReport(CAR_E_UnexpectSymbol, g_szCurrentToken);
             return Ret_AbortOnError;
         }
-        n = RetrieveClass(g_szCurrentToken, s_pModule, FALSE);
+        n = RetrieveClass(g_szCurrentToken, NULL, s_pModule, FALSE);
         if (n < 0) {
             ErrorReport(CAR_E_NotFound, "class", g_szCurrentToken);
             goto ErrorSkip;
@@ -2645,7 +2760,7 @@ int GetAspects(USHORT *pAspectIndexs)
         }
         else token = GetToken(s_pFile);
 
-        n = RetrieveClass(g_szCurrentToken, s_pModule, FALSE);
+        n = RetrieveClass(g_szCurrentToken, NULL, s_pModule, FALSE);
         if (n < 0) {
             ErrorReport(CAR_E_NotFound, "aspect", g_szCurrentToken);
             goto ErrorSkip;
@@ -2824,7 +2939,31 @@ int P_ClassInterface(ClassDirEntry *pClass)
         return Ret_AbortOnError;
     }
 
-    nIndexOfInterface = n = RetrieveInterface(g_szCurrentToken, s_pModule, FALSE);
+    const char *pszName = g_szCurrentToken;
+    char *pszNamespaces = NULL;
+    const char *dot = strrchr(pszName, '.');
+    if (dot != NULL) {
+        pszNamespaces = (char *)malloc(dot - pszName + 1);
+        memset(pszNamespaces, 0, dot - pszName + 1);
+        memcpy(pszNamespaces, pszName, dot - pszName);
+        pszName = dot + 1;
+    }
+    else {
+        int nsLen = strlen(GetNamespace());
+        int usingLen = strlen(s_pszUsingNS);
+        if (nsLen + usingLen != 0) {
+            int len = nsLen + 1 + usingLen + 1;
+            pszNamespaces = (char *)malloc(len);
+            memset(pszNamespaces, 0, len);
+            if (nsLen != 0) strcpy(pszNamespaces, GetNamespace());
+            if (usingLen != 0) {
+                if (pszNamespaces[0] != '\0') strcat(pszNamespaces, ";");
+                strcat(pszNamespaces, s_pszUsingNS);
+            }
+        }
+    }
+    nIndexOfInterface = n = RetrieveInterface(pszName, pszNamespaces, s_pModule, FALSE);
+    if (pszNamespaces != NULL) free(pszNamespaces);
     if (n < 0) {
         ErrorReport(CAR_E_NotFound, "interface", g_szCurrentToken);
         goto ErrorSkip;
@@ -2926,7 +3065,7 @@ int P_ClassInterface(ClassDirEntry *pClass)
 
         if (x > 0) s_pModule->ppInterfaceDir[x]->pDesc->dwAttribs |= InterfaceAttrib_defined;
         strcat(szInterfaceName, "Async");
-        x = AddConstClassInterface(szInterfaceName, pDesc);
+        x = AddConstClassInterface(szInterfaceName, NULL, pDesc);
         if (x > 0) {
             pDesc->ppInterfaces[x]->wAttribs |= ClassInterfaceAttrib_callback;
             pDesc->ppInterfaces[x]->wAttribs |= ClassInterfaceAttrib_async;
@@ -2977,7 +3116,13 @@ int GenerateClassObject(ClassDirEntry *pClass)
 
     pDesc->dwAttribs |= ClassAttrib_hasctor;
 
-    sprintf(szName, "I%sClassObject", pClass->pszName);
+    //need to add namespace
+    if (pClass->pszNameSpace != NULL) {
+        sprintf(szName, "%s.I%sClassObject", pClass->pszNameSpace, pClass->pszName);
+    }
+    else {
+        sprintf(szName, "I%sClassObject", pClass->pszName);
+    }
     r = CreateInterfaceDirEntry(szName, s_pModule, 0);
     if (r < 0) {
         CreateError(r, "interface", szName);
@@ -2987,7 +3132,7 @@ int GenerateClassObject(ClassDirEntry *pClass)
 
     s_pModule->ppInterfaceDir[pDesc->sCtorIndex]->pDesc->dwAttribs  = attr;
 
-    n = RetrieveInterface("IClassObject", s_pModule, TRUE);
+    n = RetrieveInterface("IClassObject", NULL, s_pModule, TRUE);
     if (n < 0) {
         return Ret_AbortOnError;
     }
@@ -2995,7 +3140,13 @@ int GenerateClassObject(ClassDirEntry *pClass)
 
     s_pModule->pDefinedInterfaceIndex[s_pModule->cDefinedInterfaces++] = r;
 
-    sprintf(szName, "%sClassObject", pClass->pszName);
+    //need to add namespace
+    if (pClass->pszNameSpace != NULL) {
+        sprintf(szName, "%s.%sClassObject", pClass->pszNameSpace, pClass->pszName);
+    }
+    else {
+        sprintf(szName, "%sClassObject", pClass->pszName);
+    }
     r = CreateClassDirEntry(szName, s_pModule, 0);
 
     n = CreateClassInterface(pDesc->sCtorIndex, s_pModule->ppClassDir[r]->pDesc);
@@ -3023,7 +3174,7 @@ void AddClassParent(
     int n;
     ClassDescriptor *pParent;
 
-    n = RetrieveClass(pszName, s_pModule, FALSE);
+    n = RetrieveClass(pszName, NULL, s_pModule, FALSE);
     if (n < 0) {
         ErrorReport(CAR_E_NotFound, "class", pszName);
         return;
@@ -3059,7 +3210,7 @@ void AddGenericParent(
     ClassDescriptor *pParent;
     ClassDescriptor *pDesc = pClass->pDesc;
 
-    n = RetrieveClass(pszName, s_pModule, FALSE);
+    n = RetrieveClass(pszName, NULL, s_pModule, FALSE);
     if (n < 0) {
         ErrorReport(CAR_E_NotFound, "Generic", pszName);
         return;
@@ -3190,7 +3341,7 @@ int P_ClassCtorMethod(ClassDirEntry *pClass, BOOL isDeprecated)
 
     memset(&type, 0, sizeof(type));
     type.type = Type_interface;
-    type.sIndex = SelectInterfaceDirEntry("IInterface", s_pModule);
+    type.sIndex = SelectInterfaceDirEntry("IInterface", NULL, s_pModule);
     type.nPointer = 2;
 
     i = CreateMethodParam("newObj", pIntfDesc->ppMethods[n]);
@@ -3249,7 +3400,7 @@ int AddTrivialClassCtorMethod(ClassDirEntry *pClass)
 
     memset(&type, 0, sizeof(type));
     type.type = Type_interface;
-    type.sIndex = SelectInterfaceDirEntry("IInterface", s_pModule);
+    type.sIndex = SelectInterfaceDirEntry("IInterface", NULL, s_pModule);
     type.nPointer = 2;
 
     i = CreateMethodParam("newObj", pIntfDesc->ppMethods[n]);
@@ -3593,7 +3744,16 @@ int P_Class(CARToken token, DWORD properties)
             return Ret_AbortOnError;
     }
 
-    r = CreateClassDirEntry(g_szCurrentToken, s_pModule, dwAttribs);
+    int len = strlen(GetNamespace()) + strlen(g_szCurrentToken);
+    char *pszFullName = (char*)malloc(len + 2);
+    memset(pszFullName, 0, len + 2);
+    if (GetNamespace()[0] != 0) {
+        strcpy(pszFullName, GetNamespace());
+        strcat(pszFullName, ".");
+    }
+    strcat(pszFullName, g_szCurrentToken);
+    r = CreateClassDirEntry(pszFullName, s_pModule, dwAttribs);
+    free(pszFullName);
 
     if (Token_S_semicolon == PeekToken(s_pFile)) {
         GetToken(s_pFile); // ignore ";"
@@ -3678,6 +3838,32 @@ int P_InterfaceAndClass(CARToken token)
     }
 }
 
+int P_UsingNamespace()
+{
+    CARToken token;
+
+    if (GetToken(s_pFile) != Token_K_namespace) {
+        ErrorReport(CAR_E_UnexpectSymbol, g_szCurrentToken);
+        return Ret_AbortOnError;
+    }
+
+    if (GetToken(s_pFile) != Token_ident) {
+        ErrorReport(CAR_E_UnexpectSymbol, g_szCurrentToken);
+        return Ret_AbortOnError;
+    }
+
+    AddUsingNS(g_szCurrentToken);
+
+    if (GetToken(s_pFile) != Token_S_semicolon) {
+        ErrorReport(CAR_E_UnexpectSymbol, g_szCurrentToken);
+        return Ret_AbortOnError;
+    }
+
+    return Ret_Continue;
+}
+
+int P_DeclNamespace();
+
 // CAR_ELEM    -> INTERFACE | CLASS | ENUM | STRUCT | TYPEDEF |
 //                PRAGMA | IMPORT | IMPORTLIB | MERGE
 //
@@ -3714,12 +3900,47 @@ int P_CARElement()
         case Token_K_mergelib:
             return P_MergeLibrary();
 
+        case Token_K_namespace:
+            return P_DeclNamespace();
+
+        case Token_K_using:
+            return P_UsingNamespace();
+
         default:
             return P_InterfaceAndClass(token);
 
         case Token_Error:
             return Ret_AbortOnError;
     }
+}
+
+// NAMESPACE  -> k_namespace string s_lbracket CAR_BODY s-rbracket
+int P_DeclNamespace()
+{
+    CARToken token;
+
+    if (GetToken(s_pFile) != Token_ident) {
+        ErrorReport(CAR_E_UnexpectSymbol, g_szCurrentToken);
+        return Ret_AbortOnError;
+    }
+
+    PushNamespace(g_szCurrentToken);
+
+    if (GetToken(s_pFile) != Token_S_lbrace) {
+        ErrorReport(CAR_E_UnexpectSymbol, g_szCurrentToken);
+        return Ret_AbortOnError;
+    }
+
+    do {
+        if (P_CARElement() == Ret_AbortOnError) {
+            return Ret_AbortOnError;
+        }
+        token = PeekToken(s_pFile);
+    } while (Token_S_rbrace != token);
+
+    GetToken(s_pFile); // skip "}"
+    PopNamespace();
+    return Ret_Continue;
 }
 
 // CAR_BODY    -> s_lbrace { CAR_ELEM { s_semicolon } }+ s_rbrace
@@ -3730,10 +3951,10 @@ int P_CARBody()
 
     // import IInterface first and ignore any errors
     //
-    RetrieveInterface("IInterface", s_pModule, TRUE);
-    RetrieveInterface("IObject", s_pModule, TRUE);
-    RetrieveInterface("IAspect", s_pModule, TRUE);
-    RetrieveInterface("IClassObject", s_pModule, TRUE);
+    RetrieveInterface("IInterface", NULL, s_pModule, TRUE);
+    RetrieveInterface("IObject", NULL, s_pModule, TRUE);
+    RetrieveInterface("IAspect", NULL, s_pModule, TRUE);
+    RetrieveInterface("IClassObject", NULL, s_pModule, TRUE);
 
     token = GetToken(s_pFile);
     if (Token_S_lbrace == token) {
@@ -3915,7 +4136,7 @@ void InterfaceLastCheck(InterfaceDirEntry *pInterface)
 {
     char szSeedBuf[c_nMaxSeedSize + 1];
 
-    if (NULL != pInterface->pszNameSpace) return;
+    if (NULL != pInterface->pszNameSpace && !strcmp(pInterface->pszNameSpace, "systypes")) return;
 
     CheckInterfaceDupMethodNameEx(pInterface);
 
@@ -3923,7 +4144,7 @@ void InterfaceLastCheck(InterfaceDirEntry *pInterface)
     // libraries.
     //
     if (!(pInterface->pDesc->dwAttribs & InterfaceAttrib_defined)) {
-        if (RetrieveInterface(pInterface->pszName, s_pModule, TRUE) < 0) {
+        if (RetrieveInterface(pInterface->pszName, NULL, s_pModule, TRUE) < 0) {
             ErrorReport(CAR_E_NotFound, "interface", pInterface->pszName);
             // continue on error
         }
@@ -3960,7 +4181,7 @@ void ClassLastCheck(ClassDirEntry *pClass)
     MethodDescriptor *pMethod;
     char szSeedBuf[c_nMaxSeedSize + 1];
 
-    if (NULL != pClass->pszNameSpace) return;
+    if (NULL != pClass->pszNameSpace && !strcmp(pClass->pszNameSpace, "systypes")) return;
 
     //Void class name being duplicated with module name.
     if (strcmp(pClass->pszName, s_pModule->pszName) == 0) {
@@ -3971,7 +4192,7 @@ void ClassLastCheck(ClassDirEntry *pClass)
     // Try to retrieve declared but undefined class.
     //
     if (!(pDesc->dwAttribs & ClassAttrib_defined)) {
-        if (RetrieveClass(pClass->pszName, s_pModule, TRUE) < 0) {
+        if (RetrieveClass(pClass->pszName, NULL, s_pModule, TRUE) < 0) {
             ErrorReport(CAR_E_NotFound, "class", pClass->pszName);
             // continue on error
             return;

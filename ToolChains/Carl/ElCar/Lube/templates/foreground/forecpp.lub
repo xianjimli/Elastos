@@ -6,6 +6,8 @@ $INPUT class
 $OUTPUT "${name}.cpp"
 
 #include "${name}.h"
+
+${ClassNamespaceBegin(class)}
 $WITH all interfaces DO
 $   IF attrib is not "callback" and attrib is not "callbacksink" and attrib is not "clsobj" and attrib is not "filter" and name is not "IRegime" and name is not "IObject"
 $       WITH all parents_and_me DO
@@ -110,4 +112,5 @@ $
 $    END IF
 $  END DO ;; all interfaces
 $END IF;;
+${ClassNamespaceEnd(class)}
 $END OUTPUT

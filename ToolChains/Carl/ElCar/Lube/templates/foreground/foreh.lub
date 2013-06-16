@@ -12,6 +12,7 @@ $IF class.attrib is "hascoalescence"
 
 #include <${module.name}_server.h>
 
+${ClassNamespaceBegin(class)}
 $  WITH ALL coalescences DO
 class ${interface.name}_${name}_Params
 {
@@ -50,11 +51,12 @@ $  END DO;; all parameters
 };
 
 $  END DO;; all coalescence methods
-
+${ClassNamespaceEnd(class)}
 $END IF;; hascoalescence
 
 #include "_${name}.h"
 
+${ClassNamespaceBegin(class)}
 $IF type is not "generic"
 CarClass(${name})
 {
@@ -158,6 +160,7 @@ $END IF;;
 private:
     // TODO: Add your private member variables here.
 };
+
 $ELSE ;; not generic
 CarClass(${name})
 {
@@ -168,7 +171,7 @@ private:
     // TODO: Add your private member variables here.
 };
 $END IF ;; end of generic IF
-
+${ClassNamespaceEnd(class)}
 #endif // __${Upper(name)}_H__
 $
 $END OUTPUT

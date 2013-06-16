@@ -5,8 +5,6 @@ $
 $INPUT class
 $OUTPUT "_${name}.cpp"
 $
-#ifndef __CAR_${Upper(name)}_CPP__
-#define __CAR_${Upper(name)}_CPP__
 
 #include "${name}.h"
 $IF attrib is "hascallback" and type is not "generic"
@@ -14,6 +12,7 @@ $IF attrib is "hascallback" and type is not "generic"
 $END IF
 #include <unistd.h>
 
+${ClassNamespaceBegin(class)}
 class _CSandwich${name} : public ${name}
 {
 public:
@@ -421,7 +420,7 @@ $   END IF
 $   IF attrib is "hascallback" and type is not "generic"
 $     WITH all interfaces DO
 $       IF attrib is "callback"
-    if (EIID_${name} == riid) {
+    if (${namespace}EIID_${name} == riid) {
         return (IInterface *)(_I${class.name}CallbackTrigger *)this;
     }
 $       END IF ;; callback
@@ -492,17 +491,17 @@ $WITH all interfaces DO
 $   IF attrib is not "callback" and attrib is not "clsobj" and attrib is not "filter"
 $
 $       WITH all parents DO
-    if (EIID_${name} == riid) {
-        return (${name} *)(${child.name} *)this;
+    if (${namespace}EIID_${name} == riid) {
+        return (${namespace}${name} *)(${child.name} *)this;
     }
 $       END DO ;; all parents
 $
-    if (EIID_${name} == riid) {
+    if (${namespace}EIID_${name} == riid) {
 $       IF interface.attrib is "privileged"
         ECode ec = _Impl_InsideProtectedZone();
         if (FAILED(ec)) return NULL;
 $       END IF;;
-        return (${name} *)this;
+        return (${namespace}${name} *)this;
     }
 $   END IF ;; !callback, !clsobj, !filter
 $END DO ;; all interfaces
@@ -573,11 +572,11 @@ ECode _${name}::GetInterfaceID(
 $WITH all interfaces DO
 $   IF attrib is not "callback" and attrib is not "callbacksink" and attrib is not "delegatesink" and attrib is not "clsobj" and attrib is not "filter"
 $       IF interfaces is first
-    if (pObject == (IInterface*)(${name}*)this) {
+    if (pObject == (IInterface*)(${namespace}${name}*)this) {
 $       ELSE
-    else if (pObject == (IInterface*)(${name}*)this) {
+    else if (pObject == (IInterface*)(${namespace}${name}*)this) {
 $       END IF
-        *pIID = EIID_${name};
+        *pIID = ${namespace}EIID_${name};
     }
 $   END IF ;; !callback and !callbacksink and !delegatesink and !clsobj and !filter
 $END DO ;; all interfaces
@@ -1175,7 +1174,6 @@ $END IF
 $
 $   TEMPLATE "implsync.lub"
 $
-
-#endif // __CAR_${Upper(name)}_CPP__
+${ClassNamespaceEnd(class)}
 $
 $END OUTPUT

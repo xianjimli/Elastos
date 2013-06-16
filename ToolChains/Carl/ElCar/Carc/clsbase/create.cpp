@@ -43,7 +43,7 @@ void DeleteClassInterface(ClassInterface *pClassInterface)
     delete pClassInterface;
 }
 
-ClassDirEntry *NewClassDirEntry(const char *pszName)
+ClassDirEntry *NewClassDirEntry(const char *pszName, const char *pszNamespace)
 {
     ClassDirEntry *pClass;
 
@@ -73,6 +73,11 @@ ClassDirEntry *NewClassDirEntry(const char *pszName)
     pClass->pszName = new char[strlen(pszName) + 1];
     if (!pClass->pszName) goto ErrorExit;
     strcpy(pClass->pszName, pszName);
+    if (pszNamespace != NULL) {
+        pClass->pszNameSpace = new char[strlen(pszNamespace) + 1];
+        if (!pClass->pszNameSpace) goto ErrorExit;
+        strcpy(pClass->pszNameSpace, pszNamespace);
+    }
 
     return pClass;
 
@@ -182,7 +187,7 @@ void DeleteMethods(MethodDescriptor *pMethod)
     delete pMethod;
 }
 
-InterfaceDirEntry *NewInterfaceDirEntry(const char *pszName)
+InterfaceDirEntry *NewInterfaceDirEntry(const char *pszName, const char *pszNamespace)
 {
     assert(pszName != NULL);
 
@@ -203,6 +208,11 @@ InterfaceDirEntry *NewInterfaceDirEntry(const char *pszName)
     pInterface->pszName = new char[strlen(pszName) + 1];
     if (!pInterface->pszName) goto ErrorExit;
     strcpy(pInterface->pszName, pszName);
+    if (pszNamespace != NULL) {
+        pInterface->pszNameSpace = new char[strlen(pszNamespace) + 1];
+        if (!pInterface->pszNameSpace) goto ErrorExit;
+        strcpy(pInterface->pszNameSpace, pszNamespace);
+    }
 
     return pInterface;
 
@@ -599,9 +609,18 @@ int CreateClassDirEntry(
     ClassDirEntry *pClass;
     ClassDescriptor *pDesc;
 
-    n = SelectClassDirEntry(pszName, pModule);
+    char *pszNamespace = NULL;
+    const char *dot = strrchr(pszName, '.');
+    if (dot != NULL) {
+        pszNamespace = (char*)malloc(dot - pszName + 1);
+        memset(pszNamespace, 0, dot - pszName + 1);
+        memcpy(pszNamespace, pszName, dot - pszName);
+        pszName = dot + 1;
+    }
+    n = SelectClassDirEntry(pszName, pszNamespace, pModule);
     if (n >= 0) {
         pDesc = pModule->ppClassDir[n]->pDesc;
+        if (pszNamespace != NULL) free(pszNamespace);
 
         if (CLASS_TYPE(dwAttribs) != CLASS_TYPE(pDesc->dwAttribs)) {
             ExtraMessage(pModule->ppClassDir[n]->pszNameSpace,
@@ -618,12 +637,18 @@ int CreateClassDirEntry(
         _ReturnOK (n);
     }
 
-    n = GlobalSelectSymbol(pszName, pModule, GType_Class, NULL);
-    if (n >= 0) _ReturnError (CLSError_NameConflict);
-    if (pModule->cClasses >= c_nMaxClassNumber)
+    n = GlobalSelectSymbol(pszName, pszNamespace, pModule, GType_Class, NULL);
+    if (n >= 0) {
+        if (pszNamespace != NULL) free(pszNamespace);
+        _ReturnError (CLSError_NameConflict);
+    }
+    if (pModule->cClasses >= c_nMaxClassNumber) {
+        if (pszNamespace != NULL) free(pszNamespace);
         _ReturnError (CLSError_FullEntry);
+    }
 
-    pClass = NewClassDirEntry(pszName);
+    pClass = NewClassDirEntry(pszName, pszNamespace);
+    if (pszNamespace != NULL) free(pszNamespace);
     if (!pClass) _ReturnError (CLSError_OutOfMemory);
     pModule->ppClassDir[pModule->cClasses] = pClass;
 
@@ -637,9 +662,18 @@ int CreateInterfaceDirEntry(
     InterfaceDirEntry *pInterface;
     InterfaceDescriptor *pDesc;
 
-    n = SelectInterfaceDirEntry(pszName, pModule);
+    char *pszNamespace = NULL;
+    const char *dot = strrchr(pszName, '.');
+    if (dot != NULL) {
+        pszNamespace = (char*)malloc(dot - pszName + 1);
+        memset(pszNamespace, 0, dot - pszName + 1);
+        memcpy(pszNamespace, pszName, dot - pszName);
+        pszName = dot + 1;
+    }
+    n = SelectInterfaceDirEntry(pszName, pszNamespace, pModule);
     if (n >= 0) {
         pDesc = pModule->ppInterfaceDir[n]->pDesc;
+        if (pszNamespace != NULL) free(pszNamespace);
 
         if (INTERFACE_TYPE(dwAttribs) != \
             INTERFACE_TYPE(pDesc->dwAttribs)) {
@@ -656,12 +690,18 @@ int CreateInterfaceDirEntry(
         _ReturnOK (n);
     }
 
-    n = GlobalSelectSymbol(pszName, pModule, GType_Interface, NULL);
-    if (n >= 0) _ReturnError (CLSError_NameConflict);
-    if (pModule->cInterfaces >= c_nMaxInterfaceNumber)
+    n = GlobalSelectSymbol(pszName, pszNamespace, pModule, GType_Interface, NULL);
+    if (n >= 0) {
+        if (pszNamespace != NULL) free(pszNamespace);
+        _ReturnError (CLSError_NameConflict);
+    }
+    if (pModule->cInterfaces >= c_nMaxInterfaceNumber) {
+        if (pszNamespace != NULL) free(pszNamespace);
         _ReturnError (CLSError_FullEntry);
+    }
 
-    pInterface = NewInterfaceDirEntry(pszName);
+    pInterface = NewInterfaceDirEntry(pszName, pszNamespace);
+    if (pszNamespace != NULL) free(pszNamespace);
     if (!pInterface) _ReturnError (CLSError_OutOfMemory);
     pModule->ppInterfaceDir[pModule->cInterfaces] = pInterface;
 
@@ -696,7 +736,7 @@ int CreateStructDirEntry(
         _ReturnOK (n);
     }
 
-    n = GlobalSelectSymbol(pszName, pModule, GType_Struct, NULL);
+    n = GlobalSelectSymbol(pszName, NULL, pModule, GType_Struct, NULL);
     if (n >= 0) _ReturnError (CLSError_NameConflict);
     if (pModule->cStructs >= c_nMaxStructNumber)
         _ReturnError (CLSError_FullEntry);
@@ -724,7 +764,7 @@ int CreateEnumDirEntry(
         _ReturnOK (n);
     }
 
-    n = GlobalSelectSymbol(pszName, pModule, GType_Enum, NULL);
+    n = GlobalSelectSymbol(pszName, NULL, pModule, GType_Enum, NULL);
     if (n >= 0) _ReturnError (CLSError_NameConflict);
     if (pModule->cEnums >= c_nMaxEnumNumber) _ReturnError (CLSError_FullEntry);
 
@@ -746,7 +786,7 @@ int CreateConstDirEntry(
         _ReturnError (CLSError_DupEntry);
     }
 
-    n = GlobalSelectSymbol(pszName, pModule, GType_Const, NULL);
+    n = GlobalSelectSymbol(pszName, NULL, pModule, GType_Const, NULL);
     if (n >= 0) _ReturnError (CLSError_NameConflict);
     if (pModule->cConsts >= c_nMaxConstNumber) _ReturnError (CLSError_FullEntry);
 
@@ -765,7 +805,7 @@ int CreateAliasDirEntry(
     GlobalSymbolType gType;
     TypeDescriptor type;
 
-    n = GlobalSelectSymbol(pszName, pModule, GType_None, &gType);
+    n = GlobalSelectSymbol(pszName, NULL, pModule, GType_None, &gType);
     if (n >= 0) {
         if (gType == GType_Class) {
             _ReturnError (CLSError_NameConflict);

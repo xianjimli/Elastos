@@ -30,23 +30,27 @@ $ELSE ;; !(type is "library")
 $   WITH all classes DO
 $       IF attrib is not "private"
 
-#ifndef __ECLSID_${name}_DEFINED__
-#define __ECLSID_${name}_DEFINED__
+#ifndef __ECLSID_${fullname}_DEFINED__
+#define __ECLSID_${fullname}_DEFINED__
+${ClassNamespaceBegin(class)}$^
 static const _ELASTOS ClassID ECLSID_${name} = {
     ${uuid},
     (char *)c_p${MacroRewrite(module.name)}Uunm,
     0x${module.carcode} };
-#endif // __CLSID_${name}_DEFINED__
+${ClassNamespaceEnd(class)}$^
+#endif // __CLSID_${fullname}_DEFINED__
 $       END IF ;; not private
 $   END DO ;; all classes
 $
 $   WITH all interfaces DO
 
-#ifndef __EIID_${name}_DEFINED__
-#define __EIID_${name}_DEFINED__
+#ifndef __EIID_${fullname}_DEFINED__
+#define __EIID_${fullname}_DEFINED__
+${InterfaceNamespaceBegin(interface)}$^
 static const _ELASTOS InterfaceID EIID_${name} = \
     ${iid};
-#endif // __IID_${name}_DEFINED__
+${InterfaceNamespaceEnd(interface)}$^
+#endif // __IID_${fullname}_DEFINED__
 $   END DO ;; all interfaces
 $
 $END IF ;; type is "library"

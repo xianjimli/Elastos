@@ -320,7 +320,8 @@ void CGenerateClasses(FILE *pFile, const CLSModule *pModule)
         pClass = pModule->ppClassDir[n]->pDesc;
         if (!pModule->ppClassDir[n]->pszNameSpace
             && !(pClass->dwAttribs & ClassAttrib_t_sink)
-            && !(pClass->dwAttribs & ClassAttrib_t_clsobj)) {
+            && !(pClass->dwAttribs & ClassAttrib_t_clsobj)
+            && !(pClass->dwAttribs & ClassAttrib_t_external)) {
             fputs("\n", pFile);
             CGenerateClassAttribs(pFile, pModule, pClass);
 
