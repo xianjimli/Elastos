@@ -24,7 +24,7 @@ $   END DO ;; all classes
 
 $   WITH all classes DO
 ${ClassNamespaceBegin(class)}$^
-const _ELASTOS ClassID ECLSID_${name} = {
+extern const _ELASTOS ClassID ECLSID_${name} = {
     ${uuid},
     (char *)c_p${MacroRewrite(module.name)}Uunm,
     0x${module.carcode} };
@@ -33,7 +33,7 @@ $   END DO ;; all classes
 
 $   WITH all interfaces DO
 ${InterfaceNamespaceBegin(interface)}$^
-const _ELASTOS InterfaceID EIID_${name} = \
+extern const _ELASTOS InterfaceID EIID_${name} = \
     ${iid};
 ${InterfaceNamespaceEnd(interface)}$^
 $   END DO ;; all interfaces
