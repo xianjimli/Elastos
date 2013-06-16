@@ -52,7 +52,7 @@ module
             [out] String* value);
 
         GetAttributeValueEx(
-            [in] CString namespace,
+            [in] CString namespace1,
             [in] CString name,
             [out] String* value);
 
@@ -88,7 +88,7 @@ module
          * @return Index in to 'options' or defaultValue.
          */
         GetAttributeListValue(
-            [in] String namespace,
+            [in] String namespace1,
             [in] String attribute,
             [in] ArrayOf<String> options,
             [in] Int32 defaultValue,
@@ -103,7 +103,7 @@ module
          * @return Resulting value.
          */
         GetAttributeBooleanValue(
-            [in] String namespace,
+            [in] String namespace1,
             [in] String attribute,
             [in] Boolean defaultValue,
             [out] Boolean* value);
@@ -123,7 +123,7 @@ module
          * @return Resulting value.
          */
         GetAttributeResourceValue(
-            [in] String namespace,
+            [in] String namespace1,
             [in] String attribute,
             [in] Int32 defaultValue,
             [out] Int32* value);
@@ -137,7 +137,7 @@ module
          * @return Resulting value.
          */
         GetAttributeIntValue(
-            [in] String namespace,
+            [in] String namespace1,
             [in] String attribute,
             [in] Int32 defaultValue,
             [out] Int32* value);
@@ -153,7 +153,7 @@ module
          * @return Resulting value.
          */
         GetAttributeUnsignedIntValue(
-            [in] String namespace,
+            [in] String namespace1,
             [in] String attribute,
             [in] Int32 defaultValue,
             [out] Int32* value);
@@ -167,7 +167,7 @@ module
          * @return Resulting value.
          */
         GetAttributeFloatValue(
-            [in] String namespace,
+            [in] String namespace1,
             [in] String attribute,
             [in] Float defaultValue,
             [out] Float* value);

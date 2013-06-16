@@ -7,8 +7,6 @@ module
     interface IHandler;
     interface IOnFinished;
 
-    interface IHandler {}
-
     interface IIntentSender {
         Send(
             [in] Int32 code,
