@@ -9,7 +9,7 @@ $           IF class.attrib is "singleton"
 $           ELSE
     static _ELASTOS ECode NewInRegime($^
 $           END IF ;; is singleton
-/* [in] */ IRegime* pRegime,/* [out] */ ${name}** pp${name})
+/* [in] */ IRegime* pRegime,/* [out] */ ${namespace}${name}** pp${name})
     {
 
         return _CObject_CreateInstance(ECLSID_${class.name}, pRegime, ${namespace}EIID_${name}, (IInterface**)pp${name});
@@ -22,9 +22,9 @@ $           IF class.attrib is "singleton"
 $           ELSE
     static _ELASTOS ECode New($^
 $           END IF ;; is singleton
-/* [out] */ ${name}** pp${name})
+/* [out] */ ${namespace}${name}** pp${name})
     {
-        return _CObject_CreateInstance(ECLSID_${class.name}, RGM_SAME_DOMAIN, ${namespace}EIID_${name},(PInterface*)pp${name});
+        return _CObject_CreateInstance(ECLSID_${class.name}, RGM_SAME_DOMAIN, ${namespace}EIID_${name}, (PInterface*)pp${name});
     }
 $
 $       END IF ;; attrib is not clsobj and is not callback and ...

@@ -11,9 +11,9 @@ $IF class.attrib is "singleton"
 $ELSE
     static _ELASTOS ECode New($^
 $END IF
-/*[out]*/ ${name} **pp${name})
+/*[out]*/ ${namespace}${name} **pp${name})
     {
-        return _CObject_CreateInstance(ECLSID_${class.name},RGM_SAME_DOMAIN,EIID_${name},(PInterface*)pp${name});
+        return _CObject_CreateInstance(ECLSID_${class.name}, RGM_SAME_DOMAIN, ${namespace}EIID_${name}, (PInterface*)pp${name});
     }
 
 $IF class.attrib is "singleton"
@@ -21,9 +21,9 @@ $IF class.attrib is "singleton"
 $ELSE
     static _ELASTOS ECode NewInRegime($^
 $END IF
-/*[in]*/  PRegime pRegime,/*[out]*/ ${name} **pp${name})
+/*[in]*/  PRegime pRegime,/*[out]*/ ${namespace}${name} **pp${name})
     {
-        return _CObject_CreateInstance(ECLSID_${class.name},pRegime,EIID_${name},(PInterface*)pp${name});
+        return _CObject_CreateInstance(ECLSID_${class.name}, pRegime, ${namespace}EIID_${name}, (PInterface*)pp${name});
     }
 
 $IF class.attrib is "singleton"
@@ -31,11 +31,11 @@ $IF class.attrib is "singleton"
 $ELSE
     static _ELASTOS ECode NewInRegime($^
 $END IF
-/*[in]*/  PInterface pObject,/*[out]*/ ${name} **pp${name})
+/*[in]*/  PInterface pObject,/*[out]*/ ${namespace}${name} **pp${name})
     {
         PRegime pRegime = IRegime::Probe(pObject);
         if (!pRegime) return E_NO_INTERFACE;
-        return _CObject_CreateInstance(ECLSID_${class.name},pRegime,EIID_${name},(PInterface*)pp${name});
+        return _CObject_CreateInstance(ECLSID_${class.name}, pRegime, ${namespace}EIID_${name}, (PInterface*)pp${name});
     }
 $       END IF
 

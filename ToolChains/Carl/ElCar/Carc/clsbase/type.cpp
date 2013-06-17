@@ -475,7 +475,7 @@ int ClassCopy(
                     pDestModule, pDest->pDesc, bNameSpace);
     if (r < 0) _Return (r);
 
-    pDest->pDesc->dwAttribs |= ClassAttrib_t_external;
+    if (bNameSpace) pDest->pDesc->dwAttribs |= ClassAttrib_t_external;
 
     if ((pDest->pDesc->dwAttribs & ClassAttrib_hasctor) &&
         !(pDest->pDesc->dwAttribs & ClassAttrib_t_clsobj)) {
@@ -517,7 +517,7 @@ int ClassXCopy(
                     pDestModule, pDest->pDesc, bNameSpace);
     if (r < 0) _Return (r);
 
-    pDest->pDesc->dwAttribs |= ClassAttrib_t_external;
+    if (bNameSpace) pDest->pDesc->dwAttribs |= ClassAttrib_t_external;
 
     _Return (n);
 }
@@ -668,7 +668,7 @@ int InterfaceCopy(
                     pDestModule, pDest->pDesc, bNameSpace);
     if (r < 0) _Return (r);
 
-    pDest->pDesc->dwAttribs |= InterfaceAttrib_t_external;
+    if (bNameSpace) pDest->pDesc->dwAttribs |= InterfaceAttrib_t_external;
 
     _Return (n);
 }
@@ -705,7 +705,7 @@ int InterfaceXCopy(
                     pDestModule, pDest->pDesc, bNameSpace);
     if (r < 0) _Return (r);
 
-    pDest->pDesc->dwAttribs |= InterfaceAttrib_t_external;
+    if (bNameSpace) pDest->pDesc->dwAttribs |= InterfaceAttrib_t_external;
 
     _Return (n);
 }
