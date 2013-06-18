@@ -8,47 +8,6 @@
 
 class AttributedCharacterIteratorAttribute
 {
-public:
-    //CARAPI_(void) Init();
-
-    /**
-     * Compares this attribute with the specified object. Checks if both
-     * objects are the same instance. It is defined final so all subclasses
-     * have the same behavior for this method.
-     *
-     * @param object
-     *            the object to compare against.
-     * @return {@code true} if the object passed is equal to this instance;
-     *         {@code false} otherwise.
-     */
-    //@Override
-    //public final boolean equals(Object object) {
-    //    return this == object;
-    //}
-
-    /**
-     * Calculates the hash code for objects of type {@code Attribute}. It
-     * is defined final so all sub types calculate their hash code
-     * identically.
-     *
-     * @return the hash code for this instance of {@code Attribute}.
-     */
-    //@Override
-    //public final int hashCode() {
-    //    return super.hashCode();
-    //}
-
-    /**
-     * Returns the name of the class followed by a "(", the name of the
-     * attribute, and a ")".
-     *
-     * @return the string representing this instance.
-     */
-    //@Override
-    //public String toString() {
-    //    return getClass().getName() + '(' + getName() + ')';
-    //}
-
 protected:
     /**
      * The constructor for an {@code Attribute} with the name passed.
@@ -60,7 +19,7 @@ protected:
         /* [in] */ const String& name);
 
     virtual CARAPI GetClassID(
-         /* [out] */ ClassID* clsid) = 0;
+        /* [out] */ ClassID* clsid) = 0;
 
     /**
      * Returns the name of this attribute.

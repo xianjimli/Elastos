@@ -39,6 +39,9 @@ public:
     CARAPI GetRoot(
         /* [out] */ ILocale** rootLocale);
 
+    CARAPI GetUS(
+        /* [out] */ ILocale** USLocale);
+
     /**
      * Gets the list of two letter ISO country codes which can be used as the
      * country code for a {@code Locale}.

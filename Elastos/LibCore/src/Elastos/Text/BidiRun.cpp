@@ -1,34 +1,24 @@
 #include "BidiRun.h"
-ECode BidiRun::Init(
+BidiRun::BidiRun(
     /* [in] */ Int32 start,
     /* [in] */ Int32 limit,
     /* [in] */ Int32 level)
+    : mStart(start)
+    , mLimit(limit)
+    , mLevel(level)
+{ }
+
+Int32 BidiRun::GetLevel()
 {
-    mStart = start;
-    mLimit = limit;
-    mLevel = level;
+    return mLevel;
 }
 
-ECode BidiRun::GetLevel(
-    /* [out] */ Int32 * level)
+Int32 BidiRun::GetLimit()
 {
-    assert(level != NULL);
-    *level = mLevel;
-    return NOERROR;
+    return mLimit;
 }
 
-ECode BidiRun::GetLimit(
-    /* [out] */ Int32 * limit)
+Int32 BidiRun::GetStart()
 {
-    assert(limit != NULL);
-    *limit = mLimit;
-    return NOERROR;
-}
-
-ECode BidiRun::GetStart(
-    /* [out] */ Int32 * start)
-{
-    assert(start != NULL);
-    *start = mStart;
-    return NOERROR;
+    return mStart;
 }

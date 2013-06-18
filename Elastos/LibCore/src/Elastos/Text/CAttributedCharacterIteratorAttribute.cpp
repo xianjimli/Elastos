@@ -9,7 +9,7 @@ ECode CAttributedCharacterIteratorAttribute::constructor(
 }
 
 ECode CAttributedCharacterIteratorAttribute::GetClassID(
-     /* [out] */ ClassID* clsid)
+    /* [out] */ ClassID* clsid)
 {
     return _CAttributedCharacterIteratorAttribute::GetClassID(clsid);
 }

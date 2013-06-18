@@ -52,6 +52,15 @@ ECode CLocaleHelper::GetRoot(
     return NOERROR;
 }
 
+ECode CLocaleHelper::GetUS(
+    /* [out] */ ILocale** USLocale)
+{
+    VALIDATE_NOT_NULL(USLocale);
+    AutoPtr<ILocale> temp = CLocale::US;
+    (*USLocale)->AddRef();
+    return NOERROR;
+}
+
 /**
  * Gets the list of two letter ISO country codes which can be used as the
  * country code for a {@code Locale}.

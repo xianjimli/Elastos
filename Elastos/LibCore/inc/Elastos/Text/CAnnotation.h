@@ -4,14 +4,15 @@
 
 #include "_CAnnotation.h"
 #include "Annotation.h"
+
 CarClass(CAnnotation), public Annotation
 {
 public:
     CARAPI constructor(
-        /* [in] */ IInterface * pAttribute);
+        /* [in] */ IInterface* attribute);
 
     CARAPI GetValue(
-        /* [out] */ IInterface ** ppValue);
+        /* [out] */ IInterface** value);
 
 private:
     // TODO: Add your private member variables here.

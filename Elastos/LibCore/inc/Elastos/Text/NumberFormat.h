@@ -109,49 +109,6 @@ public:
     };
 
 public:
-    virtual CARAPI_(PInterface) Probe(
-        /* [in] */ REIID riid) = 0;
-
-    /**
-     * Returns a new {@code NumberFormat} with the same properties as this
-     * {@code NumberFormat}.
-     *
-     * @return a shallow copy of this {@code NumberFormat}.
-     * @see java.lang.Cloneable
-     */
-//    @Override
-//    public Object clone() {
-//        return super.clone();
-//    }
-
-    /**
-     * Compares the specified object to this number format and indicates if
-     * they are equal. In order to be equal, {@code object} must be an instance
-     * of {@code NumberFormat} with the same pattern and properties.
-     *
-     * @param object
-     *            the object to compare with this object.
-     * @return {@code true} if the specified object is equal to this number
-     *         format; {@code false} otherwise.
-     * @see #hashCode
-     */
-//    @Override
-//    public boolean equals(Object object) {
-//        if (object == this) {
-//            return true;
-//        }
-//        if (!(object instanceof NumberFormat)) {
-//            return false;
-//        }
-//        NumberFormat obj = (NumberFormat) object;
-//        return groupingUsed == obj.groupingUsed
-//                && parseIntegerOnly == obj.parseIntegerOnly
-//                && maximumFractionDigits == obj.maximumFractionDigits
-//                && maximumIntegerDigits == obj.maximumIntegerDigits
-//                && minimumFractionDigits == obj.minimumFractionDigits
-//                && minimumIntegerDigits == obj.minimumIntegerDigits;
-//    }
-
     /**
      * Formats the specified double using the rules of this number format.
      *

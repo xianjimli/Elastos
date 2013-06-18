@@ -7,17 +7,15 @@
 #include <elastos/AutoPtr.h>
 #include <StringBuffer.h>
 #include <Character.h>
-
 #include "Elastos.Text_server.h"
 #include "NumberFormat.h"
 #include "CParsePosition.h"
 
-using namespace Elastos;
-
-class ChoiceFormat : public NumberFormat {
-
+class ChoiceFormat : public NumberFormat
+{
 public:
     virtual ~ChoiceFormat();
+
     /**
      * Constructs a new {@code ChoiceFormat} with the specified double values
      * and associated strings. When calling
@@ -37,8 +35,8 @@ public:
      *            same index as the string.
      */
     CARAPI Init(
-        /* [in] */ ArrayOf<Double>* limits, 
-        /* [in] */ ArrayOf<String>* formats);
+        /* [in] */ const ArrayOf<Double>& limits,
+        /* [in] */ const ArrayOf<String>& formats);
 
     /**
      * Constructs a new {@code ChoiceFormat} with the strings and limits parsed
@@ -63,46 +61,6 @@ public:
      */
     virtual CARAPI ApplyPattern(
         /* [in] */ String tem);
-
-    /**
-     * Returns a new instance of {@code ChoiceFormat} with the same ranges and
-     * strings as this {@code ChoiceFormat}.
-     *
-     * @return a shallow copy of this {@code ChoiceFormat}.
-     *
-     * @see java.lang.Cloneable
-     */
-    //@Override
-    //public Object clone() {
-    //    ChoiceFormat clone = (ChoiceFormat) super.clone();
-    //    clone.choiceLimits = choiceLimits.clone();
-    //    clone.choiceFormats = choiceFormats.clone();
-    //    return clone;
-    //}
-
-    /**
-     * Compares the specified object with this {@code ChoiceFormat}. The object
-     * must be an instance of {@code ChoiceFormat} and have the same limits and
-     * formats to be equal to this instance.
-     *
-     * @param object
-     *            the object to compare with this instance.
-     * @return {@code true} if the specified object is equal to this instance;
-     *         {@code false} otherwise.
-     * @see #hashCode
-     */
-    //@Override
-    //public boolean equals(Object object) {
-    //    if (this == object) {
-    //        return true;
-    //    }
-    //    if (!(object instanceof ChoiceFormat)) {
-    //        return false;
-    //    }
-    //    ChoiceFormat choice = (ChoiceFormat) object;
-    //    return Arrays.equals(choiceLimits, choice.choiceLimits)
-    //            && Arrays.equals(choiceFormats, choice.choiceFormats);
-    //}
 
     /**
      * Appends the string associated with the range in which the specified
@@ -137,8 +95,8 @@ public:
      */
     //@Override
     CARAPI FormatInt64Ex(
-        /* [in] */ Int64 value, 
-        /* [in] */ const String& buffer, 
+        /* [in] */ Int64 value,
+        /* [in] */ const String& buffer,
         /* [in] */ IFieldPosition* field,
         /* [out] */ String* formattedString);
 
@@ -159,30 +117,6 @@ public:
      */
     virtual CARAPI GetLimits(
         /* [out, callee] */ ArrayOf<Double>** arrayOfDoubles);
-
-    static CARAPI_(Int64) DoubleToInt64Bits(
-        /* [in] */ Double d);
-
-    static CARAPI_(Double) Int64BitsToDouble(
-        /* [in] */ Int64 l);
-
-    /**
-     * Returns an integer hash code for the receiver. Objects which are equal
-     * return the same value for this method.
-     *
-     * @return the receiver's hash.
-     *
-     * @see #equals
-     */
-    //@Override
-    //public int hashCode() {
-    //    int hashCode = 0;
-    //    for (int i = 0; i < choiceLimits.length; i++) {
-    //        long v = Double.doubleToLongBits(choiceLimits[i]);
-    //        hashCode += (int) (v ^ (v >>> 32)) + choiceFormats[i].hashCode();
-    //    }
-    //    return hashCode;
-    //}
 
     /**
      * Returns the double value which is closest to the specified double but
@@ -207,7 +141,7 @@ public:
      * @return the next larger or smaller double value.
      */
     static CARAPI_(Double) NextDouble(
-        /* [in] */ Double value, 
+        /* [in] */ Double value,
         /* [in] */ Boolean increment);
 
     /**
@@ -244,7 +178,7 @@ public:
      */
     //@Override
     CARAPI ParseEx(
-        /* [in] */ String string, 
+        /* [in] */ String string,
         /* [in] */ IParsePosition* position,
         /* [out] */ INumber** value);
 
@@ -278,8 +212,8 @@ public:
      *            same index as the string.
      */
     virtual CARAPI SetChoices(
-        /* [in] */ ArrayOf<Double>* limits, 
-        /* [in] */ ArrayOf<String>* formats);
+        /* [in] */ const ArrayOf<Double>& limits,
+        /* [in] */ const ArrayOf<String>& formats);
 
     /**
      * Returns the pattern of this {@code ChoiceFormat} which specifies the
@@ -292,14 +226,8 @@ public:
 
 private:
     CARAPI_(Int32) SkipWhitespace(
-        /* [in] */ String string, 
+        /* [in] */ String string,
         /* [in] */ Int32 index);
-
-public:
-    const static Int64 INT64_NAN;
-    const static Double DOUBLE_ZERO;
-    const static Double POSITIVE_INFINITY;
-    const static Double NEGATIVE_INFINITY;
 
 private:
     ArrayOf<Double>* mChoiceLimits;

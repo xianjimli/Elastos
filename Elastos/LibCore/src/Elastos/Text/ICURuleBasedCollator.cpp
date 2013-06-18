@@ -153,7 +153,7 @@ ECode ICURuleBasedCollator::GetCollationElementIterator(
 {
     AutoPtr<IICUCollationElementIterator> result;
     CICUCollationElementIterator::New(
-            NativeCollation::GetCollationElementIterator(m_collator_, source), 
+            NativeCollation::GetCollationElementIterator(m_collator_, source),
             (IICUCollationElementIterator**)&result);
     *collationElementIterator = (IICUCollationElementIterator*)result;
     return NOERROR;
@@ -229,7 +229,7 @@ ECode ICURuleBasedCollator::CharacterIteratorToString(
     StringBuffer *result = new StringBuffer("");
     Char32 ch;
     it->Current(&ch);
-    while(ch != DONE) {
+    while(ch != IBreakIterator_DONE) {
         (*result) += ch;
         it->Next(&ch);
     }

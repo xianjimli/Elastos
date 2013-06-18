@@ -2,15 +2,15 @@
 #include "CAnnotation.h"
 
 ECode CAnnotation::constructor(
-    /* [in] */ IInterface * pAttribute)
+    /* [in] */ IInterface* attribute)
 {
-    return Annotation::Init(pAttribute);
+    return Annotation::Init(attribute);
 }
 
 ECode CAnnotation::GetValue(
-    /* [out] */ IInterface ** ppValue)
+    /* [out] */ IInterface** value)
 {
-    return Annotation::GetValue(ppValue);
+    return Annotation::GetValue(value);
 }
 
 

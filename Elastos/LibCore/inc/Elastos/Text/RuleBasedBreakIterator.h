@@ -5,24 +5,33 @@
 #include "Elastos.Text_server.h"
 #include <elastos.h>
 #include <elastos/AutoPtr.h>
+#include <elastos/ElRefBase.h>
 #include "BreakIterator.h"
-using namespace Elastos;
 
-class RuleBasedBreakIterator : public BreakIterator {
-
+class RuleBasedBreakIterator
+    : public ElRefBase
+    , public IBreakIterator
+    , public BreakIterator
+{
 public:
-    virtual CARAPI_(PInterface) Probe(
-        /* [in] */ REIID riid);
-
-    RuleBasedBreakIterator();
-
     /*
      * Wrapping constructor.
      */
     RuleBasedBreakIterator(
             /* [in] */ NativeBreakIterator* iterator);
 
-    virtual ~RuleBasedBreakIterator();
+    CARAPI_(PInterface) Probe(
+            /* [in] */ REIID riid);
+
+    CARAPI_(UInt32) AddRef();
+
+    CARAPI_(UInt32) Release();
+
+    CARAPI GetInterfaceID(
+        /* [in] */ IInterface *pObject,
+        /* [out] */ InterfaceID *pIID);
+
+    ~RuleBasedBreakIterator();
 
     /*
      * (non-Javadoc)
@@ -98,6 +107,9 @@ public:
     CARAPI Previous(
         /* [out] */ Int32* previousValue);
 
+    CARAPI SetText(
+        /* [in] */ const String& newText);
+
     /*
      * (non-Javadoc)
      *
@@ -126,51 +138,6 @@ public:
     CARAPI Preceding(
         /* [in] */ Int32 offset,
         /* [out] */ Int32* precedingValue);
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see java.lang.Object#equals(java.lang.Object)
-     */
-/*    @Override
-    public boolean equals(Object o) {
-        if (!(o instanceof RuleBasedBreakIterator)) {
-            return false;
-        }
-        return wrapped.equals(((RuleBasedBreakIterator) o).wrapped);
-    }*/
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see java.lang.Object#toString()
-     */
-/*    @Override
-    public String toString() {
-        return wrapped.toString();
-    }*/
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see java.lang.Object#hashCode()
-     */
-/*    @Override
-    public int hashCode() {
-        return wrapped.hashCode();
-    }*/
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see java.lang.Object#clone()
-     */
-/*    @Override
-    public Object clone() {
-        RuleBasedBreakIterator cloned = (RuleBasedBreakIterator) super.clone();
-        cloned.wrapped = (NativeBreakIterator) wrapped.clone();
-        return cloned;
-    }*/
 
 private:
     /*

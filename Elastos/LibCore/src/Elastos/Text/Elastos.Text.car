@@ -22,7 +22,6 @@ module
     merge("../../../car/Elastos/Text/IDecimalFormat.car");
     merge("../../../car/Elastos/Text/ISimpleDateFormat.car");
     merge("../../../car/Elastos/Text/IBreakIterator.car");
-    merge("../../../car/Elastos/Text/IRuleBasedBreakIterator.car");
     merge("../../../car/Elastos/Text/ICollationKey.car");
     merge("../../../car/Elastos/Text/ICollator.car");
     merge("../../../car/Elastos/Text/IAnnotation.car");
@@ -33,7 +32,6 @@ module
     merge("../../../car/Elastos/Text/ICollationElementIterator.car");
     merge("../../../car/Elastos/Text/IRuleBasedCollator.car");
     merge("../../../car/Elastos/Text/ITextAttribute.car");
-    merge("../../../car/Elastos/Text/IBidiRun.car");
     merge("../../../car/Elastos/Text/INumericShaper.car");
     merge("../../../car/Elastos/Text/IBidi.car");
     merge("../../../car/Elastos/Text/IAttributedString.car");
@@ -81,13 +79,17 @@ module
     [deprecated]
     class CChoiceFormat {
         constructor(
-            [in] ArrayOf<Double>* limits,
-            [in] ArrayOf<String>* formats);
+            [in] ArrayOf<Double> limits,
+            [in] ArrayOf<String> formats);
 
         constructor(
             [in] String tem);
 
         interface IChoiceFormat;
+    }
+
+    singleton class CChoiceFormatHelper {
+        interface IChoiceFormatHelper;
     }
 
     class CDateFormatField {
@@ -170,12 +172,6 @@ module
             [in] ILocale* locale);
 
         interface ISimpleDateFormat;
-    }
-
-    class CRuleBasedBreakIterator {
-        constructor();
-
-        interface IRuleBasedBreakIterator;
     }
 
     class CAnnotation {
@@ -261,15 +257,6 @@ module
             [in] String name);
 
         interface ITextAttribute;
-    }
-
-    class CBidiRun {
-        constructor(
-            [in] Int32 start,
-            [in] Int32 limit,
-            [in] Int32 level);
-
-        interface IBidiRun;
     }
 
     class CNumericShaper {

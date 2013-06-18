@@ -17,9 +17,9 @@ Bidi::~Bidi()
     }
     if (mRuns != NULL) {
         for (Int32 i = 0; i < mRuns->GetLength(); ++i) {
-            (*mRuns)[i] = NULL;
+            delete (*mRuns)[i];
         }
-        ArrayOf<AutoPtr<IBidiRun> >::Free(mRuns);
+        ArrayOf<BidiRun*>::Free(mRuns);
     }
 }
 
@@ -283,9 +283,7 @@ void Bidi::ReadBidiInfo(
         NativeBidi::Ubidi_getRuns(pBidi, &mRuns);
 
         // Simplified case for one run which has the base level
-        Int32 level;
-        (*mRuns)[0]->GetLevel(&level);
-        if (runCount == 1 &&  level == mBaseLevel) {
+        if (runCount == 1 &&  (*mRuns)[0]->GetLevel() == mBaseLevel) {
             mUnidirectional = TRUE;
             mRuns = NULL;
         }
@@ -404,9 +402,7 @@ ECode Bidi::GetRunLevel(
     /* [out] */ Int32* runLevel)
 {
     VALIDATE_NOT_NULL(runLevel);
-    Int32 level;
-    (*mRuns)[run]->GetLevel(&level);
-    *runLevel = mUnidirectional ? mBaseLevel : level;
+    *runLevel = mUnidirectional ? mBaseLevel : (*mRuns)[run]->GetLevel();
     return NOERROR;
 }
 
@@ -415,9 +411,7 @@ ECode Bidi::GetRunLimit(
     /* [out] */ Int32* runLimit)
 {
     VALIDATE_NOT_NULL(runLimit);
-    Int32 limit;
-    (*mRuns)[run]->GetLimit(&limit);
-    *runLimit = mUnidirectional ? mLength : limit;
+    *runLimit = mUnidirectional ? mLength : (*mRuns)[run]->GetLimit();;
     return NOERROR;
 
 }
@@ -427,9 +421,7 @@ ECode Bidi::GetRunStart(
     /* [out] */ Int32* runStart)
 {
     VALIDATE_NOT_NULL(runStart);
-    Int32 start;
-    (*mRuns)[run]->GetStart(&start);
-    *runStart = mUnidirectional ? 0 : start;
+    *runStart = mUnidirectional ? 0 : (*mRuns)[run]->GetStart();
     return NOERROR;
 }
 

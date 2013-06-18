@@ -3,7 +3,7 @@ module {
      * This constant is returned by iterate methods like {@code previous()} or
      * {@code next()} if they have returned all valid boundaries.
      */
-    const DONE = -1;
+    const IBreakIterator_DONE = -1;
 
     interface IBreakIterator {
         /**
@@ -23,7 +23,7 @@ module {
          */
         Preceding(
             [in] Int32 offset,
-            [out] Int32* precedingValue);
+            [out] Int32* position);
 
         /**
          * Sets the new text string to be analyzed, the current position will be
@@ -37,14 +37,14 @@ module {
          * Returns this iterator's current position.
          */
         Current(
-            [out] Int32* currentValue);
+            [out] Int32* position);
 
         /**
          * Sets this iterator's current position to the first boundary and returns
          * that position.
          */
         First(
-            [out] Int32* firstValue);
+            [out] Int32* position);
 
         /**
          * Sets the position of the first boundary to the one following the given
@@ -53,7 +53,7 @@ module {
          */
         Following(
             [in] Int32 offset,
-            [out] Int32* followingValue);
+            [out] Int32* position);
 
         /**
          * Returns a {@code CharacterIterator} which represents the text being
@@ -70,7 +70,7 @@ module {
          * that position.
          */
         Last(
-            [out] Int32* lastValue);
+            [out] Int32* position);
 
         /**
          * Sets this iterator's current position to the next boundary after the
@@ -80,7 +80,7 @@ module {
          * @return the position of last boundary.
          */
         Next(
-            [out] Int32* nextValue);
+            [out] Int32* position);
 
         /**
          * Sets this iterator's current position to the next boundary after the
@@ -89,7 +89,7 @@ module {
          */
         NextEx(
             [in] Int32 n,
-            [out] Int32* nextValue);
+            [out] Int32* position);
 
         /**
          * Sets this iterator's current position to the previous boundary before the
@@ -99,7 +99,7 @@ module {
          * @return the position of last boundary.
          */
         Previous(
-            [out] Int32* previousValue);
+            [out] Int32* position);
 
         /**
          * Sets the new text to be analyzed by the given {@code CharacterIterator}.
@@ -108,5 +108,102 @@ module {
          */
         SetTextEx(
             [in] ICharacterIterator* newText);
+    }
+
+    interface IBreakIteratorHelper {
+        /**
+         * Returns an array of locales for which custom {@code BreakIterator} instances
+         * are available.
+         * <p>Note that Android does not support user-supplied locale service providers.
+         */
+        GetAvailableLocales(
+            [out, callee] ArrayOf<ILocale*>* locales);
+
+        /**
+         * Returns a new instance of {@code BreakIterator} to iterate over
+         * characters using the user's default locale.
+         * See "<a href="../util/Locale.html#default_locale">Be wary of the default locale</a>".
+         * @return a new instance of {@code BreakIterator} using the default locale.
+         */
+        GetCharacterInstance(
+            [out] IBreakIterator** instance);
+
+        /**
+         * Returns a new instance of {@code BreakIterator} to iterate over
+         * characters using the given locale.
+         *
+         * @param where
+         *            the given locale.
+         * @return a new instance of {@code BreakIterator} using the given locale.
+         */
+        GetCharacterInstanceEx(
+            [in] ILocale* where,
+            [out] IBreakIterator** instance);
+
+        /**
+         * Returns a new instance of {{@code BreakIterator} to iterate over
+         * line breaks using the user's default locale.
+         * See "<a href="../util/Locale.html#default_locale">Be wary of the default locale</a>".
+         * @return a new instance of {@code BreakIterator} using the default locale.
+         */
+        GetLineInstance(
+            [out] IBreakIterator** instance);
+
+        /**
+         * Returns a new instance of {@code BreakIterator} to iterate over
+         * line breaks using the given locale.
+         *
+         * @param where
+         *            the given locale.
+         * @return a new instance of {@code BreakIterator} using the given locale.
+         * @throws NullPointerException if {@code where} is {@code null}.
+         */
+        GetLineInstanceEx(
+            [in] ILocale* where,
+            [out] IBreakIterator** instance);
+
+        /**
+         * Returns a new instance of {@code BreakIterator} to iterate over
+         * sentence-breaks using the default locale.
+         * See "<a href="../util/Locale.html#default_locale">Be wary of the default locale</a>".
+         * @return a new instance of {@code BreakIterator} using the default locale.
+         */
+        GetSentenceInstance(
+            [out] IBreakIterator** instance);
+
+        /**
+         * Returns a new instance of {@code BreakIterator} to iterate over
+         * sentence-breaks using the given locale.
+         *
+         * @param where
+         *            the given locale.
+         * @return a new instance of {@code BreakIterator} using the given locale.
+         * @throws NullPointerException if {@code where} is {@code null}.
+         */
+        GetSentenceInstanceEx(
+            [in] ILocale* where,
+            [out] IBreakIterator** instance);
+
+        /**
+         * Returns a new instance of {@code BreakIterator} to iterate over
+         * word-breaks using the default locale.
+         * See "<a href="../util/Locale.html#default_locale">Be wary of the default locale</a>".
+         * @return a new instance of {@code BreakIterator} using the default locale.
+         */
+        GetWordInstance(
+            [out] IBreakIterator** instance);
+
+        /**
+         * Returns a new instance of {@code BreakIterator} to iterate over
+         * word-breaks using the given locale.
+         *
+         * @param where
+         *            the given locale.
+         * @return a new instance of {@code BreakIterator} using the given locale.
+         * @throws NullPointerException if {@code where} is {@code null}.
+         */
+        GetWordInstanceEx(
+            [in] ILocale* where,
+            [out] IBreakIterator** instance);
     }
 }

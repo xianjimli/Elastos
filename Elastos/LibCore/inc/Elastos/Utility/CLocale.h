@@ -242,6 +242,11 @@ public:
      * @since 1.6
      */
     static const AutoPtr<ILocale> ROOT;// = new Locale("", "", "");
+
+    /**
+     * Locale constant for en_US.
+     */
+    static const AutoPtr<ILocale> US;// = new Locale("en", "US");
 };
 
 #endif //__CLOCALE_H__

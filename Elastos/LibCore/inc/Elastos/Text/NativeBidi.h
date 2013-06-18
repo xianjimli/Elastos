@@ -3,6 +3,7 @@
 
 #include <elastos.h>
 #include "Elastos.Text_server.h"
+#include "BidiRun.h"
 #include <elastos/AutoPtr.h>
 
 /**
@@ -62,7 +63,7 @@ public:
     // Get the BidiRuns
     static CARAPI Ubidi_getRuns(
         /* [in] */ Int64 pBidi,
-        /* [out] */ ArrayOf<AutoPtr<IBidiRun> >** runs);
+        /* [out] */ ArrayOf<BidiRun*>** runs);
 
     // This is a convenience function that does not use a UBiDi object
     static CARAPI_(ArrayOf<Int32>*) Ubidi_reorderVisual(

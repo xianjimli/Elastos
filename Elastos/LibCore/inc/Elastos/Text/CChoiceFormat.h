@@ -9,18 +9,15 @@ CarClass(CChoiceFormat), public ChoiceFormat
 {
 public:
     CARAPI constructor(
-        /* [in] */ ArrayOf<Double> * pLimits,
-        /* [in] */ ArrayOf<String> * pFormats);
+        /* [in] */ const ArrayOf<Double>& limits,
+        /* [in] */ const ArrayOf<String>& formats);
 
     CARAPI constructor(
         /* [in] */ const String& tem);
 
-    CARAPI_(PInterface) Probe(
-        /* [in] */ REIID riid);
-
     CARAPI FormatObject(
-        /* [in] */ IInterface * pObject,
-        /* [out] */ String * pValue);
+        /* [in] */ IInterface* object,
+        /* [out] */ String* value);
 
     CARAPI FormatObjectEx(
         /* [in] */ IInterface* object,
@@ -29,21 +26,21 @@ public:
         /* [out] */ String* value);
 
     CARAPI FormatToCharacterIterator(
-        /* [in] */ IInterface * pObject,
-        /* [out] */ IAttributedCharacterIterator ** ppCharactorIterator);
+        /* [in] */ IInterface* object,
+        /* [out] */ IAttributedCharacterIterator** charactorIterator);
 
     CARAPI ParseObject(
         /* [in] */ const String& string,
-        /* [out] */ IInterface ** ppObject);
+        /* [out] */ IInterface** object);
 
     CARAPI ParseObjectEx(
         /* [in] */ const String& string,
-        /* [in] */ IParsePosition * pPosition,
-        /* [out] */ IInterface ** ppObject);
+        /* [in] */ IParsePosition* position,
+        /* [out] */ IInterface** object);
 
     CARAPI FormatDouble(
         /* [in] */ Double value,
-        /* [out] */ String * pFormat);
+        /* [out] */ String* format);
 
     CARAPI FormatDoubleEx(
         /* [in] */ Double value,
@@ -53,7 +50,7 @@ public:
 
     CARAPI FormatInt64(
         /* [in] */ Int64 value,
-        /* [out] */ String * pFormat);
+        /* [out] */ String* format);
 
     CARAPI FormatInt64Ex(
         /* [in] */ Int64 value,
@@ -62,31 +59,31 @@ public:
         /* [out] */ String* result);
 
     CARAPI GetMaximumFractionDigits(
-        /* [out] */ Int32 * pMaximumFractionDigits);
+        /* [out] */ Int32* maximumFractionDigits);
 
     CARAPI GetMaximumIntegerDigits(
-        /* [out] */ Int32 * pMaximumIntegerDigits);
+        /* [out] */ Int32* maximumIntegerDigits);
 
     CARAPI GetMinimumFractionDigits(
-        /* [out] */ Int32 * pMinimumFractionDigits);
+        /* [out] */ Int32* minimumFractionDigits);
 
     CARAPI GetMinimumIntegerDigits(
-        /* [out] */ Int32 * pMinimumIntegerDigits);
+        /* [out] */ Int32* minimumIntegerDigits);
 
     CARAPI IsGroupingUsed(
-        /* [out] */ Boolean * pIsGroupingUsed);
+        /* [out] */ Boolean* isGroupingUsed);
 
     CARAPI IsParseIntegerOnly(
-        /* [out] */ Boolean * pIsParseIntegerOnly);
+        /* [out] */ Boolean* isParseIntegerOnly);
 
     CARAPI Parse(
         /* [in] */ const String& string,
-        /* [out] */ INumber ** ppValue);
+        /* [out] */ INumber** value);
 
     CARAPI ParseEx(
         /* [in] */ const String& string,
-        /* [in] */ IParsePosition * pPosition,
-        /* [out] */ INumber ** ppValue);
+        /* [in] */ IParsePosition* position,
+        /* [out] */ INumber** value);
 
     CARAPI SetGroupingUsed(
         /* [in] */ Boolean value);
@@ -110,17 +107,17 @@ public:
         /* [in] */ const String& tem);
 
     CARAPI GetFormats(
-        /* [out, callee] */ ArrayOf<IInterface *> ** ppFormats);
+        /* [out, callee] */ ArrayOf<IInterface*>** formats);
 
     CARAPI GetLimits(
-        /* [out, callee] */ ArrayOf<Double> ** ppLimits);
+        /* [out, callee] */ ArrayOf<Double>** limits);
 
     CARAPI SetChoices(
-        /* [in] */ ArrayOf<Double> * pLimits,
-        /* [in] */ ArrayOf<String> * pFormats);
+        /* [in] */ const ArrayOf<Double>& limits,
+        /* [in] */ const ArrayOf<String>& formats);
 
     CARAPI ToPattern(
-        /* [out] */ String * pPattern);
+        /* [out] */ String* pattern);
 
     CARAPI GetCurrency(
         /* [out] */ ICurrency** currency);

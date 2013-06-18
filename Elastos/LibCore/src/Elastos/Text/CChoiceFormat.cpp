@@ -1,10 +1,11 @@
 
 #include "CChoiceFormat.h"
+
 ECode CChoiceFormat::constructor(
-    /* [in] */ ArrayOf<Double> * pLimits,
-    /* [in] */ ArrayOf<String> * pFormats)
+    /* [in] */ const ArrayOf<Double>& limits,
+    /* [in] */ const ArrayOf<String>& formats)
 {
-    return ChoiceFormat::Init(pLimits, pFormats);
+    return ChoiceFormat::Init(limits, formats);
 }
 
 ECode CChoiceFormat::constructor(
@@ -13,17 +14,11 @@ ECode CChoiceFormat::constructor(
     return ChoiceFormat::Init(tem);
 }
 
-PInterface CChoiceFormat::Probe(
-    /* [in] */ REIID riid)
-{
-    return _CChoiceFormat::Probe(riid);
-}
-
 ECode CChoiceFormat::FormatObject(
-    /* [in] */ IInterface * pObject,
-    /* [out] */ String * pValue)
+    /* [in] */ IInterface* object,
+    /* [out] */ String* value)
 {
-    return ChoiceFormat::FormatObject(pObject, pValue);
+    return ChoiceFormat::FormatObject(object, value);
 }
 
 ECode CChoiceFormat::FormatObjectEx(
@@ -32,36 +27,36 @@ ECode CChoiceFormat::FormatObjectEx(
     /* [in] */ IFieldPosition* field,
     /* [out] */ String* value)
 {
-    return E_NOT_IMPLEMENTED;
+    return ChoiceFormat::FormatObjectEx(object, buffer, field, value);
 }
 
 ECode CChoiceFormat::FormatToCharacterIterator(
-    /* [in] */ IInterface * pObject,
-    /* [out] */ IAttributedCharacterIterator ** ppCharactorIterator)
+    /* [in] */ IInterface* object,
+    /* [out] */ IAttributedCharacterIterator** charactorIterator)
 {
-    return ChoiceFormat::FormatToCharacterIterator(pObject, ppCharactorIterator);
+    return ChoiceFormat::FormatToCharacterIterator(object, charactorIterator);
 }
 
 ECode CChoiceFormat::ParseObject(
     /* [in] */ const String& string,
-    /* [out] */ IInterface ** ppObject)
+    /* [out] */ IInterface** object)
 {
-    return ChoiceFormat::ParseObject(string, ppObject);
+    return ChoiceFormat::ParseObject(string, object);
 }
 
 ECode CChoiceFormat::ParseObjectEx(
     /* [in] */ const String& string,
-    /* [in] */ IParsePosition * pPosition,
-    /* [out] */ IInterface ** ppObject)
+    /* [in] */ IParsePosition* position,
+    /* [out] */ IInterface** object)
 {
-    return ChoiceFormat::ParseObjectEx(string, pPosition, ppObject);
+    return ChoiceFormat::ParseObjectEx(string, position, object);
 }
 
 ECode CChoiceFormat::FormatDouble(
     /* [in] */ Double value,
-    /* [out] */ String * pFormat)
+    /* [out] */ String* format)
 {
-    return ChoiceFormat::FormatDouble(value, pFormat);
+    return ChoiceFormat::FormatDouble(value, format);
 }
 
 ECode CChoiceFormat::FormatDoubleEx(
@@ -75,9 +70,9 @@ ECode CChoiceFormat::FormatDoubleEx(
 
 ECode CChoiceFormat::FormatInt64(
     /* [in] */ Int64 value,
-    /* [out] */ String * pFormat)
+    /* [out] */ String* format)
 {
-    return ChoiceFormat::FormatInt64(value, pFormat);
+    return ChoiceFormat::FormatInt64(value, format);
 }
 
 ECode CChoiceFormat::FormatInt64Ex(
@@ -90,54 +85,54 @@ ECode CChoiceFormat::FormatInt64Ex(
 }
 
 ECode CChoiceFormat::GetMaximumFractionDigits(
-    /* [out] */ Int32 * pMaximumFractionDigits)
+    /* [out] */ Int32* maximumFractionDigits)
 {
-    return ChoiceFormat::GetMaximumIntegerDigits(pMaximumFractionDigits);
+    return ChoiceFormat::GetMaximumIntegerDigits(maximumFractionDigits);
 }
 
 ECode CChoiceFormat::GetMaximumIntegerDigits(
-    /* [out] */ Int32 * pMaximumIntegerDigits)
+    /* [out] */ Int32* maximumIntegerDigits)
 {
-    return ChoiceFormat::GetMaximumIntegerDigits(pMaximumIntegerDigits);
+    return ChoiceFormat::GetMaximumIntegerDigits(maximumIntegerDigits);
 }
 
 ECode CChoiceFormat::GetMinimumFractionDigits(
-    /* [out] */ Int32 * pMinimumFractionDigits)
+    /* [out] */ Int32* minimumFractionDigits)
 {
-    return ChoiceFormat::GetMinimumFractionDigits(pMinimumFractionDigits);
+    return ChoiceFormat::GetMinimumFractionDigits(minimumFractionDigits);
 }
 
 ECode CChoiceFormat::GetMinimumIntegerDigits(
-    /* [out] */ Int32 * pMinimumIntegerDigits)
+    /* [out] */ Int32* minimumIntegerDigits)
 {
-    return ChoiceFormat::GetMinimumIntegerDigits(pMinimumIntegerDigits);
+    return ChoiceFormat::GetMinimumIntegerDigits(minimumIntegerDigits);
 }
 
 ECode CChoiceFormat::IsGroupingUsed(
-    /* [out] */ Boolean * pIsGroupingUsed)
+    /* [out] */ Boolean* isGroupingUsed)
 {
-    return ChoiceFormat::IsGroupingUsed(pIsGroupingUsed);
+    return ChoiceFormat::IsGroupingUsed(isGroupingUsed);
 }
 
 ECode CChoiceFormat::IsParseIntegerOnly(
-    /* [out] */ Boolean * pIsParseIntegerOnly)
+    /* [out] */ Boolean* isParseIntegerOnly)
 {
-    return ChoiceFormat::IsParseIntegerOnly(pIsParseIntegerOnly);
+    return ChoiceFormat::IsParseIntegerOnly(isParseIntegerOnly);
 }
 
 ECode CChoiceFormat::Parse(
     /* [in] */ const String& string,
-    /* [out] */ INumber ** ppValue)
+    /* [out] */ INumber** value)
 {
-    return ChoiceFormat::Parse(string, ppValue);
+    return ChoiceFormat::Parse(string, value);
 }
 
 ECode CChoiceFormat::ParseEx(
     /* [in] */ const String& string,
-    /* [in] */ IParsePosition * pPosition,
-    /* [out] */ INumber ** ppValue)
+    /* [in] */ IParsePosition* position,
+    /* [out] */ INumber** value)
 {
-    return ChoiceFormat::ParseEx(string, pPosition, ppValue);
+    return ChoiceFormat::ParseEx(string, position, value);
 }
 
 ECode CChoiceFormat::SetGroupingUsed(
@@ -183,50 +178,50 @@ ECode CChoiceFormat::ApplyPattern(
 }
 
 ECode CChoiceFormat::GetFormats(
-    /* [out, callee] */ ArrayOf<IInterface *> ** ppFormats)
+    /* [out, callee] */ ArrayOf<IInterface*>** formats)
 {
-    return ChoiceFormat::GetFormats(ppFormats);
+    return ChoiceFormat::GetFormats(formats);
 }
 
 ECode CChoiceFormat::GetLimits(
-    /* [out, callee] */ ArrayOf<Double> ** ppLimits)
+    /* [out, callee] */ ArrayOf<Double>** limits)
 {
-    return ChoiceFormat::GetLimits(ppLimits);
+    return ChoiceFormat::GetLimits(limits);
 }
 
 ECode CChoiceFormat::SetChoices(
-    /* [in] */ ArrayOf<Double> * pLimits,
-    /* [in] */ ArrayOf<String> * pFormats)
+    /* [in] */ const ArrayOf<Double>& limits,
+    /* [in] */ const ArrayOf<String>& formats)
 {
-    return ChoiceFormat::SetChoices(pLimits, pFormats);
+    return ChoiceFormat::SetChoices(limits, formats);
 }
 
 ECode CChoiceFormat::ToPattern(
-    /* [out] */ String * pPattern)
+    /* [out] */ String* pattern)
 {
-    return ChoiceFormat::ToPattern(pPattern);
+    return ChoiceFormat::ToPattern(pattern);
 }
 
 ECode CChoiceFormat::GetCurrency(
     /* [out] */ ICurrency** currency)
 {
-    return E_NOT_IMPLEMENTED;
+    return ChoiceFormat::GetCurrency(currency);
 }
 
 ECode CChoiceFormat::SetCurrency(
     /* [in] */ ICurrency* currency)
 {
-    return E_NOT_IMPLEMENTED;
+    return ChoiceFormat::SetCurrency(currency);
 }
 
 ECode CChoiceFormat::GetRoundingMode(
     /* [out] */ RoundingMode* mode)
 {
-    return E_NOT_IMPLEMENTED;
+    return CChoiceFormat::GetRoundingMode(mode);
 }
 
 ECode CChoiceFormat::SetRoundingMode(
     /* [in] */ RoundingMode mode)
 {
-    return E_NOT_IMPLEMENTED;
+    return CChoiceFormat::SetRoundingMode(mode);
 }

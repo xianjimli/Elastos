@@ -1,4 +1,5 @@
 #include "ChoiceFormat.h"
+#include "Math.h"
 
 ChoiceFormat::~ChoiceFormat()
 {
@@ -11,8 +12,8 @@ ChoiceFormat::~ChoiceFormat()
 }
 
 ECode ChoiceFormat::Init(
-        /* [in] */ ArrayOf<Double>* limits,
-        /* [in] */ ArrayOf<String>* formats)
+    /* [in] */ const ArrayOf<Double>& limits,
+    /* [in] */ const ArrayOf<String>& formats)
 {
     return SetChoices(limits, formats);
 }
@@ -28,15 +29,16 @@ ECode ChoiceFormat::ApplyPattern(
 {
     ArrayOf<Double>* limits = ArrayOf<Double>::Alloc(5);
     List<String>* formats = new List<String>();/* = new ArrayList<String>(); */
-    Int32 length = (Int32)(tem.GetLength());
-    Int32 limitCount = 0;
-    Int32 index = 0;
+    Int32 length = tem.GetLength();
+    Int32 limitCount = 0, index = 0;
     StringBuffer buffer("");
 
-    AutoPtr<ILocale> locale_US;
-    CLocale::New(String("en"), String("US"), (ILocale**)&locale_US);
+    AutoPtr<ILocaleHelper> localeHelper;
+    CLocaleHelper::AcquireSingleton((ILocaleHelper**)&localeHelper);
+    AutoPtr<ILocale> uslocale;
+    localeHelper->GetUS((ILocale**)&uslocale);
     AutoPtr<INumberFormat> format;
-    NumberFormat::GetInstance((ILocale*)locale_US, (INumberFormat**)&format);
+    NumberFormat::GetInstance(uslocale, (INumberFormat**)&format);
 
     AutoPtr<IParsePosition> position;
     CParsePosition::New(0, (IParsePosition**)&position);
@@ -45,8 +47,9 @@ ECode ChoiceFormat::ApplyPattern(
         index = SkipWhitespace(tem, index);
         if (index >= length) {
             if (limitCount == limits->GetLength()) {
-                mChoiceLimits = limits->Clone();
-            } else {
+                mChoiceLimits = limits;
+            }
+            else {
                 mChoiceLimits = ArrayOf<Double>::Alloc(limitCount);
                 for (Int32 i = 0; i < limitCount; i++) {
                     (*mChoiceLimits)[i] = (*limits)[i];
@@ -54,9 +57,7 @@ ECode ChoiceFormat::ApplyPattern(
             }
             mChoiceFormats = ArrayOf<String>::Alloc(formats->GetSize());
             List<String>::Iterator it = formats->Begin();
-
-            for (Int32 i = 0;
-                    i < (Int32)(formats->GetSize()), it != formats->End(); ++i, ++it) {
+            for (Int32 i = 0; it != formats->End(); ++it, ++i) {
                 (*mChoiceFormats)[i] = *it;
             }
             return NOERROR;
@@ -64,10 +65,10 @@ ECode ChoiceFormat::ApplyPattern(
 
         position->SetIndex(index);
         AutoPtr<INumber> value;
-        format->ParseEx(tem, (IParsePosition*)position, (INumber**)&value);
-        Int32 indexx;
-        position->GetIndex(&indexx);
-        index = SkipWhitespace(tem, indexx);
+        format->ParseEx(tem, position, (INumber**)&value);
+        Int32 index;
+        position->GetIndex(&index);
+        index = SkipWhitespace(tem, index);
         Int32 errorIndex;
         position->GetErrorIndex(&errorIndex);
         if (errorIndex != -1 || index >= length) {
@@ -82,13 +83,12 @@ ECode ChoiceFormat::ApplyPattern(
             for (Int32 i = 0; i < limitCount; i++) {
                 (*newLimits)[i] = (*limits)[i];
             }
-            limits = newLimits->Clone();
-            ArrayOf<Double>::Free(newLimits);
+            limits = newLimits;
         }
         Double next = 0.0;
         switch (ch) {
             case '#':
-            case '\u2264':
+            case 2264://'\u2264'
                 value->DoubleValue(&next);
                 break;
             case '<':
@@ -104,15 +104,15 @@ ECode ChoiceFormat::ApplyPattern(
             //throw new IllegalArgumentException();
             return E_ILLEGAL_ARGUMENT_EXCEPTION;
         }
-        buffer = String("");
+        buffer.SetLength(0);
         position->SetIndex(index);
         Boolean succeeded;
         UpTo(tem, position, buffer, '|', &succeeded);
         position->GetIndex(&index);
         (*limits)[limitCount++] = next;
-        formats->PushBack(buffer.Substring(0, buffer.GetLength()));
+        formats->PushBack(buffer.ToString());
     }
-    ArrayOf<Double>::Free(limits);
+
     return NOERROR;
 }
 
@@ -123,20 +123,24 @@ ECode ChoiceFormat::FormatDoubleEx(
     /* [out] */ String* result)
  {
     VALIDATE_NOT_NULL(result);
-    StringBuffer* sb = new StringBuffer(buffer);
+
     for (Int32 i = mChoiceLimits->GetLength() - 1; i >= 0; i--)
     {
         if ((*mChoiceLimits)[i] <= value) {
-            *sb += (*mChoiceFormats)[i];
+            *result = buffer;
+            result->Append((*mChoiceFormats)[i]);
             return NOERROR;
         }
     }
+
     if (mChoiceFormats->GetLength() == 0) {
-        *result = sb->Substring(0, sb->GetLength());
-    } else {
-        *sb += (*mChoiceFormats)[0];
-        *result = sb->Substring(0, sb->GetLength());
+        *result = buffer;
     }
+    else {
+        *result = buffer;
+        result->Append((*mChoiceFormats)[0]);
+    }
+
     return NOERROR;
 }
 
@@ -146,59 +150,48 @@ ECode ChoiceFormat::FormatInt64Ex(
     /* [in] */ IFieldPosition* field,
     /* [out] */ String* formattedString)
 {
-    VALIDATE_NOT_NULL(formattedString);
     return FormatDoubleEx((Double)value, buffer, field, formattedString);
 }
 
 ECode ChoiceFormat::GetFormats(
     /* [out, callee] */ ArrayOf<IInterface*>** arrayOfFormattedString)
 {
-    assert(0);
-    //*arrayOfFormattedString = mChoiceFormats->Clone();
+    VALIDATE_NOT_NULL(arrayOfFormattedString);
+    ArrayOf<IInterface*>* temp =
+            ArrayOf<IInterface*>::Alloc(mChoiceFormats->GetLength());
+    for (Int32 i = 0; i < mChoiceFormats->GetLength(); ++i) {
+        AutoPtr<ICharSequence> cs;
+        CStringWrapper::New((*mChoiceFormats)[i], (ICharSequence**)&cs);
+        (*temp)[i] = (IInterface*)cs.Get();
+    }
+    *arrayOfFormattedString = temp;
     return NOERROR;
 }
 
 ECode ChoiceFormat::GetLimits(
     /* [out, callee] */ ArrayOf<Double>** arrayOfDoubles)
 {
-    *arrayOfDoubles = mChoiceLimits->Clone();
+    VALIDATE_NOT_NULL(arrayOfDoubles);
+    *arrayOfDoubles = mChoiceLimits;
     return NOERROR;
-}
-
-#define CAST_PTR(type, val) ((type*)(&(val)))
-#define CAST(type, val) (*CAST_PTR(type, val))
-
-const Int64 ChoiceFormat::INT64_NAN = 0X7FF8000000000000ULL;
-const Double ChoiceFormat::DOUBLE_ZERO = 0.0;
-const Double ChoiceFormat::POSITIVE_INFINITY = 1.0/DOUBLE_ZERO;
-const Double ChoiceFormat::NEGATIVE_INFINITY = -1.0/DOUBLE_ZERO;
-
-Int64 ChoiceFormat::DoubleToInt64Bits(
-    /* [in] */ Double d)
-{
-    return d != d ? INT64_NAN : CAST(Int64, d);
-}
-
-Double ChoiceFormat::Int64BitsToDouble(
-    /* [in] */ Int64 l) {
-    return CAST(Double, l);
 }
 
 Double ChoiceFormat::NextDouble(
     /* [in] */ Double value)
 {
-    if (value == POSITIVE_INFINITY) {
+    if (value == Math::DOUBLE_POSITIVE_INFINITY) {
         return value;
     }
     Int64 bits;
     // Handle -0.0
     if (value == 0) {
         bits = 0;
-    } else {
-        bits = DoubleToInt64Bits(value);
     }
-    Int64 l = value < 0 ? bits - 1 : bits + 1;
-    return Int64BitsToDouble(l);
+    else {
+        bits = Math::DoubleToInt64Bits(value);
+    }
+
+    return Math::Int64BitsToDouble(value < 0 ? bits - 1 : bits + 1);
 }
 
 Double ChoiceFormat::NextDouble(
@@ -216,48 +209,47 @@ ECode ChoiceFormat::ParseEx(
     Int32 offset;
     position->GetIndex(&offset);
     for (Int32 i = 0; i < mChoiceFormats->GetLength(); i++) {
-        String str1 = string.Substring( offset, (Int32)((*mChoiceFormats)[i].GetLength()) );
-        String str2 = (*mChoiceFormats)[i];
-        if (str1.EqualsIgnoreCase(str2)) {
-            position->SetIndex(offset + (Int32)((*mChoiceFormats)[i].GetLength()));
+        String str = string.Substring(offset, (*mChoiceFormats)[i].GetLength());
+        if (str.StartWith((*mChoiceFormats)[i])) {
+            position->SetIndex(offset + (*mChoiceFormats)[i].GetLength());
 //            return new Double(choiceLimits[i]);
             assert(0);
             return NOERROR;
         }
     }
     position->SetErrorIndex(offset);
-//    return new Double(Double.NaN);
+//    return new Double(Math::Double_NaN);
     assert(0);
     return NOERROR;
 }
 
 Double ChoiceFormat::PreviousDouble(
-        /* [in] */ Double value)
+    /* [in] */ Double value)
 {
-    if (value == NEGATIVE_INFINITY) {
+    if (value == Math::DOUBLE_NEGATIVE_INFINITY) {
         return value;
     }
     Int64 bits;
     // Handle 0.0
     if (value == 0) {
-        bits = 0x8000000000000000L;
-    } else {
-        bits = DoubleToInt64Bits(value);
+        bits = 0x8000000000000000ll;
     }
-    Int64 l = value <= 0 ? bits + 1 : bits - 1;
-    return Int64BitsToDouble(l);
+    else {
+        bits = Math::DoubleToInt64Bits(value);
+    }
+    return Math::Int64BitsToDouble(value <= 0 ? bits + 1 : bits - 1);
 }
 
 ECode ChoiceFormat::SetChoices(
-        /* [in] */ ArrayOf<Double>* limits,
-        /* [in] */ ArrayOf<String>* formats)
+    /* [in] */ const ArrayOf<Double>& limits,
+    /* [in] */ const ArrayOf<String>& formats)
 {
-    if (limits->GetLength() != formats->GetLength()) {
+    if (limits.GetLength() != formats.GetLength()) {
         //throw new IllegalArgumentException();
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
-    mChoiceLimits = limits->Clone();
-    mChoiceFormats = formats->Clone();
+    mChoiceLimits = limits.Clone();
+    mChoiceFormats = formats.Clone();
     return NOERROR;
 }
 
@@ -265,7 +257,7 @@ Int32 ChoiceFormat::SkipWhitespace(
         /* [in] */ String string,
         /* [in] */ Int32 index)
 {
-    Int32 length = (Int32)(string.GetLength());
+    Int32 length = string.GetLength();
     while (index < length && Character::IsWhitespace(string.GetChar(index))) {
         index++;
     }

@@ -1,5 +1,0 @@
-module {
-    interface IRuleBasedBreakIterator extends IBreakIterator{
-
-    }
-}

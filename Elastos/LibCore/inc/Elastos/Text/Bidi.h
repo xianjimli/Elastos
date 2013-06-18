@@ -5,6 +5,7 @@
 #include "Elastos.Text_server.h"
 #include <elastos.h>
 #include "TextAttribute.h"
+#include "BidiRun.h"
 #include <elastos/List.h>
 
 class Bidi {
@@ -306,7 +307,7 @@ private:
 
     ArrayOf<Byte>* mOffsetLevel;
 
-    ArrayOf<AutoPtr<IBidiRun> >* mRuns;
+    ArrayOf<BidiRun*>* mRuns;
 
     Int32 mDirection;
 

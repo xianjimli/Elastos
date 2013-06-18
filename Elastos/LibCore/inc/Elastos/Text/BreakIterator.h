@@ -16,7 +16,7 @@ public:
      * <p>Note that Android does not support user-supplied locale service providers.
      */
     static CARAPI GetAvailableLocales(
-        /* [out] */ ArrayOf<ILocale*>** availableLocales);
+        /* [out] */ ArrayOf<ILocale*>** locales);
 
     /**
      * Returns a new instance of {@code BreakIterator} to iterate over
@@ -133,7 +133,7 @@ public:
      */
     virtual CARAPI Preceding(
         /* [in] */ Int32 offset,
-        /* [out] */ Int32* precedingValue);
+        /* [out] */ Int32* position);
 
     /**
      * Sets the new text string to be analyzed, the current position will be
@@ -152,7 +152,7 @@ public:
      * @return this iterator's current position.
      */
     virtual CARAPI Current(
-        /* [out] */ Int32* currentValue) = 0;
+        /* [out] */ Int32* position) = 0;
 
     /**
      * Sets this iterator's current position to the first boundary and returns
@@ -161,7 +161,7 @@ public:
      * @return the position of the first boundary.
      */
     virtual CARAPI First(
-        /* [out] */ Int32* firstValue) = 0;
+        /* [out] */ Int32* position) = 0;
 
     /**
      * Sets the position of the first boundary to the one following the given
@@ -176,7 +176,7 @@ public:
      */
     virtual CARAPI Following(
         /* [in] */ Int32 offset,
-        /* [out] */ Int32* followingValue) = 0;
+        /* [out] */ Int32* position) = 0;
 
     /**
      * Returns a {@code CharacterIterator} which represents the text being
@@ -198,7 +198,7 @@ public:
      * @return the position of last boundary.
      */
     virtual CARAPI Last(
-        /* [out] */ Int32* lastValue) = 0;
+        /* [out] */ Int32* position) = 0;
 
     /**
      * Sets this iterator's current position to the next boundary after the
@@ -208,7 +208,7 @@ public:
      * @return the position of last boundary.
      */
     virtual CARAPI Next(
-        /* [out] */ Int32* nextValue) = 0;
+        /* [out] */ Int32* position) = 0;
 
     /**
      * Sets this iterator's current position to the next boundary after the
@@ -221,7 +221,7 @@ public:
      */
     virtual CARAPI NextEx(
         /* [in] */ Int32 n,
-        /* [out] */ Int32* nextValue) = 0;
+        /* [out] */ Int32* position) = 0;
 
     /**
      * Sets this iterator's current position to the previous boundary before the
@@ -231,7 +231,7 @@ public:
      * @return the position of last boundary.
      */
     virtual CARAPI Previous(
-        /* [out] */ Int32* previousValue) = 0;
+        /* [out] */ Int32* position) = 0;
 
     /**
      * Sets the new text to be analyzed by the given {@code CharacterIterator}.
@@ -244,25 +244,6 @@ public:
      */
     virtual CARAPI SetTextEx(
         /* [in] */ ICharacterIterator* newText) = 0;
-
-    /**
-     * Creates a copy of this iterator, all status information including the
-     * current position are kept the same.
-     *
-     * @return a copy of this iterator.
-     */
-/*
-    @Override
-    public Object clone() {
-        try {
-            BreakIterator cloned = (BreakIterator) super.clone();
-            cloned.wrapped = (NativeBreakIterator) wrapped.clone();
-            return cloned;
-        } catch (CloneNotSupportedException e) {
-            throw new AssertionError(e); // android-changed
-        }
-    }
-*/
 
 protected:
     /**
@@ -278,7 +259,7 @@ protected:
 
 public:
     // the wrapped ICU implementation
-    NativeBreakIterator* wrapped;
+    NativeBreakIterator* mWrapped;
 
 };
 #endif //__BREAKITERATOR_H__

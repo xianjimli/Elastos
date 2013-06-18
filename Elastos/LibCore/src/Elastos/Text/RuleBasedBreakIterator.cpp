@@ -1,14 +1,5 @@
+
 #include "RuleBasedBreakIterator.h"
-PInterface RuleBasedBreakIterator::Probe(
-    /* [in] */ REIID riid)
-{
-    return NULL;
-}
-
-RuleBasedBreakIterator::RuleBasedBreakIterator()
-{
-
-}
 
 RuleBasedBreakIterator::~RuleBasedBreakIterator()
 {}
@@ -19,36 +10,73 @@ RuleBasedBreakIterator::RuleBasedBreakIterator(
     //BreakIterator(iterator);
 }
 
-ECode RuleBasedBreakIterator::Current(
-        /* [out] */ Int32* currentValue)
+PInterface RuleBasedBreakIterator::Probe(
+    /* [in] */ REIID riid)
 {
-    VALIDATE_NOT_NULL(currentValue);
-    *currentValue = wrapped->Current();
+    if (riid == EIID_IInterface) {
+        return (IInterface*)(IBreakIterator*)this;
+    }
+    else if (riid == EIID_IBreakIterator) {
+        return (IBreakIterator*)this;
+    }
+    return NULL;
+}
+
+UInt32 RuleBasedBreakIterator::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 RuleBasedBreakIterator::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode RuleBasedBreakIterator::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{
+    VALIDATE_NOT_NULL(pIID);
+
+    if (pObject == (IInterface*)(IBreakIterator*)this) {
+        *pIID = EIID_IBreakIterator;
+    }
+    else {
+        return E_INVALID_ARGUMENT;
+    }
+    return NOERROR;
+}
+
+ECode RuleBasedBreakIterator::Current(
+    /* [out] */ Int32* position)
+{
+    VALIDATE_NOT_NULL(position);
+    *position = mWrapped->Current();
     return NOERROR;
 }
 
 ECode RuleBasedBreakIterator::First(
-        /* [out] */ Int32* firstValue)
+    /* [out] */ Int32* position)
 {
-    VALIDATE_NOT_NULL(firstValue);
-    *firstValue = wrapped->First();
+    VALIDATE_NOT_NULL(position);
+    *position = mWrapped->First();
     return NOERROR;
 }
 
 ECode RuleBasedBreakIterator::Following(
-        /* [in] */ Int32 offset,
-        /* [out] */ Int32* followingValue)
+    /* [in] */ Int32 offset,
+    /* [out] */ Int32* position)
 {
-    VALIDATE_NOT_NULL(followingValue);
-    ValidateOffset(offset);
-    *followingValue = wrapped->Following(offset);
+    VALIDATE_NOT_NULL(position);
+    FAIL_RETURN(ValidateOffset(offset));
+    *position = mWrapped->Following(offset);
     return NOERROR;
 }
 
 ECode RuleBasedBreakIterator::ValidateOffset(
-        /* [in] */ Int32 offset)
+    /* [in] */ Int32 offset)
 {
-    AutoPtr<ICharacterIterator> it = wrapped->GetText();
+    AutoPtr<ICharacterIterator> it = mWrapped->GetText();
     Int32 beginIndex, endIndex;
     it->GetBeginIndex(&beginIndex);
     it->GetEndIndex(&endIndex);
@@ -60,52 +88,59 @@ ECode RuleBasedBreakIterator::ValidateOffset(
 }
 
 ECode RuleBasedBreakIterator::GetText(
-        /* [out] */ ICharacterIterator** text)
+    /* [out] */ ICharacterIterator** text)
 {
-    *text = wrapped->GetText();
+    VALIDATE_NOT_NULL(text);
+    *text = mWrapped->GetText();
     return NOERROR;
 }
 
 ECode RuleBasedBreakIterator::Last(
-        /* [out] */ Int32* lastValue)
+    /* [out] */ Int32* position)
 {
-    VALIDATE_NOT_NULL(lastValue);
-    *lastValue = wrapped->Last();
+    VALIDATE_NOT_NULL(position);
+    *position = mWrapped->Last();
     return NOERROR;
 }
 
 ECode RuleBasedBreakIterator::Next(
-        /* [out] */ Int32* nextValue)
+    /* [out] */ Int32* position)
 {
-    VALIDATE_NOT_NULL(nextValue);
-    *nextValue = wrapped->Next();
+    VALIDATE_NOT_NULL(position);
+    *position = mWrapped->Next();
     return NOERROR;
 }
 
 ECode RuleBasedBreakIterator::NextEx(
-        /* [in] */ Int32 n,
-        /* [out] */ Int32* nextValue)
+    /* [in] */ Int32 n,
+    /* [out] */ Int32* position)
 {
-    VALIDATE_NOT_NULL(nextValue);
-    *nextValue = wrapped->Next(n);
+    VALIDATE_NOT_NULL(position);
+    *position = mWrapped->Next(n);
     return NOERROR;
 }
 
 ECode RuleBasedBreakIterator::Previous(
-        /* [out] */ Int32* previousValue)
+    /* [out] */ Int32* position)
 {
-    VALIDATE_NOT_NULL(previousValue);
-    *previousValue = wrapped->Previous();
+    VALIDATE_NOT_NULL(position);
+    *position = mWrapped->Previous();
     return NOERROR;
 }
 
+ECode RuleBasedBreakIterator::SetText(
+    /* [in] */ const String& newText)
+{
+    return BreakIterator::SetText(newText);
+}
+
 ECode RuleBasedBreakIterator::SetTextEx(
-        /* [in] */ ICharacterIterator* newText)
+    /* [in] */ ICharacterIterator* newText)
 {
     // call a method to check if null pointer
     Char32 current;
     newText->Current(&current);
-    wrapped->SetText(newText);
+    mWrapped->SetText(newText);
     return NOERROR;
 }
 
@@ -114,8 +149,8 @@ ECode RuleBasedBreakIterator::IsBoundary(
     /* [out] */ Boolean* isBoundary)
 {
     VALIDATE_NOT_NULL(isBoundary);
-    ValidateOffset(offset);
-    *isBoundary = wrapped->IsBoundary(offset);
+    FAIL_RETURN(ValidateOffset(offset));
+    *isBoundary = mWrapped->IsBoundary(offset);
     return NOERROR;
 }
 
@@ -127,10 +162,10 @@ ECode RuleBasedBreakIterator::IsBoundary(
 //@Override
 ECode RuleBasedBreakIterator::Preceding(
     /* [in] */ Int32 offset,
-    /* [out] */ Int32* precedingValue)
+    /* [out] */ Int32* position)
 {
-    VALIDATE_NOT_NULL(precedingValue);
-    ValidateOffset(offset);
-    *precedingValue = wrapped->Preceding(offset);
+    VALIDATE_NOT_NULL(position);
+    FAIL_RETURN(ValidateOffset(offset));
+    *position = mWrapped->Preceding(offset);
     return NOERROR;
 }

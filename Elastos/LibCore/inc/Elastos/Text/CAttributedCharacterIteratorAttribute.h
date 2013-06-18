@@ -12,7 +12,7 @@ public:
         /* [in] */ const String& name);
 
     CARAPI GetClassID(
-         /* [out] */ ClassID* clsid);
+        /* [out] */ ClassID* clsid);
 
     CARAPI GetName(
         /* [out] */ String* name);

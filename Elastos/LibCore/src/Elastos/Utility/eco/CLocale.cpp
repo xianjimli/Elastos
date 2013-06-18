@@ -22,8 +22,18 @@ static AutoPtr<ILocale> CreateRootLocale()
     return (ILocale*)l.Get();
 }
 
+static AutoPtr<ILocale> CreateLocale(
+    /* [in] */ const String& language,
+    /* [in] */ const String& country)
+{
+    AutoPtr<CLocale> l;
+    CLocale::NewByFriend(language, country, (CLocale**)&l);
+    return (ILocale*)l.Get();
+}
+
 AutoPtr<ILocale> CLocale::sDefaultLocale = CreateDefaultLocale();
 const AutoPtr<ILocale> CLocale::ROOT = CreateRootLocale();
+const AutoPtr<ILocale> CLocale::US = CreateLocale(String("en"), String("US"));
 
 ECode CLocale::constructor()
 {

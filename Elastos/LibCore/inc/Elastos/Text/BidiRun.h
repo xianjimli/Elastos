@@ -8,19 +8,16 @@ using namespace Elastos;
 class BidiRun
 {
 public:
-    CARAPI Init(
+    BidiRun(
         /* [in] */ Int32 start,
         /* [in] */ Int32 limit,
         /* [in] */ Int32 level);
 
-    virtual CARAPI GetLevel(
-        /* [out] */ Int32 * level);
+    CARAPI_(Int32) GetLevel();
 
-    virtual CARAPI GetLimit(
-        /* [out] */ Int32 * limit);
+    CARAPI_(Int32) GetLimit();
 
-    virtual CARAPI GetStart(
-        /* [out] */ Int32 * start);
+    CARAPI_(Int32) GetStart();
 
 private:
     Int32 mStart;

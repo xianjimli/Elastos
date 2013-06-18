@@ -30,8 +30,8 @@ module
          * {@code limits[i] <= d < limits[i+1]}.
          */
         SetChoices(
-            [in] ArrayOf<Double>* limits, 
-            [in] ArrayOf<String>* formats);
+            [in] ArrayOf<Double> limits,
+            [in] ArrayOf<String> formats);
 
         /**
          * Returns the pattern of this {@code ChoiceFormat} which specifies the
@@ -39,6 +39,47 @@ module
          */
         ToPattern(
             [out] String* pattern);
+    }
 
+    interface IChoiceFormatHelper {
+        /**
+         * Returns the double value which is closest to the specified double but
+         * larger.
+         *
+         * @param value
+         *            a double value.
+         * @return the next larger double value.
+         */
+        NextDouble(
+            [in] Double value,
+            [out] Double* nextValue);
+
+        /**
+         * Returns the double value which is closest to the specified double but
+         * either larger or smaller as specified.
+         *
+         * @param value
+         *            a double value.
+         * @param increment
+         *            {@code true} to get the next larger value, {@code false} to
+         *            get the previous smaller value.
+         * @return the next larger or smaller double value.
+         */
+        NextDoubleEx(
+            [in] Double value,
+            [in] Boolean increment,
+            [out] Double* nextValue);
+
+        /**
+         * Returns the double value which is closest to the specified double but
+         * smaller.
+         *
+         * @param value
+         *            a double value.
+         * @return the next smaller double value.
+         */
+        PreviousDouble(
+            [in] Double value,
+            [out] Double* previousValue);
     }
 }

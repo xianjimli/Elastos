@@ -1,5 +1,4 @@
 #include "NativeBidi.h"
-#include "CBidiRun.h"
 #include "cmdef.h"
 #include <unicode/ubidi.h>
 
@@ -188,7 +187,7 @@ ECode NativeBidi::Ubidi_countRuns(
 
 ECode NativeBidi::Ubidi_getRuns(
     /* [in] */ Int64 pBidi,
-    /* [out] */ ArrayOf<AutoPtr<IBidiRun> >** runs)
+    /* [out] */ ArrayOf<BidiRun*>** runs)
 {
     VALIDATE_NOT_NULL(*runs);
 
@@ -203,14 +202,13 @@ ECode NativeBidi::Ubidi_getRuns(
 
     // jmethodID bidiRunConstructor = env->GetMethodID(JniConstants::bidiRunClass, "<init>", "(III)V");
     // jobjectArray runs = env->NewObjectArray(runCount, JniConstants::bidiRunClass, NULL);
-    ArrayOf<AutoPtr<IBidiRun> >* temp = ArrayOf<AutoPtr<IBidiRun> >::Alloc(runCount);
+    ArrayOf<BidiRun*>* temp = ArrayOf<BidiRun*>::Alloc(runCount);
     UBiDiLevel level = 0;
     Int32 start = 0;
     Int32 limit = 0;
     for (Int32 i = 0; i < runCount; ++i) {
         ubidi_getLogicalRun(ubidi, start, &limit, &level);
-        AutoPtr<IBidiRun> run;
-        CBidiRun::New(start, limit, level, (IBidiRun**)&run);
+        BidiRun* run = new BidiRun(start, limit, level);
         (*temp)[i] = run;
         start = limit;
     }
