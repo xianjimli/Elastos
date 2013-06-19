@@ -47,9 +47,15 @@ ECode CApplication::OnLowMemory()
     return NOERROR;
 }
 
-Void CApplication::Attach(
+ECode CApplication:: Attach(
     /* [in] */ IContext* context)
 {
-    AttachBaseContext(context);
+    return AttachBaseContext(context);
 }
+/*
+Void CApplication::Attach(
+     IContext* context)
+{
+    AttachBaseContext(context);
+}*/
 

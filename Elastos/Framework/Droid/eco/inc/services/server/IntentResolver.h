@@ -26,7 +26,7 @@ public:
      * Returns a read-only set of the filters.
      */
     Set<F*>* FilterSet() {
-//	        return Collections.unmodifiableSet(mFilters);
+//        return Collections.unmodifiableSet(mFilters);
         return mFilters;
     }
 
@@ -334,7 +334,7 @@ ECode IntentResolver<F, R>::DumpFilter(
     /* [in] */ const String& prefix,
     /* [in] */ F* filter)
 {
-//	    out.print(prefix); out.println(filter);
+//    out.print(prefix); out.println(filter);
     return E_NOT_IMPLEMENTED;
 }
 
@@ -547,15 +547,14 @@ Boolean IntentResolver<F, R>::RemoveAllObjects(
     /* [in] */ F* f)
 {
     if (list != NULL) {
-        typename List<F*>::Iterator it1 = list->Begin();
-        typename List<F*>::Iterator it2 = list->End();
-        for(;it1 != it2; ++it1) {
+        typename List<F*>::Iterator it1, it2;
+        for(it1 = list->Begin();it1 != list->End();) {
             if (*it1 == f) {
-                list->Erase(it1);
-                it2 = list->End();
+                it1 = list->Erase(it1);
             }
+            else ++it1;
         }
-        return list->GetSize() > 0;
+        return list->Begin() != list->End();
     }
     return FALSE;
 }

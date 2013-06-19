@@ -498,6 +498,21 @@ public:
     CARAPI PickSuggestionManually(
         /* [in] */ Int32 index);
 
+    CARAPI RegisterReceiver(
+        /* [in] */ IBroadcastReceiver* receiver,
+        /* [in] */ IIntentFilter* filter,
+        /* [out] */ IIntent** intent);
+
+    CARAPI RegisterReceiverEx(
+        /* [in] */ IBroadcastReceiver* receiver,
+        /* [in] */ IIntentFilter* filter,
+        /* [in] */ const String& broadcastPermission,
+        /* [in] */ IApartment* scheduler,
+        /* [out] */ IIntent** intent);
+
+    CARAPI UnregisterReceiver(
+        /* [in] */ IBroadcastReceiver* receiver);
+
 private:
     /**
      * This translates incoming hard key events in to edit operations on an

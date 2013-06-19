@@ -358,5 +358,22 @@ module
             [in] IApplicationApartment* caller,
             [in] IUri* uri,
             [in] Int32 modeFlags);
+
+        RegisterReceiver(
+         [in]  IApplicationApartment* caller,
+         [in]  IIntentReceiver* receiver,
+         [in]  IIntentFilter* filter,
+         [in]  String permission,
+         [out]  IIntent** intent);
+/*
+    RegisterReceiverEx(
+        [in] IBroadcastReceiver* receiver,
+        [in] IIntentFilter* filter,
+        [in] String broadcastPermission,
+        [in] IApplicationApartment* scheduler,
+        [out] IIntent** intent);
+*/
+        UnregisterReceiver(
+         [in]  IIntentReceiver* receiver);
     }
 }

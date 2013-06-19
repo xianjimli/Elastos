@@ -540,6 +540,21 @@ public:
         /* [in] */ const String& toCapsule,
         /* [in] */ IUri* uri,
         /* [in] */ Int32 modeFlags) = 0;
+
+    virtual CARAPI RegisterReceiver(
+        /* [in] */ IBroadcastReceiver* receiver,
+        /* [in] */ IIntentFilter* filter,
+        /* [out] */ IIntent** intent) = 0;
+
+    virtual CARAPI RegisterReceiverEx(
+        /* [in] */ IBroadcastReceiver* receiver,
+        /* [in] */ IIntentFilter* filter,
+        /* [in] */ const String& broadcastPermission,
+        /* [in] */ IApartment* scheduler,
+        /* [out] */ IIntent** intent) = 0;
+
+    virtual CARAPI UnregisterReceiver(
+        /* [in] */ IBroadcastReceiver* receiver) = 0;
 };
 
 #endif //__CONTEXT_H__

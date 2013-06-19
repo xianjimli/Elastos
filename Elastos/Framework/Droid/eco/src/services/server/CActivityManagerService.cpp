@@ -22,6 +22,7 @@
 #include <Slogger.h>
 #include <StringBuffer.h>
 #include <cutils/properties.h>
+#include <stdio.h>
 
 using namespace Elastos;
 using namespace Elastos::Core;
@@ -7443,8 +7444,8 @@ void CActivityManagerService::CleanUpApplicationRecordLocked(
             AutoPtr<IBackupManager> bm;
             Elastos::GetServiceManager((IServiceManager**)&sm);
             assert(sm != NULL);
-	        sm->GetService(String("Context.BACKUP_SERVICE"),
-	                (IInterface**)(IBackupManager**)&bm);
+            sm->GetService(String("Context.BACKUP_SERVICE"),
+                    (IInterface**)(IBackupManager**)&bm);
             String appCName;
             app->mInfo->GetCapsuleName(&appCName);
             bm->AgentDisconnected(appCName);
@@ -9472,23 +9473,27 @@ List<AutoPtr<IIntent> >* CActivityManagerService::GetStickiesLocked(
     /* [in] */ IIntentFilter* filter,
     /* [in] */ List<AutoPtr<IIntent> >* cur)
 {
-//    final ContentResolver resolver = mContext.getContentResolver();
-//    final ArrayList<Intent> list = mStickyBroadcasts.get(action);
-//    if (list == null) {
-//        return cur;
-//    }
-//    int N = list.size();
-//    for (int i=0; i<N; i++) {
-//        Intent intent = list.get(i);
-//        if (filter.match(resolver, intent, true, TAG) >= 0) {
-//            if (cur == null) {
-//                cur = new ArrayList<Intent>();
-//            }
-//            cur.add(intent);
-//        }
-//    }
-//    return cur;
-    return NULL;
+    AutoPtr<IContentResolver> resolver;
+    List<AutoPtr<IIntent> >* list = NULL;
+    sSystemContext->GetContentResolver((IContentResolver**)&resolver);
+    HashMap<String, List<AutoPtr<IIntent> >*>::Iterator ite = mStickyBroadcasts.Find(action);
+    if(ite != mStickyBroadcasts.End()) list = ite->mSecond;
+    if (list == NULL) {
+        return cur;
+    }
+    List<AutoPtr<IIntent> >::Iterator it = list->Begin();
+    for (; it != list->End(); ++it) {
+       AutoPtr<IIntent> intent = *it;
+       Int32 result;
+       filter->MatchEx(resolver, intent, true, TAG, &result);
+       if (result >= 0) {
+           if (cur == NULL) {
+               cur = new List<AutoPtr<IIntent> >();
+           }
+           cur->PushBack(intent);
+       }
+    }
+    return cur;
 }
 
 ECode CActivityManagerService::ScheduleBroadcastsLocked()
@@ -9521,129 +9526,133 @@ ECode CActivityManagerService::RegisterReceiver(
     /* [in] */ const String& permission,
     /* [out] */ IIntent** intent)
 {
-//    synchronized(this) {
-//        ProcessRecord callerApp = null;
-//        if (caller != null) {
-//            callerApp = getRecordForAppLocked(caller);
-//            if (callerApp == null) {
-//                throw new SecurityException(
-//                        "Unable to find app for caller " + caller
-//                        + " (pid=" + Binder.getCallingPid()
-//                        + ") when registering receiver " + receiver);
-//            }
-//        }
-//
-//        List allSticky = null;
-//
-//        // Look for any matching sticky broadcasts...
-//        Iterator actions = filter.actionsIterator();
-//        if (actions != null) {
-//            while (actions.hasNext()) {
-//                String action = (String)actions.next();
-//                allSticky = getStickiesLocked(action, filter, allSticky);
-//            }
-//        } else {
-//            allSticky = getStickiesLocked(null, filter, allSticky);
-//        }
-//
-//        // The first sticky in the list is returned directly back to
-//        // the client.
-//        Intent sticky = allSticky != null ? (Intent)allSticky.get(0) : null;
-//
-//        if (DEBUG_BROADCAST) Slog.v(TAG, "Register receiver " + filter
-//                + ": " + sticky);
-//
-//        if (receiver == null) {
-//            return sticky;
-//        }
-//
-//        ReceiverList rl
-//            = (ReceiverList)mRegisteredReceivers.get(receiver.asBinder());
-//        if (rl == null) {
-//            rl = new ReceiverList(this, callerApp,
-//                    Binder.getCallingPid(),
-//                    Binder.getCallingUid(), receiver);
-//            if (rl.app != null) {
-//                rl.app.receivers.add(rl);
-//            } else {
-//                try {
-//                    receiver.asBinder().linkToDeath(rl, 0);
-//                } catch (RemoteException e) {
-//                    return sticky;
-//                }
-//                rl.linkedToDeath = true;
-//            }
-//            mRegisteredReceivers.put(receiver.asBinder(), rl);
-//        }
-//        BroadcastFilter bf = new BroadcastFilter(filter, rl, permission);
-//        rl.add(bf);
-//        if (!bf.debugCheck()) {
-//            Slogger::W(TAG, "==> For Dynamic broadast");
-//        }
-//        mReceiverResolver.addFilter(bf);
-//
-//        // Enqueue broadcasts for all existing stickies that match
-//        // this filter.
-//        if (allSticky != null) {
-//            ArrayList receivers = new ArrayList();
-//            receivers.add(bf);
-//
-//            int N = allSticky.size();
-//            for (int i=0; i<N; i++) {
-//                Intent intent = (Intent)allSticky.get(i);
-//                BroadcastRecord r = new BroadcastRecord(intent, null,
-//                        null, -1, -1, null, receivers, null, 0, null, null,
-//                        false, true, true);
-//                if (mParallelBroadcasts.size() == 0) {
-//                    scheduleBroadcastsLocked();
-//                }
-//                mParallelBroadcasts.add(r);
-//            }
-//        }
-//
-//        return sticky;
-//    }
-    return E_NOT_IMPLEMENTED;
+    Mutex::Autolock lock(&_m_syncLock); 
+    
+    ProcessRecord* callerApp = NULL;
+    if (caller != NULL) {
+       callerApp = GetProcessRecordForAppLocked(caller);
+       if (callerApp == NULL) {
+           // throw new SecurityException(
+           //         "Unable to find app for caller " + caller
+           //         + " (pid=" + Binder.getCallingPid()
+           //         + ") when registering receiver " + receiver);
+            return E_SECURITY_EXCEPTION;
+       }
+    }
+
+    List<AutoPtr<IIntent> >* allSticky = NULL;
+
+    // Look for any matching sticky broadcasts...
+    Int32 count ;
+    filter->CountActions(&count);
+    if(count > 0){
+        for(Int32 i = 0; i < count; i++){
+            String action;
+            filter->GetAction(i, &action);
+            allSticky = GetStickiesLocked(action, filter, allSticky);
+        }
+    } 
+    else {
+        allSticky = GetStickiesLocked(String(NULL), filter, allSticky);
+    }
+
+    // The first sticky in the list is returned directly back to
+    // the client.
+    AutoPtr<IIntent> sticky = allSticky != NULL ? (*allSticky)[0] : NULL;
+
+    //if (DEBUG_BROADCAST) Slog.v(TAG, "Register receiver " + filter + ": " + sticky);
+
+    if (receiver == NULL) {
+        *intent = sticky;
+        if (*intent) (*intent)->AddRef();
+        return NOERROR;
+    }
+    ReceiverList* rl = NULL;
+
+    rl = mRegisteredReceivers[receiver];
+    if (rl == NULL) {
+       rl = new ReceiverList(this, callerApp,
+               Binder::GetCallingPid(),
+               Binder::GetCallingUid(), receiver);
+       if (rl->mApp != NULL) {
+           rl->mApp->mReceivers.Insert(rl);
+       } 
+       else {
+           // try {
+           //     receiver.asBinder().linkToDeath(rl, 0);
+           // } catch (RemoteException e) {
+           //     return sticky;
+           // }
+           // rl.linkedToDeath = true;
+       }
+       mRegisteredReceivers[receiver] = rl;
+    }
+
+    BroadcastFilter* bf = new BroadcastFilter(filter, rl, permission);
+    rl->PushBack(bf);
+    //if (!bf.debugCheck()) {
+    //    Slogger::W(TAG, "==> For Dynamic broadast");
+    //}
+    mReceiverResolver->AddFilter(bf);
+    // Enqueue broadcasts for all existing stickies that match
+    // this filter.
+    if (allSticky != NULL) {
+        List<AutoPtr<IObject> >* receivers = new List<AutoPtr<IObject> >();
+        receivers->PushBack(bf);
+        List<AutoPtr<IIntent> >::Iterator it = allSticky->Begin();
+        for (; it != allSticky->End(); ++it) {
+            AutoPtr<IIntent> intent = *it;
+            BroadcastRecord* r = new BroadcastRecord(intent, NULL,
+                   String(NULL), -1, -1, String(NULL), receivers, NULL, 0,
+                   String(NULL), NULL, false, true, true);
+            if (mParallelBroadcasts.GetSize() == 0) {
+               ScheduleBroadcastsLocked();
+            }
+            mParallelBroadcasts.PushBack(r);
+        }
+    }
+    *intent = sticky;
+    if (*intent) (*intent)->AddRef();
+    return NOERROR;
 }
 
 ECode CActivityManagerService::UnregisterReceiver(
     /* [in] */ IIntentReceiver* receiver)
 {
-//    if (DEBUG_BROADCAST) Slog.v(TAG, "Unregister receiver: " + receiver);
-//
-//    boolean doNext = false;
-//
-//    synchronized(this) {
-//        ReceiverList rl
-//            = (ReceiverList)mRegisteredReceivers.get(receiver.asBinder());
-//        if (rl != null) {
-//            if (rl.curBroadcast != null) {
-//                BroadcastRecord r = rl.curBroadcast;
-//                doNext = finishReceiverLocked(
-//                    receiver.asBinder(), r.resultCode, r.resultData,
-//                    r.resultExtras, r.resultAbort, true);
-//            }
-//
-//            if (rl.app != null) {
-//                rl.app.receivers.remove(rl);
-//            }
-//            removeReceiverLocked(rl);
-//            if (rl.linkedToDeath) {
-//                rl.linkedToDeath = false;
-//                rl.receiver.asBinder().unlinkToDeath(rl, 0);
-//            }
-//        }
-//    }
-//
-//    if (!doNext) {
-//        return;
-//    }
-//
-//    final long origId = Binder.clearCallingIdentity();
-//    processNextBroadcast(false);
-//    trimApplications();
-//    Binder.restoreCallingIdentity(origId);
-    return E_NOT_IMPLEMENTED;
+    Boolean doNext = false;
+    {
+        Mutex::Autolock lock(&_m_syncLock);
+        ReceiverList* rl = NULL;
+        HashMap<AutoPtr<IIntentReceiver>, ReceiverList*>::Iterator ite = \
+                mRegisteredReceivers.Find(receiver);
+        if(ite != mRegisteredReceivers.End()){
+            rl = ite->mSecond;
+        }
+
+        if(rl != NULL){
+            if(rl->mCurBroadcast != NULL){
+                BroadcastRecord* r = rl->mCurBroadcast;
+                doNext = FinishReceiverLocked(receiver, r->mResultCode, r->mResultData,
+                r->mResultExtras, r->mResultAbort, TRUE);
+            }
+            if(rl->mApp != NULL){
+               rl->mApp->mReceivers.Erase(rl);
+            }
+            RemoveReceiverLocked(rl);
+    //            if (rl.linkedToDeath) {
+    //                rl.linkedToDeath = false;
+    //                rl.receiver.asBinder().unlinkToDeath(rl, 0);
+    //            }
+        }
+    }
+    if(!doNext){
+        return NOERROR;
+    }
+    //final long origId = Binder.clearCallingIdentity();
+    ProcessNextBroadcast(FALSE);
+    TrimApplications();
+    //Binder.restoreCallingIdentity(origId);
+    return NOERROR;
 }
 
 void CActivityManagerService::RemoveReceiverLocked(
@@ -9817,8 +9826,8 @@ ECode CActivityManagerService::BroadcastIntentLocked(
 
     // Add to the sticky list if requested.
     if (sticky) {
-	Int32 permission;
-	CheckPermission("elastos.permission.BROADCAST_STICKY"/*android.Manifest.permission.BROADCAST_STICKY*/,
+    Int32 permission;
+    CheckPermission("elastos.permission.BROADCAST_STICKY"/*android.Manifest.permission.BROADCAST_STICKY*/,
                 callingPid, callingUid, &permission);
         if (permission != CapsuleManager_PERMISSION_GRANTED) {
             StringBuffer msg;
@@ -9954,7 +9963,7 @@ ECode CActivityManagerService::BroadcastIntentLocked(
             mParallelBroadcasts.PushBack(r);
             ScheduleBroadcastsLocked();
         }
-        registeredReceivers = NULL;
+        registeredReceivers->Clear();
         NR = 0;
     }
 
@@ -10283,8 +10292,9 @@ Boolean CActivityManagerService::FinishReceiverLocked(
     if (r->mCurApp != NULL) {
         r->mCurApp->mCurReceiver = NULL;
     }
-    if (r->mCurFilter != NULL) {
+    if ((r->mCurFilter != NULL)&&(r->mCurFilter->mReceiverList != NULL)){
         r->mCurFilter->mReceiverList->mCurBroadcast = NULL;
+        r->mCurFilter->mReceiverList = NULL;
     }
     r->mCurFilter = NULL;
     r->mCurApp = NULL;
@@ -10687,7 +10697,7 @@ void CActivityManagerService::AddBroadcastToHistoryLocked(
 ECode CActivityManagerService::ProcessNextBroadcast(
     /* [in] */ Boolean fromMsg)
 {
-    Mutex::Autolock lock(_m_syncLock);
+    Mutex::Autolock lock(&_m_syncLock);
 
     BroadcastRecord* r;
 

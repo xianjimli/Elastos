@@ -17,6 +17,11 @@ class BroadcastFilter : public ElRefBase, public IObject
 public:
     BroadcastFilter();
 
+    BroadcastFilter(
+        /* [in] */ IIntentFilter* intentFilter,
+        /* [in] */ ReceiverList* receiverList,
+        /* [in] */ const String& requiredPermission);
+
     ~BroadcastFilter();
 
     CARAPI_(PInterface) Probe(

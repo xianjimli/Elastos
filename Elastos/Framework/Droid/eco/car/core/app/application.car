@@ -28,5 +28,8 @@ module
             [in] IConfiguration* newConfig);
 
         OnLowMemory();
+
+        Attach(
+            [in] IContext* context);
     }
 }

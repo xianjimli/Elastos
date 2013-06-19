@@ -44,13 +44,16 @@ public:
 
     CARAPI OnLowMemory();
 
+    CARAPI Attach(
+        /* [in] */ IContext* context);
+
     // ------------------ Internal API ------------------
 
     /**
      * @hide
      */
-    /* package */ CARAPI_(Void) Attach(
-        /* [in] */ IContext* context);
+    /* package  CARAPI_(Void) Attach(*/
+        /* [in]  IContext* context);*/
 };
 
 #endif //__CAPPLICATION_H__

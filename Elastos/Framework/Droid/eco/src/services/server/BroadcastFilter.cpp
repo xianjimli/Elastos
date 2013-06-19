@@ -10,6 +10,16 @@ BroadcastFilter::BroadcastFilter()
     CIntentFilter::New((IIntentFilter**)&mFilter);
 }
 
+BroadcastFilter::BroadcastFilter(
+    /* [in] */ IIntentFilter* intentFilter,
+    /* [in] */ ReceiverList* receiverList,
+    /* [in] */ const String& requiredPermission) :
+    mReceiverList(receiverList),
+    mRequiredPermission(requiredPermission)
+{
+    CIntentFilter::New(intentFilter,(IIntentFilter**)&mFilter);
+}
+
 BroadcastFilter::~BroadcastFilter()
 {}
 

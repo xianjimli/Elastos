@@ -2417,3 +2417,28 @@ ECode Activity::SetResumed(
     mResumed = resumed;
     return NOERROR;
 }
+
+ECode Activity::RegisterReceiver(
+    /* [in] */ IBroadcastReceiver* receiver,
+    /* [in] */ IIntentFilter* filter,
+    /* [out] */ IIntent** intent)
+{
+    return mBase->RegisterReceiver(receiver, filter, intent);
+}
+
+ECode Activity::RegisterReceiverEx(
+    /* [in] */ IBroadcastReceiver* receiver,
+    /* [in] */ IIntentFilter* filter,
+    /* [in] */ const String& broadcastPermission,
+    /* [in] */ IApartment* scheduler,
+    /* [out] */ IIntent** intent)
+{
+    return mBase->RegisterReceiverEx(receiver, filter, 
+        broadcastPermission, scheduler, intent);
+}
+
+ECode Activity::UnregisterReceiver(
+    /* [in] */ IBroadcastReceiver* receiver)
+{
+    return mBase->UnregisterReceiver(receiver);
+}

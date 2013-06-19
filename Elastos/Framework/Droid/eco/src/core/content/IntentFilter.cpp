@@ -728,6 +728,25 @@ String IntentFilter::GetCategory(
     return String(NULL);
 }
 
+ECode IntentFilter::GetCategories(
+    /* [out, callee] */ ArrayOf<String>** categories)
+{
+    if (mCategories == NULL) {
+        *categories = NULL;
+        return NOERROR;
+    }
+
+    Int32 size = mCategories->GetSize();
+    *categories = ArrayOf<String>::Alloc(size);
+
+    List<String>::Iterator it = mCategories->Begin();
+    Int32 i = 0;
+    for (; it != mCategories->End(); ++it, ++i) {
+        (**categories)[i] = *it;
+    }
+    return NOERROR;
+}
+
 /**
  * Is the given category included in the filter?
  *
@@ -1018,82 +1037,121 @@ ECode IntentFilter::ReadFromXml(
 ECode IntentFilter::ReadFromParcel(
     /* [in] */ IParcel *source)
 {
-//    mActions = new ArrayList<String>();
-//    source.readStringList(mActions);
-//    if (source.readInt() != 0) {
-//        mCategories = new ArrayList<String>();
-//        source.readStringList(mCategories);
-//    }
-//    if (source.readInt() != 0) {
-//        mDataSchemes = new ArrayList<String>();
-//        source.readStringList(mDataSchemes);
-//    }
-//    if (source.readInt() != 0) {
-//        mDataTypes = new ArrayList<String>();
-//        source.readStringList(mDataTypes);
-//    }
-//    int N = source.readInt();
-//    if (N > 0) {
-//        mDataAuthorities = new ArrayList<AuthorityEntry>();
-//        for (int i=0; i<N; i++) {
-//            mDataAuthorities.add(new AuthorityEntry(source));
-//        }
-//    }
-//    N = source.readInt();
-//    if (N > 0) {
-//        mDataPaths = new ArrayList<PatternMatcher>();
-//        for (int i=0; i<N; i++) {
-//            mDataPaths.add(new PatternMatcher(source));
-//        }
-//    }
-//    mPriority = source.readInt();
-//    mHasPartialTypes = source.readInt() > 0;
-    return E_NOT_IMPLEMENTED;
+    Int32 count;
+    String str;
+    source->ReadInt32(&count);
+    if(count > 0){
+        for(Int32 i = 0; i < count; i++){
+            source->ReadString(&str);
+            mActions->PushBack(str);
+        }
+    }
+
+    source->ReadInt32(&count);
+    if(count > 0){
+        for(Int32 i = 0; i < count; i++){
+            source->ReadString(&str);
+            mCategories->PushBack(str);
+        }
+    }
+
+    source->ReadInt32(&count);
+    if(count > 0){
+        for(Int32 i = 0; i < count; i++){
+            source->ReadString(&str);
+            mDataSchemes->PushBack(str);
+        }
+    }
+
+    source->ReadInt32(&count);
+    if(count > 0){
+        for(Int32 i = 0; i < count; i++){
+            source->ReadString(&str);
+            mDataTypes->PushBack(str);
+        }
+    }
+
+    source->ReadInt32(&count);
+    if(count > 0){
+        for(Int32 i = 0; i < count; i++){
+            AutoPtr<IAuthorityEntry> ae;
+            source->ReadInterfacePtr((Handle32*)&ae);
+            mDataAuthorities->PushBack(ae);
+        }
+    }
+
+    source->ReadInt32(&count);
+    if(count > 0){
+        for(Int32 i = 0; i < count; i++){
+            IPatternMatcher* pm;
+            source->ReadInterfacePtr((Handle32*)&pm);
+            mDataPaths->PushBack(pm);
+        }
+    }
+
+    source->ReadInt32(&mPriority);
+    source->ReadBoolean(&mHasPartialTypes);
+    return NOERROR;
 }
 
 ECode IntentFilter::WriteToParcel(
     /* [in] */ IParcel *dest)
 {
-//    dest.writeStringList(mActions);
-//    if (mCategories != null) {
-//        dest.writeInt(1);
-//        dest.writeStringList(mCategories);
-//    } else {
-//        dest.writeInt(0);
-//    }
-//    if (mDataSchemes != null) {
-//        dest.writeInt(1);
-//        dest.writeStringList(mDataSchemes);
-//    } else {
-//        dest.writeInt(0);
-//    }
-//    if (mDataTypes != null) {
-//        dest.writeInt(1);
-//        dest.writeStringList(mDataTypes);
-//    } else {
-//        dest.writeInt(0);
-//    }
-//    if (mDataAuthorities != null) {
-//        final int N = mDataAuthorities.size();
-//        dest.writeInt(N);
-//        for (int i=0; i<N; i++) {
-//            mDataAuthorities.get(i).writeToParcel(dest);
-//        }
-//    } else {
-//        dest.writeInt(0);
-//    }
-//    if (mDataPaths != null) {
-//        final int N = mDataPaths.size();
-//        dest.writeInt(N);
-//        for (int i=0; i<N; i++) {
-//            mDataPaths.get(i).writeToParcel(dest, 0);
-//        }
-//    } else {
-//        dest.writeInt(0);
-//    }
-//    dest.writeInt(mPriority);
-//    dest.writeInt(mHasPartialTypes ? 1 : 0);
-    return E_NOT_IMPLEMENTED;
+    Int32 count = CountActions();
+    dest->WriteInt32(count);
+    List<String>::Iterator it = mActions->Begin();
+    for (; it != mActions->End(); ++it) {
+        dest->WriteString(*it);
+    }
+
+    count = CountCategories();
+    dest->WriteInt32(count);
+    if(count > 0){
+        List<String>::Iterator it = mCategories->Begin();
+        for (; it != mCategories->End(); ++it) {
+            dest->WriteString(*it);
+        }
+    }
+
+    count = CountDataSchemes();
+    dest->WriteInt32(count);
+    if(count > 0){
+        List<String>::Iterator it = mDataSchemes->Begin();
+        for (; it != mDataSchemes->End(); ++it) {
+            dest->WriteString(*it);
+        }
+    }
+
+    count = CountDataTypes();
+    dest->WriteInt32(count);
+    if(count > 0){
+        List<String>::Iterator it = mDataTypes->Begin();
+        for (; it != mDataTypes->End(); ++it) {
+            dest->WriteString(*it);
+        }
+    }
+
+    count = CountDataAuthorities();
+    dest->WriteInt32(count);
+    if(count > 0){
+        List< AutoPtr<IAuthorityEntry> >::Iterator it = mDataAuthorities->Begin();
+        for (; it != mDataAuthorities->End(); ++it) {
+            dest->WriteInterfacePtr(*it);
+        }
+    }
+
+    count = CountDataPaths();
+    dest->WriteInt32(count);
+    if(count > 0){
+        List< AutoPtr<IPatternMatcher> >::Iterator it = mDataPaths->Begin();
+        for (; it != mDataPaths->End(); ++it) {
+            dest->WriteInterfacePtr(*it);
+        }
+    }
+
+    dest->WriteInt32(mPriority);
+    dest->WriteBoolean(mHasPartialTypes);
+    return NOERROR;
 }
 
 ECode IntentFilter::Init(
@@ -1111,9 +1169,62 @@ ECode IntentFilter::Init(
 }
 
 ECode IntentFilter::Init(
-    /* [in] */ IIntentFilter* o)
+    /* [in] */ IIntentFilter* i)
 {
-    return E_NOT_IMPLEMENTED;
+    IntentFilter* o = (IntentFilter*)i;
+    mPriority = o->mPriority;
+
+    Int32 count = 0;
+    i->CountActions(&count);
+    for(int j = 0; j < count; j++){
+        String str;
+        i->GetAction(j, &str);
+        mActions->PushBack(str);
+    }
+    i->CountCategories(&count);
+    if(count > 0){
+        for(int j = 0;j < count; j++){
+            String str;
+            i->GetCategory(j, &str);
+            mCategories->PushBack(str);
+        }
+    }
+    i->CountDataTypes(&count);
+    if(count > 0){
+        for(int j = 0;j < count; j++){
+            String str;
+            i->GetDataType(j, &str);
+            mDataTypes->PushBack(str);
+        }
+    }
+    i->CountDataSchemes(&count);
+    if(count > 0){
+        for(int j = 0;j < count; j++){
+            String str;
+            i->GetDataScheme(j, &str);
+            mDataSchemes->PushBack(str);
+        }
+    }
+    i->CountDataAuthorities(&count);
+    if(count > 0){
+        for(int j = 0;j < count; j++){
+            AutoPtr<IAuthorityEntry> ae;
+            i->GetDataAuthority(j, (IAuthorityEntry**)&ae);
+            mDataAuthorities->PushBack(ae);
+        }
+    }
+    i->CountDataPaths(&count);
+    if(count > 0){
+        for(int j = 0;j < count; j++){
+            AutoPtr<IPatternMatcher> pm;
+            i->GetDataPath(j, (IPatternMatcher**)&pm);
+            mDataPaths->PushBack(pm);
+        }
+    }
+
+    mHasPartialTypes = o->mHasPartialTypes;
+
+    return NOERROR;
 }
 
 Boolean IntentFilter::FindMimeType(

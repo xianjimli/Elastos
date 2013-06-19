@@ -7,6 +7,7 @@
 #include "app/CApplicationApartment.h"
 #include "content/CApplicationInfo.h"
 #include "content/CCompatibilityInfo.h"
+#include "content/CInnerReceiver.h"
 #include <elastos/HashMap.h>
 #include <elastos/Mutex.h>
 #include <elastos/AutoPtr.h>
@@ -23,21 +24,6 @@ public:
     class ReceiverDispatcher
     {
     public:
-        class InnerReceiver : public IIntentReceiver
-        {
-        public:
-            CARAPI PerformReceive(
-                /* [in] */ IIntent* intent,
-                /* [in] */ Int32 resultCode,
-                /* [in] */ const String& data,
-                /* [in] */ IBundle* extras,
-                /* [in] */ Boolean ordered,
-                /* [in] */ Boolean sticky);
-
-        private:
-            ReceiverDispatcher* mDispatcher;
-        };
-
         class Args
         {
         public:
@@ -67,6 +53,14 @@ public:
 
         CARAPI HandleReceive(
             /* [in] */ Args* args);
+
+        CARAPI GetIIntentReceiver(
+            /* [out] */ IIntentReceiver** ir);
+
+        CARAPI Validate(
+           /* [in] */ IContext* context,
+           /* [in] */ IApartment* apartment);
+        
 
     private:
         AutoPtr<IIntentReceiver> mIIntentReceiver;
@@ -109,12 +103,12 @@ public:
         ServiceDispatcher(
            /* [in] */ IServiceConnection* conn,
            /* [in] */ IContext* context,
-           /* [in] */ IApplicationApartment* apartment,
+           /* [in] */ IApartment* apartment,
            /* [in] */ Int32 flags);
 
         CARAPI Validate(
            /* [in] */ IContext* context,
-           /* [in] */ IApplicationApartment* apartment);
+           /* [in] */ IApartment* apartment);
 
         CARAPI_(void) DoForget();
 
@@ -144,7 +138,7 @@ public:
         AutoPtr<CInnerConnection> mIServiceConnection;
         AutoPtr<IServiceConnection> mConnection;
         AutoPtr<IContext> mContext;
-        AutoPtr<IApplicationApartment> mAppApartment;
+        AutoPtr<IApartment> mApartment;
 //            private final ServiceConnectionLeaked mLocation;
         Int32 mFlags;
         Boolean mDied;
@@ -203,10 +197,24 @@ public:
         /* [in] */ const String& who,
         /* [in] */ const String& what);
 
+    CARAPI ForgetReceiverDispatcher(
+        /* [in] */ IContext* context,
+        /* [in] */ IBroadcastReceiver* r,
+        /* [out] */ IIntentReceiver** ir);
+
+    CARAPI GetReceiverDispatcher(
+        /* [in] */ IBroadcastReceiver* c,
+        /* [in] */ IContext* context,
+        /* [in] */ IApartment* handler,
+        /* [in] */ IInstrumentation* instrumentation,
+        /* [in] */ Boolean registered,
+        /* [out] */ IIntentReceiver** ir);
+
+
     CARAPI_(IServiceConnectionInner*) GetServiceDispatcher(
         /* [in] */ IServiceConnection* c,
         /* [in] */ IContext* context,
-        /* [in] */ IApplicationApartment* handler,
+        /* [in] */ IApartment* handler,
         /* [in] */ Int32 flags);
 
     CARAPI_(IServiceConnectionInner*) ForgetServiceDispatcher(
@@ -233,6 +241,11 @@ private:
     AutoPtr<IApplication> mApplication;
 
     Mutex mServicesLock;
+    Mutex mReceiverLock;
+    Map<AutoPtr<IContext>,
+        Map<AutoPtr<IBroadcastReceiver>, ReceiverDispatcher*>* > mReceivers;
+    Map<AutoPtr<IContext>,
+        Map<AutoPtr<IBroadcastReceiver>, ReceiverDispatcher*>* > mUnregisteredReceivers;
     Map<AutoPtr<IContext>,
         Map<AutoPtr<IServiceConnection>, ServiceDispatcher*>* > mServices;
     Map<AutoPtr<IContext>,

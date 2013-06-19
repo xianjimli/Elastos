@@ -428,6 +428,7 @@ module
     interface IServiceConnection;
     interface IUri;
     interface IApplicationApartment;
+    interface IBroadcastReceiver;
 
     /*
      * context related
@@ -985,7 +986,22 @@ module
             [in] String toCapsule,
             [in] IUri* uri,
             [in] Int32 modeFlags);
-    }
+
+        RegisterReceiver(
+            [in] IBroadcastReceiver* receiver,
+            [in] IIntentFilter* filter,
+            [out] IIntent** intent);
+
+        RegisterReceiverEx(
+            [in] IBroadcastReceiver* receiver,
+            [in] IIntentFilter* filter,
+            [in] String broadcastPermission,
+            [in] IApartment* scheduler,
+            [out] IIntent** intent);
+
+        UnregisterReceiver(
+            [in] IBroadcastReceiver* receiver);
+        }
 
     interface IContextImpl {
         GetApplicationApartment(

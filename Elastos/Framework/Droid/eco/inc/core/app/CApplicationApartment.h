@@ -389,6 +389,8 @@ public:
         /* [in] */ LoadedCap* capInfo,
         /* [out] */ CResources** res);
 
+    CARAPI_(AutoPtr<IApartment>) GetApartment();
+
     CARAPI_(LoadedCap*) GetCapsuleInfo(
         /* [in] */ const String& capsuleName,
         /* [in] */ Int32 flags);
