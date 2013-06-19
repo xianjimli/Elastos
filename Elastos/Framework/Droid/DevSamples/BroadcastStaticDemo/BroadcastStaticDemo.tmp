@@ -1,0 +1,18 @@
+module BroadcastStaticDemo.eco
+{
+    importlib("Elastos.Framework.Core.eco");
+
+    [
+
+    ]
+    class CActivityOne {
+        interface IActivity;
+    }
+
+    [
+
+    ]
+    class CBroadcastReceiverOne {
+        interface IBroadcastReceiver;
+    }
+}
