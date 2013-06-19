@@ -19,6 +19,13 @@ class ReceiverList : public List<BroadcastFilter*>
 public:
     ReceiverList();
 
+    ReceiverList(
+        /* [in] */ IActivityManager* owner,
+        /* [in] */ ProcessRecord* callerApp,
+        /* [in] */ Int32 pid,
+        /* [in] */ Int32 uid,
+        /* [in] */ IIntentReceiver* receiver);
+
 public:
     AutoPtr<IActivityManager> mOwner;
     AutoPtr<IIntentReceiver> mReceiver;

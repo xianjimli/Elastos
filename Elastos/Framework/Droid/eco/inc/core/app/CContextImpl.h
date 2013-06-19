@@ -739,6 +739,22 @@ public:
         /* [in] */ const String& who,
         /* [in] */ const String& what);
 
+    CARAPI RegisterReceiver(
+        /* [in] */ IBroadcastReceiver* receiver,
+        /* [in] */ IIntentFilter* filter,
+        /* [out] */ IIntent** intent);
+
+    CARAPI RegisterReceiverEx(
+        /* [in] */ IBroadcastReceiver* receiver,
+        /* [in] */ IIntentFilter* filter,
+        /* [in] */ const String& broadcastPermission,
+        /* [in] */ IApartment* scheduler,
+        /* [out] */ IIntent** intent);
+
+    CARAPI UnregisterReceiver(
+        /* [in] */ IBroadcastReceiver* receiver);
+
+
 private:
     CARAPI_(AutoPtr<IClipboardManager>) GetClipboardManager();
 
@@ -767,6 +783,14 @@ private:
         /* [in] */ Boolean selfToo,
         /* [in] */ Int32 uid,
         /* [in] */ CString message);
+
+    CARAPI RegisterReceiverInternal(
+        /* [in] */ IBroadcastReceiver* receiver,
+        /* [in] */ IIntentFilter* filter,
+        /* [in] */ const String& broadcastPermission,
+        /* [in] */ IApartment* scheduler,
+        /* [in] */ IContext* context,
+        /* [out] */ IIntent** intent);
 
 private:
     static const char* TAG;

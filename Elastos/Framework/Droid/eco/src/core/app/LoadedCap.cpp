@@ -3,64 +3,28 @@
 #include "app/ActivityManagerNative.h"
 #include "app/CContextImpl.h"
 #include "app/CInnerConnection.h"
+#include "content/CInnerReceiver.h"
 #include "os/CClassLoader.h"
 #include <Slogger.h>
 #include <StringBuffer.h>
 
 using namespace Elastos::Utility::Logging;
 
-ECode
-LoadedCap::ReceiverDispatcher::
-InnerReceiver::PerformReceive(
-    /* [in] */ IIntent* intent,
-    /* [in] */ Int32 resultCode,
-    /* [in] */ const String& data,
-    /* [in] */ IBundle* extras,
-    /* [in] */ Boolean ordered,
-    /* [in] */ Boolean sticky)
-{
-    if (CApplicationApartment::DEBUG_BROADCAST) {
-        Int32 seq = -1;
-        intent->GetInt32Extra(String("seq"), -1, &seq);
-        String action;
-        intent->GetAction(&action);
-        Slogger::I(CApplicationApartment::TAG,
-                StringBuffer("Receiving broadcast ") + action +
-                " seq=" + seq + " to " + (Int32)mDispatcher);
-    }
-    if (mDispatcher != NULL) {
-        return mDispatcher->PerformReceive(intent, resultCode, data, extras,
-                ordered, sticky);
-    }
-    else {
-        // The activity manager dispatched a broadcast to a registered
-        // receiver in this process, but before it could be delivered the
-        // receiver was unregistered.  Acknowledge the broadcast on its
-        // behalf so that the system's broadcast sequence can continue.
-        if (CApplicationApartment::DEBUG_BROADCAST) {
-            Slogger::I(CApplicationApartment::TAG,
-                "Finishing broadcast to unregistered receiver");
-        }
-        AutoPtr<IActivityManager> mgr;
-        ActivityManagerNative::GetDefault((IActivityManager**)&mgr);
-        ECode ec = mgr->FinishReceiver((IBinder*)(IIntentReceiver*)this,
-                resultCode, data, extras, FALSE);
-        if (FAILED(ec)) {
-            Slogger::W(CApplicationApartment::TAG,
-                    "Couldn't finish broadcast to unregistered receiver");
-        }
-    }
-    return NOERROR;
-}
 
 LoadedCap::ReceiverDispatcher::ReceiverDispatcher(
     /* [in] */ IBroadcastReceiver* receiver,
     /* [in] */ IContext* context,
     /* [in] */ IApartment* apartment,
     /* [in] */ IInstrumentation* instrumentation,
-    /* [in] */ Boolean registered) :
-    mApartment(apartment)
-{}
+    /* [in] */ Boolean registered) 
+{
+    CInnerReceiver::New((Handle32)this, !registered, (IIntentReceiver**)&mIIntentReceiver);
+    mReceiver = receiver;
+    mContext = context;
+    mRegistered = registered;
+    mApartment = apartment;
+    mInstrumentation = instrumentation;
+}
 
 ECode LoadedCap::ReceiverDispatcher::PerformReceive(
     /* [in] */ IIntent* intent,
@@ -79,7 +43,6 @@ ECode LoadedCap::ReceiverDispatcher::PerformReceive(
                 StringBuffer("Enqueueing broadcast ") + action +
                 " seq=" + seq + " to " + (Int32)(IBroadcastReceiver*)mReceiver);
     }
-
     ECode (STDCALL LoadedCap::ReceiverDispatcher::*pHandlerFunc)(
             Args* args);
     pHandlerFunc = &LoadedCap::ReceiverDispatcher::HandleReceive;
@@ -189,6 +152,27 @@ ECode LoadedCap::ReceiverDispatcher::HandleReceive(
     return ec;
 }
 
+ECode LoadedCap::ReceiverDispatcher::GetIIntentReceiver(
+    /* [out] */ IIntentReceiver** ir)
+{
+    *ir = mIIntentReceiver;
+    if (*ir != NULL) (*ir)->AddRef();
+    return NOERROR;
+}
+
+ECode LoadedCap::ReceiverDispatcher::Validate(
+   /* [in] */ IContext* context,
+   /* [in] */ IApartment* apartment)
+{
+    if (mContext != context) {
+        return E_INVALID_ARGUMENT;
+    }
+    if (mApartment != apartment) {
+        return E_INVALID_ARGUMENT;
+    }
+    return NOERROR;
+}
+
 
 LoadedCap::ServiceDispatcher::RunConnection::RunConnection(
    /* [in] */ ServiceDispatcher* serviceDispatcher,
@@ -214,14 +198,14 @@ ECode LoadedCap::ServiceDispatcher::RunConnection::Run()
 LoadedCap::ServiceDispatcher::ServiceDispatcher(
     /* [in] */ IServiceConnection* conn,
     /* [in] */ IContext* context,
-    /* [in] */ IApplicationApartment* apartment,
+    /* [in] */ IApartment* apartment,
     /* [in] */ Int32 flags)
 {
     CInnerConnection::NewByFriend((CInnerConnection**)&mIServiceConnection);
     mIServiceConnection->Init(this);
     mConnection = conn;
     mContext = context;
-    mAppApartment = apartment;
+    mApartment = apartment;
 //                mLocation = new ServiceConnectionLeaked(null);
 //                mLocation.fillInStackTrace();
     mFlags = flags;
@@ -229,7 +213,7 @@ LoadedCap::ServiceDispatcher::ServiceDispatcher(
 
 ECode LoadedCap::ServiceDispatcher::Validate(
    /* [in] */ IContext* context,
-   /* [in] */ IApplicationApartment* apartment)
+   /* [in] */ IApartment* apartment)
 {
 //                if (mContext != context) {
 //                    throw new RuntimeException(
@@ -344,7 +328,7 @@ ECode LoadedCap::ServiceDispatcher::PerformServiceConnected(
     AutoPtr<IParcel> params;
     CCallbackParcel::New((IParcel**)&params);
     params->WriteInt32((Handle32)con);
-    return ((CApplicationApartment*)mAppApartment.Get())->mApartment->PostCppCallback(
+    return mApartment->PostCppCallback(
             (Handle32)this, *(Handle32*)&pHandlerFunc, params, 0);
 }
 
@@ -671,10 +655,116 @@ ECode LoadedCap::RemoveContextRegistrations(
     return E_NOT_IMPLEMENTED;
 }
 
+
+ECode LoadedCap::ForgetReceiverDispatcher(
+    /* [in] */ IContext* context,
+    /* [in] */ IBroadcastReceiver* r,
+    /* [out] */ IIntentReceiver** ir)
+{
+    Mutex::Autolock lock(&mReceiverLock);
+    
+    LoadedCap::ReceiverDispatcher* rd =NULL;
+    Map< AutoPtr<IBroadcastReceiver>, LoadedCap::ReceiverDispatcher* >* map = NULL;
+    Map< AutoPtr<IBroadcastReceiver>,LoadedCap::ReceiverDispatcher* >* holder = NULL;
+    Map<AutoPtr<IContext>, Map<AutoPtr<IBroadcastReceiver>, ReceiverDispatcher*>* >::Iterator it = \
+            mReceivers.Find(context);
+    if (it != mReceivers.End()) map = it->mSecond;
+    if(map != NULL){
+        Map<AutoPtr<IBroadcastReceiver>, ReceiverDispatcher*>::Iterator ite = map->Find(r);
+        if (ite != map->End()) rd = ite->mSecond;
+        if(rd != NULL){
+            map->Erase(ite);
+            if (map->Begin() == map->End()) {
+                mReceivers.Erase(it);
+            }
+            Boolean b;
+            r->GetDebugUnregister(&b);
+            if(b){
+                Map<AutoPtr<IContext>,Map<AutoPtr<IBroadcastReceiver>, ReceiverDispatcher*>* >::Iterator iter = \
+                        mUnregisteredReceivers.Find(context);
+                if(iter != mUnregisteredReceivers.End()) holder = iter->mSecond;
+                if(holder == NULL){
+                    holder = new Map<AutoPtr<IBroadcastReceiver>,LoadedCap::ReceiverDispatcher* >();
+                    mUnregisteredReceivers[context] = holder;
+                }
+//             RuntimeException ex = new IllegalArgumentException(
+//                     "Originally unregistered here:");
+//             ex.fillInStackTrace();
+//             rd.setUnregisterLocation(ex);
+                (*holder)[r] = rd;
+            }
+            return rd->GetIIntentReceiver(ir);
+        }
+    }
+    Map<AutoPtr<IContext>,Map<AutoPtr<IBroadcastReceiver>, ReceiverDispatcher*>* >::Iterator iter = \
+            mUnregisteredReceivers.Find(context);
+    if(iter != mUnregisteredReceivers.End()) holder = iter->mSecond;
+    if(holder != NULL){
+        Map<AutoPtr<IBroadcastReceiver>, ReceiverDispatcher*>::Iterator ite = holder->Find(r);
+        if (ite != holder->End()) rd = ite->mSecond;
+        if (rd != NULL){
+        //         RuntimeException ex = rd.getUnregisterLocation();
+        //         throw new IllegalArgumentException(
+        //                 "Unregistering Receiver " + r
+        //                 + " that was already unregistered", ex);
+            return E_RUNTIME_EXCEPTION;
+        }
+    }
+    if(context == NULL){
+        //     throw new IllegalStateException("Unbinding Receiver " + r
+        //             + " from Context that is no longer in use: " + context);
+       return E_RUNTIME_EXCEPTION;
+    }
+    else {
+        //     throw new IllegalArgumentException("Receiver not registered: " + r);
+        return E_RUNTIME_EXCEPTION;
+    }
+}
+
+ECode LoadedCap::GetReceiverDispatcher(
+    /* [in] */ IBroadcastReceiver* r,
+    /* [in] */ IContext* context,
+    /* [in] */ IApartment* handler,
+    /* [in] */ IInstrumentation* instrumentation,
+    /* [in] */ Boolean registered,
+    /* [out] */ IIntentReceiver** ir)
+{
+    Mutex::Autolock lock(&mReceiverLock);
+    
+    LoadedCap::ReceiverDispatcher* rd = NULL;
+    Map< AutoPtr<IBroadcastReceiver>,LoadedCap::ReceiverDispatcher* >* map = NULL;
+    if(registered){
+        Map<AutoPtr<IContext>,Map<AutoPtr<IBroadcastReceiver>, ReceiverDispatcher*>* >::Iterator it =\
+            mReceivers.Find(context);
+        if(it != mReceivers.End())map = it->mSecond;
+        if(map != NULL){
+            Map<AutoPtr<IBroadcastReceiver>, ReceiverDispatcher*>::Iterator ite = NULL;
+            ite = map->Find(r);
+            if(ite != map->End())rd = ite->mSecond;
+        }
+    }
+    if(rd == NULL){
+        rd = new ReceiverDispatcher(r, context, handler, instrumentation, registered);
+        if(registered){
+            if(map == NULL){
+                map = new Map<AutoPtr<IBroadcastReceiver>,LoadedCap::ReceiverDispatcher* >();
+                mReceivers[context] = map;
+            }
+            //map[r] = rd;
+            map->Insert(Pair<AutoPtr<IBroadcastReceiver>,LoadedCap::ReceiverDispatcher* >(r,rd));
+        }
+    }
+    else {
+        FAIL_RETURN(rd->Validate(context,handler));
+    }
+    return rd->GetIIntentReceiver(ir);
+}
+
+
 IServiceConnectionInner* LoadedCap::GetServiceDispatcher(
     /* [in] */ IServiceConnection* c,
     /* [in] */ IContext* context,
-    /* [in] */ IApplicationApartment* apartment,
+    /* [in] */ IApartment* apartment,
     /* [in] */ Int32 flags)
 {
     Mutex::Autolock lock(mServicesLock);

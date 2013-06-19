@@ -160,7 +160,22 @@
         /* [in] */ Int32 pid,                                               \
         /* [in] */ Int32 uid,                                               \
         /* [in] */ Int32 modeFlags,                                         \
-        /* [out] */ Int32 * result);
+        /* [out] */ Int32 * result);                                        \
+                                                                            \
+    CARAPI RegisterReceiver(                                                \
+    /* [in] */ IBroadcastReceiver* receiver,                                \
+    /* [in] */ IIntentFilter* filter,                                       \
+    /* [out] */ IIntent** intent);                                          \
+                                                                            \
+    CARAPI UnregisterReceiver(                                              \
+    /* [in] */ IBroadcastReceiver* receiver);                               \
+                                                                            \
+    CARAPI RegisterReceiverEx(                                              \
+    /* [in] */ IBroadcastReceiver* receiver,                                \
+    /* [in] */ IIntentFilter* filter,                                       \
+    /* [in] */ const String& broadcastPermission,                           \
+    /* [in] */ IApartment* scheduler,                                       \
+    /* [out] */ IIntent** intent);
 
 
 #define ICONTEXT_METHODS_IMPL(className, superClass, overRideClass)         \
@@ -449,6 +464,32 @@ ECode className::CheckUriPermissionEx(                                      \
             uid,                                                            \
             modeFlags,                                                      \
             result);                                                        \
+}                                                                           \
+                                                                            \
+ECode className::RegisterReceiver(                                          \
+    /* [in] */ IBroadcastReceiver* receiver,                                \
+    /* [in] */ IIntentFilter* filter,                                       \
+    /* [out] */ IIntent** intent)                                           \
+{                                                                           \
+    return superClass::RegisterReceiver(receiver,filter,intent);            \
+}                                                                           \
+                                                                            \
+ECode className::UnregisterReceiver(                                        \
+    /* [in] */ IBroadcastReceiver* receiver)                                \
+{                                                                           \
+    return superClass::UnregisterReceiver(receiver);                        \
+}                                                                           \
+                                                                            \
+ECode className::RegisterReceiverEx(                                        \
+    /* [in] */ IBroadcastReceiver* receiver,                                \
+    /* [in] */ IIntentFilter* filter,                                       \
+    /* [in] */ const String& broadcastPermission,                           \
+    /* [in] */ IApartment* scheduler,                                       \
+    /* [out] */ IIntent** intent)                                           \
+{                                                                           \
+    return superClass::RegisterReceiverEx(receiver,filter,                  \
+        broadcastPermission,scheduler,intent);                              \
 }
+
 
 #endif //__CONTEXTMACRO_H__

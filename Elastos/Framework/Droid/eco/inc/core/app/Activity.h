@@ -680,6 +680,23 @@ public:
         /* [in] */ Boolean resumed);
 
 
+    CARAPI RegisterReceiver(
+        /* [in] */ IBroadcastReceiver* receiver,
+        /* [in] */ IIntentFilter* filter,
+        /* [out] */ IIntent** intent);
+
+    CARAPI RegisterReceiverEx(
+        /* [in] */ IBroadcastReceiver* receiver,
+        /* [in] */ IIntentFilter* filter,
+        /* [in] */ const String& broadcastPermission,
+        /* [in] */ IApartment* scheduler,
+        /* [out] */ IIntent** intent);
+
+    CARAPI UnregisterReceiver(
+        /* [in] */ IBroadcastReceiver* receiver);
+
+
+
 protected:
     CARAPI Finish();
 

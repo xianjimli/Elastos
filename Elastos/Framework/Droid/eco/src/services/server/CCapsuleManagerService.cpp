@@ -13307,7 +13307,7 @@ CapsuleParser::Capsule* CCapsuleManagerService::ScanCapsule(
 //        if (r != null) {
 //            if (Config.LOGD) Slog.d(TAG, "  Providers: " + r);
 //        }
-
+#endif
         //BroadcastReceiver
         List<CapsuleParser::Activity*>::Iterator bit1 = capsule->mReceivers.Begin();
         List<CapsuleParser::Activity*>::Iterator bit2 = capsule->mReceivers.End();
@@ -13330,7 +13330,6 @@ CapsuleParser::Capsule* CCapsuleManagerService::ScanCapsule(
 //        if (r != null) {
 //            if (Config.LOGD) Slog.d(TAG, "  Receivers: " + r);
 //        }
-#endif
 
         //Activity
         List<CapsuleParser::Activity*>::Iterator ait1 = capsule->mActivities.Begin();

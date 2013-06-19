@@ -353,6 +353,9 @@ public:
     CARAPI_(String) GetCategory(
         /* [in] */ Int32 index);
 
+    CARAPI GetCategories(
+        /* [out, callee] */ ArrayOf<String>** actions);
+
     /**
      * Is the given category included in the filter?
      *

@@ -2310,6 +2310,11 @@ ECode CApplicationApartment::GetTopLevelResources(
     return GetTopLevelResources(resDir, capInfo->mCompatibilityInfo.Get(), res);
 }
 
+AutoPtr<IApartment> CApplicationApartment::GetApartment()
+{
+    return mApartment;
+}
+
 LoadedCap* CApplicationApartment::GetCapsuleInfoNoCheck(
     /* [in] */ CApplicationInfo* ai)
 {

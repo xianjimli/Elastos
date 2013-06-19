@@ -81,5 +81,6 @@ SOURCES += CSyncStorageEngineHelper.cpp
 SOURCES += CSyncStorageEnginePendingOperation.cpp
 SOURCES += CSyncStorageEngineSyncHistoryItem.cpp
 SOURCES += CPeriodicSync.cpp
+SOURCES += CInnerReceiver.cpp
 
 LIBRARIES += cm/cm.lib

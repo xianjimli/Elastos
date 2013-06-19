@@ -2133,7 +2133,7 @@ ECode CContextImpl::BindService(
     AutoPtr<IServiceConnectionInner> sd;
     if (mCapsuleInfo != NULL) {
         sd = mCapsuleInfo->GetServiceDispatcher(conn, GetOuterContext(),
-                (IApplicationApartment*)(CApplicationApartment*)mApartment,
+                mApartment->GetApartment(),
                 flags);
     }
     else {
@@ -2680,6 +2680,84 @@ ECode CContextImpl::PerformFinalCleanup(
     //Slog.i(TAG, "Cleanup up context: " + this);
     ECode ec = mCapsuleInfo->RemoveContextRegistrations(GetOuterContext(), who, what);
     return ec;
+}
+
+ECode CContextImpl::RegisterReceiver(
+    /* [in] */ IBroadcastReceiver* receiver,
+    /* [in] */ IIntentFilter* filter,
+    /* [out] */ IIntent** intent)
+{
+    return RegisterReceiverEx(receiver, filter, String(NULL), NULL, intent);
+}
+
+ECode CContextImpl::RegisterReceiverEx(
+    /* [in] */ IBroadcastReceiver* receiver,
+    /* [in] */ IIntentFilter* filter,
+    /* [in] */ const String& broadcastPermission,
+    /* [in] */ IApartment* scheduler,
+    /* [out] */ IIntent** intent)
+{
+    return RegisterReceiverInternal(receiver, filter, broadcastPermission, 
+        scheduler, GetOuterContext(), intent);
+}
+
+ECode CContextImpl::RegisterReceiverInternal(
+    /* [in] */ IBroadcastReceiver* receiver,
+    /* [in] */ IIntentFilter* filter,
+    /* [in] */ const String& broadcastPermission,
+    /* [in] */ IApartment* scheduler,
+    /* [in] */ IContext* context,
+    /* [out] */ IIntent** intent)
+{
+    AutoPtr<IIntentReceiver> rd;
+    if(receiver != NULL){
+        if((mCapsuleInfo != NULL) && (context != NULL)){
+            if(scheduler == NULL){
+                scheduler = mApartment->GetApartment();
+            }
+            FAIL_RETURN(mCapsuleInfo->GetReceiverDispatcher(
+                receiver, context, scheduler,
+                mApartment->GetInstrumentation(), TRUE,
+                (IIntentReceiver**)&rd));
+        }
+        else {
+            if(scheduler==NULL){
+                scheduler = mApartment->GetApartment();
+            }
+            LoadedCap::ReceiverDispatcher* d = new LoadedCap::ReceiverDispatcher(
+                receiver, context, scheduler, NULL, TRUE);
+            d->GetIIntentReceiver((IIntentReceiver**)&rd);
+            delete d;
+        }
+    }
+    //try{
+        AutoPtr<IActivityManager> activityManager;
+        FAIL_RETURN(ActivityManagerNative::GetDefault((IActivityManager**)&activityManager));
+        return activityManager->RegisterReceiver(
+            mApartment, rd, filter, broadcastPermission, intent);
+    //}catch(RemoteException e){
+    //  return NULL;
+    //}
+}
+
+ECode CContextImpl::UnregisterReceiver(
+    /* [in] */ IBroadcastReceiver* receiver)
+{
+    AutoPtr<IIntentReceiver> rd;
+    if(mCapsuleInfo != NULL){
+        mCapsuleInfo->ForgetReceiverDispatcher(GetOuterContext(), receiver, (IIntentReceiver**)&rd);
+
+        //try{
+        AutoPtr<IActivityManager> activityManager;
+        FAIL_RETURN(ActivityManagerNative::GetDefault((IActivityManager**)&activityManager));
+        return activityManager->UnregisterReceiver(rd);
+        //}catch(RemoteException){
+        //}
+    }
+    else{
+        //throw new RuntimeException("Not supported in system context");
+        return E_INVALID_ARGUMENT;
+    }
 }
 
 IContext* CContextImpl::GetReceiverRestrictedContext()

@@ -1395,6 +1395,31 @@ ECode CSoftKeyboard::PickSuggestionManually(
     return NOERROR;
 }
 
+ECode CSoftKeyboard::RegisterReceiver(
+    /* [in] */ IBroadcastReceiver* receiver,
+    /* [in] */ IIntentFilter* filter,
+    /* [out] */ IIntent** intent)
+{
+    return InputMethodService::RegisterReceiver(receiver,filter,intent);
+}
+
+ECode CSoftKeyboard::RegisterReceiverEx(
+    /* [in] */ IBroadcastReceiver* receiver,
+    /* [in] */ IIntentFilter* filter,
+    /* [in] */ const String& broadcastPermission,
+    /* [in] */ IApartment* scheduler,
+    /* [out] */ IIntent** intent)
+{
+    return InputMethodService::RegisterReceiverEx(receiver,filter,
+        broadcastPermission,scheduler,intent);
+}
+
+ECode CSoftKeyboard::UnregisterReceiver(
+    /* [in] */ IBroadcastReceiver* receiver)
+{
+    return InputMethodService::UnregisterReceiver(receiver);
+}
+
 Boolean CSoftKeyboard::TranslateKeyDown(
     /* [in] */ Int32 keyCode,
     /* [in] */ IKeyEvent* event)

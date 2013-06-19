@@ -1908,6 +1908,7 @@ private:
     Boolean mBooted;
     Boolean mBooting;
 
+    //Mutex mSync;
     AutoPtr<CWindowManagerService> mWindowManager;
 
     AutoPtr<IRemoteCallbackList> mWatchers;

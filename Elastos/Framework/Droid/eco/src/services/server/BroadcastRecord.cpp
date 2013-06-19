@@ -25,11 +25,19 @@ BroadcastRecord::BroadcastRecord(
     mCallerApp(callerApp),
     mCallerCapsule(callerCapsule),
     mCallingPid(callingPid),
+    mCallingUid(callingUid),
+    mRequiredPermission(requiredPermission),
+    mReceivers(receivers),
+    mResultTo(resultTo),
+    mResultCode(resultCode),
+    mResultData(resultData),
+    mResultExtras(resultExtras),
     mOrdered(serialized),
     mSticky(sticky),
     mInitialSticky(initialSticky),
-    mReceivers(receivers),
-    mResultTo(resultTo)
+    mState(IDLE),
+    mResultAbort(FALSE),
+    mCurApp(NULL)
 {
     assert(mReceivers != NULL);
     mNextReceiver = mReceivers->Begin();
