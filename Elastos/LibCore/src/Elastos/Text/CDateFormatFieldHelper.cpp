@@ -11,7 +11,7 @@ ECode CDateFormatFieldHelper::OfCalendarField(
 }
 
 ECode CDateFormatFieldHelper::GetDateFormatFieldByName(
-    /* [in] */ String name,
+    /* [in] */ const String& name,
     /* [out] */ IDateFormatField** field)
 {
     VALIDATE_NOT_NULL(field);

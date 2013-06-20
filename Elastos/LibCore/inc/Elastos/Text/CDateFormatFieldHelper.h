@@ -15,7 +15,7 @@ public:
         /* [out] */ IDateFormatField** field);
 
     CARAPI GetDateFormatFieldByName(
-        /* [in] */ String name,
+        /* [in] */ const String& name,
         /* [out] */ IDateFormatField** field);
 };
 
