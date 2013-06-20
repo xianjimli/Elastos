@@ -92,21 +92,8 @@ module
         interface IChoiceFormatHelper;
     }
 
-    class CDateFormatField {
-        /**
-         * Constructs a new instance of {@code DateFormat.Field} with the given
-         * fieldName and calendar field.
-         *
-         * @param fieldName
-         *            the field name.
-         * @param calendarField
-         *            the calendar field type of the field.
-         */
-        constructor(
-            [in] String fieldName,
-            [in] Int32 calendarField);
-
-        interface IDateFormatField;
+    singleton class CDateFormatFieldHelper {
+        interface IDateFormatFieldHelper;
     }
 
     class CDateFormatSymbols {
@@ -242,6 +229,10 @@ module
         interface ICollationElementIterator;
     }
 
+    singleton class CCollationElementIteratorHelper {
+        interface ICollationElementIteratorHelper;
+    }
+
     class CRuleBasedCollator {
         constructor(
             [in] IICUCollator* wrapper);
@@ -250,6 +241,7 @@ module
             [in] String rules);
 
         interface IRuleBasedCollator;
+        interface IComparator;
     }
 
     class CTextAttribute {

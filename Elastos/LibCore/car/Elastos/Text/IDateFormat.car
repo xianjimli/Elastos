@@ -154,6 +154,28 @@ module
             [out] Int32* field);
     }
 
+    interface IDateFormatFieldHelper {
+        /**
+         * Returns the {@code DateFormat.Field} instance for the given calendar
+         * field.
+         *
+         * @param calendarField
+         *            a calendar field constant.
+         * @return the {@code DateFormat.Field} corresponding to
+         *         {@code calendarField}.
+         * @throws IllegalArgumentException
+         *             if {@code calendarField} is negative or greater than the
+         *             field count of {@code Calendar}.
+         */
+        OfCalendarField(
+            [in] Int32 calendarField,
+            [out] IDateFormatField** field);
+
+        GetDateFormatFieldByName(
+            [in] String name,
+            [out] IDateFormatField** field);
+    }
+
     [deprecated]
     interface IDateFormat extends IFormat {
         /**

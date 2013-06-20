@@ -10,29 +10,33 @@ CarClass(CRuleBasedCollator), public RuleBasedCollator
 public:
 
     CARAPI constructor(
-        /* [in] */ IICUCollator * pWrapper);
+        /* [in] */ IICUCollator* pWrapper);
 
     CARAPI constructor(
         /* [in] */ const String& rules);
 
     CARAPI Compare(
-        /* [in] */ IInterface * pObject1,
-        /* [in] */ IInterface * pObject2,
-        /* [out] */ Int32 * pResult);
+        /* [in] */ IInterface* object1,
+        /* [in] */ IInterface* object2,
+        /* [out] */ Int32* result);
 
     CARAPI CompareEx(
         /* [in] */ const String& string1,
         /* [in] */ const String& string2,
-        /* [out] */ Int32 * pValue);
+        /* [out] */ Int32* value);
 
     CARAPI Equals(
+        /* [in] */ IInterface* object,
+        /* [out] */ Boolean* result);
+
+    CARAPI EqualsEx(
         /* [in] */ const String& string1,
         /* [in] */ const String& string2,
-        /* [out] */ Boolean * pRecult);
+        /* [out] */ Boolean* recult);
 
     CARAPI GetCollationKey(
         /* [in] */ const String& string,
-        /* [out] */ IICUCollationKey ** ppCollationKey);
+        /* [out] */ IICUCollationKey** collationKey);
 
     CARAPI GetDecomposition(
         /* [out] */ Int32 * pDecomposition);
@@ -57,6 +61,8 @@ public:
     CARAPI GetRules(
         /* [out] */ String * pRules);
 
+    CARAPI GetICUCollator(
+        /* [out] */ IICUCollator** icuCollator);
 
 private:
     // TODO: Add your private member variables here.

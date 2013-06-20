@@ -1,17 +1,16 @@
+
 #include "RuleBasedCollator.h"
+#include "CICURuleBasedCollator.h"
+#include "CCollationElementIterator.h"
 
 ECode RuleBasedCollator::Init(
-        /* [in] */ IICUCollator* wrapper)
+    /* [in] */ IICUCollator* wrapper)
 {
     return Collator::Init(wrapper);
 }
 
-RuleBasedCollator::RuleBasedCollator(){}
-
-RuleBasedCollator::~RuleBasedCollator(){}
-
 ECode RuleBasedCollator::Init(
-    /* [in] */ String rules)
+    /* [in] */ const String& rules)
 {
     if (rules.IsNull()) {
         return E_NULL_POINTER_EXCEPTION;
@@ -21,8 +20,8 @@ ECode RuleBasedCollator::Init(
         return E_PARSE_EXCEPTION;;
     }
     //try {
-    CICURuleBasedCollator::New(rules, (IICURuleBasedCollator**)&(this->icuColl) );
-    this->icuColl->SetDecomposition(Collator_CANONICAL_DECOMPOSITION);
+    FAIL_RETURN(CICURuleBasedCollator::New(rules, (IICURuleBasedCollator**)&(mICUColl)));
+    mICUColl->SetDecomposition(IICUCollator_CANONICAL_DECOMPOSITION);
     //} catch (Exception e) {
     //    if (e instanceof ParseException) {
     //        throw (ParseException) e;
@@ -44,56 +43,67 @@ ECode RuleBasedCollator::GetCollationElementIteratorEx(
         return E_NULL_POINTER_EXCEPTION;
     }
 
-    AutoPtr<IICUCollationElementIterator> pIICUCollationElementIterator;
-    IICURuleBasedCollator * icurbc = reinterpret_cast<IICURuleBasedCollator*>(
-        this->icuColl->Probe(EIID_IICURuleBasedCollator));
+    AutoPtr<IICUCollationElementIterator> icuCollationElementIterator;
+    AutoPtr<IICURuleBasedCollator> icurbc = (IICURuleBasedCollator*)mICUColl->Probe(
+            EIID_IICURuleBasedCollator);
     icurbc->GetCollationElementIteratorEx(source,
-                        (IICUCollationElementIterator**)&pIICUCollationElementIterator);
-    CCollationElementIterator::New(pIICUCollationElementIterator, collationElementIterator);
-
-    return NOERROR;
+            (IICUCollationElementIterator**)&icuCollationElementIterator);
+    return CCollationElementIterator::New(icuCollationElementIterator,
+            collationElementIterator);
 }
 
 ECode RuleBasedCollator::GetCollationElementIterator(
-    /* [in] */ String source,
+    /* [in] */ const String& source,
     /* [out] */ ICollationElementIterator** collationElementIterator)
 {
     if (source.IsNull()) {
         return E_NULL_POINTER_EXCEPTION;
     }
-    AutoPtr<IICUCollationElementIterator> pIICUCollationElementIterator;
-    IICURuleBasedCollator * icurbc = reinterpret_cast<IICURuleBasedCollator*>(
-        this->icuColl->Probe(EIID_IICURuleBasedCollator));
+    AutoPtr<IICUCollationElementIterator> icuCollationElementIterator;
+    AutoPtr<IICURuleBasedCollator> icurbc = (IICURuleBasedCollator*)mICUColl->Probe(
+            EIID_IICURuleBasedCollator);
     icurbc->GetCollationElementIterator(source,
-                        (IICUCollationElementIterator**)&pIICUCollationElementIterator);
-    CCollationElementIterator::New(pIICUCollationElementIterator, collationElementIterator);
-    return NOERROR;
+            (IICUCollationElementIterator**)&icuCollationElementIterator);
+    return CCollationElementIterator::New(icuCollationElementIterator,
+            collationElementIterator);
 }
 
 ECode RuleBasedCollator::GetRules(
     /* [out] */ String* rules)
 {
     VALIDATE_NOT_NULL(rules);
-    IICURuleBasedCollator * icurbc = reinterpret_cast<IICURuleBasedCollator*>(
-        this->icuColl->Probe(EIID_IICURuleBasedCollator));
+    AutoPtr<IICURuleBasedCollator> icurbc = (IICURuleBasedCollator*)mICUColl->Probe(
+            EIID_IICURuleBasedCollator);
     return icurbc->GetRules(rules);
 }
 
 ECode RuleBasedCollator::CompareEx(
-    /* [in] */ String source,
-    /* [in] */ String target,
-    /* [out] */ Int32 * value)
+    /* [in] */ const String& source,
+    /* [in] */ const String& target,
+    /* [out] */ Int32* value)
 {
     VALIDATE_NOT_NULL(value);
     if (source.IsNull() || target.IsNull()) {
         return E_NULL_POINTER_EXCEPTION;
     }
-    return this->icuColl->Compare(source, target, value);
+    return mICUColl->Compare(source, target, value);
 }
 
 ECode RuleBasedCollator::GetCollationKey(
-    /* [in] */ String source,
+    /* [in] */ const String& source,
     /* [out] */ IICUCollationKey ** collationKey)
 {
-    return icuColl->GetCollationKey(source, collationKey);
+    return mICUColl->GetCollationKey(source, collationKey);
+}
+
+ECode RuleBasedCollator::Equals(
+    /* [in] */ IInterface* object,
+    /* [out] */ Boolean* result)
+{
+    VALIDATE_NOT_NULL(result);
+    if (object == NULL || object->Probe(EIID_ICollator) == NULL) {
+        *result = false;
+        return NOERROR;
+    }
+    return Collator::Equals(object, result);
 }

@@ -2,18 +2,15 @@
 #ifndef __DATEFORMAT_H__
 #define __DATEFORMAT_H__
 
+#ifndef __USE_MALLOC
+#define __USE_MALLOC
+#endif
 
 #include "Elastos.Text_server.h"
 #include "Format.h"
-#include "CFieldPosition.h"
-#include "CParsePosition.h"
 #include <elastos/AutoPtr.h>
 #include <elastos/HashMap.h>
-#include <StringBuffer.h>
-
-using namespace Elastos;
-
-extern "C" const InterfaceID EIID_DateFormat;
+#include <elastos/ElRefBase.h>
 
 class DateFormat : public Format
 {
@@ -26,17 +23,50 @@ public:
      * There is no public constructor in this class, the only instances are the
      * constants defined here.
      */
-    class Field : public Format::Field
+    class Field
+        : public ElRefBase
+        , public IDateFormatField
+        , public Format::Field
     {
     public:
+        CARAPI_(PInterface) Probe(
+            /* [in] */ REIID riid);
+
+        CARAPI_(UInt32) AddRef();
+
+        CARAPI_(UInt32) Release();
+
+        CARAPI GetInterfaceID(
+            /* [in] */ IInterface *pObject,
+            /* [out] */ InterfaceID *pIID);
+
+        CARAPI GetClassID(
+            /* [out] */ ClassID* clsid);
+
         Field();
+
+        /**
+         * Constructs a new instance of {@code DateFormat.Field} with the given
+         * fieldName and calendar field.
+         *
+         * @param fieldName
+         *            the field name.
+         * @param calendarField
+         *            the calendar field type of the field.
+         */
+        CARAPI Init(
+            /* [in] */ const String& fieldName,
+            /* [in] */ Int32 calendarField);
+
+        CARAPI GetName(
+            /* [out] */ String* name);
 
         /**
          * Returns the Calendar field that this field represents.
          *
          * @return the calendar field.
          */
-        virtual CARAPI GetCalendarField(
+        CARAPI GetCalendarField(
             /* [out] */ Int32* field);
 
         /**
@@ -56,22 +86,6 @@ public:
             /* [out] */ IDateFormatField** field);
 
     protected:
-        /**
-         * Constructs a new instance of {@code DateFormat.Field} with the given
-         * fieldName and calendar field.
-         *
-         * @param fieldName
-         *            the field name.
-         * @param calendarField
-         *            the calendar field type of the field.
-         */
-        CARAPI Init(
-            /* [in] */ const String& fieldName,
-            /* [in] */ Int32 calendarField);
-
-        virtual CARAPI_(PInterface) Probe(
-            /* [in] */ REIID riid) = 0;
-
         /**
          * Resolves instances that are deserialized to the constant
          * {@code DateFormat.Field} values.
