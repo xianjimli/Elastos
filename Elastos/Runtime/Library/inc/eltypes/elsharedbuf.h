@@ -80,7 +80,7 @@ private:
     inline ~SharedBuffer() { }
     inline SharedBuffer(const SharedBuffer&);
 
-    // 16 bytes. must be sized to preserve correct alingment.
+    // 16 bytes. must be sized to preserve correct alignment.
     mutable Int32 mRefs;
     UInt32 mSize;
     UInt32 mReserved[2];

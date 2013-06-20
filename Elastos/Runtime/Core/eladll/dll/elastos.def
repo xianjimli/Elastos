@@ -92,6 +92,7 @@ EXPORTS
 
     ;; CarArray, StringBuf
     ;;
+    _CarQuintet_Assign                              @204    NONAME
     _CarQuintet_Init                                @205    NONAME
     _CarQuintet_Clone                               @206    NONAME
     _CarQuintet_Free                                @207    NONAME

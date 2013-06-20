@@ -11,6 +11,7 @@
 
 #include <elatypes.h>
 #include <elaobj.h>
+#include <elsharedbuf.h>
 
 _ELASTOS_NAMESPACE_BEGIN
 
@@ -77,6 +78,7 @@ extern "C" {
             _ELASTOS PVoid pBuf, _ELASTOS Int32 size, _ELASTOS Int32 used,
             _ELASTOS CarQuintetFlags flags);
     _ELASTOS PCarQuintet __cdecl _CarQuintet_Clone(const _ELASTOS PCarQuintet pCq);
+    _ELASTOS PCarQuintet __cdecl _CarQuintet_Assign(const _ELASTOS PCarQuintet pCq);
     void __cdecl _CarQuintet_Free(_ELASTOS PCarQuintet pCq);
 
     _ELASTOS Int32 __cdecl _ArrayOf_Copy(_ELASTOS PCarQuintet pcqDst,
@@ -183,7 +185,7 @@ DECL_TYPE2FLAG_TMPL(EMuid,              CarQuintetFlag_Type_EMuid);
 DECL_TYPE2FLAG_TMPL(EGuid,              CarQuintetFlag_Type_EGuid);
 DECL_TYPE2FLAG_TMPL(IInterface *,       CarQuintetFlag_Type_IObject);
 
-#define _MAX_CARQUINTET_SIZE_  (0x7FFFFFFF - sizeof(CarQuintet))
+#define _MAX_CARQUINTET_SIZE_  (0x7FFFFFFF - sizeof(CarQuintet) - sizeof(SharedBuffer))
 
 
 //---------------ArrayOf-----------------------------------------------------
@@ -228,6 +230,10 @@ public:
 
     ArrayOf<T> *Clone() const {
         return (ArrayOf<T> *)_CarQuintet_Clone((const PCarQuintet)this);
+    }
+
+    ArrayOf<T> *Assign() const {
+        return (ArrayOf<T> *)_CarQuintet_Assign((const PCarQuintet)this);
     }
 
     T& operator[](Int32 index) {
@@ -389,6 +395,10 @@ public:
         return (BufferOf<T> *)_CarQuintet_Clone((const PCarQuintet)this);
     }
 
+    BufferOf<T> *Assign() const {
+        return (BufferOf<T> *)_CarQuintet_Assign((const PCarQuintet)this);
+    }
+
     T& operator[](Int32 index) {
         assert(m_pBuf && index >= 0 && index < GetUsed());
         return ((T*)(m_pBuf))[index];
@@ -543,6 +553,11 @@ public:
     MemoryBuf *Clone() const
     {
         return (MemoryBuf *)BufferOf<Byte>::Clone();
+    }
+
+    MemoryBuf *Assign() const
+    {
+        return (MemoryBuf *)BufferOf<Byte>::Assign();
     }
 
     static MemoryBuf *Alloc(Int32 capacity)

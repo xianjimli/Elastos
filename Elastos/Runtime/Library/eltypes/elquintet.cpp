@@ -42,6 +42,15 @@ PCarQuintet __cdecl _CarQuintet_GetNullValue(CarQuintetFlags flag)
     return &s_nullCq[flag];
 }
 
+Boolean __cdecl _CarQuintet_IsHeapAlloced(const PCarQuintet pCq)
+{
+    if (pCq && (pCq->m_flags & CarQuintetFlag_HeapAlloced)) {
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
 PCarQuintet __cdecl _CarQuintet_Init(PCarQuintet pCq,
             PVoid pBuf, Int32 size, Int32 used, CarQuintetFlags flags)
 {
@@ -73,7 +82,12 @@ CAR_INLINE PCarQuintet __cdecl _CarQuintet_Alloc(Int32 size)
         return NULL;
     }
 
-    return (PCarQuintet)malloc(sizeof(CarQuintet) + (size ? size : 1));
+    Int32 bufSize = sizeof(SharedBuffer) + sizeof(CarQuintet) + (size ? size : 1);
+    SharedBuffer* buf = SharedBuffer::Alloc(bufSize);
+    if (buf) {
+        return (PCarQuintet)(buf->GetData());
+    }
+    return NULL;
 }
 
 PCarQuintet __cdecl _CarQuintet_Clone(const PCarQuintet pCq)
@@ -94,12 +108,25 @@ PCarQuintet __cdecl _CarQuintet_Clone(const PCarQuintet pCq)
     return pNewCq;
 }
 
+PCarQuintet __cdecl _CarQuintet_Assign(const PCarQuintet pCq)
+{
+    if (!pCq) return NULL;
+
+    if (_CarQuintet_IsHeapAlloced(pCq)) {
+        SharedBuffer::GetBufferFromData(pCq)->Acquire();
+        return const_cast<PCarQuintet>(pCq);
+    }
+    else {
+        return _CarQuintet_Clone(pCq);
+    }
+}
+
 void __cdecl _CarQuintet_Free(PCarQuintet pCq)
 {
     if (!pCq) return;
 
-    if (pCq && pCq->m_flags & CarQuintetFlag_HeapAlloced) {
-        free(pCq);
+    if (_CarQuintet_IsHeapAlloced(pCq)) {
+        SharedBuffer::GetBufferFromData(pCq)->Release();
     }
 }
 
@@ -117,7 +144,8 @@ PCarQuintet __cdecl _ArrayOf_Alloc(Int32 size, CarQuintetFlags flags)
 PCarQuintet __cdecl _ArrayOf_Alloc_Box(PVoid pBuf, Int32 size, CarQuintetFlags flags)
 {
     if (size < 0) return NULL;
-    PCarQuintet pCq = (PCarQuintet)malloc(sizeof(CarQuintet));
+
+    PCarQuintet pCq = _CarQuintet_Alloc(0);
     flags |= CarQuintetFlag_HeapAlloced;
     return _CarQuintet_Init(pCq, pBuf, size, size, flags);
 }
@@ -176,7 +204,8 @@ PCarQuintet __cdecl _BufferOf_Alloc_Box(PVoid pBuf, Int32 capacity, Int32 used,
 {
     if (capacity < 0 || used < 0) return NULL;
 
-    PCarQuintet pCq = (PCarQuintet)malloc(sizeof(CarQuintet));
+    PCarQuintet pCq = _CarQuintet_Alloc(0);
+
     flags |= CarQuintetFlag_HeapAlloced;
     return _CarQuintet_Init(pCq, pBuf, capacity, used, flags);
 }
