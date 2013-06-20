@@ -3,25 +3,14 @@
 
 #include "cmdef.h"
 #include "Elastos.Text_server.h"
-
-#include <elastos.h>
 #include "Collator.h"
-#include "CICURuleBasedCollator.h"
-#include "CCollationElementIterator.h"
 
-using namespace Elastos;
-
-class RuleBasedCollator : public Collator {
+class RuleBasedCollator : public Collator
+{
 protected:
-
     CARAPI Init(
         /* [in] */ IICUCollator* wrapper);
 
-public:
-
-    RuleBasedCollator();
-
-    virtual ~RuleBasedCollator();
     /**
      * Constructs a new instance of {@code RuleBasedCollator} using the
      * specified {@code rules}. The {@code rules} are usually either
@@ -42,8 +31,9 @@ public:
      *             syntax.
      */
     CARAPI Init(
-        /* [in] */ String rules);
+        /* [in] */ const String& rules);
 
+public:
     /**
      * Obtains a {@code CollationElementIterator} for the given
      * {@code CharacterIterator}. The source iterator's integrity will be
@@ -54,8 +44,8 @@ public:
      * @return a {@code CollationElementIterator} for {@code source}.
      */
     virtual CARAPI GetCollationElementIteratorEx(
-            /* [in] */ ICharacterIterator* source,
-            /* [out] */ ICollationElementIterator** collationElementIterator);
+        /* [in] */ ICharacterIterator* source,
+        /* [out] */ ICollationElementIterator** collationElementIterator);
 
     /**
      * Obtains a {@code CollationElementIterator} for the given string.
@@ -65,8 +55,8 @@ public:
      * @return the {@code CollationElementIterator} for {@code source}.
      */
     virtual CARAPI GetCollationElementIterator(
-            /* [in] */ String source,
-            /* [out] */ ICollationElementIterator** collationElementIterator);
+        /* [in] */ const String& source,
+        /* [out] */ ICollationElementIterator** collationElementIterator);
 
     /**
      * Returns the collation rules of this collator. These {@code rules} can be
@@ -81,21 +71,7 @@ public:
      * @return the collation rules.
      */
     virtual CARAPI GetRules(
-            /* [out] */ String* rules);
-
-    /**
-     * Returns a new collator with the same collation rules, decomposition mode and
-     * strength value as this collator.
-     *
-     * @return a shallow copy of this collator.
-     * @see java.lang.Cloneable
-     */
-/*
-    @Override
-    public Object clone() {
-        RuleBasedCollator clone = (RuleBasedCollator) super.clone();
-        return clone;
-    }*/
+        /* [out] */ String* rules);
 
     /**
      * Compares the {@code source} text to the {@code target} text according to
@@ -120,9 +96,9 @@ public:
      */
     //@Override
     CARAPI CompareEx(
-        /* [in] */ String source,
-        /* [in] */ String target,
-        /* [out] */ Int32 * value);
+        /* [in] */ const String& source,
+        /* [in] */ const String& target,
+        /* [out] */ Int32* value);
 
     /**
      * Returns the {@code CollationKey} for the given source text.
@@ -133,14 +109,8 @@ public:
      */
     //@Override
     CARAPI GetCollationKey(
-        /* [in] */ String source,
+        /* [in] */ const String& source,
         /* [out] */ IICUCollationKey ** collationKey);
-
-/*
-    @Override
-    public int hashCode() {
-        return ((com.ibm.icu4jni.text.RuleBasedCollator) this.icuColl).getRules().hashCode();
-    }*/
 
     /**
      * Compares the specified object with this {@code RuleBasedCollator} and
@@ -154,13 +124,9 @@ public:
      *         {@code RuleBasedCollator}; {@code false} otherwise.
      * @see #hashCode
      */
-    /*
-    @Override
-    public boolean equals(Object obj) {
-        if (!(obj instanceof Collator)) {
-            return false;
-        }
-        return super.equals(obj);
-    }*/
+    //@Override
+    CARAPI Equals(
+        /* [in] */ IInterface* object,
+        /* [out] */ Boolean* result);
 };
 #endif //__RULEBASEDCOLLATOR_H__

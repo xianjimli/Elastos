@@ -2,9 +2,9 @@
 #include "CRuleBasedCollator.h"
 
 ECode CRuleBasedCollator::constructor(
-    /* [in] */ IICUCollator * pWrapper)
+    /* [in] */ IICUCollator* wrapper)
 {
-    return RuleBasedCollator::Init(pWrapper);
+    return RuleBasedCollator::Init(wrapper);
 }
 
 ECode CRuleBasedCollator::constructor(
@@ -14,46 +14,53 @@ ECode CRuleBasedCollator::constructor(
 }
 
 ECode CRuleBasedCollator::Compare(
-    /* [in] */ IInterface * pObject1,
-    /* [in] */ IInterface * pObject2,
-    /* [out] */ Int32 * pResult)
+    /* [in] */ IInterface* object1,
+    /* [in] */ IInterface* object2,
+    /* [out] */ Int32* result)
 {
-    return RuleBasedCollator::Compare(pObject1, pObject2, pResult);
+    return Collator::Compare(object1, object2, result);
 }
 
 ECode CRuleBasedCollator::CompareEx(
     /* [in] */ const String& string1,
     /* [in] */ const String& string2,
-    /* [out] */ Int32 * pValue)
+    /* [out] */ Int32* value)
 {
-    return RuleBasedCollator::CompareEx(string1, string2, pValue);
+    return RuleBasedCollator::CompareEx(string1, string2, value);
 }
 
 ECode CRuleBasedCollator::Equals(
+    /* [in] */ IInterface* object,
+    /* [out] */ Boolean* result)
+{
+    return RuleBasedCollator::Equals(object, result);
+}
+
+ECode CRuleBasedCollator::EqualsEx(
     /* [in] */ const String& string1,
     /* [in] */ const String& string2,
-    /* [out] */ Boolean * pRecult)
+    /* [out] */ Boolean* result)
 {
-    return RuleBasedCollator::Equals(string1, string2, pRecult);
+    return RuleBasedCollator::EqualsEx(string1, string2, result);
 }
 
 ECode CRuleBasedCollator::GetCollationKey(
     /* [in] */ const String& string,
-    /* [out] */ IICUCollationKey ** ppCollationKey)
+    /* [out] */ IICUCollationKey** collationKey)
 {
-    return RuleBasedCollator::GetCollationKey(string, ppCollationKey);
+    return RuleBasedCollator::GetCollationKey(string, collationKey);
 }
 
 ECode CRuleBasedCollator::GetDecomposition(
-    /* [out] */ Int32 * pDecomposition)
+    /* [out] */ Int32* decomposition)
 {
-    return RuleBasedCollator::GetDecomposition(pDecomposition);
+    return RuleBasedCollator::GetDecomposition(decomposition);
 }
 
 ECode CRuleBasedCollator::GetStrength(
-    /* [out] */ Int32 * pStrength)
+    /* [out] */ Int32* strength)
 {
-    return RuleBasedCollator::GetStrength(pStrength);
+    return RuleBasedCollator::GetStrength(strength);
 }
 
 ECode CRuleBasedCollator::SetDecomposition(
@@ -69,23 +76,27 @@ ECode CRuleBasedCollator::SetStrength(
 }
 
 ECode CRuleBasedCollator::GetCollationElementIteratorEx(
-    /* [in] */ ICharacterIterator * pSource,
-    /* [out] */ ICollationElementIterator ** ppCollationElementIterator)
+    /* [in] */ ICharacterIterator* source,
+    /* [out] */ ICollationElementIterator** collationElementIterator)
 {
-    return RuleBasedCollator::GetCollationElementIteratorEx(pSource, ppCollationElementIterator);
+    return RuleBasedCollator::GetCollationElementIteratorEx(source, collationElementIterator);
 }
 
 ECode CRuleBasedCollator::GetCollationElementIterator(
     /* [in] */ const String& source,
-    /* [out] */ ICollationElementIterator ** ppCollationElementIterator)
+    /* [out] */ ICollationElementIterator** collationElementIterator)
 {
-    return RuleBasedCollator::GetCollationElementIterator(source, ppCollationElementIterator);
+    return RuleBasedCollator::GetCollationElementIterator(source, collationElementIterator);
 }
 
 ECode CRuleBasedCollator::GetRules(
-    /* [out] */ String * pRules)
+    /* [out] */ String* rules)
 {
-    return RuleBasedCollator::GetRules(pRules);
+    return RuleBasedCollator::GetRules(rules);
 }
 
-
+ECode CRuleBasedCollator::GetICUCollator(
+    /* [out] */ IICUCollator** icuCollator)
+{
+    return Collator::GetICUCollator(icuCollator);
+}

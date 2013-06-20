@@ -1,16 +1,16 @@
 
 #include "cmdef.h"
 #include "DateFormat.h"
+#include "CFieldPosition.h"
+#include "CParsePosition.h"
 #include <Elastos.IO.h>
-#include "CDateFormatField.h"
-
+#include <StringBuffer.h>
 
 static AutoPtr<IDateFormatField> sInit(const String& name, Int32 value)
 {
-    // AutoPtr<CDateFormatField> field;
-    // CDateFormatField::NewByFriend(name, value, (CDateFormatField**)&field);
-    // return field.Get();
-    return NULL;
+    DateFormat::Field* f = new DateFormat::Field();
+    f->Init(name, value);
+    return (IDateFormatField*)f;
 }
 
 const AutoPtr<IDateFormatField> DateFormat::Field::ERA
@@ -52,25 +52,77 @@ const AutoPtr<IDateFormatField> DateFormat::Field::TIME_ZONE
 
 HashMap<Int32, AutoPtr<IDateFormatField> > DateFormat::Field::sTable(11);
 
+PInterface DateFormat::Field::Probe(
+    /* [in] */ REIID riid)
+{
+    if (riid == EIID_IInterface) {
+        return (IInterface*)(IDateFormatField*)this;
+    }
+    else if (riid == EIID_IDateFormatField) {
+        return (IDateFormatField*)this;
+    }
+
+    return NULL;
+}
+
+UInt32 DateFormat::Field::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 DateFormat::Field::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode DateFormat::Field::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{
+    VALIDATE_NOT_NULL(pIID);
+
+    if (pObject == (IInterface*)(IDateFormatField*)this) {
+        *pIID = EIID_IDateFormatField;
+    }
+    else {
+        return E_INVALID_ARGUMENT;
+    }
+    return NOERROR;
+}
+
+ECode DateFormat::Field::GetClassID(
+    /* [out] */ ClassID* clsid)
+{
+    return E_NOT_IMPLEMENTED;
+}
+
 DateFormat::Field::Field()
     : mCalendarField(-1)
-{}
+{ }
 
-ECode DateFormat::Field::Init(
-   /* [in] */ const String& fieldName,
-   /* [in] */ Int32 calendarField)
+DateFormat::Field::Init(
+    /* [in] */ const String& fieldName,
+    /* [in] */ Int32 calendarField)
 {
     FAIL_RETURN(Format::Field::Init(fieldName));
     mCalendarField = calendarField;
     if (calendarField != -1 && sTable.Find(calendarField) == sTable.End()) {
-        sTable[calendarField] = reinterpret_cast<IDateFormatField*>(this->Probe(EIID_IDateFormatField));
+        sTable[calendarField] = (IDateFormatField*)Probe(EIID_IDateFormatField);
     }
+
     return NOERROR;
+}
+
+ECode DateFormat::Field::GetName(
+    /* [out] */ String* name)
+{
+    return Format::Field::GetName(name);
 }
 
 ECode DateFormat::Field::GetCalendarField(
     /* [out] */ Int32* value)
 {
+    VALIDATE_NOT_NULL(value);
     *value = mCalendarField;
     return NOERROR;
 }
@@ -79,12 +131,12 @@ ECode DateFormat::Field::OfCalendarField(
     /* [in] */ Int32 calendarField,
     /* [out] */ IDateFormatField** field)
 {
+    VALIDATE_NOT_NULL(field);
     if (calendarField < 0 || calendarField >= Calendar_FIELD_COUNT) {
         //throw new IllegalArgumentException();
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
 
-    *field = NULL;
     HashMap<Int32, AutoPtr<IDateFormatField> >::Iterator it = sTable.Find(calendarField);
     if (it != sTable.End()) {
         *field = it->mSecond;
@@ -96,9 +148,9 @@ ECode DateFormat::Field::OfCalendarField(
 ECode DateFormat::Field::ReadResolve(
     /* [out] */ IInterface** resolvedField)
 {
-    ClassID clsid;
-    GetClassID(&clsid);
-    if (clsid != ECLSID_CDateFormatField) {
+    InterfaceID iid;
+    GetInterfaceID((IInterface*)this, &iid);
+    if (iid != EIID_IDateFormatField) {
     //    throw new InvalidObjectException("cannot resolve subclasses");
         return E_INVALID_OBJECT_EXCEPTION;
     }

@@ -3,26 +3,26 @@
 #define __CCOLLATIONELEMENTITERATOR_H__
 
 #include "_CCollationElementIterator.h"
-#include "CollationElementIterator.h"
-CarClass(CCollationElementIterator), public CollationElementIterator
+#include <elastos/AutoPtr.h>
+
+CarClass(CCollationElementIterator)
 {
 public:
-
     CARAPI constructor(
-        /* [in] */ IICUCollationElementIterator * pIterator);
+        /* [in] */ IICUCollationElementIterator* iterator);
 
     CARAPI GetMaxExpansion(
         /* [in] */ Int32 order,
-        /* [out] */ Int32 * pMaxExpansion);
+        /* [out] */ Int32* maxExpansion);
 
     CARAPI GetOffset(
-        /* [out] */ Int32 * pOffset);
+        /* [out] */ Int32* offset);
 
     CARAPI Next(
-        /* [out] */ Int32 * pNextValue);
+        /* [out] */ Int32* nextValue);
 
     CARAPI Previous(
-        /* [out] */ Int32 * pPreviousValue);
+        /* [out] */ Int32* previousValue);
 
     CARAPI Reset();
 
@@ -30,13 +30,13 @@ public:
         /* [in] */ Int32 newOffset);
 
     CARAPI SetTextEx(
-        /* [in] */ ICharacterIterator * pSource);
+        /* [in] */ ICharacterIterator* source);
 
     CARAPI SetText(
         /* [in] */ const String& source);
 
 private:
-    // TODO: Add your private member variables here.
+    AutoPtr<IICUCollationElementIterator> mIcuIterator;
 };
 
 #endif // __CCOLLATIONELEMENTITERATOR_H__

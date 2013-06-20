@@ -19,6 +19,7 @@ SOURCES += CParsePosition.cpp
 SOURCES += CFieldPosition.cpp
 SOURCES += DateFormat.cpp
 SOURCES += CDateFormatHelper.cpp
+SOURCES += CDateFormatFieldHelper.cpp
 SOURCES += NumberFormat.cpp
 SOURCES += CNumberFormatHelper.cpp
 SOURCES += DecimalFormat.cpp
@@ -60,8 +61,8 @@ SOURCES += CICUCollationKey.cpp
 SOURCES += ICURuleBasedCollator.cpp
 SOURCES += CICURuleBasedCollator.cpp
 
-SOURCES += CollationElementIterator.cpp
 SOURCES += CCollationElementIterator.cpp
+SOURCES += CCollationElementIteratorHelper.cpp
 SOURCES += RuleBasedCollator.cpp
 SOURCES += CRuleBasedCollator.cpp
 SOURCES += TextNormalizer.cpp
@@ -78,7 +79,6 @@ SOURCES += CBidiHelper.cpp
 
 SOURCES += AttributedString.cpp
 SOURCES += CAttributedString.cpp
-SOURCES += CDateFormatField.cpp
 SOURCES += CMessageFormatField.cpp
 SOURCES += CNumberFormatField.cpp
 

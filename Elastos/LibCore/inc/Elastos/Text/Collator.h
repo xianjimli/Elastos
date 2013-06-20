@@ -5,33 +5,10 @@
 #include "Elastos.Text_server.h"
 #include <elastos.h>
 #include <elastos/AutoPtr.h>
-//#include "CRuleBasedCollator.h"
-#include "ICUCollator.h"
 
-
-using namespace Elastos;
-
-
-class Collator {
+class Collator
+{
 public:
-    /**
-     * Returns a new collator with the same decomposition mode and
-     * strength value as this collator.
-     *
-     * @return a shallow copy of this collator.
-     * @see java.lang.Cloneable
-     */
-//    @Override
-//    public Object clone() {
-//        try {
-//            Collator clone = (Collator) super.clone();
-//            clone.icuColl = (com.ibm.icu4jni.text.Collator) this.icuColl.clone();
-//            return clone;
-//        } catch (CloneNotSupportedException e) {
-//            throw new AssertionError(e); // android-changed
-//        }
-//    }
-
     /**
      * Compares two objects to determine their relative order. The objects must
      * be strings.
@@ -63,8 +40,8 @@ public:
      *         greater than {@code string2}.
      */
     virtual CARAPI CompareEx(
-        /* [in] */ String string1, 
-        /* [in] */ String string2,
+        /* [in] */ const String& string1,
+        /* [in] */ const String& string2,
         /* [out] */ Int32* result) = 0;
 
     /**
@@ -79,16 +56,10 @@ public:
      * @see #hashCode
      */
     //@Override
-/*
-    public boolean equals(Object object) {
-        if (!(object instanceof Collator)) {
-            return false;
-        }
-        Collator collator = (Collator) object;
-        return this.icuColl == null ? collator.icuColl == null : this.icuColl
-                .equals(collator.icuColl);
-    }
-*/
+
+    virtual CARAPI Equals(
+        /* [in] */ IInterface* object,
+        /* [out] */ Boolean* result);
 
     /**
      * Compares two strings using the collation rules to determine if they are
@@ -101,9 +72,9 @@ public:
      * @return {@code true} if {@code string1} and {@code string2} are equal
      *         using the collation rules, false otherwise.
      */
-    virtual CARAPI Equals(
-        /* [in] */ String string1, 
-        /* [in] */ String string2,
+    virtual CARAPI EqualsEx(
+        /* [in] */ const String& string1,
+        /* [in] */ const String& string2,
         /* [out] */ Boolean* result);
 
     /**
@@ -111,8 +82,8 @@ public:
      * are available.
      * <p>Note that Android does not support user-supplied locale service providers.
      */
-    //static CARAPI GetAvailableLocales(
-    //    /* [out, callee] */ ArrayOf<ILocale*>** locales);
+    static CARAPI GetAvailableLocales(
+       /* [out] */ ArrayOf<ILocale*>** locales);
 
     /**
      * Returns a {@link CollationKey} for the specified string for this collator
@@ -123,7 +94,7 @@ public:
      * @return the collation key for {@code string}.
      */
     virtual CARAPI GetCollationKey(
-        /* [in] */ String string,
+        /* [in] */ const String& string,
         /* [out] */ IICUCollationKey** key) = 0;
 
     /**
@@ -141,15 +112,15 @@ public:
      * {@code Locale}.
      * See "<a href="../util/Locale.html#default_locale">Be wary of the default locale</a>".
      */
-    //static CARAPI GetInstance(
-    //    /* [out] */ ICollator** instance);
+    static CARAPI GetInstance(
+       /* [out] */ ICollator** instance);
 
     /**
      * Returns a {@code Collator} instance which is appropriate for {@code locale}.
      */
-    //static CARAPI GetInstance(
-    //    /* [in] */ ILocale* locale,
-    //    /* [out] */ ICollator** instance);
+    static CARAPI GetInstance(
+       /* [in] */ ILocale* locale,
+       /* [out] */ ICollator** instance);
 
     /**
      * Returns the strength value for this collator.
@@ -189,6 +160,9 @@ public:
     virtual CARAPI SetStrength(
         /* [in] */ Int32 value);
 
+    virtual CARAPI GetICUCollator(
+        /* [out] */ IICUCollator** icuCollator);
+
 protected:
     CARAPI Init(
         /* [in] */ IICUCollator* wrapper);
@@ -196,7 +170,7 @@ protected:
     /**
      * Constructs a new {@code Collator} instance.
      */
-    Collator();
+    CARAPI Init();
 
 private:
     CARAPI DecompositionMode_Java_ICU(
@@ -215,8 +189,8 @@ private:
         /* [in] */ Int32 value,
         /* [out] */ Int32* result);
 
-protected:
+public:
     // Wrapper class of ICU4JNI Collator
-    AutoPtr<IICUCollator> icuColl;
+    AutoPtr<IICUCollator> mICUColl;
 };
 #endif //__COLLATOR_H__

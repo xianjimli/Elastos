@@ -1,58 +1,57 @@
 
 #include "CCollationElementIterator.h"
+
 ECode CCollationElementIterator::constructor(
-    /* [in] */ IICUCollationElementIterator * pIterator)
+    /* [in] */ IICUCollationElementIterator* iterator)
 {
-    return CollationElementIterator::Init(pIterator);
+    mIcuIterator = iterator;
+    return NOERROR;
 }
 
 ECode CCollationElementIterator::GetMaxExpansion(
     /* [in] */ Int32 order,
-    /* [out] */ Int32 * pMaxExpansion)
+    /* [out] */ Int32* maxExpansion)
 {
-    return CollationElementIterator::GetMaxExpansion(order, pMaxExpansion);
+    return mIcuIterator->GetMaxExpansion(order, maxExpansion);
 }
 
 ECode CCollationElementIterator::GetOffset(
-    /* [out] */ Int32 * pOffset)
+    /* [out] */ Int32* offset)
 {
-    return CollationElementIterator::GetOffset(pOffset);
+    return mIcuIterator->GetOffset(offset);
 }
 
 ECode CCollationElementIterator::Next(
-    /* [out] */ Int32 * pNextValue)
+    /* [out] */ Int32* nextValue)
 {
-    return CollationElementIterator::Next(pNextValue);
+    return mIcuIterator->Next(nextValue);
 }
 
 ECode CCollationElementIterator::Previous(
-    /* [out] */ Int32 * pPreviousValue)
+    /* [out] */ Int32* previousValue)
 {
-    return CollationElementIterator::Previous(pPreviousValue);
+    return mIcuIterator->Previous(previousValue);
 }
 
 ECode CCollationElementIterator::Reset()
 {
-    return CollationElementIterator::Reset();
+    return mIcuIterator->Reset();
 }
 
 ECode CCollationElementIterator::SetOffset(
     /* [in] */ Int32 newOffset)
 {
-    return CollationElementIterator::SetOffset(newOffset);
+    return mIcuIterator->SetOffset(newOffset);
 }
 
 ECode CCollationElementIterator::SetTextEx(
-    /* [in] */ ICharacterIterator * pSource)
+    /* [in] */ ICharacterIterator* source)
 {
-    return CollationElementIterator::SetTextEx(pSource);
+    return mIcuIterator->SetTextEx(source);
 }
 
 ECode CCollationElementIterator::SetText(
     /* [in] */ const String& source)
 {
-    return CollationElementIterator::SetText(source);
+    return mIcuIterator->SetText(source);
 }
-
-
-

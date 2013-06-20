@@ -3,7 +3,7 @@ module {
          * Strongest collator strength value. Typically used to denote differences
          * between base characters. See class documentation for more explanation.
          */
-        const ICUCollator_PRIMARY = 0;
+        const IICUCollator_PRIMARY = 0;
 
         /**
          * Second level collator strength value.
@@ -11,7 +11,7 @@ module {
          * Other differences between letters can also be considered secondary
          * differences, depending on the language.
          */
-        const ICUCollator_SECONDARY = 1;
+        const IICUCollator_SECONDARY = 1;
 
         /**
          * Third level collator strength value.
@@ -19,13 +19,13 @@ module {
          * strength level. In addition, a variant of a letter differs from the base
          * form on the tertiary level.
          */
-        const ICUCollator_TERTIARY = 2;
+        const IICUCollator_TERTIARY = 2;
 
         /**
          * Fourth level collator strength value.
          * When punctuation is ignored
          */
-        const ICUCollator_QUATERNARY = 3;
+        const IICUCollator_QUATERNARY = 3;
 
         /**
          * <p>
@@ -34,7 +34,7 @@ module {
          * values of the NFD form of each string are compared, just in case there
          * is no difference.
          */
-        const ICUCollator_IDENTICAL = 15;
+        const IICUCollator_IDENTICAL = 15;
 
         /**
          * <p>Decomposition mode value. With NO_DECOMPOSITION set, Strings
@@ -42,10 +42,25 @@ module {
          * decomposition setting unless otherwise specified by the locale
          * used to create the Collator.</p>
          */
-        const ICUCollator_NO_DECOMPOSITION = 16; 
+        const IICUCollator_NO_DECOMPOSITION = 16;
+
+        /**
+         * <p>Decomposition mode value. With CANONICAL_DECOMPOSITION set,
+         * characters that are canonical variants according to the Unicode standard
+         * will be decomposed for collation.</p>
+         *
+         * <p>CANONICAL_DECOMPOSITION corresponds to Normalization Form D as
+         * described in <a href="http://www.unicode.org/unicode/reports/tr15/">
+         * Unicode Technical Report #15</a>.
+         * </p>
+         * @see #NO_DECOMPOSITION
+         * @see #getDecomposition
+         * @see #setDecomposition
+         * @stable ICU 2.4
+         */
+        const IICUCollator_CANONICAL_DECOMPOSITION = 17;
 
     interface IICUCollator {
-
         Equals(
             [in] String source,
             [in] String target,
@@ -56,7 +71,7 @@ module {
             [out] Boolean* result);
 
         Clone(
-            [out] IInterface** instance); 
+            [out] IInterface** instance);
 
         Compare(
             [in] String source,
@@ -89,6 +104,6 @@ module {
             [out] IICUCollationKey** instance);
 
         HashCode(
-            [out] Int32* value); 
+            [out] Int32* value);
     }
 }
