@@ -1,0 +1,62 @@
+module
+{
+    /**
+     *
+     * hello_request handshake type
+     */
+    const HELLO_REQUEST = 0;
+
+    /**
+     *
+     * client_hello handshake type
+     */
+    const CLIENT_HELLO = 1;
+
+    /**
+     *
+     * server_hello handshake type
+     */
+    const SERVER_HELLO = 2;
+
+    /**
+     *
+     * certificate handshake type
+     */
+    const CERTIFICATE = 11;
+
+    /**
+     *
+     * server_key_exchange  handshake type
+     */
+    const SERVER_KEY_EXCHANGE = 12;
+
+    /**
+     *
+     * certificate_request handshake type
+     */
+    const CERTIFICATE_REQUEST = 13;
+
+    /**
+     *
+     * server_hello_done handshake type
+     */
+    const SERVER_HELLO_DONE = 14;
+
+    /**
+     *
+     * certificate_verify handshake type
+     */
+    const CERTIFICATE_VERIFY = 15;
+
+    /**
+     *
+     * client_key_exchange handshake type
+     */
+    const CLIENT_KEY_EXCHANGE = 16;
+
+    /**
+     *
+     * finished handshake type
+     */
+    const HFINISHED = 20;
+}

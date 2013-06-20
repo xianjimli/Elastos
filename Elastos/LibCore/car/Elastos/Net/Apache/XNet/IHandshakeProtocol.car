@@ -1,0 +1,203 @@
+module
+{
+    /**
+     * Handshake status NEED_UNWRAP - HandshakeProtocol needs to receive data
+     */
+        const NEED_UNWRAP = 1;
+        
+    /**
+     * Handshake status NOT_HANDSHAKING - is not currently handshaking
+     */
+        const NOT_HANDSHAKING = 2;
+
+    /**
+     * Handshake status FINISHED - HandshakeProtocol has just finished
+     */
+        const FINISHED = 3;
+
+    /**
+     * Handshake status NEED_TASK - HandshakeProtocol needs the results of delegated task
+     */
+        const NEED_TASK = 4;
+        
+    interface IHandshakeProtocol
+    {
+    /**
+     * Sets SSL Record Protocol
+     * @param recordProtocol
+     */
+        SetRecordProtocol(
+            [in] ISSLRecordProtocol* recordProtocol);
+    
+    /**
+     * Start session negotiation
+     * @param session
+     */
+        Start();
+
+    /**
+     * Stops the current session renegotiation process.
+     * Such functionality is needed when it is session renegotiation
+     * process and no_renegotiation alert message is received
+     * from another peer.
+     * @param session
+     */
+        Stop();
+
+    /**
+     * Returns pending session
+     * @return session
+     */
+        GetSession(
+            [out] ISSLSessionImpl** session);
+    
+        SendChangeCipherSpec();
+
+        SendHelloRequest();
+
+    /**
+     * Proceses inbound ChangeCipherSpec message
+     */
+        ReceiveChangeCipherSpec();
+
+    /**
+     * Creates and sends finished message
+     */
+        MakeFinished();
+
+    /**
+     * Proceses inbound handshake messages
+     * @param bytes
+     */
+        Unwrap(
+            [in] ArrayOf<Byte> bytes);
+
+    /**
+     * Processes SSLv2 Hello message
+     * @param bytes
+     */
+        UnwrapSSLv2(
+            [in] ArrayOf<Byte> bytes);
+
+    /**
+     * Proceses outbound handshake messages
+     * @return
+     */
+        Wrap(
+            [out, callee] ArrayOf<Byte>* array);
+
+	/**
+     * Sends fatal alert, breaks execution
+     *
+     * @param description
+     */
+    	SendWarningAlert(
+    		[in] Byte description);
+    
+    /**
+     * Sends fatal alert, breaks execution
+     *
+     * @param description
+     * @param reason
+     */
+    	FatalAlert(
+    		[in] Byte description, 
+    		[in] String reason);
+    		
+    /**
+     * Sends fatal alert, breaks execution
+     *
+     * @param description
+     * @param reason
+     * @param cause
+     */
+//    	FatalAlertEx(
+//    		[in] Byte description, 
+//    		[in] String reason, 
+//    		[in] IException* cause);
+    
+    /**
+     * Sends fatal alert, breaks execution
+     *
+     * @param description
+     * @param cause
+     */
+//    	FatalAlertEx2(
+//    		[in] Byte description, 
+//    		[in] ISSLException* cause) ;
+    
+    /**
+     * Computers reference TLS verify_data that is used to verify finished message
+     * @see <a href="http://www.ietf.org/rfc/rfc2246.txt">TLS spec. 7.4.9. Finished</a>
+     * @param label
+     */
+    	ComputerReferenceVerifyDataTLS(
+    		[in] String label);	
+   	
+   	/**
+     * Computer TLS verify_data
+     * @see <a href="http://www.ietf.org/rfc/rfc2246.txt">TLS spec. 7.4.9. Finished</a>
+     * @param label
+     * @param buf
+     */
+    	ComputerVerifyDataTLS(
+    		[in] String label, 
+    		[in] ArrayOf<Byte> buf);
+    		
+    /**
+     * Computer reference SSLv3 verify_data that is used to verify finished message
+     * @see "SSLv3 spec. 7.6.9. Finished"
+     * @param label
+     */
+    	ComputerReferenceVerifyDataSSLv3(
+    		[in] ArrayOf<Byte> sender);
+    		
+    /**
+     * Verifies finished data
+     *
+     * @param data
+     * @param isServer
+     */
+    	VerifyFinished(
+    		[in] ArrayOf<Byte> data);
+    
+    /**
+     * Sends fatal alert "UNEXPECTED MESSAGE"
+     *
+     */
+    	UnexpectedMessage();
+   	
+   	/**
+     * Writes message to HandshakeIODataStream
+     *
+     * @param message
+     */
+    	Send(
+    		[in] IMessage* message);
+    
+    /**
+     * Computers master secret
+     *
+     */
+    	ComputerMasterSecret();
+    
+    /**
+     * Returns a delegated task.
+     * @return Delegated task or null
+     */
+    	GetTask(
+    		[out] IRunnable** runnable);
+   	
+   	/**
+     *
+     * Clears previously sended and received handshake messages
+     */
+    	ClearMessages();
+    
+    /**
+     * Shutdownes the protocol. It will be impossiblke to use the instance
+     * after the calling of this method.
+     */
+    	Shutdown();	
+    }
+}

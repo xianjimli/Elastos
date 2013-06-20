@@ -18,3 +18,6 @@ SOURCES += CSSLSocketFactoryImpl.cpp
 SOURCES += CSSLSocketImpl.cpp
 SOURCES += CSSLSocketInputStream.cpp
 SOURCES += CSSLSocketOutputStream.cpp
+SOURCES += CSSLRecordProtocol.cpp
+SOURCES += CAlertProtocol.cpp
+SOURCES += CHandshakeIODataStream.cpp

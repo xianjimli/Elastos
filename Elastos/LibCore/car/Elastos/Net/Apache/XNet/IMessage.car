@@ -1,0 +1,46 @@
+module
+{
+	interface IMessage
+	{
+	/**
+     * Returns message type
+     * @return
+     */
+    	GetType(
+    		[out] Int32* type);
+    
+     /**
+     * Returns message length
+     * @return
+     */
+    	Length(
+    		[out] Int32* len);
+    
+    /**
+     * Sends message
+     * @param out
+     */
+    	Send(
+    		[out] IHandshakeIODataStream** stream);
+    
+    /**
+     * Sends fatal alert
+     * @param description
+     * @param reason
+     */
+    	FatalAlert(
+    		[in] ArrayOf<Byte> description, 
+    		[in] String reason);
+    
+    /**
+     * Sends fatal alert
+     * @param description
+     * @param reason
+     * @param cause
+     */
+//    	FatalAlertEx(
+//    		[in] ArrayOf<Byte>description, 
+//    		[in] String reason, 
+//    		[in] IThrowable cause);				
+	}
+}

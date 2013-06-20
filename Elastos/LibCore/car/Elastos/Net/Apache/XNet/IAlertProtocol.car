@@ -1,0 +1,173 @@
+module
+{
+	const WARNING = 1;
+	/**
+	* Defines the severity of alert as fatal
+	*/
+	const FATAL = 2;
+	
+	// --------------------- AlertDescription codes -----------------------
+	/**
+	* Defines the description code of the close_notify alert
+	*/
+	const CLOSE_NOTIFY = 0;
+	/**
+	* Defines the description code of the unexpected_message alert
+	*/
+	const UNEXPECTED_MESSAGE = 10;
+	/**
+	* Defines the description code of the bad_record_mac alert
+	*/
+	const BAD_RECORD_MAC = 20;
+	/**
+	* Defines the description code of the decryption_failed alert
+	*/
+	const DECRYPTION_FAILED = 21;
+	/**
+	* Defines the description code of the record_overflow alert
+	*/
+	const RECORD_OVERFLOW = 22;
+	/**
+	* Defines the description code of the decompression_failure alert
+	*/
+	const DECOMPRESSION_FAILURE = 30;
+	/**
+	* Defines the description code of the handshake_failure alert
+	*/
+	const HANDSHAKE_FAILURE = 40;
+	/**
+	* Defines the description code of the bad_certificate alert
+	*/
+	const BAD_CERTIFICATE = 42;
+	/**
+	* Defines the description code of the unsupported_certificate alert
+	*/
+	const UNSUPPORTED_CERTIFICATE = 43;
+	/**
+	* Defines the description code of the certificate_revoked alert
+	*/
+	const CERTIFICATE_REVOKED = 44;
+	/**
+	* Defines the description code of the certificate_expired alert
+	*/
+	const CERTIFICATE_EXPIRED = 45;
+	/**
+	* Defines the description code of the certificate_unknown alert
+	*/
+	const CERTIFICATE_UNKNOWN = 46;
+	/**
+	* Defines the description code of the illegal_parameter alert
+	*/
+	const ILLEGAL_PARAMETER = 47;
+	/**
+	* Defines the description code of the unknown_ca alert
+	*/
+	const UNKNOWN_CA = 48;
+	/**
+	* Defines the description code of the access_denied alert
+	*/
+	const ACCESS_DENIED = 49;
+	/**
+	* Defines the description code of the decode_error alert
+	*/
+	const DECODE_ERROR = 50;
+	/**
+	* Defines the description code of the decrypt_error alert
+	*/
+	const DECRYPT_ERROR = 51;
+	/**
+	* Defines the description code of the export_restriction alert
+	*/
+	const EXPORT_RESTRICTION = 60;
+	/**
+	* Defines the description code of the protocol_version alert
+	*/
+	const PROTOCOL_VERSION = 70;
+	/**
+	* Defines the description code of the insufficient_security alert
+	*/
+	const INSUFFICIENT_SECURITY = 71;
+	/**
+	* Defines the description code of the internal_error alert
+	*/
+	const INTERNAL_ERROR = 80;
+	/**
+	* Defines the description code of the user_canceled alert
+	*/
+	const USER_CANCELED = 90;
+	/**
+	* Defines the description code of the no_renegotiation alert
+	*/
+	const NO_RENEGOTIATION = 100;
+	
+	interface IAlertProtocol
+	{
+	/**
+    * Sets up the record protocol to be used by this allert protocol.
+	*/
+    	SetRecordProtocol(
+    		[in] ISSLRecordProtocol* recordProtocol);
+    
+    /**
+     * Reports an alert to be sent/received by transport.
+     * This method is usually called during processing
+     * of the income TSL record: if it contains alert message from another
+     * peer, or if warning alert occured during the processing of the
+     * message and this warning should be sent to another peer.
+     * @param   level:  alert level code
+     * @param   description: alert description code
+     * @return
+     */
+   		Alert(
+   			[in] Byte level, 
+   			[in] Byte description);
+   	
+   	/**
+     * Returns the description code of alert or -100 if there
+     * is no alert.
+     */
+    	GetDescriptionCode(
+    		[out] Byte* code);
+    
+    /**
+     * Resets the protocol to be in "no alert" state.
+     * This method shoud be called after processing of the reported alert.
+     */
+    	SetProcessed();
+    
+    /**
+     * Checks if any alert has occured.
+     */
+    	HasAlert(
+    		[out] Boolean* alert);
+    
+    /**
+     * Checks if occured alert is fatal alert.
+     */
+    	IsFatalAlert(
+    		[out] Boolean* fatalAlert);
+    
+    /**
+     * Returns the string representation of occured alert.
+     * If no alert has occured null is returned.
+     */
+    	GetAlertDescription(
+    		[out] String* description);
+    
+    /**
+     * Returns the record with reported alert message.
+     * The returned array of bytes is ready to be sent to another peer.
+     * Note, that this method does not automatically set the state of alert
+     * protocol in "no alert" state, so after wrapping the method setProcessed
+     * should be called.
+     */
+    	Wrap(
+    		[out, callee] ArrayOf<Byte>* array);
+    
+    /**
+     * Shutdown the protocol. It will be impossible to use the instance
+     * after the calling of this method.
+     */
+    	Shutdown();				
+	}
+}

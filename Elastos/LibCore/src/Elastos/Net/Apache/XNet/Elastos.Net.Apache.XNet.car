@@ -18,7 +18,15 @@ module
 //	merge("../../../../../car/Elastos/Net/Apache/XNet/IOpenSSLContextImpl.car");
 //	merge("../../../../../car/Elastos/Net/Apache/XNet/IDefaultSSLContextImpl.car");
 	merge("../../../../../car/Elastos/Net/Apache/XNet/ICipherSuite.car");
-
+	merge("../../../../../car/Elastos/Net/Apache/XNet/IAppendable.car");
+	merge("../../../../../car/Elastos/Net/Apache/XNet/IDataStream.car");
+	merge("../../../../../car/Elastos/Net/Apache/XNet/IHandshakeIODataStream.car");
+	merge("../../../../../car/Elastos/Net/Apache/XNet/IMessage.car");
+	merge("../../../../../car/Elastos/Net/Apache/XNet/ISSLRecordProtocol.car");	
+	merge("../../../../../car/Elastos/Net/Apache/XNet/IHandshakeProtocol.car");
+	merge("../../../../../car/Elastos/Net/Apache/XNet/IAlertProtocol.car");
+	merge("../../../../../car/Elastos/Net/Apache/XNet/IHandshake.car");
+	
 
     class CSSLServerSocketImpl {
         constructor(
@@ -151,5 +159,29 @@ module
             [in] ArrayOf<Byte> code);
             
 		interface ICipherSuite;
+	}
+	
+	class CSSLRecordProtocol {
+		constructor(
+			[in] IHandshakeProtocol* handshakeProtocol,
+            [in] IAlertProtocol* alertProtocol,
+            [in] ISSLInputStream* stream,
+            [in] IAppendable* appData);
+		
+		interface ISSLRecordProtocol;
+	}
+	
+	class CAlertProtocol {
+		constructor();
+		
+		interface IAlertProtocol;
+	}
+	
+	class CHandshakeIODataStream {
+		constructor();
+		
+		interface IHandshakeIODataStream;
+		interface IAppendable;
+		interface IDataStream;
 	}
 }

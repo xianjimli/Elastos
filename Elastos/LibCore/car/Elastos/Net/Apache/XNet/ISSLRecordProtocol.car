@@ -1,0 +1,136 @@
+module
+{
+    interface ISSLRecordProtocol
+    {
+    /**
+     * Returns the session obtained during the handshake negotiation.
+     * If the handshake process was not compleated, method returns null.
+     * @return the session in effect.
+     */	
+    	GetSession(
+            [out] ISSLSessionImpl** session);
+    		
+    /**
+     * Returns the minimum possible length of the SSL record.
+     * @return
+     */
+    	GetMinRecordSize(
+            [out] Int32* size);
+    
+    /**
+     * Returns the record length for the specified incoming data length.
+     * If actual resulting record length is greater than
+     * MAX_CIPHERED_DATA_LENGTH, MAX_CIPHERED_DATA_LENGTH is returned.
+     */
+    	GetRecordSize(
+            [in] Int32 data_size,
+            [out] Int32* size);
+    
+    /**
+     * Returns the upper bound of length of data containing in the record with
+     * specified length.
+     * If the provided record_size is greater or equal to
+     * MAX_CIPHERED_DATA_LENGTH the returned value will be
+     * MAX_DATA_LENGTH
+     * counted as for data with
+     * MAX_CIPHERED_DATA_LENGTH length.
+     */
+    	GetDataSize(
+            [in] Int32 record_size,
+            [out] Int32* size);
+    
+    /**
+     * Depending on the Connection State (Session) encrypts and compress
+     * the provided data, and packs it into TLSCiphertext structure.
+     * @param   content_type: int
+     * @param   fragment: byte[]
+     * @return  ssl packet created over the current connection state
+     */
+    	Wrap(
+            [in] Byte content_type, 
+            [in] IDataStream* dataStream,
+            [out,callee] ArrayOf<Byte>* array);
+    		
+    /**
+     * Depending on the Connection State (Session) encrypts and compress
+     * the provided data, and packs it into TLSCiphertext structure.
+     * @param   content_type: int
+     * @param   fragment: byte[]
+     * @return  ssl packet created over the current connection state
+     */
+    	WrapEx(
+            [in] Byte content_type,
+            [in] ArrayOf<Byte> fragment, 
+            [in] Int32 offset, 
+            [in] Int32 len,
+            [out, callee] ArrayOf<Byte>* array);
+    
+    /**
+     * Returns the change cipher spec message to be sent to another peer.
+     * The pending connection state will be built on the base of provided
+     * session object
+     * The calling of this method triggers pending write connection state to
+     * be active.
+     * @return ssl record containing the "change cipher spec" message.
+     */
+    	GetChangeCipherSpecMesage(
+            [in] ISSLSessionImpl* session,
+            [out, callee] ArrayOf<Byte>* array);
+    
+     /**
+     * Retrieves the fragment field of TLSCiphertext, and than
+     * depending on the established Connection State
+     * decrypts and decompresses it. The following structure is expected
+     * on the input at the moment of the call:
+     *
+     *  struct {
+     *      ContentType type;
+     *      ProtocolVersion version;
+     *      uint16 length;
+     *      select (CipherSpec.cipher_type) {
+     *          case stream: GenericStreamCipher;
+     *          case block: GenericBlockCipher;
+     *      } fragment;
+     *  } TLSCiphertext;
+     *
+     * (as specified by RFC 2246, TLS v1 Protocol specification)
+     *
+     * In addition this method can recognize SSLv2 hello message which
+     * are often used to establish the SSL/TLS session.
+     *
+     * @throws IOException if some io errors have been occured
+     * @throws EndOfSourceException if underlying input stream
+     *                              has ran out of data.
+     * @throws EndOfBufferException if there was not enought data
+     *                              to build complete ssl packet.
+     * @return the type of unwrapped message.
+     */
+    	Unwrap(
+            [out] Int32* wrap);
+    
+     /**
+     * Passes the alert information to the alert protocol.
+     * @param   level:  byte
+     * @param   description:    byte
+     */
+    	Alert(
+            [in] Byte level, 
+            [in] Byte description);
+    		
+    /**
+     * Sets up the SSL version used in this connection.
+     * This method is calling from the handshake protocol after
+     * it becomes known witch protocol version will be used.
+     * @param   ver:    byte[]
+     * @return
+     */
+    	SetVersion(
+            [in] ArrayOf<Byte> ver);
+    
+    /**
+     * Shutdownes the protocol. It will be impossiblke to use the instance
+     * after the calling of this method.
+     */
+    	Shutdown();
+    }
+}
