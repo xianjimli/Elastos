@@ -87,6 +87,24 @@ void f5Test()
     printf("==== call f5 end ====\n");
 }
 
+//============== test Assign AutoFree on stack
+void f6() {
+    printf("==== enter f6 ====\n");
+    ArrayOf_<Int32, 10> v1;
+    // Notes: Use Clone to create a new object.
+    // It's dangerous to use Assign here.
+    AutoFree<ArrayOf<Int32> > v2 = ((ArrayOf<Int32> *)(&v1))->Assign();
+    assert(v1 == v2 && "v1 should equal v2 when use Assign.");
+    printf("==== return from f6 ====\n");
+}
+
+void f6Test()
+{
+    printf("\n==== call f6 ====\n");
+    f6();
+    printf("==== call f6 end ====\n");
+}
+
 void testArrayOf()
 {
     f1Test();
@@ -94,6 +112,7 @@ void testArrayOf()
     f3Test();
     f4Test();
     f5Test();
+    f6Test();
 }
 
 int main(int argc, char *argv[]) {
