@@ -1,90 +1,77 @@
 
 #include "cmdef.h"
 #include "DateFormatSymbols.h"
+#include "TimeZones.h"
 
-ECode DateFormatSymbols::InternalZoneStrings(
-        /* [out, callee] */ ArrayOf<ArrayOf<String> * > ** zoneStrings)
+DateFormatSymbols::DateFormatSymbols()
+    : mCustomZoneStrings(FALSE)
+{ }
+
+DateFormatSymbols::~DateFormatSymbols()
+{
+    FREE_ARRAY_OF_STRING(mAmpms);
+    FREE_ARRAY_OF_STRING(mEras);
+    FREE_ARRAY_OF_STRING(mMonths);
+    FREE_ARRAY_OF_STRING(mShortMonths);
+    FREE_ARRAY_OF_STRING(mShortWeekdays);
+    FREE_ARRAY_OF_STRING(mWeekdays);
+    FREE_ARRAY_OF_STRING(mLongStandAloneMonths);
+    FREE_ARRAY_OF_STRING(mShortStandAloneMonths);
+    FREE_ARRAY_OF_STRING(mLongStandAloneWeekdays);
+    FREE_ARRAY_OF_STRING(mShortStandAloneWeekdays);
+
+    if (mZoneStrings != NULL) {
+        for (Int32 i = 0; i < mZoneStrings->GetLength(); ++i) {
+            ArrayOf<String>::Free((*mZoneStrings)[i]);
+        }
+        ArrayOf<ArrayOf<String>*>::Free(mZoneStrings);
+    }
+}
+
+ArrayOf<ArrayOf<String>*>* DateFormatSymbols::InternalZoneStrings()
 {
     Mutex::Autolock lock(mLock);
 
     if (mZoneStrings == NULL) {
         TimeZones::GetZoneStrings(mLocale, &mZoneStrings);
     }
-    *zoneStrings = mZoneStrings->Clone();
-    return NOERROR;
+
+    return mZoneStrings;
 }
 
 ECode DateFormatSymbols::Init()
 {
-    AutoPtr<ILocaleHelper> pLocaleHelper;
-    CLocaleHelper::AcquireSingleton((ILocaleHelper**)&pLocaleHelper);
-    AutoPtr<ILocale> pLocale;
-    pLocaleHelper->GetDefault((ILocale**)&pLocale);
-    return Init((ILocale*)pLocale);
+    AutoPtr<ILocaleHelper> localeHelper;
+    CLocaleHelper::AcquireSingleton((ILocaleHelper**)&localeHelper);
+    AutoPtr<ILocale> locale;
+    localeHelper->GetDefault((ILocale**)&locale);
+    return Init(locale);
 }
 
 ECode DateFormatSymbols::Init(
-        /* [in] */ ILocale* locale)
+    /* [in] */ ILocale* locale)
 {
     mLocale = locale;
-    String SimpleDateFormat_PATTERN_CHARS = String("GyMdkHmsSEDFwWahKzZLc");
-    mLocalPatternChars = SimpleDateFormat_PATTERN_CHARS;
-    assert(0);
+    mLocalPatternChars = ISimpleDateFormat_PATTERN_CHARS;
+    AutoPtr<ILocaleDataHelper> localeDataHelper;
+    FAIL_RETURN(CLocaleDataHelper::AcquireSingleton((ILocaleDataHelper**)&localeDataHelper));
+    AutoPtr<ILocaleData> localeData;
+    FAIL_RETURN(localeDataHelper->Get(locale, (ILocaleData**)&localeData));
 
-/*
-    LocaleData *localeData = LocaleData::Get(locale);
-
-    mAmpms = (localeData->mAmPm)->Clone();
-    mEras = (localeData->mEras)->Clone();
-    mMonths = (localeData->mLongMonthNames)->Clone();
-    mShortMonths = (localeData->mShortMonthNames)->Clone();
-    mWeekdays = (localeData->mLongWeekdayNames)->Clone();
-    mShortWeekdays = (localeData->mShortWeekdayNames)->Clone();
+    localeData->GetAmPm(&mAmpms);
+    localeData->GetEras(&mEras);
+    localeData->GetLongMonthNames(&mMonths);
+    localeData->GetShortMonthNames(&mShortMonths);
+    localeData->GetLongWeekdayNames(&mWeekdays);
+    localeData->GetShortWeekdayNames(&mShortWeekdays);
 
     // ICU/Android extensions.
-    mLongStandAloneMonths = (localeData->mLongStandAloneMonthNames)->Clone();
-    mShortStandAloneMonths = (localeData->mShortStandAloneMonthNames)->Clone();
-    mLongStandAloneWeekdays = (localeData->mLongStandAloneWeekdayNames)->Clone();
-    mShortStandAloneWeekdays = (localeData->mShortStandAloneWeekdayNames)->Clone();
-*/
-    return NOERROR;
-}
+    localeData->GetLongStandAloneMonthNames(&mLongStandAloneMonths);
+    localeData->GetShortStandAloneMonthNames(&mShortStandAloneMonths);
+    localeData->GetLongStandAloneWeekdayNames(&mLongStandAloneWeekdays);
+    localeData->GetShortStandAloneWeekdayNames(&mShortStandAloneWeekdays);
 
-DateFormatSymbols::~DateFormatSymbols()
-{
-    if (mAmpms != NULL) {
-        ArrayOf<String>::Free(mAmpms);
-    }
-    if (mEras != NULL) {
-        ArrayOf<String>::Free(mEras);
-    }
-    if (mMonths != NULL) {
-        ArrayOf<String>::Free(mMonths);
-    }
-    if (mShortMonths != NULL) {
-        ArrayOf<String>::Free(mShortMonths);
-    }
-    if (mShortWeekdays != NULL) {
-        ArrayOf<String>::Free(mShortWeekdays);
-    }
-    if (mWeekdays != NULL) {
-        ArrayOf<String>::Free(mWeekdays);
-    }
-    if (mLongStandAloneMonths != NULL) {
-        ArrayOf<String>::Free(mLongStandAloneMonths);
-    }
-    if (mShortStandAloneMonths != NULL) {
-        ArrayOf<String>::Free(mShortStandAloneMonths);
-    }
-    if (mLongStandAloneWeekdays != NULL) {
-        ArrayOf<String>::Free(mLongStandAloneWeekdays);
-    }
-    if (mShortStandAloneWeekdays != NULL) {
-        ArrayOf<String>::Free(mShortStandAloneWeekdays);
-    }
-    if (mZoneStrings != NULL) {
-        ArrayOf<ArrayOf<String> * >::Free(mZoneStrings);
-    }
+    return NOERROR;
 }
 
 ECode DateFormatSymbols::GetInstance(
@@ -177,21 +164,21 @@ ECode DateFormatSymbols::GetLocale(
 }
 
 ECode DateFormatSymbols::GetAmPmStrings(
-        /* [out, callee] */ ArrayOf<String> ** arrayOfStrings)
+    /* [out, callee] */ ArrayOf<String>** arrayOfStrings)
 {
     *arrayOfStrings = mAmpms->Clone();
     return NOERROR;
 }
 
 ECode DateFormatSymbols::GetEras(
-        /* [out, callee] */ ArrayOf<String> ** arrayOfStrings)
+    /* [out, callee] */ ArrayOf<String>** arrayOfStrings)
 {
     *arrayOfStrings = mEras->Clone();
     return NOERROR;
 }
 
 ECode DateFormatSymbols::GetLocalPatternChars(
-        /* [out] */ String* string)
+    /* [out] */ String* string)
 {
     VALIDATE_NOT_NULL(string);
     *string = mLocalPatternChars;
@@ -199,7 +186,7 @@ ECode DateFormatSymbols::GetLocalPatternChars(
 }
 
 ECode DateFormatSymbols::GetMonths(
-        /* [out, callee] */ ArrayOf<String>** arrayOfStrings)
+    /* [out, callee] */ ArrayOf<String>** arrayOfStrings)
 {
     *arrayOfStrings = mMonths->Clone();
     return NOERROR;
@@ -213,43 +200,41 @@ ECode DateFormatSymbols::GetShortMonths(
 }
 
 ECode DateFormatSymbols::GetShortWeekdays(
-            /* [out, callee] */ ArrayOf<String>** arrayOfStrings)
+    /* [out, callee] */ ArrayOf<String>** arrayOfStrings)
 {
     *arrayOfStrings = mShortWeekdays->Clone();
     return NOERROR;
 }
 
 ECode DateFormatSymbols::GetWeekdays(
-            /* [out, callee] */ ArrayOf<String>** arrayOfStrings)
+    /* [out, callee] */ ArrayOf<String>** arrayOfStrings)
 {
     *arrayOfStrings = mWeekdays->Clone();
     return NOERROR;
 }
 
 ECode DateFormatSymbols::GetZoneStrings(
-        /* [out, callee] */ ArrayOf<ArrayOf<String> * > ** zoneStrings)
+    /* [out, callee] */ ArrayOf<ArrayOf<String>*>** zoneStrings)
 {
-    ArrayOf<ArrayOf<String> * >* izoneStrings;
-    InternalZoneStrings(&izoneStrings);
-    return TimeZones::Clone2dStringArray(izoneStrings, zoneStrings);
+    return TimeZones::Clone2dStringArray(InternalZoneStrings(), zoneStrings);
 }
 
 ECode DateFormatSymbols::SetAmPmStrings(
-        /* [in] */ ArrayOf<String>* data)
+    /* [in] */ const ArrayOf<String>& data)
 {
-    mAmpms = data->Clone();
+    mAmpms = data.Clone();
     return NOERROR;
 }
 
 ECode DateFormatSymbols::SetEras(
-        /* [in] */ ArrayOf<String>* data)
+    /* [in] */ const ArrayOf<String>& data)
 {
-    mEras = data->Clone();
+    mEras = data.Clone();
     return NOERROR;
 }
 
 ECode DateFormatSymbols::SetLocalPatternChars(
-        /* [in] */ String data)
+    /* [in] */ String data)
 {
     if (data.IsNull()) {
         //throw new NullPointerException();
@@ -260,35 +245,35 @@ ECode DateFormatSymbols::SetLocalPatternChars(
 }
 
 ECode DateFormatSymbols::SetMonths(
-        /* [in] */ ArrayOf<String>* data)
+    /* [in] */ const ArrayOf<String>& data)
 {
-    mMonths = data->Clone();
+    mMonths = data.Clone();
     return NOERROR;
 }
 
 ECode DateFormatSymbols::SetShortMonths(
-        /* [in] */ ArrayOf<String>* data)
+    /* [in] */ const ArrayOf<String>& data)
 {
-    mShortMonths = data->Clone();
+    mShortMonths = data.Clone();
     return NOERROR;
 }
 
 ECode DateFormatSymbols::SetShortWeekdays(
-        /* [in] */ ArrayOf<String>* data)
+    /* [in] */ const ArrayOf<String>& data)
 {
-    mShortWeekdays = data->Clone();
+    mShortWeekdays = data.Clone();
     return NOERROR;
 }
 
 ECode DateFormatSymbols::SetWeekdays(
-        /* [in] */ ArrayOf<String>* data)
+    /* [in] */ const ArrayOf<String>& data)
 {
-    mWeekdays = data->Clone();
+    mWeekdays = data.Clone();
     return NOERROR;
 }
 
 ECode DateFormatSymbols::SetZoneStrings(
-        /* [in] */ ArrayOf<ArrayOf<String> *>* zoneStrings)
+    /* [in] */ ArrayOf<ArrayOf<String>*>* zoneStrings)
 {
     if (zoneStrings == NULL) {
         //throw new NullPointerException();

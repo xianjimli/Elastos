@@ -582,8 +582,8 @@ ECode SimpleDateFormat::FormatDateEx(
 {
     VALIDATE_NOT_NULL(formatString);
     // Harmony delegates to ICU's SimpleDateFormat, we implement it directly
-    StringBuffer * sb = new StringBuffer(buffer);
-    StringBuffer * result = new StringBuffer(*formatString);
+    StringBuffer* sb = new StringBuffer(buffer);
+    StringBuffer* result = new StringBuffer(*formatString);
     FormatImpl(date, sb, fieldPos, NULL, result);
     *formatString = result->Substring(0, result->GetLength());
     return NOERROR;

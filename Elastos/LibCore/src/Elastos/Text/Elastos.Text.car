@@ -105,6 +105,10 @@ module
         interface IDateFormatSymbols;
     }
 
+    singleton class CDateFormatSymbolsHelper {
+        interface IDateFormatSymbolsHelper;
+    }
+
     class CDecimalFormatSymbols {
         constructor();
 
@@ -331,10 +335,6 @@ module
 
     singleton class CDecimalFormatSymbolsHelper {
         interface IDecimalFormatSymbolsHelper;
-    }
-
-    singleton class CDateFormatSymbolsHelper {
-        interface IDateFormatSymbolsHelper;
     }
 
     singleton class CDateFormatHelper {
