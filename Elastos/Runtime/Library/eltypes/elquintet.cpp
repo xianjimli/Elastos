@@ -105,6 +105,7 @@ PCarQuintet __cdecl _CarQuintet_Clone(const PCarQuintet pCq)
             pNewCq->m_pBuf = NULL;
         }
     }
+
     return pNewCq;
 }
 
@@ -117,7 +118,7 @@ PCarQuintet __cdecl _CarQuintet_Assign(const PCarQuintet pCq)
         return const_cast<PCarQuintet>(pCq);
     }
     else {
-        return _CarQuintet_Clone(pCq);
+        return pCq;
     }
 }
 
@@ -125,7 +126,9 @@ void __cdecl _CarQuintet_Free(PCarQuintet pCq)
 {
     if (!pCq) return;
 
-    SharedBuffer::GetBufferFromData(pCq)->Release();
+    if (_CarQuintet_IsHeapAlloced(pCq)) {
+        SharedBuffer::GetBufferFromData(pCq)->Release();
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -136,6 +139,7 @@ PCarQuintet __cdecl _ArrayOf_Alloc(Int32 size, CarQuintetFlags flags)
     flags |= CarQuintetFlag_HeapAlloced;
     _CarQuintet_Init(pCq, pCq + 1, size, size, flags);
     if (pCq) memset(pCq->m_pBuf, 0x0, size);
+
     return pCq;
 }
 

@@ -266,26 +266,27 @@ ECode CRemoteParcel::ReadValue(PVoid pValue, Int32 type)
             {
                 Int32 tag = (Int32)m_pData->readInt32();
                 if (tag != MSH_NULL) {
-                    PCARQUINTET q = new CarQuintet();
-                    *(PCARQUINTET*)pValue = q;
-                    m_pData->read((void*)q, sizeof(CarQuintet));
-                    Int32 size = (*(PCARQUINTET*)pValue)->m_size;
-                    if (size == 0) {
-                        (*(PCARQUINTET*)pValue)->m_pBuf = NULL;
+                    CarQuintet cq;
+
+                    m_pData->read((void*)&cq, sizeof(CarQuintet));
+                    Int32 size = cq.m_size;
+
+                    Boolean isObject = CarQuintetFlag_Type_IObject
+                            != ((*(PCARQUINTET*)pValue)->m_flags & CarQuintetFlag_TypeMask);
+                    if (!isObject) {
+                        *(ArrayOf<Byte>**)pValue = ArrayOf<Byte>::Alloc(size);
+                        if (size == 0) {
+                            (*(PCARQUINTET*)pValue)->m_pBuf = NULL;
+                        }
                     }
                     else {
-                        if (CarQuintetFlag_Type_IObject
-                            != ((*(PCARQUINTET*)pValue)->m_flags
-                                    & CarQuintetFlag_TypeMask)) {
-                            Byte* buf = (Byte*)malloc(size);
-                            m_pData->read((void*)buf, size);
-                            (*(PCARQUINTET*)pValue)->m_pBuf = buf;
+                        *(ArrayOf<IInterface*>**)pValue = ArrayOf<IInterface*>::Alloc(size);
+                        if (size == 0) {
+                            (*(PCARQUINTET*)pValue)->m_pBuf = NULL;
                         }
                         else {
-                            Int32 used = (*(PCARQUINTET*)pValue)->m_used
-                                / sizeof(IInterface *);
-                            IInterface** pBuf = (IInterface**)calloc(size, sizeof(IInterface*));
-                            (*(PCARQUINTET*)pValue)->m_pBuf = pBuf;
+                            Int32 used = cq.m_used / sizeof(IInterface *);
+                            IInterface** pBuf = static_cast<IInterface**>((*(PCARQUINTET*)pValue)->m_pBuf);
                             for (int i = 0; i < used; i++) {
                                 tag = (Int32)m_pData->readInt32();
                                 if (tag != MSH_NULL) {
