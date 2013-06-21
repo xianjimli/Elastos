@@ -24,21 +24,43 @@ public:
 
     ~AutoFree() { if (mPtr) T::Free(mPtr); }
 
+    // Copy construct
+
+    AutoFree(const AutoFree<T>& other) : mPtr(0)
+    {
+        if (other != NULL) {
+            mPtr = other->Assign();
+        }
+    }
+
     // Assignment
 
     AutoFree& operator = (T* other)
     {
+        if (mPtr) {
+            T::Free(mPtr);
+        }
+
         mPtr = other;
+
         return *this;
     }
+
     AutoFree& operator = (const AutoFree<T>& other)
     {
-        mPtr = other.mPtr;
+        if (mPtr) {
+            T::Free(mPtr);
+            mPtr = 0;
+        }
+
+        if (other != NULL) {
+            mPtr = other->Assign();
+        }
+
         return *this;
     }
 
     // Accessors
-
     inline  T& operator* () const  { return *mPtr; }
     inline  T* operator-> () const { return mPtr;  }
     inline  T* Get() const         { return mPtr; }
