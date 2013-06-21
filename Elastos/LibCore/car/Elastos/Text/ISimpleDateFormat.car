@@ -1,8 +1,10 @@
 module
 {
     interface IDateFormatSymbols;
-    interface IDate;
     interface IDateFormat;
+
+    // 'L' and 'c' are ICU-compatible extensions for stand-alone month and stand-alone weekday.
+    const ISimpleDateFormat_PATTERN_CHARS = "GyMdkHmsSEDFwWahKzZLc";
 
     interface ISimpleDateFormat extends IDateFormat {
         /**
@@ -24,7 +26,7 @@ module
          * See {@link #set2DigitYearStart} for details.
          */
         Get2DigitYearStart(
-            [out] IDate** date); 
+            [out] IDate** date);
 
         /**
          * Returns the {@code DateFormatSymbols} used by this simple date format.

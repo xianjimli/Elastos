@@ -95,7 +95,7 @@ module
          * {@code Calendar.PM} as indices for the array.
          */
         SetAmPmStrings(
-            [in] ArrayOf<String>* data);
+            [in] ArrayOf<String> data);
 
         /**
          * Sets the array of Strings which represent BC and AD. Use the
@@ -103,7 +103,7 @@ module
          * {@code GregorianCalendar.AD} as indices for the array.
          */
         SetEras(
-            [in] ArrayOf<String>* data);
+            [in] ArrayOf<String> data);
 
         /**
          * Sets the pattern characters used by {@link SimpleDateFormat} to specify
@@ -118,7 +118,7 @@ module
          * indices for the array.
          */
         SetMonths(
-            [in] ArrayOf<String>* data);
+            [in] ArrayOf<String> data);
 
         /**
          * Sets the array of strings containing the abbreviated names of the months.
@@ -126,7 +126,7 @@ module
          * etc. as indices for the array.
          */
         SetShortMonths(
-            [in] ArrayOf<String>* data);
+            [in] ArrayOf<String> data);
 
         /**
          * Sets the array of strings containing the abbreviated names of the days of
@@ -134,7 +134,7 @@ module
          * {@code Calendar.SUNDAY} etc. as indices for the array.
          */
         SetShortWeekdays(
-            [in] ArrayOf<String>* data);
+            [in] ArrayOf<String> data);
 
         /**
          * Sets the array of strings containing the full names of the days of the
@@ -142,7 +142,7 @@ module
          * {@code Calendar.SUNDAY} etc. as indices for the array.
          */
         SetWeekdays(
-            [in] ArrayOf<String>* data);
+            [in] ArrayOf<String> data);
 
         /**
          * Sets the two-dimensional array of strings containing localized names for time zones.

@@ -7,99 +7,99 @@ ECode CDateFormatSymbols::constructor()
 }
 
 ECode CDateFormatSymbols::constructor(
-    /* [in] */ ILocale * pLocale)
+    /* [in] */ ILocale* locale)
 {
-    return DateFormatSymbols::Init(pLocale);
+    return DateFormatSymbols::Init(locale);
 }
 
 ECode CDateFormatSymbols::GetLongStandAloneMonths(
-    /* [out, callee] */ ArrayOf<String> ** ppLongStandAloneMonths)
+    /* [out, callee] */ ArrayOf<String>** longStandAloneMonths)
 {
-    return DateFormatSymbols::GetLongStandAloneMonths(ppLongStandAloneMonths);
+    return DateFormatSymbols::GetLongStandAloneMonths(longStandAloneMonths);
 }
 
 ECode CDateFormatSymbols::GetShortStandAloneMonths(
-    /* [out, callee] */ ArrayOf<String> ** ppShortStandAloneMonths)
+    /* [out, callee] */ ArrayOf<String>** shortStandAloneMonths)
 {
-    return DateFormatSymbols::GetShortStandAloneMonths(ppShortStandAloneMonths);
+    return DateFormatSymbols::GetShortStandAloneMonths(shortStandAloneMonths);
 }
 
 ECode CDateFormatSymbols::GetLongStandAloneWeekdays(
-    /* [out, callee] */ ArrayOf<String> ** ppLongStandAloneWeekdays)
+    /* [out, callee] */ ArrayOf<String>** longStandAloneWeekdays)
 {
-    return DateFormatSymbols::GetLongStandAloneMonths(ppLongStandAloneWeekdays);
+    return DateFormatSymbols::GetLongStandAloneMonths(longStandAloneWeekdays);
 }
 
 ECode CDateFormatSymbols::GetShortStandAloneWeekdays(
-    /* [out, callee] */ ArrayOf<String> ** ppShortStandAloneWeekdays)
+    /* [out, callee] */ ArrayOf<String>** shortStandAloneWeekdays)
 {
-    return DateFormatSymbols::GetShortStandAloneWeekdays(ppShortStandAloneWeekdays);
+    return DateFormatSymbols::GetShortStandAloneWeekdays(shortStandAloneWeekdays);
 }
 
 ECode CDateFormatSymbols::GetCustomZoneStrings(
-    /* [out] */ Boolean * pCustomZoneStrings)
+    /* [out] */ Boolean* customZoneStrings)
 {
-    return DateFormatSymbols::GetCustomZoneStrings(pCustomZoneStrings);
+    return DateFormatSymbols::GetCustomZoneStrings(customZoneStrings);
 }
 
 ECode CDateFormatSymbols::GetLocale(
-    /* [out] */ ILocale ** ppLocale)
+    /* [out] */ ILocale** locale)
 {
-    return DateFormatSymbols::GetLocale(ppLocale);
+    return DateFormatSymbols::GetLocale(locale);
 }
 
 ECode CDateFormatSymbols::GetAmPmStrings(
-    /* [out, callee] */ ArrayOf<String> ** ppAmPmStrings)
+    /* [out, callee] */ ArrayOf<String>** amPmStrings)
 {
-    return DateFormatSymbols::GetAmPmStrings(ppAmPmStrings);
+    return DateFormatSymbols::GetAmPmStrings(amPmStrings);
 }
 
 ECode CDateFormatSymbols::GetEras(
-    /* [out, callee] */ ArrayOf<String> ** ppEras)
+    /* [out, callee] */ ArrayOf<String>** eras)
 {
-    return DateFormatSymbols::GetEras(ppEras);
+    return DateFormatSymbols::GetEras(eras);
 }
 
 ECode CDateFormatSymbols::GetLocalPatternChars(
-    /* [out] */ String * pLocalPatternChars)
+    /* [out] */ String* localPatternChars)
 {
-    return DateFormatSymbols::GetLocalPatternChars(pLocalPatternChars);
+    return DateFormatSymbols::GetLocalPatternChars(localPatternChars);
 }
 
 ECode CDateFormatSymbols::GetMonths(
-    /* [out, callee] */ ArrayOf<String> ** ppMonths)
+    /* [out, callee] */ ArrayOf<String>** months)
 {
-    return DateFormatSymbols::GetMonths(ppMonths);
+    return DateFormatSymbols::GetMonths(months);
 }
 
 ECode CDateFormatSymbols::GetShortMonths(
-    /* [out, callee] */ ArrayOf<String> ** ppShortMonths)
+    /* [out, callee] */ ArrayOf<String>** shortMonths)
 {
-    return DateFormatSymbols::GetShortMonths(ppShortMonths);
+    return DateFormatSymbols::GetShortMonths(shortMonths);
 }
 
 ECode CDateFormatSymbols::GetShortWeekdays(
-    /* [out, callee] */ ArrayOf<String> ** ppShortWeekdays)
+    /* [out, callee] */ ArrayOf<String>** shortWeekdays)
 {
-    return DateFormatSymbols::GetShortWeekdays(ppShortWeekdays);
+    return DateFormatSymbols::GetShortWeekdays(shortWeekdays);
 }
 
 ECode CDateFormatSymbols::GetWeekdays(
-    /* [out, callee] */ ArrayOf<String> ** ppWeekdays)
+    /* [out, callee] */ ArrayOf<String>** weekdays)
 {
-    return DateFormatSymbols::GetWeekdays(ppWeekdays);
+    return DateFormatSymbols::GetWeekdays(weekdays);
 }
 
 ECode CDateFormatSymbols::SetAmPmStrings(
-    /* [in] */ ArrayOf<String> * pData)
+    /* [in] */ const ArrayOf<String>& data)
 {
-    return DateFormatSymbols::SetAmPmStrings(pData);
+    return DateFormatSymbols::SetAmPmStrings(data);
 }
 
 ECode CDateFormatSymbols::SetEras(
-    /* [in] */ ArrayOf<String> * pData)
+    /* [in] */ const ArrayOf<String>& data)
 {
-    return DateFormatSymbols::SetEras(pData);
+    return DateFormatSymbols::SetEras(data);
 }
 
 ECode CDateFormatSymbols::SetLocalPatternChars(
@@ -109,27 +109,27 @@ ECode CDateFormatSymbols::SetLocalPatternChars(
 }
 
 ECode CDateFormatSymbols::SetMonths(
-    /* [in] */ ArrayOf<String> * pData)
+    /* [in] */ const ArrayOf<String>& data)
 {
-    return DateFormatSymbols::SetMonths(pData);
+    return DateFormatSymbols::SetMonths(data);
 }
 
 ECode CDateFormatSymbols::SetShortMonths(
-    /* [in] */ ArrayOf<String> * pData)
+    /* [in] */ const ArrayOf<String>& data)
 {
-    return DateFormatSymbols::SetShortMonths(pData);
+    return DateFormatSymbols::SetShortMonths(data);
 }
 
 ECode CDateFormatSymbols::SetShortWeekdays(
-    /* [in] */ ArrayOf<String> * pData)
+    /* [in] */ const ArrayOf<String>& data)
 {
-    return DateFormatSymbols::SetShortWeekdays(pData);
+    return DateFormatSymbols::SetShortWeekdays(data);
 }
 
 ECode CDateFormatSymbols::SetWeekdays(
-    /* [in] */ ArrayOf<String> * pData)
+    /* [in] */ const ArrayOf<String>& data)
 {
-    return DateFormatSymbols::SetWeekdays(pData);
+    return DateFormatSymbols::SetWeekdays(data);
 }
 
 

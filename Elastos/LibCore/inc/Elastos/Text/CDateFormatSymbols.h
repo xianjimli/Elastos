@@ -14,67 +14,64 @@ public:
         /* [in] */ ILocale* locale);
 
     CARAPI GetLongStandAloneMonths(
-        /* [out, callee] */ ArrayOf<String> ** ppLongStandAloneMonths);
+        /* [out, callee] */ ArrayOf<String>** longStandAloneMonths);
 
     CARAPI GetShortStandAloneMonths(
-        /* [out, callee] */ ArrayOf<String> ** ppShortStandAloneMonths);
+        /* [out, callee] */ ArrayOf<String>** shortStandAloneMonths);
 
     CARAPI GetLongStandAloneWeekdays(
-        /* [out, callee] */ ArrayOf<String> ** ppLongStandAloneWeekdays);
+        /* [out, callee] */ ArrayOf<String>** longStandAloneWeekdays);
 
     CARAPI GetShortStandAloneWeekdays(
-        /* [out, callee] */ ArrayOf<String> ** ppShortStandAloneWeekdays);
+        /* [out, callee] */ ArrayOf<String>** shortStandAloneWeekdays);
 
     CARAPI GetCustomZoneStrings(
-        /* [out] */ Boolean * pCustomZoneStrings);
+        /* [out] */ Boolean* customZoneStrings);
 
     CARAPI GetLocale(
-        /* [out] */ ILocale ** ppLocale);
+        /* [out] */ ILocale** locale);
 
     CARAPI GetAmPmStrings(
-        /* [out, callee] */ ArrayOf<String> ** ppAmPmStrings);
+        /* [out, callee] */ ArrayOf<String>** amPmStrings);
 
     CARAPI GetEras(
-        /* [out, callee] */ ArrayOf<String> ** ppEras);
+        /* [out, callee] */ ArrayOf<String>** eras);
 
     CARAPI GetLocalPatternChars(
-        /* [out] */ String * pLocalPatternChars);
+        /* [out] */ String* localPatternChars);
 
     CARAPI GetMonths(
-        /* [out, callee] */ ArrayOf<String> ** ppMonths);
+        /* [out, callee] */ ArrayOf<String>** months);
 
     CARAPI GetShortMonths(
-        /* [out, callee] */ ArrayOf<String> ** ppShortMonths);
+        /* [out, callee] */ ArrayOf<String>** shortMonths);
 
     CARAPI GetShortWeekdays(
-        /* [out, callee] */ ArrayOf<String> ** ppShortWeekdays);
+        /* [out, callee] */ ArrayOf<String>** shortWeekdays);
 
     CARAPI GetWeekdays(
-        /* [out, callee] */ ArrayOf<String> ** ppWeekdays);
+        /* [out, callee] */ ArrayOf<String>** weekdays);
 
     CARAPI SetAmPmStrings(
-        /* [in] */ ArrayOf<String> * pData);
+        /* [in] */ const ArrayOf<String>& data);
 
     CARAPI SetEras(
-        /* [in] */ ArrayOf<String> * pData);
+        /* [in] */ const ArrayOf<String>& data);
 
     CARAPI SetLocalPatternChars(
         /* [in] */ const String& data);
 
     CARAPI SetMonths(
-        /* [in] */ ArrayOf<String> * pData);
+        /* [in] */ const ArrayOf<String>& data);
 
     CARAPI SetShortMonths(
-        /* [in] */ ArrayOf<String> * pData);
+        /* [in] */ const ArrayOf<String>& data);
 
     CARAPI SetShortWeekdays(
-        /* [in] */ ArrayOf<String> * pData);
+        /* [in] */ const ArrayOf<String>& data);
 
     CARAPI SetWeekdays(
-        /* [in] */ ArrayOf<String> * pData);
-
-private:
-    // TODO: Add your private member variables here.
+        /* [in] */ const ArrayOf<String>& data);
 };
 
 #endif // __CDATEFORMATSYMBOLS_H__

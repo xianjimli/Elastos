@@ -1,6 +1,5 @@
 module
 {
-    interface IDate;
     interface IFieldPosition;
     interface ICalendar;
     interface ITimeZone;

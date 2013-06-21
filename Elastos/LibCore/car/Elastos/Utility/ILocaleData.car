@@ -10,6 +10,36 @@ module
             [in] Int32 style,
             [out] String* format);
 
+        GetAmPm(
+            [out, callee] ArrayOf<String>* amPm);
+
+        GetEras(
+            [out, callee] ArrayOf<String>* eras);
+
+        GetLongMonthNames(
+            [out, callee] ArrayOf<String>* names);
+
+        GetShortMonthNames(
+            [out, callee] ArrayOf<String>* names);
+
+        GetLongStandAloneMonthNames(
+            [out, callee] ArrayOf<String>* names);
+
+        GetShortStandAloneMonthNames(
+            [out, callee] ArrayOf<String>* names);
+
+        GetLongWeekdayNames(
+            [out, callee] ArrayOf<String>* names);
+
+        GetShortWeekdayNames(
+            [out, callee] ArrayOf<String>* names);
+
+        GetLongStandAloneWeekdayNames(
+            [out, callee] ArrayOf<String>* names);
+
+        GetShortStandAloneWeekdayNames(
+            [out, callee] ArrayOf<String>* names);
+
         GetZeroDigit(
             [out] Char32* zeroDigit);
 

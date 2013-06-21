@@ -285,6 +285,9 @@ public:
         /* [in] */ IFieldPosition* field,
         /* [out] */ String* result) = 0;
 
+    static CARAPI GetAvailableLocales(
+        /* [out] */ ArrayOf<ILocale*>** locales);
+
     /**
      * Returns the calendar used by this {@code DateFormat}.
      *
@@ -292,6 +295,35 @@ public:
      */
     virtual CARAPI GetCalendar(
         /* [out] */ ICalendar** calendar);
+
+    static CARAPI GetDateInstance(
+        /* [out] */ IDateFormat** instance);
+
+    static CARAPI GetDateInstanceEx(
+        /* [in] */ Int32 style,
+        /* [out] */ IDateFormat** instance);
+
+    static CARAPI GetDateInstanceEx2(
+        /* [in] */ Int32 style,
+        /* [in] */ ILocale* locale,
+        /* [out] */ IDateFormat** instance);
+
+    static CARAPI GetDateTimeInstance(
+        /* [out] */ IDateFormat** instance);
+
+    static CARAPI GetDateTimeInstanceEx(
+        /* [in] */ Int32 dateStyle,
+        /* [in] */ Int32 timeStyle,
+        /* [out] */ IDateFormat** instance);
+
+    static CARAPI GetDateTimeInstanceEx2(
+        /* [in] */ Int32 dateStyle,
+        /* [in] */ Int32 timeStyle,
+        /* [in] */ ILocale* locale,
+        /* [out] */ IDateFormat** instance);
+
+    static CARAPI GetInstance(
+        /* [out] */ IDateFormat** instance);
 
     /**
      * Returns the {@code NumberFormat} used by this {@code DateFormat}.
@@ -301,6 +333,18 @@ public:
     virtual CARAPI GetNumberFormat(
         /* [out] */ INumberFormat** numberFormat);
 
+    static CARAPI GetTimeInstance(
+        /* [out] */ IDateFormat** instance);
+
+    static CARAPI GetTimeInstanceEx(
+        /* [in] */ Int32 style,
+        /* [out] */ IDateFormat** instance);
+
+    static CARAPI GetTimeInstanceEx2(
+        /* [in] */ Int32 style,
+        /* [in] */ ILocale* locale,
+        /* [out] */ IDateFormat** instance);
+
     /**
      * Returns the time zone of this date format's calendar.
      *
@@ -308,15 +352,6 @@ public:
      */
     virtual CARAPI GetTimeZone(
         /* [out] */ ITimeZone** timeZone);
-
-    //@Override
-    //public int hashCode() {
-    //    return calendar.getFirstDayOfWeek()
-    //            + calendar.getMinimalDaysInFirstWeek()
-    //            + calendar.getTimeZone().hashCode()
-    //            + (calendar.isLenient() ? 1231 : 1237)
-    //            + numberFormat.hashCode();
-    //}
 
     /**
      * Indicates whether the calendar used by this date format is lenient.
@@ -444,21 +479,6 @@ protected:
     DateFormat();
 
     /**
-     * Returns a new instance of {@code DateFormat} with the same properties.
-     *
-     * @return a shallow copy of this {@code DateFormat}.
-     *
-     * @see java.lang.Cloneable
-     */
-    //@Override
-    //public Object clone() {
-    //    DateFormat clone = (DateFormat) super.clone();
-    //    clone.calendar = (Calendar) calendar.clone();
-    //    clone.numberFormat = (NumberFormat) numberFormat.clone();
-    //    return clone;
-    //}
-
-    /**
      * Compares this date format with the specified object and indicates if they
      * are equal.
      *
@@ -488,8 +508,15 @@ protected:
     //            && calendar.isLenient() == dateFormat.calendar.isLenient();
     //}
 
-    virtual CARAPI_(PInterface) Probe(
-        /* [in] */ REIID riid) = 0;
+    // virtual CARAPI_(PInterface) Probe(
+    //     /* [in] */ REIID riid) = 0;
+
+private:
+    static CARAPI CheckDateStyle(
+        /* [in] */ Int32 style);
+
+    static CARAPI CheckTimeStyle(
+        /* [in] */ Int32 style);
 
 protected:
     /**

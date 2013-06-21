@@ -1,15 +1,9 @@
 #ifndef __DATEFORMATSYMBOLS_H__
 #define __DATEFORMATSYMBOLS_H__
 
-#include "cmdef.h"
 #include "Elastos.Text_server.h"
-#include <elastos.h>
 #include <elastos/AutoPtr.h>
-#include <elastos/AutoFree.h>
 #include <elastos/Mutex.h>
-#include "TimeZones.h"
-//#include "LocaleData.h"
-//#include "CDateFormatSymbols.h"
 
 using namespace Elastos;
 using namespace Elastos::Core::Threading;
@@ -17,7 +11,10 @@ using namespace Elastos::Core::Threading;
 class DateFormatSymbols
 {
 public:
+    DateFormatSymbols();
+
     virtual ~DateFormatSymbols();
+
     /**
      * Constructs a new {@code DateFormatSymbols} instance containing the
      * symbols for the user's default locale.
@@ -34,6 +31,13 @@ public:
      */
     CARAPI Init(
         /* [in] */ ILocale* locale);
+
+    /**
+     * Gets zone strings, initializing them if necessary. Does not create
+     * a defensive copy, so make sure you do so before exposing the returned
+     * arrays to clients.
+     */
+    CARAPI_(ArrayOf<ArrayOf<String>*>*) InternalZoneStrings();
 
     /**
      * Returns a new {@code DateFormatSymbols} instance for the user's default locale.
@@ -138,7 +142,7 @@ public:
         /* [out] */ Boolean* customZoneStrings);
 
     virtual CARAPI GetLocale(
-        /* [out] */ ILocale** locale);    
+        /* [out] */ ILocale** locale);
     /**
      * Returns the array of strings which represent AM and PM. Use the
      * {@link java.util.Calendar} constants {@code Calendar.AM} and
@@ -186,7 +190,7 @@ public:
      * @return an array of strings.
      */
     virtual CARAPI GetShortMonths(
-            /* [out, callee] */ ArrayOf<String>** arrayOfStrings);  
+            /* [out, callee] */ ArrayOf<String>** arrayOfStrings);
 
     /**
      * Returns the array of strings containing the abbreviated names of the days
@@ -265,7 +269,7 @@ public:
      *            the array of strings for AM and PM.
      */
     virtual CARAPI SetAmPmStrings(
-        /* [in] */ ArrayOf<String>* data);
+        /* [in] */ const ArrayOf<String>& data);
 
     /**
      * Sets the array of Strings which represent BC and AD. Use the
@@ -276,7 +280,7 @@ public:
      *            the array of strings for BC and AD.
      */
     virtual CARAPI SetEras(
-        /* [in] */ ArrayOf<String>* data);
+        /* [in] */ const ArrayOf<String>& data);
 
     /**
      * Sets the pattern characters used by {@link SimpleDateFormat} to specify
@@ -299,7 +303,7 @@ public:
      *            the array of strings.
      */
     virtual CARAPI SetMonths(
-        /* [in] */ ArrayOf<String>* data);
+        /* [in] */ const ArrayOf<String>& data);
 
     /**
      * Sets the array of strings containing the abbreviated names of the months.
@@ -310,7 +314,7 @@ public:
      *            the array of strings.
      */
     virtual CARAPI SetShortMonths(
-        /* [in] */ ArrayOf<String>* data);
+        /* [in] */ const ArrayOf<String>& data);
 
     /**
      * Sets the array of strings containing the abbreviated names of the days of
@@ -321,7 +325,7 @@ public:
      *            the array of strings.
      */
     virtual CARAPI SetShortWeekdays(
-        /* [in] */ ArrayOf<String>* data);
+        /* [in] */ const ArrayOf<String>& data);
 
     /**
      * Sets the array of strings containing the full names of the days of the
@@ -332,7 +336,7 @@ public:
      *            the array of strings.
      */
     virtual CARAPI SetWeekdays(
-        /* [in] */ ArrayOf<String>* data);
+        /* [in] */ const ArrayOf<String>& data);
 
     /**
      * Sets the two-dimensional array of strings containing localized names for time zones.
@@ -343,60 +347,39 @@ public:
     virtual CARAPI SetZoneStrings(
         /* [in] */ ArrayOf<ArrayOf<String> *>* zoneStrings);
 
-protected:
-    /**
-     * Gets zone strings, initializing them if necessary. Does not create
-     * a defensive copy, so make sure you do so before exposing the returned
-     * arrays to clients.
-     */
-    virtual CARAPI InternalZoneStrings(
-        /* [out, callee] */ ArrayOf<ArrayOf<String> * > ** zoneStrings);
-
 private:
-//    private void readObject(ObjectInputStream ois) throws IOException, ClassNotFoundException {
-//        ois.defaultReadObject();
+//    private void readObject(ObjectInputStream ois);
 
-        // The RI doesn't have these fields, so we'll have to fall back and do the best we can.
-//        longStandAloneMonths = months;
-//        shortStandAloneMonths = shortMonths;
-//        longStandAloneWeekdays = weekdays;
-//        shortStandAloneWeekdays = shortWeekdays;
-//    }
-
-//    private void writeObject(ObjectOutputStream oos) throws IOException {
-//        internalZoneStrings();
-//        oos.defaultWriteObject();
-//    }
+//    private void writeObject(ObjectOutputStream oos);
 
     static CARAPI_(Boolean) TimeZoneStringsEqual(
-        /* [in] */ IDateFormatSymbols *lhs,
-        /* [in] */ IDateFormatSymbols *rhs);
+        /* [in] */ IDateFormatSymbols* lhs,
+        /* [in] */ IDateFormatSymbols* rhs);
 
-protected:
+public:
+    ArrayOf<String> *mAmpms, *mEras, *mMonths, *mShortMonths, *mShortWeekdays, *mWeekdays;
+
     // These are used to implement ICU/Android extensions.
-    mutable ArrayOf<String> *mLongStandAloneMonths;
-    mutable ArrayOf<String> *mShortStandAloneMonths;
-    mutable ArrayOf<String> *mLongStandAloneWeekdays;
-    mutable ArrayOf<String> *mShortStandAloneWeekdays;
+    ArrayOf<String>* mLongStandAloneMonths;
+    ArrayOf<String>* mShortStandAloneMonths;
+    ArrayOf<String>* mLongStandAloneWeekdays;
+    ArrayOf<String>* mShortStandAloneWeekdays;
 
     // Localized display names.
-    ArrayOf<ArrayOf<String> * > *mZoneStrings;
+    ArrayOf<ArrayOf<String>* >* mZoneStrings;
     // Has the user called setZoneStrings?
-    mutable Boolean mCustomZoneStrings;
+    Boolean mCustomZoneStrings;
 
     /**
      * Locale, necessary to lazily load time zone strings. We force the time
      * zone names to load upon serialization, so this will never be needed
      * post deserialization.
      */
-    mutable AutoPtr<ILocale> mLocale;
+    AutoPtr<ILocale> mLocale;
 
     Mutex* mLock;
 
 private:
     String mLocalPatternChars;
-
-    ArrayOf<String> *mAmpms, *mEras, *mMonths, *mShortMonths, *mShortWeekdays, *mWeekdays;
-
 };
 #endif //__DATEFORMATSYMBOLS_H__

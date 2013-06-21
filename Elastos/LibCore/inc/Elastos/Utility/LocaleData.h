@@ -42,6 +42,36 @@ public:
         /* [in] */ Int32 style,
         /* [out] */ String* format);
 
+    CARAPI GetAmPm(
+        /* [out] */ ArrayOf<String>** amPm);
+
+    CARAPI GetEras(
+        /* [out] */ ArrayOf<String>** eras);
+
+    CARAPI GetLongMonthNames(
+        /* [out] */ ArrayOf<String>** names);
+
+    CARAPI GetShortMonthNames(
+        /* [out] */ ArrayOf<String>** names);
+
+    CARAPI GetLongStandAloneMonthNames(
+        /* [out] */ ArrayOf<String>** names);
+
+    CARAPI GetShortStandAloneMonthNames(
+        /* [out] */ ArrayOf<String>** names);
+
+    CARAPI GetLongWeekdayNames(
+        /* [out] */ ArrayOf<String>** names);
+
+    CARAPI GetShortWeekdayNames(
+        /* [out] */ ArrayOf<String>** names);
+
+    CARAPI GetLongStandAloneWeekdayNames(
+        /* [out] */ ArrayOf<String>** names);
+
+    CARAPI GetShortStandAloneWeekdayNames(
+        /* [out] */ ArrayOf<String>** names);
+
     CARAPI GetZeroDigit(
         /* [out] */ Char32* zeroDigit);
 

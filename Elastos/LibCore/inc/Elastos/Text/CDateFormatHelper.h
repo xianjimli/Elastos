@@ -8,55 +8,48 @@ CarClass(CDateFormatHelper)
 {
 public:
     CARAPI GetAvailableLocales(
-        /* [out, callee] */ ArrayOf<ILocale *> ** locales);
+        /* [out, callee] */ ArrayOf<ILocale*>** locales);
 
     CARAPI GetDateInstance(
-        /* [out] */ IDateFormat ** instance);
+        /* [out] */ IDateFormat** instance);
 
     CARAPI GetDateInstanceEx(
         /* [in] */ Int32 style,
-        /* [out] */ IDateFormat ** instance);
+        /* [out] */ IDateFormat** instance);
 
     CARAPI GetDateInstanceEx2(
         /* [in] */ Int32 style,
-        /* [in] */ ILocale * locale,
-        /* [out] */ IDateFormat ** instance);
+        /* [in] */ ILocale* locale,
+        /* [out] */ IDateFormat** instance);
 
     CARAPI GetDateTimeInstance(
-        /* [out] */ IDateFormat ** instance);
+        /* [out] */ IDateFormat** instance);
 
     CARAPI GetDateTimeInstanceEx(
         /* [in] */ Int32 dateStyle,
         /* [in] */ Int32 timeStyle,
-        /* [out] */ IDateFormat ** instance);
+        /* [out] */ IDateFormat** instance);
 
     CARAPI GetDateTimeInstanceEx2(
         /* [in] */ Int32 dateStyle,
         /* [in] */ Int32 timeStyle,
-        /* [in] */ ILocale * locale,
-        /* [out] */ IDateFormat ** instance);
+        /* [in] */ ILocale* locale,
+        /* [out] */ IDateFormat** instance);
 
     CARAPI GetInstance(
-        /* [out] */ IDateFormat ** instance);
+        /* [out] */ IDateFormat** instance);
 
     CARAPI GetTimeInstance(
-        /* [out] */ IDateFormat ** instance);
+        /* [out] */ IDateFormat** instance);
 
     CARAPI GetTimeInstanceEx(
         /* [in] */ Int32 style,
-        /* [out] */ IDateFormat ** instance);
+        /* [out] */ IDateFormat** instance);
 
     CARAPI GetTimeInstanceEx2(
         /* [in] */ Int32 style,
-        /* [in] */ ILocale * locale,
-        /* [out] */ IDateFormat ** instance);
-
-private:
-    CARAPI CheckDateStyle(
-        /* [in] */ Int32 style);
-
-    CARAPI CheckTimeStyle(
-        /* [in] */ Int32 style);
+        /* [in] */ ILocale* locale,
+        /* [out] */ IDateFormat** instance);
 };
 
 #endif // __CDATEFORMATHELPER_H__
