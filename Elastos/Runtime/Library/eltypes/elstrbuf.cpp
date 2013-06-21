@@ -39,8 +39,10 @@ PCarQuintet __cdecl _StringBuf_Alloc(Int32 length)
     if (length < 0) return NULL;
 
     Int32 size = (length + 1) * sizeof(Char8);
-    PVoid pv = malloc(sizeof(CarQuintet) + size);
-    return _StringBuf_Init(pv, length, TRUE);
+    Int32 bufSize = sizeof(CarQuintet) + size;
+    SharedBuffer* buf = SharedBuffer::Alloc(bufSize);
+    PCarQuintet p = (PCarQuintet)(buf->GetData());
+    return _StringBuf_Init(p, length, TRUE);
 }
 
 PCarQuintet __cdecl _StringBuf_Alloc_Box(char *pstr, Int32 size)

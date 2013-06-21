@@ -82,7 +82,7 @@ CAR_INLINE PCarQuintet __cdecl _CarQuintet_Alloc(Int32 size)
         return NULL;
     }
 
-    Int32 bufSize = sizeof(SharedBuffer) + sizeof(CarQuintet) + (size ? size : 1);
+    Int32 bufSize = sizeof(CarQuintet) + (size ? size : 1);
     SharedBuffer* buf = SharedBuffer::Alloc(bufSize);
     if (buf) {
         return (PCarQuintet)(buf->GetData());
@@ -125,9 +125,7 @@ void __cdecl _CarQuintet_Free(PCarQuintet pCq)
 {
     if (!pCq) return;
 
-    if (_CarQuintet_IsHeapAlloced(pCq)) {
-        SharedBuffer::GetBufferFromData(pCq)->Release();
-    }
+    SharedBuffer::GetBufferFromData(pCq)->Release();
 }
 
 //-----------------------------------------------------------------------------
