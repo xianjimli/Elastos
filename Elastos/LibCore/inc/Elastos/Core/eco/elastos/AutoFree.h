@@ -37,6 +37,10 @@ public:
 
     AutoFree& operator = (T* other)
     {
+    	if (mPtr == other) {
+			return *this;
+		}
+
         if (mPtr) {
             T::Free(mPtr);
         }
@@ -48,6 +52,10 @@ public:
 
     AutoFree& operator = (const AutoFree<T>& other)
     {
+    	if (mPtr == other) {
+    		return *this;
+    	}
+
         if (mPtr) {
             T::Free(mPtr);
             mPtr = 0;

@@ -105,6 +105,23 @@ void f6Test()
     printf("==== call f6 end ====\n");
 }
 
+//============== test self assign
+void f7() {
+    printf("==== enter f7 ====\n");
+    ArrayOf<Int32> * v1 = ArrayOf<Int32>::Alloc(10);
+    AutoFree<ArrayOf<Int32> > ptr1 = v1;
+    AutoFree<ArrayOf<Int32> > ptr2 = ptr1;
+    ptr2 = v1;
+    printf("==== return from f7 ====\n");
+}
+
+void f7Test()
+{
+    printf("\n==== call f7 ====\n");
+    f7();
+    printf("==== call f7 end ====\n");
+}
+
 void testArrayOf()
 {
     f1Test();
@@ -113,6 +130,7 @@ void testArrayOf()
     f4Test();
     f5Test();
     f6Test();
+    f7Test();
 }
 
 int main(int argc, char *argv[]) {
