@@ -329,7 +329,6 @@ ECode CRemoteParcel::ReadValue(PVoid pValue, Int32 type)
                             }
                         }
                     }
-
                 }
                 else {
                     *(UInt32*)pValue = NULL;
