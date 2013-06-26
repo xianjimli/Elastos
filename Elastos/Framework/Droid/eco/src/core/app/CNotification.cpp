@@ -1,6 +1,7 @@
 
 #include "ext/frameworkdef.h"
 #include "app/CNotification.h"
+#include "widget/CRemoteViews.h"
 #include <elastos/System.h>
 
 using namespace Elastos::Core;
@@ -231,6 +232,38 @@ ECode CNotification::SetFlags(
     /* [in] */ Int32 flags)
 {
     mFlags = flags;
+    return NOERROR;
+}
+
+ECode CNotification::SetLatestEventInfo(
+    /* [in] */ IContext* context,
+    /* [in] */ ICharSequence* contentTitle,
+    /* [in] */ ICharSequence* contentText,
+    /* [in] */ IPendingIntent* contentIntent)
+{
+    AutoPtr<IRemoteViews> contentView;
+    String capsuleName;
+
+    FAIL_RETURN(context->GetCapsuleName(&capsuleName));
+    FAIL_RETURN(CRemoteViews::New(
+        capsuleName, 0x01090061, (IRemoteViews**)&contentView)); // com.android.internal.R.layout.status_bar_latest_event_content
+
+    if (mIcon != 0) {
+        contentView->SetImageViewResource(0x01020006, mIcon); // com.android.internal.R.id.icon
+    }
+    if (contentTitle != NULL) {
+        contentView->SetTextViewText(0x01020016, contentTitle); // com.android.internal.R.id.title
+    }
+    if (contentText != NULL) {
+        contentView->SetTextViewText(0x01020040, contentText); // com.android.internal.R.id.text
+    }
+    if (mWhen != 0) {
+        contentView->SetInt64(0x0102005b, String("setTime"), mWhen); // com.android.internal.R.id.time
+    }
+
+    mContentView = contentView;
+    mContentIntent = contentIntent;
+
     return NOERROR;
 }
 
