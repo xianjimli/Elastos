@@ -1,21 +1,23 @@
 #ifndef __TIMEZONES_H__
 #define __TIMEZONES_H__
+
 #include "cmdef.h"
 #include "Elastos.Text_server.h"
-#include <elastos.h>
 #include <elastos/AutoFree.h>
 #include <elastos/AutoPtr.h>
 
-using namespace Elastos;
-
 class TimeZones
 {
-
 public:
+    static CARAPI_(String) LookupDisplayName(
+        /* [in] */ ArrayOf<ArrayOf<String>*>* zoneStrings,
+        /* [in] */ String id,
+        /* [in] */ Boolean daylight,
+        /* [in] */ Int32 style);
 
     static CARAPI Clone2dStringArray(
-        /* [in] */ const ArrayOf<ArrayOf<String> * > * array,
-        /* [out, callee] */ ArrayOf<ArrayOf<String> * > ** resultArray);
+        /* [in] */ const ArrayOf<ArrayOf<String>*>* array,
+        /* [out, callee] */ ArrayOf<ArrayOf<String>*>** resultArray);
 
     /**
      * Returns an array of time zone strings, as used by DateFormatSymbols.getZoneStrings.
@@ -38,7 +40,8 @@ private:
      * up the list of time zone names, so although it looks like the lazy
      * initialization idiom, it's actually the opposite.
      */
-    class CachedTimeZones {
+    class CachedTimeZones
+    {
     public:
         /**
          * Name of default locale at the time this class was initialized.
@@ -50,6 +53,7 @@ private:
          */
         const static ArrayOf<ArrayOf<String> * > * mNames;
     };
+
 private:
     const static ArrayOf<String>* mAvailableTimeZones;
 };

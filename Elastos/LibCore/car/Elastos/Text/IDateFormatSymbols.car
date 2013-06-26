@@ -2,24 +2,6 @@ module
 {
     [deprecated]
     interface IDateFormatSymbols {
-
-        GetLongStandAloneMonths(
-            [out, callee] ArrayOf<String>* longStandAloneMonths);
-
-        GetShortStandAloneMonths(
-            [out, callee] ArrayOf<String>* shortStandAloneMonths);
-
-        GetLongStandAloneWeekdays(
-            [out, callee] ArrayOf<String>* longStandAloneWeekdays);
-
-        GetShortStandAloneWeekdays(
-            [out, callee] ArrayOf<String>* shortStandAloneWeekdays);
-
-        GetCustomZoneStrings(
-            [out] Boolean* customZoneStrings);
-
-        GetLocale(
-            [out] ILocale** locale);
         /**
          * Returns the array of strings which represent AM and PM. Use the
          * {@link java.util.Calendar} constants {@code Calendar.AM} and

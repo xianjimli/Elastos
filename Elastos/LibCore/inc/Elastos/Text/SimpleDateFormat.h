@@ -1,36 +1,24 @@
 #ifndef __SIMPLEDATEFORMAT_H__
 #define __SIMPLEDATEFORMAT_H__
 
-#include "cmdef.h"
-
-#include <elastos.h>
+#include "Elastos.Text_server.h"
+#include "DateFormat.h"
+#include "CDateFormatSymbols.h"
 #include <elastos/AutoPtr.h>
-#include <elastos/AutoFree.h>
 #include <elastos/Vector.h>
 #include <StringBuffer.h>
 
-#include "Elastos.Text_server.h"
-#include "DateFormat.h"
-#include "CFieldPosition.h"
-#include "Character.h"
-
-
-using namespace Elastos;
-
-extern "C" const InterfaceID EIID_SimpleDateFormat;
-
-class SimpleDateFormat : public DateFormat {
+class SimpleDateFormat : public DateFormat
+{
 public:
-    CARAPI_(PInterface) Probe(
-            /* [in] */ REIID riid);
+    SimpleDateFormat();
+
     /**
      * Constructs a new {@code SimpleDateFormat} for formatting and parsing
      * dates and times in the {@code SHORT} style for the user's default locale.
      * See "<a href="../util/Locale.html#default_locale">Be wary of the default locale</a>".
      */
     CARAPI Init();
-
-    virtual ~SimpleDateFormat();
 
     /**
      * Constructs a new {@code SimpleDateFormat} using the specified
@@ -314,26 +302,26 @@ private:
      */
     CARAPI FormatImpl(
         /* [in] */ IDate* date,
-        /* [in] */ StringBuffer* buffer,
+        /* [in] */ StringBuffer buffer,
         /* [in] */ IFieldPosition* field,
         /* [in] */ Vector< IFieldPosition* >* fields,
-        /* [out] */ StringBuffer* formattedDate);
+        /* [out] */ String* result);
 
     CARAPI Append(
-        /* [in] */ StringBuffer* buffer,
+        /* [in] */ StringBuffer buffer,
         /* [in] */ IFieldPosition* position,
-        /* [in] */ Vector< IFieldPosition* >* fields,
+        /* [in] */ Vector<IFieldPosition*>* fields,
         /* [in] */ Char32 format,
         /* [in] */ Int32 count);
 
-    CARAPI AppendDayOfWeek(
-        /* [in] */ StringBuffer* buffer,
+    CARAPI_(void) AppendDayOfWeek(
+        /* [in] */ StringBuffer buffer,
         /* [in] */ Int32 count,
         /* [in] */ ArrayOf<String>* longs,
         /* [in] */ ArrayOf<String>* shorts);
 
-    CARAPI AppendMonth(
-        /* [in] */ StringBuffer* buffer,
+    CARAPI_(void) AppendMonth(
+        /* [in] */ StringBuffer buffer,
         /* [in] */ Int32 count,
         /* [in] */ ArrayOf<String>* longs,
         /* [in] */ ArrayOf<String>* shorts);
@@ -347,28 +335,27 @@ private:
      * false implies that we should use RFC 822 format ("-0800") instead. This corresponds to 'z'
      * versus 'Z' in the format string.
      */
-    CARAPI AppendTimeZone(
-        /* [in] */ StringBuffer* buffer,
+    CARAPI_(void) AppendTimeZone(
+        /* [in] */ StringBuffer buffer,
         /* [in] */ Int32 count,
         /* [in] */ Boolean generalTimeZone);
 
     /**
      * @param generalTimeZone "GMT-08:00" rather than "-0800".
      */
-    CARAPI AppendNumericTimeZone(
-        /* [in] */ StringBuffer* buffer,
+    CARAPI_(void) AppendNumericTimeZone(
+        /* [in] */ StringBuffer buffer,
         /* [in] */ Boolean generalTimeZone);
 
-    CARAPI AppendNumber(
-        /* [in] */ StringBuffer* buffer,
+    CARAPI_(void) AppendNumber(
+        /* [in] */ StringBuffer buffer,
         /* [in] */ Int32 count,
         /* [in] */ Int32 value);
 
-    CARAPI Error(
+    CARAPI_(AutoPtr<IDate>) Error(
         /* [in] */ IParsePosition* position,
         /* [in] */ Int32 offset,
-        /* [in] */ ITimeZone* zone,
-        /* [out] */ IDate** date);
+        /* [in] */ ITimeZone* zone);
 
     CARAPI Parse(
         /* [in] */ String string,
@@ -377,47 +364,41 @@ private:
         /* [in] */ Int32 count,
         /* [out] */ Int32* value);
 
-    CARAPI ParseDayOfWeek(
+    CARAPI_(Int32) ParseDayOfWeek(
         /* [in] */ String string,
         /* [in] */ Int32 offset,
         /* [in] */ ArrayOf<String>* longs,
-        /* [in] */ ArrayOf<String>* shorts,
-        /* [out] */ Int32* value);
+        /* [in] */ ArrayOf<String>* shorts);
 
-    CARAPI ParseMonth(
+    CARAPI_(Int32) ParseMonth(
         /* [in] */ String string,
         /* [in] */ Int32 offset,
         /* [in] */ Int32 count,
         /* [in] */ Int32 absolute,
         /* [in] */ ArrayOf<String>* longs,
-        /* [in] */ ArrayOf<String>* shorts,
-        /* [out] */ Int32* value);
+        /* [in] */ ArrayOf<String>* shorts);
 
-    CARAPI ParseNumber(
+    CARAPI_(AutoPtr<INumber>) ParseNumber(
         /* [in] */ Int32 max,
         /* [in] */ String string,
-        /* [in] */ IParsePosition* position,
-        /* [out] */ INumber** number);
+        /* [in] */ IParsePosition* position);
 
-    CARAPI ParseNumber(
+    CARAPI_(Int32) ParseNumber(
         /* [in] */ Int32 max,
         /* [in] */ String string,
         /* [in] */ Int32 offset,
         /* [in] */ Int32 field,
-        /* [in] */ Int32 skew,
-        /* [out] */ Int32* value);
+        /* [in] */ Int32 skew);
 
-    CARAPI ParseText(
+    CARAPI_(Int32) ParseText(
         /* [in] */ String string,
         /* [in] */ Int32 offset,
         /* [in] */ ArrayOf<String>* text,
-        /* [in] */ Int32 field,
-        /* [out] */ Int32* value);
+        /* [in] */ Int32 field);
 
-    CARAPI ParseTimeZone(
+    CARAPI_(Int32) ParseTimeZone(
         /* [in] */ String string,
-        /* [in] */ Int32 offset,
-        /* [out] */ Int32* value);
+        /* [in] */ Int32 offset);
 
     static CARAPI ConvertPattern(
         /* [in] */ String tem,
@@ -430,13 +411,7 @@ private:
 
     //CARAPI ReadObject(ObjectInputStream stream);
 
-protected:
-    // 'L' and 'c' are ICU-compatible extensions for stand-alone month and stand-alone weekday.
-    const static String PATTERN_CHARS;
-
 private:
-    //const static Int64 serialVersionUID = 4774881970558875024L;
-
     // The index of 'Z' in the PATTERN_CHARS string. This pattern character is supported by the RI,
     // but has no corresponding public constant.
     const static Int32 RFC_822_TIMEZONE_FIELD = 18;
@@ -448,18 +423,12 @@ private:
     // necessary for correct localization in various languages (http://b/2633414).
     const static Int32 STAND_ALONE_DAY_OF_WEEK_FIELD = 20;
 
-    String pattern;
+    String mPattern;
 
-    AutoPtr<IDateFormatSymbols> formatData;
+    AutoPtr<CDateFormatSymbols> mFormatData;
 
-    mutable Int32 creationYear;
+    Int32 mCreationYear;
 
-    AutoPtr<IDate> defaultCenturyStart;
-
-//    private static final ObjectStreamField[] serialPersistentFields = {
-//            new ObjectStreamField("defaultCenturyStart", Date.class),
-//            new ObjectStreamField("formatData", DateFormatSymbols.class),
-//            new ObjectStreamField("pattern", String.class),
-//            new ObjectStreamField("serialVersionOnStream", Integer.TYPE), };
+    AutoPtr<IDate> mDefaultCenturyStart;
 };
 #endif //__SIMPLEDATEFORMAT_H__

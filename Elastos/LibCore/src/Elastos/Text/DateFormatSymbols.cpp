@@ -2,6 +2,7 @@
 #include "cmdef.h"
 #include "DateFormatSymbols.h"
 #include "TimeZones.h"
+#include "CDateFormatSymbols.h"
 
 DateFormatSymbols::DateFormatSymbols()
     : mCustomZoneStrings(FALSE)
@@ -77,6 +78,8 @@ ECode DateFormatSymbols::Init(
 ECode DateFormatSymbols::GetInstance(
         /* [out] */ IDateFormatSymbols** instance)
 {
+    VALIDATE_NOT_NULL(instance);
+
     AutoPtr<ILocaleHelper> pLocaleHelper;
     CLocaleHelper::AcquireSingleton((ILocaleHelper**)&pLocaleHelper);
     AutoPtr<ILocale> pLocale;
@@ -88,16 +91,17 @@ ECode DateFormatSymbols::GetInstance(
         /* [in] */ ILocale* locale,
         /* [out] */ IDateFormatSymbols** instance)
 {
+    VALIDATE_NOT_NULL(instance);
+
     if (locale == NULL) {
         //throw new NullPointerException();
         return E_NULL_POINTER_EXCEPTION;
     }
-//    CDateFormatSymbols::New(locale, instance);
-    return NOERROR;
+    return CDateFormatSymbols::New(locale, instance);
 }
 
 ECode DateFormatSymbols::GetAvailableLocales(
-        /* [out, callee] */ ArrayOf<ILocale*>** arrayOfLocales)
+    /* [out, callee] */ ArrayOf<ILocale*>** arrayOfLocales)
 {
     AutoPtr<IICUHelper> pICUHelper;
     CICUHelper::AcquireSingleton((IICUHelper**)&pICUHelper);
@@ -105,67 +109,47 @@ ECode DateFormatSymbols::GetAvailableLocales(
 }
 
 Boolean DateFormatSymbols::TimeZoneStringsEqual(
-        /* [in] */ IDateFormatSymbols *lhs,
-        /* [in] */ IDateFormatSymbols *rhs)
+    /* [in] */ DateFormatSymbols* lhs,
+    /* [in] */ DateFormatSymbols* rhs)
 {
-    assert(0);
     // Quick check that may keep us from having to load the zone strings.
-    // Note that different locales may have the same strings, so the opposite check isn't valid.
-//    if (lhs.zoneStrings == null && rhs.zoneStrings == null && lhs.locale.equals(rhs.locale)) {
-//        return true;
-//    }
+    // Note that different locales may have the same strings, so the opposite check isn't valid
+    if (lhs->mZoneStrings == NULL && rhs->mZoneStrings == NULL &&
+            lhs->mLocale == rhs->mLocale) {
+        return TRUE;
+    }
     // Make sure zone strings are loaded, then check.
-//    return Arrays.deepEquals(lhs.internalZoneStrings(), rhs.internalZoneStrings());
-
-    return NOERROR;
-}
-
-ECode DateFormatSymbols::GetLongStandAloneMonths(
-    /* [out, callee] */ ArrayOf<String>** longStandAloneMonths)
-{
-    *longStandAloneMonths = mLongStandAloneMonths->Clone();
-    return NOERROR;
-}
-
-ECode DateFormatSymbols::GetShortStandAloneMonths(
-    /* [out, callee] */ ArrayOf<String>** shortStandAloneMonths)
-{
-    *shortStandAloneMonths = mShortStandAloneMonths->Clone();
-    return NOERROR;
-}
-
-ECode DateFormatSymbols::GetLongStandAloneWeekdays(
-    /* [out, callee] */ ArrayOf<String>** longStandAloneWeekdays)
-{
-    *longStandAloneWeekdays = mLongStandAloneWeekdays->Clone();
-    return NOERROR;
-}
-
-ECode DateFormatSymbols::GetShortStandAloneWeekdays(
-    /* [out, callee] */ ArrayOf<String>** shortStandAloneWeekdays)
-{
-    *shortStandAloneWeekdays = mShortStandAloneWeekdays->Clone();
-    return NOERROR;
-}
-
-ECode DateFormatSymbols::GetCustomZoneStrings(
-    /* [out] */ Boolean* customZoneStrings)
-{
-    VALIDATE_NOT_NULL(customZoneStrings);
-    *customZoneStrings = mCustomZoneStrings;
-    return NOERROR;
-}
-
-ECode DateFormatSymbols::GetLocale(
-    /* [out] */ ILocale** locale)
-{
-    *locale = (ILocale*)mLocale;
-    return NOERROR;
+    ArrayOf<ArrayOf<String>*>* array1 = lhs->InternalZoneStrings();
+    ArrayOf<ArrayOf<String>*>* array2 = rhs->InternalZoneStrings();
+    if (array1 == NULL || array2 == NULL || array1->GetLength() != array2->GetLength()) {
+        return FALSE;
+    }
+    if (array1 == array2) {
+        return TRUE;
+    }
+    for (Int32 i = 0; i < array1->GetLength(); i++) {
+        ArrayOf<String>* ss1 = (*array1)[i];
+        ArrayOf<String>* ss2 = (*array2)[i];
+        if (ss1 == NULL || ss2 == NULL || ss1->GetLength() != ss2->GetLength()) {
+            return FALSE;
+        }
+        if (ss1 == ss2) {
+            return TRUE;
+        }
+        for (Int32 j = 0; j < ss1->GetLength(); ++j) {
+            String s1 = (*ss1)[j], s2 = (*ss2)[j];
+            if (s1.Equals(s2) == 0) {
+                return FALSE;
+            }
+        }
+    }
+    return TRUE;
 }
 
 ECode DateFormatSymbols::GetAmPmStrings(
     /* [out, callee] */ ArrayOf<String>** arrayOfStrings)
 {
+    VALIDATE_NOT_NULL(arrayOfStrings);
     *arrayOfStrings = mAmpms->Clone();
     return NOERROR;
 }
@@ -173,6 +157,7 @@ ECode DateFormatSymbols::GetAmPmStrings(
 ECode DateFormatSymbols::GetEras(
     /* [out, callee] */ ArrayOf<String>** arrayOfStrings)
 {
+    VALIDATE_NOT_NULL(arrayOfStrings);
     *arrayOfStrings = mEras->Clone();
     return NOERROR;
 }
@@ -188,13 +173,15 @@ ECode DateFormatSymbols::GetLocalPatternChars(
 ECode DateFormatSymbols::GetMonths(
     /* [out, callee] */ ArrayOf<String>** arrayOfStrings)
 {
+    VALIDATE_NOT_NULL(arrayOfStrings);
     *arrayOfStrings = mMonths->Clone();
     return NOERROR;
 }
 
 ECode DateFormatSymbols::GetShortMonths(
-            /* [out, callee] */ ArrayOf<String>** arrayOfStrings)
+    /* [out, callee] */ ArrayOf<String>** arrayOfStrings)
 {
+    VALIDATE_NOT_NULL(arrayOfStrings);
     *arrayOfStrings = mShortMonths->Clone();
     return NOERROR;
 }
@@ -202,6 +189,7 @@ ECode DateFormatSymbols::GetShortMonths(
 ECode DateFormatSymbols::GetShortWeekdays(
     /* [out, callee] */ ArrayOf<String>** arrayOfStrings)
 {
+    VALIDATE_NOT_NULL(arrayOfStrings);
     *arrayOfStrings = mShortWeekdays->Clone();
     return NOERROR;
 }
@@ -209,6 +197,7 @@ ECode DateFormatSymbols::GetShortWeekdays(
 ECode DateFormatSymbols::GetWeekdays(
     /* [out, callee] */ ArrayOf<String>** arrayOfStrings)
 {
+    VALIDATE_NOT_NULL(arrayOfStrings);
     *arrayOfStrings = mWeekdays->Clone();
     return NOERROR;
 }

@@ -13,24 +13,6 @@ public:
     CARAPI constructor(
         /* [in] */ ILocale* locale);
 
-    CARAPI GetLongStandAloneMonths(
-        /* [out, callee] */ ArrayOf<String>** longStandAloneMonths);
-
-    CARAPI GetShortStandAloneMonths(
-        /* [out, callee] */ ArrayOf<String>** shortStandAloneMonths);
-
-    CARAPI GetLongStandAloneWeekdays(
-        /* [out, callee] */ ArrayOf<String>** longStandAloneWeekdays);
-
-    CARAPI GetShortStandAloneWeekdays(
-        /* [out, callee] */ ArrayOf<String>** shortStandAloneWeekdays);
-
-    CARAPI GetCustomZoneStrings(
-        /* [out] */ Boolean* customZoneStrings);
-
-    CARAPI GetLocale(
-        /* [out] */ ILocale** locale);
-
     CARAPI GetAmPmStrings(
         /* [out, callee] */ ArrayOf<String>** amPmStrings);
 

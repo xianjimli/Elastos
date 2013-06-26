@@ -88,10 +88,6 @@ public:
 
     static AutoPtr<ITimeZone> GMT;
 
-    static const Int64 mSerialVersionUID = 3581463369166924961L;
-    static const Int32 mSHORT = 0;
-    static const Int32 mLONG = 1;
-
     static ITimeZone* mDefaultTimeZone;
 
 private:

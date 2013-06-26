@@ -3,6 +3,9 @@ module
     interface ILocale;
     interface IDate;
 
+    const ITimeZone_SHORT = 0;
+    const ITimeZone_LONG = 1;
+
     interface ITimeZone{
         GetDisplayName(
             [out] String* name);

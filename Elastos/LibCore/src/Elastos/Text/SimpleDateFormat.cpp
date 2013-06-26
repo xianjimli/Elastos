@@ -1,43 +1,49 @@
+
+#include "cmdef.h"
 #include "SimpleDateFormat.h"
 #include "CDateFormatSymbols.h"
 #include "NumberFormat.h"
 #include "CAttributedString.h"
+#include "CFieldPosition.h"
+#include "TimeZones.h"
+#include "Character.h"
+#include <elastos/AutoFree.h>
 
-const String SimpleDateFormat::PATTERN_CHARS = String("GyMdkHmsSEDFwWahKzZLc");
+const Int32 SimpleDateFormat::RFC_822_TIMEZONE_FIELD;
+const Int32 SimpleDateFormat::STAND_ALONE_MONTH_FIELD;
+const Int32 SimpleDateFormat::STAND_ALONE_DAY_OF_WEEK_FIELD;
 
-PInterface SimpleDateFormat::Probe(
-    /* [in] */ REIID riid)
-{
-    return NULL;
-}
+SimpleDateFormat::SimpleDateFormat()
+    : mCreationYear(0)
+{ }
 
 ECode SimpleDateFormat::Init()
 {
-    AutoPtr<ILocaleHelper> pILocaleHelper;
-    CLocaleHelper::AcquireSingleton((ILocaleHelper**)&pILocaleHelper);
-    AutoPtr<ILocale> pILocale;
-    pILocaleHelper->GetDefault((ILocale**)&pILocale);
-    Init((ILocale*)pILocale);
-    DefaultPattern(&pattern);
-    CDateFormatSymbols::New((ILocale*)pILocale, (IDateFormatSymbols**)&formatData);
+    AutoPtr<ILocaleHelper> localeHelper;
+    CLocaleHelper::AcquireSingleton((ILocaleHelper**)&localeHelper);
+    AutoPtr<ILocale> locale;
+    localeHelper->GetDefault((ILocale**)&locale);
+    Init((ILocale*)locale);
+    DefaultPattern(&mPattern);
+    ASSERT_SUCCEEDED(CDateFormatSymbols::NewByFriend(locale,
+            (CDateFormatSymbols**)&mFormatData));
     return NOERROR;
 }
 
 ECode SimpleDateFormat::Init(
     /* [in] */ String pattern)
 {
-    AutoPtr<ILocaleHelper> pILocaleHelper;
-    CLocaleHelper::AcquireSingleton((ILocaleHelper**)&pILocaleHelper);
-    AutoPtr<ILocale> pILocale;
-    pILocaleHelper->GetDefault((ILocale**)&pILocale);
-    Init(pattern, (ILocale*)pILocale);
-    return NOERROR;
+    AutoPtr<ILocaleHelper> localeHelper;
+    CLocaleHelper::AcquireSingleton((ILocaleHelper**)&localeHelper);
+    AutoPtr<ILocale> locale;
+    localeHelper->GetDefault((ILocale**)&locale);
+    return Init(pattern, locale);
 }
 
 ECode SimpleDateFormat::ValidateFormat(
     /* [in] */ Char32 format)
 {
-    Int32 index = PATTERN_CHARS.IndexOf(format);
+    Int32 index = String(ISimpleDateFormat_PATTERN_CHARS).IndexOf(format);
     if (index == -1) {
         //throw new IllegalArgumentException("Unknown pattern character '" + format + "'");
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
@@ -51,17 +57,18 @@ ECode SimpleDateFormat::ValidatePattern(
     Boolean quote = FALSE;
     Int32 next, last = -1, count = 0;
 
-    const Int32 patternLength = (Int32)tem.GetLength();
+    Int32 patternLength = tem.GetLength();
     for (Int32 i = 0; i < patternLength; i++) {
-        next = (tem.GetChar(i));
+        next = tem.GetChar(i);
         if (next == '\'') {
             if (count > 0) {
-                ValidateFormat((Char32) last);
+                FAIL_RETURN(ValidateFormat((Char32)last));
                 count = 0;
             }
             if (last == next) {
                 last = -1;
-            } else {
+            }
+            else {
                 last = next;
             }
             quote = !quote;
@@ -71,23 +78,25 @@ ECode SimpleDateFormat::ValidatePattern(
                 && (last == next || (next >= 'a' && next <= 'z') || (next >= 'A' && next <= 'Z'))) {
             if (last == next) {
                 count++;
-            } else {
+            }
+            else {
                 if (count > 0) {
-                    ValidateFormat((Char32) last);
+                    FAIL_RETURN(ValidateFormat((Char32)last));
                 }
                 last = next;
                 count = 1;
             }
-        } else {
+        }
+        else {
             if (count > 0) {
-                ValidateFormat((Char32) last);
+                FAIL_RETURN(ValidateFormat((Char32)last));
                 count = 0;
             }
             last = -1;
         }
     }
     if (count > 0) {
-        ValidateFormat((Char32) last);
+        FAIL_RETURN(ValidateFormat((Char32)last));
     }
 
     if (quote) {
@@ -101,15 +110,14 @@ ECode SimpleDateFormat::Init(
     /* [in] */ String tem,
     /* [in] */ IDateFormatSymbols* value)
 {
-    AutoPtr<ILocaleHelper> pILocaleHelper;
-    CLocaleHelper::AcquireSingleton((ILocaleHelper**)&pILocaleHelper);
-    AutoPtr<ILocale> pILocale;
-    pILocaleHelper->GetDefault((ILocale**)&pILocale);
-    Init((ILocale*)pILocale);
-    ValidatePattern(tem);
-    pattern = tem;
-    //formatData = (DateFormatSymbols) value.clone();
-    formatData = (IDateFormatSymbols*)(value->Probe(EIID_IDateFormatSymbols) );
+    AutoPtr<ILocaleHelper> localeHelper;
+    CLocaleHelper::AcquireSingleton((ILocaleHelper**)&localeHelper);
+    AutoPtr<ILocale> locale;
+    localeHelper->GetDefault((ILocale**)&locale);
+    Init((ILocale*)locale);
+    FAIL_RETURN(ValidatePattern(tem));
+    mPattern = tem;
+    mFormatData = (CDateFormatSymbols*)value;
     return NOERROR;
 }
 
@@ -117,14 +125,15 @@ ECode SimpleDateFormat::Init(
     /* [in] */ String tem,
     /* [in] */ ILocale* locale)
 {
-    this->Init(locale);
-    ValidatePattern(tem);
-    pattern = tem;
-    AutoPtr<ILocaleHelper> pILocaleHelper;
-    CLocaleHelper::AcquireSingleton((ILocaleHelper**)&pILocaleHelper);
-    AutoPtr<ILocale> pILocale;
-    pILocaleHelper->GetDefault((ILocale**)&pILocale);
-    CDateFormatSymbols::New((ILocale*)pILocale, (IDateFormatSymbols**)&formatData);
+    Init(locale);
+    FAIL_RETURN(ValidatePattern(tem));
+    mPattern = tem;
+    AutoPtr<ILocaleHelper> localeHelper;
+    CLocaleHelper::AcquireSingleton((ILocaleHelper**)&localeHelper);
+    AutoPtr<ILocale> l;
+    localeHelper->GetDefault((ILocale**)&l);
+    ASSERT_SUCCEEDED(CDateFormatSymbols::NewByFriend(l,
+            (CDateFormatSymbols**)&mFormatData));
     return NOERROR;
 }
 
@@ -136,38 +145,51 @@ ECode SimpleDateFormat::Init(
     mNumberFormat->SetGroupingUsed(FALSE);
     CGregorianCalendar::New(locale, (IGregorianCalendar**)&mCalendar);
     mCalendar->Add(Calendar_YEAR, -80);
-    mCalendar->Get(Calendar_YEAR, &creationYear);
-    mCalendar->GetTime((IDate**)&defaultCenturyStart);
+    mCalendar->Get(Calendar_YEAR, &mCreationYear);
+    mCalendar->GetTime((IDate**)&mDefaultCenturyStart);
     return NOERROR;
-}
-
-SimpleDateFormat::~SimpleDateFormat()
-{
-
 }
 
 ECode SimpleDateFormat::ApplyLocalizedPattern(
     /* [in] */ String tem)
 {
-    String fromChars;
-    formatData->GetLocalPatternChars(&fromChars);
-    ConvertPattern(tem, fromChars, PATTERN_CHARS, TRUE, &pattern);
+    String localPatternChars;
+    mFormatData->GetLocalPatternChars(&localPatternChars);
+    ConvertPattern(tem, localPatternChars,
+            String(ISimpleDateFormat_PATTERN_CHARS), TRUE, &mPattern);
     return NOERROR;
 }
 
 ECode SimpleDateFormat::ApplyPattern(
     /* [in] */ String tem)
 {
-    ValidatePattern(tem);
-    pattern = tem;
+    FAIL_RETURN(ValidatePattern(tem));
+    mPattern = tem;
     return NOERROR;
 }
 
 ECode SimpleDateFormat::DefaultPattern(
     /* [out] */ String* pattern)
 {
-//    LocaleData localeData = LocaleData.get(Locale.getDefault());
-//    return localeData.getDateFormat(SHORT) + " " + localeData.getTimeFormat(SHORT);
+    VALIDATE_NOT_NULL(pattern);
+
+    AutoPtr<ILocaleHelper> localeHelper;
+    CLocaleHelper::AcquireSingleton((ILocaleHelper**)&localeHelper);
+    AutoPtr<ILocale> locale;
+    localeHelper->GetDefault((ILocale**)&locale);
+
+    AutoPtr<ILocaleDataHelper> localeDataHelper;
+    FAIL_RETURN(CLocaleDataHelper::AcquireSingleton((ILocaleDataHelper**)&localeDataHelper));
+    AutoPtr<ILocaleData> localeData;
+    FAIL_RETURN(localeDataHelper->Get(locale, (ILocaleData**)&localeData));
+
+    String dateFormat, timeFormat;
+    localeData->GetDateFormat(IDateFormat_SHORT, &dateFormat);
+    localeData->GetTimeFormat(IDateFormat_SHORT, &timeFormat);
+    pattern->Append(dateFormat);
+    pattern->Append(" ");
+    pattern->Append(timeFormat);
+
     return NOERROR;
 }
 
@@ -175,21 +197,23 @@ ECode SimpleDateFormat::FormatToCharacterIterator(
     /* [in] */ IInterface* object,
     /* [out] */ IAttributedCharacterIterator** charactorIterator)
 {
+    VALIDATE_NOT_NULL(charactorIterator);
+
     if (object == NULL) {
         //throw new NullPointerException();
         return E_NULL_POINTER_EXCEPTION;
     }
     if (object->Probe(EIID_IDate) != NULL) {
-        FormatToCharacterIteratorImpl((IDate*) object, charactorIterator);
-        return NOERROR;
+        return FormatToCharacterIteratorImpl((IDate*)object->Probe(EIID_IDate),
+                charactorIterator);
     }
     if (object->Probe(EIID_INumber) != NULL ) {
-        AutoPtr<IDate> pIDate;
-        Int64 pValue;
-        AutoPtr<INumber> pINumber = reinterpret_cast<INumber*>(object->Probe(EIID_INumber));
-        pINumber->Int64Value(&pValue);
-        CDate::New(pValue, (IDate**)&pIDate);
-        return FormatToCharacterIteratorImpl(pIDate, charactorIterator);
+        AutoPtr<INumber> number = (INumber*)object->Probe(EIID_INumber);
+        Int64 value;
+        number->Int64Value(&value);
+        AutoPtr<IDate> date;
+        ASSERT_SUCCEEDED(CDate::New(value, (IDate**)&date));
+        return FormatToCharacterIteratorImpl(date, charactorIterator);
     }
     //throw new IllegalArgumentException();
     return E_ILLEGAL_ARGUMENT_EXCEPTION;
@@ -199,27 +223,26 @@ ECode SimpleDateFormat::FormatToCharacterIteratorImpl(
     /* [in] */ IDate* date,
     /* [out] */ IAttributedCharacterIterator** charactorIterator)
 {
-    StringBuffer* buffer = new StringBuffer(NULL);
-    Vector<IFieldPosition* >* fields = new Vector<IFieldPosition* >();
+    StringBuffer buffer;
+    Vector<IFieldPosition*>* fields = new Vector<IFieldPosition*>();
 
-    StringBuffer* formattedDate = new StringBuffer("");
+    String result;
     // format the date, and find fields
-    FormatImpl(date, buffer, NULL, fields, formattedDate);
+    FormatImpl(date, buffer, NULL, fields, &result);
 
     // create and AttributedString with the formatted buffer
     AutoPtr<IAttributedString> as;
-    CAttributedString::New(buffer->Substring(0, buffer->GetLength()), (IAttributedString**)&as);
+    CAttributedString::New(buffer.ToString(), (IAttributedString**)&as);
 
     // add DateFormat field attributes to the AttributedString
-    for (Int32 i = 0; i < (Int32)(fields->GetSize() ); i++) {
+    for (Int32 i = 0; i < (Int32)fields->GetSize(); i++) {
         AutoPtr<IFieldPosition> pos = (*fields)[i];
         AutoPtr<IFormatField> attribute;
-        pos->GetFieldAttribute((IFormatField**)&attribute);
-        IInterface * object = reinterpret_cast<IInterface*>(attribute->Probe(EIID_IInterface));
+        ASSERT_SUCCEEDED(pos->GetFieldAttribute((IFormatField**)&attribute));
         Int32 bi, ei;
         pos->GetBeginIndex(&bi);
         pos->GetEndIndex(&ei);
-        as->AddAttributeEx(attribute, object, bi, ei);
+        as->AddAttributeEx(attribute, (IInterface*)attribute, bi, ei);
     }
 
     // return the CharacterIterator from AttributedString
@@ -228,12 +251,12 @@ ECode SimpleDateFormat::FormatToCharacterIteratorImpl(
 
 ECode SimpleDateFormat::FormatImpl(
     /* [in] */ IDate* date,
-    /* [in] */ StringBuffer* buffer,
+    /* [in] */ StringBuffer buffer,
     /* [in] */ IFieldPosition* field,
-    /* [in] */ Vector< IFieldPosition* >* fields,
-    /* [out] */ StringBuffer* formattedDate)
+    /* [out] */ Vector<IFieldPosition*>* fields,
+    /* [out] */ String* result)
 {
-    VALIDATE_NOT_NULL(formattedDate);
+    VALIDATE_NOT_NULL(result);
 
     Boolean quote = FALSE;
     Int32 next, last = -1, count = 0;
@@ -242,18 +265,19 @@ ECode SimpleDateFormat::FormatImpl(
         ((CFieldPosition*)field)->Clear();
     }
 
-    const Int32 patternLength = (Int32)(pattern.GetLength() );
+    Int32 patternLength = mPattern.GetLength();
     for (Int32 i = 0; i < patternLength; i++) {
-        next = (pattern.GetChar(i));
+        next = mPattern.GetChar(i);
         if (next == '\'') {
             if (count > 0) {
-                Append(buffer, field, fields, (Char32) last, count);
+                FAIL_RETURN(Append(buffer, field, fields, (Char32)last, count));
                 count = 0;
             }
             if (last == next) {
-                (*buffer) += '\'';
+                buffer += '\'';
                 last = -1;
-            } else {
+            }
+            else {
                 last = next;
             }
             quote = !quote;
@@ -263,83 +287,78 @@ ECode SimpleDateFormat::FormatImpl(
                 && (last == next || (next >= 'a' && next <= 'z') || (next >= 'A' && next <= 'Z'))) {
             if (last == next) {
                 count++;
-            } else {
+            }
+            else {
                 if (count > 0) {
-                    Append(buffer, field, fields, (Char32) last, count);
+                    FAIL_RETURN(Append(buffer, field, fields, (Char32)last, count));
                 }
                 last = next;
                 count = 1;
             }
-        } else {
+        }
+        else {
             if (count > 0) {
-                Append(buffer, field, fields, (Char32) last, count);
+                FAIL_RETURN(Append(buffer, field, fields, (Char32)last, count));
                 count = 0;
             }
             last = -1;
-            (*buffer) += (Char32)next;
+            buffer += (Char32)next;
         }
     }
     if (count > 0) {
-        Append(buffer, field, fields, (Char32) last, count);
+        FAIL_RETURN(Append(buffer, field, fields, (Char32) last, count));
     }
-    *formattedDate = *buffer;
+
+    *result = buffer;
     return NOERROR;
 }
 
 ECode SimpleDateFormat::Append(
-    /* [in] */ StringBuffer* buffer,
+    /* [in] */ StringBuffer buffer,
     /* [in] */ IFieldPosition* position,
-    /* [in] */ Vector< IFieldPosition* >* fields,
+    /* [in] */ Vector<IFieldPosition*>* fields,
     /* [in] */ Char32 format,
     /* [in] */ Int32 count)
 {
     Int32 field = -1;
-    Int32 index = PATTERN_CHARS.IndexOf(format);
+    Int32 index = String(ISimpleDateFormat_PATTERN_CHARS).IndexOf(format);
     if (index == -1) {
         //throw new IllegalArgumentException("Unknown pattern character '" + format + "'");
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
 
-    Int32 beginPosition = buffer->GetLength();
+    Int32 beginPosition = buffer.GetLength();
     AutoPtr<IDateFormatField> dateFormatField;
+    Int32 value;
     switch (index) {
         case IDateFormat_ERA_FIELD:
             dateFormatField = DateFormat::Field::ERA;
-            Int32 pValue;
-            mCalendar->Get(Calendar_ERA, &pValue);
-            ArrayOf<String> * arrayOfStrings;
-            formatData->GetEras(&arrayOfStrings);
-            (*buffer) += (*arrayOfStrings)[pValue];
+            mCalendar->Get(Calendar_ERA, &value);
+            buffer += (*mFormatData->mEras)[value];
             break;
         case IDateFormat_YEAR_FIELD:
             dateFormatField = DateFormat::Field::YEAR;
-            Int32 year;
-            mCalendar->Get(Calendar_YEAR, &year);
+            mCalendar->Get(Calendar_YEAR, &value);
             /*
              * For 'y' and 'yyy', we're consistent with Unicode and previous releases
              * of Android. But this means we're inconsistent with the RI.
              *     http://unicode.org/reports/tr35/
              */
-
             if (count == 2) {
-                AppendNumber(buffer, 2, year %= 100);
-            } else {
-                AppendNumber(buffer, count, year);
+                AppendNumber(buffer, 2, value %= 100);
+            }
+            else {
+                AppendNumber(buffer, count, value);
             }
             break;
         case STAND_ALONE_MONTH_FIELD: // L
             dateFormatField = DateFormat::Field::MONTH;
-            ArrayOf<String> *longStandAloneMonths, *shortStandAloneMonths;
-            formatData->GetLongStandAloneMonths(&longStandAloneMonths);
-            formatData->GetShortStandAloneMonths(&shortStandAloneMonths);
-            AppendMonth(buffer, count, longStandAloneMonths, shortStandAloneMonths);
+            AppendMonth(buffer, count, mFormatData->mLongStandAloneMonths,
+                    mFormatData->mShortStandAloneMonths);
             break;
         case IDateFormat_MONTH_FIELD: // M
             dateFormatField = DateFormat::Field::MONTH;
-            ArrayOf<String> *arrayOfStrings1, *arrayOfStrings2;
-            formatData->GetMonths(&arrayOfStrings1);
-            formatData->GetShortMonths(&arrayOfStrings2);
-            AppendMonth(buffer, count, arrayOfStrings1, arrayOfStrings2);
+            AppendMonth(buffer, count, mFormatData->mMonths, mFormatData->mShortMonths);
             break;
         case IDateFormat_DATE_FIELD:
             dateFormatField = DateFormat::Field::DAY_OF_MONTH;
@@ -347,9 +366,8 @@ ECode SimpleDateFormat::Append(
             break;
         case IDateFormat_HOUR_OF_DAY1_FIELD: // k
             dateFormatField = DateFormat::Field::HOUR_OF_DAY1;
-            Int32 hour;
-            mCalendar->Get(Calendar_HOUR_OF_DAY, &hour);
-            AppendNumber(buffer, count, hour == 0 ? 24 : hour);
+            mCalendar->Get(Calendar_HOUR_OF_DAY, &value);
+            AppendNumber(buffer, count, value == 0 ? 24 : value);
             break;
         case IDateFormat_HOUR_OF_DAY0_FIELD: // H
             dateFormatField = DateFormat::Field::HOUR_OF_DAY0;
@@ -365,23 +383,18 @@ ECode SimpleDateFormat::Append(
             break;
         case IDateFormat_MILLISECOND_FIELD:
             dateFormatField = DateFormat::Field::MILLISECOND;
-            Int32 value;
             mCalendar->Get(Calendar_MILLISECOND, &value);
             AppendNumber(buffer, count, value);
             break;
         case STAND_ALONE_DAY_OF_WEEK_FIELD:
             dateFormatField = DateFormat::Field::DAY_OF_WEEK;
-            ArrayOf<String> *longStandAloneWeekdays, *shortStandAloneWeekdays;
-            formatData->GetLongStandAloneWeekdays(&longStandAloneWeekdays);
-            formatData->GetShortStandAloneWeekdays(&shortStandAloneWeekdays);
-            AppendDayOfWeek(buffer, count, longStandAloneWeekdays, shortStandAloneWeekdays);
+            AppendDayOfWeek(buffer, count, mFormatData->mLongStandAloneWeekdays,
+                    mFormatData->mShortStandAloneWeekdays);
             break;
         case IDateFormat_DAY_OF_WEEK_FIELD:
             dateFormatField = DateFormat::Field::DAY_OF_WEEK;
-            ArrayOf<String> *arrayOfStrings3, *arrayOfStrings4;
-            formatData->GetWeekdays(&arrayOfStrings3);
-            formatData->GetShortWeekdays(&arrayOfStrings4);
-            AppendDayOfWeek(buffer, count, arrayOfStrings3, arrayOfStrings4);
+            AppendDayOfWeek(buffer, count, mFormatData->mWeekdays,
+                    mFormatData->mShortWeekdays);
             break;
         case IDateFormat_DAY_OF_YEAR_FIELD:
             dateFormatField = DateFormat::Field::DAY_OF_YEAR;
@@ -401,16 +414,13 @@ ECode SimpleDateFormat::Append(
             break;
         case IDateFormat_AM_PM_FIELD:
             dateFormatField = DateFormat::Field::AM_PM;
-            Int32 pValue2;
-            mCalendar->Get(Calendar_AM_PM, &pValue2);
-            ArrayOf<String> * arrayOfStrings5;
-            formatData->GetAmPmStrings(&arrayOfStrings5);
-            (*buffer) += (*arrayOfStrings5)[pValue2];
+            mCalendar->Get(Calendar_AM_PM, &value);
+            buffer += (*mFormatData->mAmpms)[value];
             break;
         case IDateFormat_HOUR1_FIELD: // h
             dateFormatField = DateFormat::Field::HOUR1;
-            mCalendar->Get(Calendar_HOUR, &hour);
-            AppendNumber(buffer, count, hour == 0 ? 12 : hour);
+            mCalendar->Get(Calendar_HOUR, &value);
+            AppendNumber(buffer, count, value == 0 ? 12 : value);
             break;
         case IDateFormat_HOUR0_FIELD: // K
             dateFormatField = DateFormat::Field::HOUR0;
@@ -426,47 +436,48 @@ ECode SimpleDateFormat::Append(
             break;
     }
     if (field != -1) {
-        Int32 value;
-        mCalendar->Get(field, &value);
-        AppendNumber(buffer, count, value);
+        Int32 v;
+        mCalendar->Get(field, &v);
+        AppendNumber(buffer, count, v);
     }
 
     if (fields != NULL) {
-        CFieldPosition::New(dateFormatField, &position);
-        position->SetBeginIndex(beginPosition);
-        position->SetEndIndex(buffer->GetLength());
-        fields->PushBack(position);
-    } else {
+        AutoPtr<IFieldPosition> pos;
+        ASSERT_SUCCEEDED(CFieldPosition::New(dateFormatField, (IFieldPosition**)&pos));
+        pos->SetBeginIndex(beginPosition);
+        pos->SetEndIndex(buffer.GetLength());
+        fields->PushBack(pos);
+    }
+    else {
         // Set to the first occurrence
         AutoPtr<IFormatField> ff;
         position->GetFieldAttribute((IFormatField**)&ff);
         Int32 f, ei;
         position->GetField(&f);
         position->GetEndIndex(&ei);
-        if ( (ff == dateFormatField || ff == NULL) && (f == index) && (ei == 0) ) {
+        if ((ff == dateFormatField || ff == NULL) && (f == index) && (ei == 0) ) {
             position->SetBeginIndex(beginPosition);
-            position->SetEndIndex(buffer->GetLength());
+            position->SetEndIndex(buffer.GetLength());
         }
     }
     return NOERROR;
 }
 
-ECode SimpleDateFormat::AppendDayOfWeek(
-    /* [in] */ StringBuffer* buffer,
+void SimpleDateFormat::AppendDayOfWeek(
+    /* [in] */ StringBuffer buffer,
     /* [in] */ Int32 count,
     /* [in] */ ArrayOf<String>* longs,
     /* [in] */ ArrayOf<String>* shorts)
 {
     Boolean isLong = (count > 3);
-    ArrayOf<String>* days = isLong ? longs->Clone() : shorts->Clone();
-    Int32 pValue;
-    mCalendar->Get(Calendar_DAY_OF_WEEK, &pValue);
-    (*buffer) += (*days)[pValue];
-    return NOERROR;
+    ArrayOf<String>* days = isLong ? longs : shorts;
+    Int32 value;
+    mCalendar->Get(Calendar_DAY_OF_WEEK, &value);
+    buffer += (*days)[value];
 }
 
-ECode SimpleDateFormat::AppendMonth(
-    /* [in] */ StringBuffer* buffer,
+void SimpleDateFormat::AppendMonth(
+    /* [in] */ StringBuffer buffer,
     /* [in] */ Int32 count,
     /* [in] */ ArrayOf<String>* longs,
     /* [in] */ ArrayOf<String>* shorts)
@@ -475,103 +486,97 @@ ECode SimpleDateFormat::AppendMonth(
     mCalendar->Get(Calendar_MONTH, &month);
     if (count <= 2) {
         AppendNumber(buffer, count, month + 1);
-        return NULL;
+        return;
     }
 
     Boolean isLong = (count > 3);
-    ArrayOf<String>* months = isLong ? longs->Clone() : shorts->Clone();
-    (*buffer) += (*months)[month];
-    return NOERROR;
+    ArrayOf<String>* months = isLong ? longs : shorts;
+    buffer += (*months)[month];
 }
 
-ECode SimpleDateFormat::AppendTimeZone(
-    /* [in] */ StringBuffer* buffer,
+void SimpleDateFormat::AppendTimeZone(
+    /* [in] */ StringBuffer buffer,
     /* [in] */ Int32 count,
     /* [in] */ Boolean generalTimeZone)
 {
     if (generalTimeZone) {
         AutoPtr<ITimeZone> tz;
         mCalendar->GetTimeZone((ITimeZone**)&tz);
-        Int32 pValue;
-        mCalendar->Get(Calendar_DST_OFFSET, &pValue);
-        Boolean daylight = (pValue != 0) ? TRUE : FALSE;
-        Int32 style = (count < 4) ? 0 : 1;
-        Boolean customZoneStrings;
-        formatData->GetCustomZoneStrings(&customZoneStrings);
-        if (!customZoneStrings) {
-            String *name = new String(NULL);
-            AutoPtr<ILocale> locale;
-            formatData->GetLocale((ILocale**)&locale);
-            tz->GetDisplayNameEx3(daylight, style, (ILocale*)locale, name);
-            (*buffer) += (*name);
-            return NULL;
+        Int32 value;
+        mCalendar->Get(Calendar_DST_OFFSET, &value);
+        Boolean daylight = value != 0;
+        Int32 style = count < 4 ? ITimeZone_SHORT : ITimeZone_LONG;
+        if (!mFormatData->mCustomZoneStrings) {
+            String name;
+            tz->GetDisplayNameEx3(daylight, style, mFormatData->mLocale, &name);
+            buffer += name;
+            return;
         }
         // We can't call TimeZone.getDisplayName() because it would not use
         // the custom DateFormatSymbols of this SimpleDateFormat.
-        String *ID = new String(NULL);
-        tz->GetID(ID);
-        //String custom = TimeZones.lookupDisplayName(formatData.zoneStrings, tz.getID(), daylight, style);
-        //if (custom != null) {
-        //    buffer.append(custom);
-        //    return;
-        //}
+        String id;
+        tz->GetID(&id);
+        String custom = TimeZones::LookupDisplayName(mFormatData->mZoneStrings,
+                id, daylight, style);
+        if (!custom.IsNull()) {
+           buffer += custom;
+           return;
+        }
     }
     // We didn't find what we were looking for, so default to a numeric time zone.
     AppendNumericTimeZone(buffer, generalTimeZone);
-    return NOERROR;
 }
 
-ECode SimpleDateFormat::AppendNumericTimeZone(
-    /* [in] */ StringBuffer* buffer,
+void SimpleDateFormat::AppendNumericTimeZone(
+    /* [in] */ StringBuffer buffer,
     /* [in] */ Boolean generalTimeZone)
 {
-    Int32 pValue1, pValue2;
-    mCalendar->Get(Calendar_ZONE_OFFSET, &pValue1);
-    mCalendar->Get(Calendar_DST_OFFSET, &pValue2);
-    Int32 offset = pValue1 + pValue2;
+    Int32 value1, value2;
+    mCalendar->Get(Calendar_ZONE_OFFSET, &value1);
+    mCalendar->Get(Calendar_DST_OFFSET, &value2);
+    Int32 offset = value1 + value2;
     Char32 sign = '+';
     if (offset < 0) {
         sign = '-';
         offset = -offset;
     }
     if (generalTimeZone) {
-        (*buffer) += "GMT";
+        buffer += "GMT";
     }
-    (*buffer) += sign;
+    buffer += sign;
     AppendNumber(buffer, 2, offset / 3600000);
     if (generalTimeZone) {
-        (*buffer) += ':';
+        buffer += ':';
     }
     AppendNumber(buffer, 2, (offset % 3600000) / 60000);
-    return NOERROR;
 }
 
-ECode SimpleDateFormat::AppendNumber(
-    /* [in] */ StringBuffer* buffer,
+void SimpleDateFormat::AppendNumber(
+    /* [in] */ StringBuffer buffer,
     /* [in] */ Int32 count,
     /* [in] */ Int32 value)
 {
+
     Int32 minimumIntegerDigits;
     mNumberFormat->GetMinimumIntegerDigits(&minimumIntegerDigits);
     mNumberFormat->SetMinimumIntegerDigits(count);
     AutoPtr<IFieldPosition> fp;
     CFieldPosition::New(0, (IFieldPosition**)&fp);
-    String result("");
-    //mNumberFormat->FormatObjectEx(Integer.valueOf(value), buffer, fp, &result);
+    String result;
+    AutoPtr<IInteger32> integer;
+    ASSERT_SUCCEEDED(CInteger32::New(value, (IInteger32**)&integer));
+    mNumberFormat->FormatObjectEx((IInterface*)integer, String(buffer), fp, &result);
     mNumberFormat->SetMinimumIntegerDigits(minimumIntegerDigits);
-    return NOERROR;
 }
 
-ECode SimpleDateFormat::Error(
+AutoPtr<IDate> SimpleDateFormat::Error(
     /* [in] */ IParsePosition* position,
     /* [in] */ Int32 offset,
-    /* [in] */ ITimeZone* zone,
-    /* [out] */ IDate** date)
+    /* [in] */ ITimeZone* zone)
 {
     position->SetErrorIndex(offset);
     mCalendar->SetTimeZone(zone);
-    *date = NULL;
-    return NOERROR;
+    return NULL;
 }
 
 ECode SimpleDateFormat::FormatDateEx(
@@ -582,26 +587,25 @@ ECode SimpleDateFormat::FormatDateEx(
 {
     VALIDATE_NOT_NULL(formatString);
     // Harmony delegates to ICU's SimpleDateFormat, we implement it directly
-    StringBuffer* sb = new StringBuffer(buffer);
-    StringBuffer* result = new StringBuffer(*formatString);
-    FormatImpl(date, sb, fieldPos, NULL, result);
-    *formatString = result->Substring(0, result->GetLength());
-    return NOERROR;
+    StringBuffer sb = StringBuffer(buffer);
+    return FormatImpl(date, sb, fieldPos, NULL, formatString);
 }
 
 ECode SimpleDateFormat::Get2DigitYearStart(
     /* [out] */ IDate** start)
 {
-    *start = defaultCenturyStart;
-    (*start)->AddRef();
+    VALIDATE_NOT_NULL(start);
+    *start = mDefaultCenturyStart;
+    if (*start != NULL) (*start)->AddRef();
     return NOERROR;
 }
 
 ECode SimpleDateFormat::GetDateFormatSymbols(
     /* [out] */ IDateFormatSymbols** symbols)
 {
-    *symbols = formatData;
-    (*symbols)->AddRef();
+    VALIDATE_NOT_NULL(symbols);
+    *symbols = mFormatData;
+    if (*symbols != NULL) (*symbols)->AddRef();
     return NOERROR;
 }
 
@@ -613,7 +617,8 @@ ECode SimpleDateFormat::Parse(
     /* [out] */ Int32* value)
 {
     VALIDATE_NOT_NULL(value);
-    Int32 index = PATTERN_CHARS.IndexOf(format);
+
+    Int32 index = String(ISimpleDateFormat_PATTERN_CHARS).IndexOf(format);
     if (index == -1) {
         //throw new IllegalArgumentException("Unknown pattern character '" + format + "'");
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
@@ -626,19 +631,19 @@ ECode SimpleDateFormat::Parse(
         absolute = count;
     }
     AutoPtr<IParsePosition> position;
-    AutoPtr<INumber> result;
     Int32 errorIndex;
-    ArrayOf<String> *array1, *array2;
+    AutoPtr<INumber> result;
     switch (index) {
         case IDateFormat_ERA_FIELD:
-            formatData->GetEras(&array1);
-            return ParseText(string, offset, array1, Calendar_ERA, value);
+            *value = ParseText(string, offset, mFormatData->mEras, Calendar_ERA);
+            return NOERROR;
         case IDateFormat_YEAR_FIELD:
             if (count >= 3) {
                 field = Calendar_YEAR;
-            } else {
+            }
+            else {
                 CParsePosition::New(offset, (IParsePosition**)&position);
-                ParseNumber(absolute, string, position, (INumber**)&result);
+                result = ParseNumber(absolute, string, position);
                 if (result == NULL) {
                     position->GetErrorIndex(&errorIndex);
                     *value = -errorIndex - 1;
@@ -647,33 +652,34 @@ ECode SimpleDateFormat::Parse(
                 Int32 year;
                 result->Int32Value(&year);
                 // A two digit year must be exactly two digits, i.e. 01
-                position->GetIndex(&index);
-                if ((index - offset) == 2 && year >= 0) {
-                    year += creationYear / 100 * 100;
-                    if (year < creationYear) {
+                Int32 i;
+                position->GetIndex(&i);
+                if ((i - offset) == 2 && year >= 0) {
+                    year += mCreationYear / 100 * 100;
+                    if (year < mCreationYear) {
                         year += 100;
                     }
                 }
                 mCalendar->Set(Calendar_YEAR, year);
-                position->GetIndex(&index);
-                *value = index;
+                *value = i;
                 return NOERROR;
             }
             break;
         case STAND_ALONE_MONTH_FIELD:
-            formatData->GetLongStandAloneMonths(&array1);
-            formatData->GetShortStandAloneMonths(&array2);
-            return ParseMonth(string, offset, count, absolute, array1, array2, value);
+            *value = ParseMonth(string, offset, count, absolute,
+                    mFormatData->mLongStandAloneMonths,
+                    mFormatData->mShortStandAloneMonths);
+            return NOERROR;
         case IDateFormat_MONTH_FIELD:
-            formatData->GetMonths(&array1);
-            formatData->GetShortMonths(&array2);
-            return ParseMonth(string, offset, count, absolute, array1, array2, value);
+            *value = ParseMonth(string, offset, count, absolute, mFormatData->mMonths,
+                    mFormatData->mShortMonths);
+            return NOERROR;
         case IDateFormat_DATE_FIELD:
             field = Calendar_DATE;
             break;
         case IDateFormat_HOUR_OF_DAY1_FIELD:
             CParsePosition::New(offset, (IParsePosition**)&position);
-            ParseNumber(absolute, string, position, (INumber**)&result);
+            result = ParseNumber(absolute, string, position);
             if (result == NULL) {
                 position->GetErrorIndex(&errorIndex);
                 *value = -errorIndex - 1;
@@ -685,8 +691,7 @@ ECode SimpleDateFormat::Parse(
                 hour = 0;
             }
             mCalendar->Set(Calendar_HOUR_OF_DAY, hour);
-            position->GetIndex(&index);
-            *value = index;
+            position->GetIndex(value);
             return NOERROR;
         case IDateFormat_HOUR_OF_DAY0_FIELD:
             field = Calendar_HOUR_OF_DAY;
@@ -701,13 +706,13 @@ ECode SimpleDateFormat::Parse(
             field = Calendar_MILLISECOND;
             break;
         case STAND_ALONE_DAY_OF_WEEK_FIELD:
-            formatData->GetLongStandAloneWeekdays(&array1);
-            formatData->GetShortStandAloneWeekdays(&array2);
-            return ParseDayOfWeek(string, offset, array1, array2, value);
+            *value = ParseDayOfWeek(string, offset, mFormatData->mLongStandAloneWeekdays,
+                    mFormatData->mShortStandAloneWeekdays);
+            return NOERROR;
         case IDateFormat_DAY_OF_WEEK_FIELD:
-            formatData->GetWeekdays(&array1);
-            formatData->GetShortWeekdays(&array2);
-            return ParseDayOfWeek(string, offset, array1, array2, value);
+            *value = ParseDayOfWeek(string, offset, mFormatData->mWeekdays,
+                    mFormatData->mShortWeekdays);
+            return NOERROR;
         case IDateFormat_DAY_OF_YEAR_FIELD:
             field = Calendar_DAY_OF_YEAR;
             break;
@@ -721,11 +726,11 @@ ECode SimpleDateFormat::Parse(
             field = Calendar_WEEK_OF_MONTH;
             break;
         case IDateFormat_AM_PM_FIELD:
-            formatData->GetAmPmStrings(&array1);
-            return ParseText(string, offset, array1, Calendar_AM_PM, value);
+            *value =  ParseText(string, offset, mFormatData->mAmpms, Calendar_AM_PM);
+            return NOERROR;
         case IDateFormat_HOUR1_FIELD:
             CParsePosition::New(offset, (IParsePosition**)&position);
-            ParseNumber(absolute, string, position, (INumber**)&result);
+            result = ParseNumber(absolute, string, position);
             if (result == NULL) {
                 position->GetErrorIndex(&errorIndex);
                 *value = -errorIndex - 1;
@@ -736,61 +741,55 @@ ECode SimpleDateFormat::Parse(
                 hour = 0;
             }
             mCalendar->Set(Calendar_HOUR, hour);
-            position->GetIndex(&index);
-            *value = index;
+            position->GetIndex(value);
             return NOERROR;
         case IDateFormat_HOUR0_FIELD:
             field = Calendar_HOUR;
             break;
         case IDateFormat_TIMEZONE_FIELD:
-            return ParseTimeZone(string, offset, value);
+            *value = ParseTimeZone(string, offset);
+            return NOERROR;
         case RFC_822_TIMEZONE_FIELD:
-            return ParseTimeZone(string, offset, value);
+            *value = ParseTimeZone(string, offset);
+            return NOERROR;
     }
     if (field != -1) {
-        return ParseNumber(absolute, string, offset, field, 0, value);
+        *value = ParseNumber(absolute, string, offset, field, 0);
+        return NOERROR;
     }
     *value = offset;
     return NOERROR;
 }
 
-ECode SimpleDateFormat::ParseDayOfWeek(
+Int32 SimpleDateFormat::ParseDayOfWeek(
     /* [in] */ String string,
     /* [in] */ Int32 offset,
     /* [in] */ ArrayOf<String>* longs,
-    /* [in] */ ArrayOf<String>* shorts,
-    /* [out] */ Int32* value)
+    /* [in] */ ArrayOf<String>* shorts)
 {
-    VALIDATE_NOT_NULL(value);
-    Int32 index;
-    ParseText(string, offset, longs, Calendar_DAY_OF_WEEK, &index);
+    Int32 index = ParseText(string, offset, longs, Calendar_DAY_OF_WEEK);
     if (index < 0) {
-        ParseText(string, offset, shorts, Calendar_DAY_OF_WEEK, &index);
+        index = ParseText(string, offset, shorts, Calendar_DAY_OF_WEEK);
     }
-    *value = index;
-    return NOERROR;
+    return index;
 }
 
-ECode SimpleDateFormat::ParseMonth(
+Int32 SimpleDateFormat::ParseMonth(
     /* [in] */ String string,
     /* [in] */ Int32 offset,
     /* [in] */ Int32 count,
     /* [in] */ Int32 absolute,
     /* [in] */ ArrayOf<String>* longs,
-    /* [in] */ ArrayOf<String>* shorts,
-    /* [out] */ Int32* value)
+    /* [in] */ ArrayOf<String>* shorts)
 {
-    VALIDATE_NOT_NULL(value);
     if (count <= 2) {
-        return ParseNumber(absolute, string, offset, Calendar_MONTH, -1, value);
+        return ParseNumber(absolute, string, offset, Calendar_MONTH, -1);
     }
-    Int32 index;
-    ParseText(string, offset, longs, Calendar_MONTH, &index);
+    Int32 index = ParseText(string, offset, longs, Calendar_MONTH);
     if (index < 0) {
-        ParseText(string, offset, shorts, Calendar_MONTH, &index);
+        index = ParseText(string, offset, shorts, Calendar_MONTH);
     }
-    *value = index;
-    return NOERROR;
+    return index;
 }
 
 ECode SimpleDateFormat::ParseEx(
@@ -798,6 +797,7 @@ ECode SimpleDateFormat::ParseEx(
     /* [in] */ IParsePosition* position,
     /* [out] */ IDate** date)
 {
+    VALIDATE_NOT_NULL(date);
     // Harmony delegates to ICU's SimpleDateFormat, we implement it directly
     Boolean quote = FALSE;
     Int32 next, last = -1, count = 0, offset;
@@ -806,25 +806,29 @@ ECode SimpleDateFormat::ParseEx(
     mCalendar->Clear();
     AutoPtr<ITimeZone> zone;
     mCalendar->GetTimeZone((ITimeZone**)&zone);
-    const Int32 patternLength = pattern.GetLength();
+    Int32 patternLength = mPattern.GetLength();
     for (Int32 i = 0; i < patternLength; i++) {
-        next = pattern.GetChar(i);
+        next = mPattern.GetChar(i);
         if (next == '\'') {
             if (count > 0) {
-                Int32 v;
-                Parse(string, offset, (Char32) last, count, &v);
-                if ((offset = v) < 0) {
-                    return Error(position, -offset - 1, zone, date);
+                Parse(string, offset, (Char32)last, count, &offset);
+                if (offset < 0) {
+                    Error(position, -offset - 1, zone);
+                    *date = NULL;
+                    return NOERROR;
                 }
                 count = 0;
             }
             if (last == next) {
                 if (offset >= length || string.GetChar(offset) != '\'') {
-                    return Error(position, offset, zone, date);
+                    Error(position, offset, zone);
+                    *date = NULL;
+                    return NOERROR;
                 }
                 offset++;
                 last = -1;
-            } else {
+            }
+            else {
                 last = next;
             }
             quote = !quote;
@@ -834,57 +838,69 @@ ECode SimpleDateFormat::ParseEx(
                 && (last == next || (next >= 'a' && next <= 'z') || (next >= 'A' && next <= 'Z'))) {
             if (last == next) {
                 count++;
-            } else {
+            }
+            else {
                 if (count > 0) {
-                    Int32 v;
-                    Parse(string, offset, (Char32) last, -count, &v);
-                    if ((offset = v) < 0) {
-                        return Error(position, -offset - 1, zone, date);
+                    Parse(string, offset, (Char32)last, -count, &offset);
+                    if (offset < 0) {
+                        Error(position, -offset - 1, zone);
+                        *date = NULL;
+                        return NOERROR;
                     }
                 }
                 last = next;
                 count = 1;
             }
-        } else {
+        }
+        else {
             if (count > 0) {
-                Int32 v;
-                Parse(string, offset, (Char32) last, count, &v);
-                if ((offset = v) < 0) {
-                    return Error(position, -offset - 1, zone, date);
+                Parse(string, offset, (Char32)last, count, &offset);
+                if (offset < 0) {
+                    Error(position, -offset - 1, zone);
+                    *date = NULL;
+                    return NOERROR;
                 }
                 count = 0;
             }
             last = -1;
             if (offset >= length || string.GetChar(offset) != next) {
-                return Error(position, offset, (ITimeZone*)zone, date);
+                Error(position, offset, zone);
+                *date = NULL;
+                return NOERROR;
             }
             offset++;
         }
     }
     if (count > 0) {
-        Int32 v;
-        Parse(string, offset, (Char32) last, count, &v);
-        if ((offset = v) < 0) {
-            return Error(position, -offset - 1, (ITimeZone*)zone, date);
+        Parse(string, offset, (Char32) last, count, &offset);
+        if (offset < 0) {
+            Error(position, -offset - 1, zone);
+            *date = NULL;
+            return NOERROR;
         }
     }
     //try {
-        AutoPtr<IDate> d;
-        mCalendar->GetTime((IDate**)&d);
+    AutoPtr<IDate> d;
+    ECode ec = mCalendar->GetTime((IDate**)&d);
+    if (FAILED(ec)) {
+        Error(position, offset, zone);
+        *date = NULL;
+        return NOERROR;
+    }
     //} catch (IllegalArgumentException e) {
     //    return error(position, offset, zone);
     //}
     position->SetIndex(offset);
     mCalendar->SetTimeZone(zone);
-    *date = (IDate*)d;
+    *date = d;
+    (*date)->AddRef();
     return NOERROR;
 }
 
-ECode SimpleDateFormat::ParseNumber(
+AutoPtr<INumber> SimpleDateFormat::ParseNumber(
     /* [in] */ Int32 max,
     /* [in] */ String string,
-    /* [in] */ IParsePosition* position,
-    /* [out] */ INumber** number)
+    /* [in] */ IParsePosition* position)
 {
     Int32 digit, length = string.GetLength(), result = 0;
     Int32 index;
@@ -898,7 +914,9 @@ ECode SimpleDateFormat::ParseNumber(
     }
     if (max == 0) {
         position->SetIndex(index);
-        return mNumberFormat->ParseEx(string, position, number);
+        AutoPtr<INumber> number;
+        mNumberFormat->ParseEx(string, position, (INumber**)&number);
+        return number;
     }
 
     while (index < length
@@ -910,53 +928,51 @@ ECode SimpleDateFormat::ParseNumber(
     position->GetIndex(&i);
     if (index == i) {
         position->SetErrorIndex(index);
-        *number = NULL;
-        return NOERROR;
+        return NULL;
     }
     position->SetIndex(index);
-    //return Integer.valueOf(result);
-    return NOERROR;
+    AutoPtr<IInteger32> integer;
+    CInteger32::New(result, (IInteger32**)&integer);
+    //todo: all interface such as IInteger32 should extends INumber;
+    //return (INumber*)integer.Get();
+    return NULL;
 }
 
-ECode SimpleDateFormat::ParseNumber(
+Int32 SimpleDateFormat::ParseNumber(
     /* [in] */ Int32 max,
     /* [in] */ String string,
     /* [in] */ Int32 offset,
     /* [in] */ Int32 field,
-    /* [in] */ Int32 skew,
-    /* [out] */ Int32* value)
+    /* [in] */ Int32 skew)
 {
-    VALIDATE_NOT_NULL(value);
     AutoPtr<IParsePosition> position;
     CParsePosition::New(offset, (IParsePosition**)&position);
-    AutoPtr<INumber> result;
-    ParseNumber(max, string, position, (INumber**)&result);
+    AutoPtr<INumber> result = ParseNumber(max, string, position);
     if (result == NULL) {
-        position->GetErrorIndex(value);
-        *value = -(*value) - 1;
-        return NOERROR;
+        Int32 index;
+        position->GetErrorIndex(&index);
+        return -index - 1;
     }
-    Int32 v;
-    result->Int32Value(&v);
-    mCalendar->Set(field, v + skew);
-    return position->GetIndex(value);
+    Int32 value;
+    result->Int32Value(&value);
+    mCalendar->Set(field, value + skew);
+    position->GetIndex(&value);
+    return value;
 }
 
-ECode SimpleDateFormat::ParseText(
+Int32 SimpleDateFormat::ParseText(
     /* [in] */ String string,
     /* [in] */ Int32 offset,
     /* [in] */ ArrayOf<String>* text,
-    /* [in] */ Int32 field,
-    /* [out] */ Int32* value)
+    /* [in] */ Int32 field)
 {
-    VALIDATE_NOT_NULL(value);
     Int32 found = -1;
     for (Int32 i = 0; i < text->GetLength(); i++) {
         if ((*text)[i].IsEmpty()) {
             continue;
         }
-        if ( string.Substring( offset, (*text)[i].GetLength() )
-                .EqualsIgnoreCase( (*text)[i].Substring(0, (*text)[i].GetLength() ) ) ) {
+        if (string.Substring(offset, (*text)[i].GetLength())
+                .EqualsIgnoreCase((*text)[i])) {
             // Search for the longest match, in case some fields are subsets
             if (found == -1 || (*text)[i].GetLength() > (*text)[found].GetLength()) {
                 found = i;
@@ -967,27 +983,22 @@ ECode SimpleDateFormat::ParseText(
     }
     if (found != -1) {
         mCalendar->Set(field, found);
-        *value = offset + (*text)[found].GetLength();
-        return NOERROR;
+        return offset + (*text)[found].GetLength();
     }
-    *value = -offset - 1;
-    return NOERROR;
+    return -offset - 1;
 }
 
-ECode SimpleDateFormat::ParseTimeZone(
+Int32 SimpleDateFormat::ParseTimeZone(
     /* [in] */ String string,
-    /* [in] */ Int32 offset,
-    /* [out] */ Int32* value)
+    /* [in] */ Int32 offset)
 {
-
-    VALIDATE_NOT_NULL(value);
-    ArrayOf< ArrayOf<String>* > * zones;
-    //formatData->InternalZoneStrings(&zones);
+    ArrayOf<ArrayOf<String>*>* zones = mFormatData->InternalZoneStrings();
     Boolean foundGMT;
     String str("GMT");
-    if (string.Substring(offset, 3).EqualsIgnoreCase(str.Substring(0, 3))) {
+    if (string.Substring(offset, 3).Equals(str)) {
         foundGMT = TRUE;
-    } else {
+    }
+    else {
         foundGMT = FALSE;
     }
     if (foundGMT) {
@@ -1003,8 +1014,7 @@ ECode SimpleDateFormat::ParseTimeZone(
         if (result == NULL) {
             Int32 ei;
             position->GetErrorIndex(&ei);
-            *value = -ei - 1;
-            return NOERROR;
+            return -ei - 1;
         }
         Int32 hour;
         result->Int32Value(&hour);
@@ -1017,13 +1027,13 @@ ECode SimpleDateFormat::ParseTimeZone(
             if (result == NULL) {
                 Int32 ei;
                 position->GetErrorIndex(&ei);
-                *value = -ei - 1;
-                return NOERROR;
+                return -ei - 1;
             }
             Int32 minute;
             result->Int32Value(&minute);
             raw += minute * 60000;
-        } else if (hour >= 24) {
+        }
+        else if (hour >= 24) {
             raw = (hour / 100 * 3600000) + (hour % 100 * 60000);
         }
         if (sign == '-') {
@@ -1032,8 +1042,8 @@ ECode SimpleDateFormat::ParseTimeZone(
         AutoPtr<ISimpleTimeZone> stz;
         CSimpleTimeZone::New(raw, String(""), (ISimpleTimeZone**)&stz);
         mCalendar->SetTimeZone(stz);
-        position->GetIndex(value);
-        return NOERROR;
+        position->GetIndex(&index);
+        return index;
     }
     if (foundGMT) {
         AutoPtr<ITimeZoneHelper> tzh;
@@ -1041,21 +1051,21 @@ ECode SimpleDateFormat::ParseTimeZone(
         AutoPtr<ITimeZone> tz;
         tzh->GetTimeZone(String("GMT"), (ITimeZone**)&tz);
         mCalendar->SetTimeZone(tz);
-        *value = offset;
-        return NOERROR;
+        return offset;
     }
+
     AutoFree<ArrayOf<String> > element;
     for (Int32 i = 0; i < zones->GetLength(); ++i) {
+        AutoFree<ArrayOf<String> > element = (*zones)[i];
         for (Int32 j = 1; j < 5; ++j) {
-            if ( string.Substring( offset, (*element.Get())[j].GetLength() )
-                    .EqualsIgnoreCase( (*element.Get())[j].Substring(0, (*element.Get())[j].GetLength() ) ) ) {
+            if (string.Substring(offset, (*element)[j].GetLength())
+                    .EqualsIgnoreCase((*element)[j])) {
                 AutoPtr<ITimeZoneHelper> tzh;
                 CTimeZoneHelper::AcquireSingleton((ITimeZoneHelper**)&tzh);
                 AutoPtr<ITimeZone> zone;
-                tzh->GetTimeZone((*element.Get())[0], (ITimeZone**)&zone);
+                tzh->GetTimeZone((*element)[0], (ITimeZone**)&zone);
                 if (zone == NULL) {
-                    *value = -offset - 1;
-                    return NOERROR;
+                    return -offset - 1;
                 }
                 Int32 raw;
                 zone->GetRawOffset(&raw);
@@ -1067,39 +1077,39 @@ ECode SimpleDateFormat::ParseTimeZone(
                 AutoPtr<ISimpleTimeZone> stz;
                 CSimpleTimeZone::New(raw, String(""), (ISimpleTimeZone**)&stz);
                 mCalendar->SetTimeZone(stz);
-                *value = offset + (*element.Get())[j].GetLength();
-                return NOERROR;
+                return offset + (*element)[j].GetLength();
             }
         }
     }
-    *value = -offset - 1;
-    return NOERROR;
+    return -offset - 1;
 }
 
 ECode SimpleDateFormat::Set2DigitYearStart(
     /* [in] */ IDate* date)
 {
-    defaultCenturyStart = date;
+    mDefaultCenturyStart = date;
     AutoPtr<ICalendar> cal;
     CGregorianCalendar::New((IGregorianCalendar**)&cal);
-    cal->SetTime((IDate*)defaultCenturyStart);
-    cal->Get(Calendar_YEAR, &creationYear);
+    cal->SetTime(mDefaultCenturyStart);
+    cal->Get(Calendar_YEAR, &mCreationYear);
     return NOERROR;
 }
 
 ECode SimpleDateFormat::SetDateFormatSymbols(
     /* [in] */ IDateFormatSymbols* value)
 {
-    formatData = value;
+    mFormatData = (CDateFormatSymbols*)value;
     return NOERROR;
 }
 
 ECode SimpleDateFormat::ToLocalizedPattern(
     /* [out] */ String* patterns)
 {
-    String* localPatternChars = new String(NULL);
-    formatData->GetLocalPatternChars(localPatternChars);
-    return ConvertPattern(this->pattern, PATTERN_CHARS, *localPatternChars, FALSE, patterns);
+    VALIDATE_NOT_NULL(patterns);
+    String localPatternChars;
+    mFormatData->GetLocalPatternChars(&localPatternChars);
+    return ConvertPattern(mPattern, String(ISimpleDateFormat_PATTERN_CHARS),
+            localPatternChars, FALSE, patterns);
 }
 
 ECode SimpleDateFormat::ConvertPattern(
@@ -1115,8 +1125,8 @@ ECode SimpleDateFormat::ConvertPattern(
         return NOERROR;
     }
     Boolean quote = FALSE;
-    StringBuffer* output = new StringBuffer("");
-    Int32 length = (Int32)(tem.GetLength() );
+    StringBuffer output;
+    Int32 length = tem.GetLength();
     for (Int32 i = 0; i < length; i++) {
         Int32 index;
         Char32 next = tem.GetChar(i);
@@ -1124,19 +1134,22 @@ ECode SimpleDateFormat::ConvertPattern(
             quote = !quote;
         }
         if (!quote && (index = fromChars.IndexOf(next)) != -1) {
-            *output += toChars.GetChar(index);
-        } else if (check && !quote && ((next >= 'a' && next <= 'z') || (next >= 'A' && next <= 'Z'))) {
+            output += toChars.GetChar(index);
+        }
+        else if (check && !quote && ((next >= 'a' && next <= 'z')
+                || (next >= 'A' && next <= 'Z'))) {
             //throw new IllegalArgumentException("Invalid pattern character '" + next + "' in " + "'" + template + "'");
             return E_ILLEGAL_ARGUMENT_EXCEPTION;
-        } else {
-            *output += next;
+        }
+        else {
+            output += next;
         }
     }
     if (quote) {
         //throw new IllegalArgumentException("Unterminated quote");
         return E_ILLEGAL_ARGUMENT_EXCEPTION;
     }
-    *patterns = output->Substring(0, output->GetLength() );
+    *patterns = output.ToString();
     return NOERROR;
 }
 
@@ -1144,6 +1157,6 @@ ECode SimpleDateFormat::ToPattern(
     /* [out] */ String* pattern)
 {
     VALIDATE_NOT_NULL(pattern);
-    *pattern = String(this->pattern);
+    *pattern = mPattern;
     return NOERROR;
 }

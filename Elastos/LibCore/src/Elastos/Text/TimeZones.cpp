@@ -31,6 +31,15 @@ const ArrayOf<ArrayOf<String> * > * TimeZones::CachedTimeZones::mNames = NULL;//
 
 const ArrayOf<String> * TimeZones::mAvailableTimeZones = NULL; //sInitTimeZones();
 
+String TimeZones::LookupDisplayName(
+    /* [in] */ ArrayOf<ArrayOf<String>*>* zoneStrings,
+    /* [in] */ String id,
+    /* [in] */ Boolean daylight,
+    /* [in] */ Int32 style)
+{
+    return String(NULL);
+}
+
 ECode TimeZones::Clone2dStringArray(
     /* [in] */ const ArrayOf<ArrayOf<String> * > * array,
     /* [out, callee] */ ArrayOf<ArrayOf<String> * > ** resultArray)

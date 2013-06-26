@@ -12,42 +12,6 @@ ECode CDateFormatSymbols::constructor(
     return DateFormatSymbols::Init(locale);
 }
 
-ECode CDateFormatSymbols::GetLongStandAloneMonths(
-    /* [out, callee] */ ArrayOf<String>** longStandAloneMonths)
-{
-    return DateFormatSymbols::GetLongStandAloneMonths(longStandAloneMonths);
-}
-
-ECode CDateFormatSymbols::GetShortStandAloneMonths(
-    /* [out, callee] */ ArrayOf<String>** shortStandAloneMonths)
-{
-    return DateFormatSymbols::GetShortStandAloneMonths(shortStandAloneMonths);
-}
-
-ECode CDateFormatSymbols::GetLongStandAloneWeekdays(
-    /* [out, callee] */ ArrayOf<String>** longStandAloneWeekdays)
-{
-    return DateFormatSymbols::GetLongStandAloneMonths(longStandAloneWeekdays);
-}
-
-ECode CDateFormatSymbols::GetShortStandAloneWeekdays(
-    /* [out, callee] */ ArrayOf<String>** shortStandAloneWeekdays)
-{
-    return DateFormatSymbols::GetShortStandAloneWeekdays(shortStandAloneWeekdays);
-}
-
-ECode CDateFormatSymbols::GetCustomZoneStrings(
-    /* [out] */ Boolean* customZoneStrings)
-{
-    return DateFormatSymbols::GetCustomZoneStrings(customZoneStrings);
-}
-
-ECode CDateFormatSymbols::GetLocale(
-    /* [out] */ ILocale** locale)
-{
-    return DateFormatSymbols::GetLocale(locale);
-}
-
 ECode CDateFormatSymbols::GetAmPmStrings(
     /* [out, callee] */ ArrayOf<String>** amPmStrings)
 {

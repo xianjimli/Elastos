@@ -8,14 +8,14 @@ CarClass(CDateFormatSymbolsHelper)
 {
 public:
     CARAPI GetInstance(
-        /* [out] */ IDateFormatSymbols ** instance);
+        /* [out] */ IDateFormatSymbols** instance);
 
     CARAPI GetInstanceEx(
-        /* [in] */ ILocale * locale,
-        /* [out] */ IDateFormatSymbols ** instance);
+        /* [in] */ ILocale* locale,
+        /* [out] */ IDateFormatSymbols** instance);
 
     CARAPI GetAvailableLocales(
-        /* [out, callee] */ ArrayOf<ILocale *> ** arrayOfLocales);
+        /* [out, callee] */ ArrayOf<ILocale*>** locales);
 
 private:
     // TODO: Add your private member variables here.

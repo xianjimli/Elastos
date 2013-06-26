@@ -70,79 +70,6 @@ public:
     static CARAPI GetAvailableLocales(
         /* [out, callee] */ ArrayOf<ILocale*>** arrayOfLocales);
 
-//    @Override
-//    public Object clone() {
-//        try {
-//            return super.clone();
-//        } catch (CloneNotSupportedException e) {
-//            throw new AssertionError();
-//        }
-//    }
-
-    /**
-     * Compares this object with the specified object and indicates if they are
-     * equal.
-     *
-     * @param object
-     *            the object to compare with this object.
-     * @return {@code true} if {@code object} is an instance of
-     *         {@code DateFormatSymbols} and has the same symbols as this
-     *         object, {@code false} otherwise.
-     * @see #hashCode
-     */
-//    @Override
-//    public boolean equals(Object object) {
-//        if (this == object) {
-//            return true;
-//        }
-//        if (!(object instanceof DateFormatSymbols)) {
-//            return false;
-//        }
-//        DateFormatSymbols rhs = (DateFormatSymbols) object;
-//        return localPatternChars.equals(rhs.localPatternChars) &&
-//                Arrays.equals(ampms, rhs.ampms) &&
-//                Arrays.equals(eras, rhs.eras) &&
-//                Arrays.equals(months, rhs.months) &&
-//                Arrays.equals(shortMonths, rhs.shortMonths) &&
-//                Arrays.equals(shortWeekdays, rhs.shortWeekdays) &&
-//                Arrays.equals(weekdays, rhs.weekdays) &&
-//                timeZoneStringsEqual(this, rhs);
-//    }
-
-//    @Override
-//    public String toString() {
-        // 'locale' isn't part of the externally-visible state.
-        // 'zoneStrings' is so large, we just print a representative value.
-//        return getClass().getName() +
-//                "[amPmStrings=" + Arrays.toString(ampms) +
-//                ",customZoneStrings=" + customZoneStrings +
-//                ",eras=" + Arrays.toString(eras) +
-//                ",localPatternChars=" + new String(localPatternChars) +
-//                ",months=" + Arrays.toString(months) +
-//                ",shortMonths=" + Arrays.toString(shortMonths) +
-//                ",shortWeekdays=" + Arrays.toString(shortWeekdays) +
-//                ",weekdays=" + Arrays.toString(weekdays) +
-//                ",zoneStrings=[" + Arrays.toString(internalZoneStrings()[0]) + "...]" +
-//                "]";
-//    }
-
-    virtual CARAPI GetLongStandAloneMonths(
-        /* [out, callee] */ ArrayOf<String>** longStandAloneMonths);
-
-    virtual CARAPI GetShortStandAloneMonths(
-        /* [out, callee] */ ArrayOf<String>** shortStandAloneMonths);
-
-    virtual CARAPI GetLongStandAloneWeekdays(
-        /* [out, callee] */ ArrayOf<String>** longStandAloneWeekdays);
-
-    virtual CARAPI GetShortStandAloneWeekdays(
-        /* [out, callee] */ ArrayOf<String>** shortStandAloneWeekdays);
-
-    virtual CARAPI GetCustomZoneStrings(
-        /* [out] */ Boolean* customZoneStrings);
-
-    virtual CARAPI GetLocale(
-        /* [out] */ ILocale** locale);
     /**
      * Returns the array of strings which represent AM and PM. Use the
      * {@link java.util.Calendar} constants {@code Calendar.AM} and
@@ -225,40 +152,7 @@ public:
      * </ul>
      */
     virtual CARAPI GetZoneStrings(
-        /* [out, callee] */ ArrayOf<ArrayOf<String> * > ** zoneStrings);
-
-//    @Override
-//    public int hashCode() {
-//        String[][] zoneStrings = internalZoneStrings();
-//        int hashCode;
-//        hashCode = localPatternChars.hashCode();
-//        for (String element : ampms) {
-//            hashCode += element.hashCode();
-//        }
-//        for (String element : eras) {
-//            hashCode += element.hashCode();
-//        }
-//        for (String element : months) {
-//            hashCode += element.hashCode();
-//        }
-//        for (String element : shortMonths) {
-//            hashCode += element.hashCode();
-//        }
-//        for (String element : shortWeekdays) {
-//            hashCode += element.hashCode();
-//        }
-//        for (String element : weekdays) {
-//            hashCode += element.hashCode();
-//        }
-//        for (String[] element : zoneStrings) {
-//            for (int j = 0; j < element.length; j++) {
-//                if (element[j] != null) {
-//                    hashCode += element[j].hashCode();
-//                }
-//            }
-//        }
-//        return hashCode;
-//    }
+        /* [out, callee] */ ArrayOf<ArrayOf<String>*>** zoneStrings);
 
     /**
      * Sets the array of strings which represent AM and PM. Use the
@@ -345,7 +239,7 @@ public:
      * @throws NullPointerException if {@code zoneStrings == null}.
      */
     virtual CARAPI SetZoneStrings(
-        /* [in] */ ArrayOf<ArrayOf<String> *>* zoneStrings);
+        /* [in] */ ArrayOf<ArrayOf<String>*>* zoneStrings);
 
 private:
 //    private void readObject(ObjectInputStream ois);
@@ -353,8 +247,8 @@ private:
 //    private void writeObject(ObjectOutputStream oos);
 
     static CARAPI_(Boolean) TimeZoneStringsEqual(
-        /* [in] */ IDateFormatSymbols* lhs,
-        /* [in] */ IDateFormatSymbols* rhs);
+        /* [in] */ DateFormatSymbols* lhs,
+        /* [in] */ DateFormatSymbols* rhs);
 
 public:
     ArrayOf<String> *mAmpms, *mEras, *mMonths, *mShortMonths, *mShortWeekdays, *mWeekdays;
@@ -366,7 +260,7 @@ public:
     ArrayOf<String>* mShortStandAloneWeekdays;
 
     // Localized display names.
-    ArrayOf<ArrayOf<String>* >* mZoneStrings;
+    ArrayOf<ArrayOf<String>*>* mZoneStrings;
     // Has the user called setZoneStrings?
     Boolean mCustomZoneStrings;
 

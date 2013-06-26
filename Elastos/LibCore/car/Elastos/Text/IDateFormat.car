@@ -1,8 +1,6 @@
 module
 {
     interface IFieldPosition;
-    interface ICalendar;
-    interface ITimeZone;
     interface IParsePosition;
     interface INumberFormat;
 

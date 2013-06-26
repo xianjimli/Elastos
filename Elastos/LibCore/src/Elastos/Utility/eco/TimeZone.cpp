@@ -78,14 +78,14 @@ ECode TimeZone::GetDisplayName(
         /* [out] */ String * pName)
 {
     AutoPtr<ILocale> locale;
-    return GetDisplayNameEx3(FALSE, mLONG, (ILocale *)locale, pName);
+    return GetDisplayNameEx3(FALSE, ITimeZone_LONG, (ILocale *)locale, pName);
 }
 
 ECode TimeZone::GetDisplayNameEx(
         /* [in] */ ILocale * pLocale,
         /* [out] */ String * pName)
 {
-    return GetDisplayNameEx3(FALSE, mLONG, pLocale, pName);
+    return GetDisplayNameEx3(FALSE, ITimeZone_LONG, pLocale, pName);
 }
 
 ECode TimeZone::GetDisplayNameEx2(
@@ -103,7 +103,7 @@ ECode TimeZone::GetDisplayNameEx3(
         /* [in] */ ILocale * pLocale,
         /* [out] */ String * pName)
 {
-    if (style != mSHORT && style != mLONG) {
+    if (style != ITimeZone_SHORT && style != ITimeZone_LONG) {
         return E_INVALID_ARGUMENT;
     }
 
