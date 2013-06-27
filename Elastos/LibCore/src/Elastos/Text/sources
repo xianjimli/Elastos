@@ -8,6 +8,7 @@ INCLUDES += $(MAKEDIR)/../../../inc/Elastos/Utility;
 INCLUDES += $(MAKEDIR)/../../../inc/Elastos/common;
 INCLUDES += $(MAKEDIR)/../../../inc/Elastos/Math;
 INCLUDES += $(MAKEDIR)/../../../inc/Elastos/Text;
+INCLUDES += $(MAKEDIR)/../../../inc/Elastos/IO;
 
 IMPORTS += Elastos.IO.eco
 
@@ -54,7 +55,6 @@ SOURCES += CStringCharacterIterator.cpp
 
 SOURCES += NativeCollation.cpp
 SOURCES += ICUCollationElementIterator.cpp
-SOURCES += CICUCollationElementIterator.cpp
 SOURCES += ICUCollator.cpp
 SOURCES += ICUCollationKey.cpp
 SOURCES += CICUCollationKey.cpp

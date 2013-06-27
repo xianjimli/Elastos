@@ -1,5 +1,11 @@
+
+#include "cmdef.h"
 #include "ChoiceFormat.h"
+#include "CParsePosition.h"
 #include "Math.h"
+#include <Character.h>
+#include <elastos/List.h>
+#include <StringBuffer.h>
 
 ChoiceFormat::~ChoiceFormat()
 {
@@ -19,19 +25,19 @@ ECode ChoiceFormat::Init(
 }
 
 ECode ChoiceFormat::Init(
-        /* [in] */ String tem)
+    /* [in] */ const String& tem)
 {
     return ApplyPattern(tem);
 }
 
 ECode ChoiceFormat::ApplyPattern(
-    /* [in] */ String tem)
+    /* [in] */ const String& tem)
 {
     ArrayOf<Double>* limits = ArrayOf<Double>::Alloc(5);
-    List<String>* formats = new List<String>();/* = new ArrayList<String>(); */
+    List<String>* formats = new List<String>();
     Int32 length = tem.GetLength();
     Int32 limitCount = 0, index = 0;
-    StringBuffer buffer("");
+    StringBuffer buffer;
 
     AutoPtr<ILocaleHelper> localeHelper;
     CLocaleHelper::AcquireSingleton((ILocaleHelper**)&localeHelper);
@@ -122,10 +128,7 @@ ECode ChoiceFormat::FormatDoubleEx(
     /* [in] */ IFieldPosition* field,
     /* [out] */ String* result)
  {
-    VALIDATE_NOT_NULL(result);
-
-    for (Int32 i = mChoiceLimits->GetLength() - 1; i >= 0; i--)
-    {
+    for (Int32 i = mChoiceLimits->GetLength() - 1; i >= 0; i--) {
         if ((*mChoiceLimits)[i] <= value) {
             *result = buffer;
             result->Append((*mChoiceFormats)[i]);
@@ -156,7 +159,6 @@ ECode ChoiceFormat::FormatInt64Ex(
 ECode ChoiceFormat::GetFormats(
     /* [out, callee] */ ArrayOf<IInterface*>** arrayOfFormattedString)
 {
-    VALIDATE_NOT_NULL(arrayOfFormattedString);
     ArrayOf<IInterface*>* temp =
             ArrayOf<IInterface*>::Alloc(mChoiceFormats->GetLength());
     for (Int32 i = 0; i < mChoiceFormats->GetLength(); ++i) {
@@ -202,7 +204,7 @@ Double ChoiceFormat::NextDouble(
 }
 
 ECode ChoiceFormat::ParseEx(
-    /* [in] */ String string,
+    /* [in] */ const String& string,
     /* [in] */ IParsePosition* position,
     /* [out] */ INumber** value)
 {
@@ -212,13 +214,19 @@ ECode ChoiceFormat::ParseEx(
         String str = string.Substring(offset, (*mChoiceFormats)[i].GetLength());
         if (str.StartWith((*mChoiceFormats)[i])) {
             position->SetIndex(offset + (*mChoiceFormats)[i].GetLength());
-//            return new Double(choiceLimits[i]);
+            AutoPtr<IDouble> d;
+            ASSERT_SUCCEEDED(CDouble::New((*mChoiceLimits)[i], (IDouble**)&d));
+            //todo: all interface such as IDouble should extends INumber
+            //*value = (INumber*)d.Get();
             assert(0);
             return NOERROR;
         }
     }
     position->SetErrorIndex(offset);
-//    return new Double(Math::Double_NaN);
+    AutoPtr<IDouble> d;
+    ASSERT_SUCCEEDED(CDouble::New(Math::DOUBLE_NAN, (IDouble**)&d));
+    //todo: all interface such as IDouble should extends INumber
+    //*value = (INumber*)d.Get();
     assert(0);
     return NOERROR;
 }
@@ -254,8 +262,8 @@ ECode ChoiceFormat::SetChoices(
 }
 
 Int32 ChoiceFormat::SkipWhitespace(
-        /* [in] */ String string,
-        /* [in] */ Int32 index)
+    /* [in] */ const String& string,
+    /* [in] */ Int32 index)
 {
     Int32 length = string.GetLength();
     while (index < length && Character::IsWhitespace(string.GetChar(index))) {
@@ -265,33 +273,32 @@ Int32 ChoiceFormat::SkipWhitespace(
 }
 
 ECode ChoiceFormat::ToPattern(
-        /* [out] */ String* pattern)
+    /* [out] */ String* pattern)
 {
-    VALIDATE_NOT_NULL(pattern);
-
-    StringBuffer* buffer = new StringBuffer("");
+    StringBuffer buffer;
     for (Int32 i = 0; i < mChoiceLimits->GetLength(); i++) {
         if (i != 0) {
-            (*buffer) += '|';
+            buffer += '|';
         }
         String previous = String::FromDouble(PreviousDouble((*mChoiceLimits)[i]));
         String limit = String::FromDouble((*mChoiceLimits)[i]);
         if (previous.GetLength() < limit.GetLength()) {
-            *buffer += previous;
-            *buffer += '<';
-        } else {
-            *buffer += limit;
-            *buffer += '#';
+            buffer += previous;
+            buffer += '<';
+        }
+        else {
+            buffer += limit;
+            buffer += '#';
         }
         Boolean quote = ((*mChoiceFormats)[i].IndexOf('|') != -1);
         if (quote) {
-            *buffer += '\'';
+            buffer += '\'';
         }
-        *buffer += (*mChoiceFormats)[i];
+        buffer += (*mChoiceFormats)[i];
         if (quote) {
-            *buffer += '\'';
+            buffer += '\'';
         }
     }
-    *pattern = buffer->Substring(0, buffer->GetLength());
+    *pattern = buffer.ToString();
     return NOERROR;
 }

@@ -1,16 +1,31 @@
-#ifndef __ICUCOLLATIONELEMENTITERATOR_H__
-#define __ICUCOLLATIONELEMENTITERATOR_H__
 
-#include "cmdef.h"
+#ifndef __ICUCollationElementIterator_H__
+#define __ICUCollationElementIterator_H__
+
 #include "Elastos.Text_server.h"
+#include <elastos/ElRefBase.h>
 
-#include <elastos.h>
-#include "NativeCollation.h"
-using namespace Elastos;
-
-class ICUCollationElementIterator {
-    // public methods -----------------------------------------------
+class ICUCollationElementIterator
+    : public ElRefBase
+    , public IICUCollationElementIterator
+{
 public:
+    ICUCollationElementIterator(
+        /* [in] */ Int32 collelemiteratoraddress);
+
+    ~ICUCollationElementIterator();
+
+    CARAPI_(PInterface) Probe(
+            /* [in] */ REIID riid);
+
+    CARAPI_(UInt32) AddRef();
+
+    CARAPI_(UInt32) Release();
+
+    CARAPI GetInterfaceID(
+        /* [in] */ IInterface *pObject,
+        /* [out] */ InterfaceID *pIID);
+
     /**
      * Reset the collation elements to their initial state.
      * This will move the 'cursor' to the beginning of the text.
@@ -26,7 +41,7 @@ public:
      * @stable ICU 2.4
      */
     CARAPI Next(
-            /* [out] */ Int32* nextValue);
+        /* [out] */ Int32* nextValue);
 
     /**
      * Get the ordering priority of the previous collation element in the text.
@@ -36,7 +51,7 @@ public:
      * @stable ICU 2.4
      */
     CARAPI Previous(
-            /* [out] */ Int32* previousValue);
+        /* [out] */ Int32* previousValue);
 
     /**
      * Get the maximum length of any expansion sequences that end with the
@@ -48,8 +63,8 @@ public:
      * @stable ICU 2.4
      */
     CARAPI GetMaxExpansion(
-            /* [in] */ Int32 order,
-            /* [out] */ Int32* maxExpansion);
+        /* [in] */ Int32 order,
+        /* [out] */ Int32* maxExpansion);
 
     /**
      * Set the text containing the collation elements.
@@ -57,11 +72,11 @@ public:
      * @stable ICU 2.4
      */
     CARAPI SetText(
-            /* [in] */ String source);
+        /* [in] */ const String& source);
 
     // BEGIN android-added
     CARAPI SetTextEx(
-            /* [in] */ ICharacterIterator* source);
+        /* [in] */ ICharacterIterator* source);
     // END android-added
 
     /**
@@ -72,7 +87,7 @@ public:
      * @stable ICU 2.4
      */
     CARAPI GetOffset(
-            /* [out] */ Int32* offset);
+        /* [out] */ Int32* offset);
 
     /**
      * Set the offset of the current source character.
@@ -81,7 +96,7 @@ public:
      * @stable ICU 2.4
      */
     CARAPI SetOffset(
-            /* [in] */ Int32 offset);
+        /* [in] */ Int32 offset);
 
     /**
      * Gets the primary order of a collation order.
@@ -110,33 +125,11 @@ public:
     static CARAPI_(Int32) TertiaryOrder(
         /* [in] */ Int32 order);
 
-protected:
-    // protected constructor ----------------------------------------
-
-    /**
-     * CollationElementIteratorJNI constructor.
-     * The only caller of this class should be
-     * RuleBasedCollator.getCollationElementIterator().
-     * @param collelemiteratoraddress address of C collationelementiterator
-     */
-    CARAPI Init(
-        /* [in] */ Int32 collelemiteratoraddress);
-
-    // protected methods --------------------------------------------
-
-    /**
-     * Garbage collection.
-     * Close C collator and reclaim memory.
-     * @stable ICU 2.4
-     */
-    ~ICUCollationElementIterator();
-
-    // private data members -----------------------------------------
 private:
     /**
      * C collator
      */
-    Int32 m_collelemiterator_;
+    Int32 mCollelemiterator;
 
     /**
      * ICU constant primary order mask for collation elements
@@ -163,4 +156,5 @@ private:
      */
     const static Int32 UNSIGNED_16_BIT_MASK_ = 0x0000FFFF;
 };
-#endif //__ICUCOLLATIONELEMENTITERATOR_H__
+
+#endif // __ICUCollationElementIterator_H__

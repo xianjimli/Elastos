@@ -1,15 +1,8 @@
 #ifndef __CHOICEFORMAT_H__
 #define __CHOICEFORMAT_H__
 
-#include "cmdef.h"
-#include <elastos.h>
-#include <elastos/List.h>
-#include <elastos/AutoPtr.h>
-#include <StringBuffer.h>
-#include <Character.h>
-#include "Elastos.Text_server.h"
 #include "NumberFormat.h"
-#include "CParsePosition.h"
+#include <elastos/AutoPtr.h>
 
 class ChoiceFormat : public NumberFormat
 {
@@ -48,7 +41,7 @@ public:
      *            if an error occurs while parsing the pattern.
      */
     CARAPI Init(
-        /* [in] */ String tem);
+        /* [in] */ const String& tem);
 
     /**
      * Parses the pattern to determine new strings and ranges for this
@@ -60,7 +53,7 @@ public:
      *            if an error occurs while parsing the pattern.
      */
     virtual CARAPI ApplyPattern(
-        /* [in] */ String tem);
+        /* [in] */ const String& tem);
 
     /**
      * Appends the string associated with the range in which the specified
@@ -178,7 +171,7 @@ public:
      */
     //@Override
     CARAPI ParseEx(
-        /* [in] */ String string,
+        /* [in] */ const String& string,
         /* [in] */ IParsePosition* position,
         /* [out] */ INumber** value);
 
@@ -226,13 +219,12 @@ public:
 
 private:
     CARAPI_(Int32) SkipWhitespace(
-        /* [in] */ String string,
+        /* [in] */ const String& string,
         /* [in] */ Int32 index);
 
 private:
     ArrayOf<Double>* mChoiceLimits;
 
     ArrayOf<String>* mChoiceFormats;
-
 };
 #endif // __CHOICEFORMAT_H__

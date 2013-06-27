@@ -3,24 +3,15 @@
 
 #include "cmdef.h"
 #include "Elastos.Text_server.h"
-#include <elastos.h>
 #include "ICUCollator.h"
 #include "NativeCollation.h"
 #include <elastos/AutoPtr.h>
 #include "CICUCollationKey.h"
 #include <StringBuffer.h>
-#include "CICUCollationElementIterator.h"
 
-extern "C" const InterfaceID EIID_ICURuleBasedCollator;
-
-using namespace Elastos;
-
-class ICURuleBasedCollator : public ICUCollator {
-
+class ICURuleBasedCollator : public ICUCollator
+{
 public:
-    CARAPI_(PInterface) Probe(
-            /* [in]  */ REIID riid);
-
     ICURuleBasedCollator();
 
     /**
@@ -51,7 +42,7 @@ public:
      * @stable ICU 2.4
      */
     CARAPI Init(
-        /* [in] */ String rules, 
+        /* [in] */ String rules,
         /* [in] */ Int32 strength);
 
     /**
@@ -78,8 +69,8 @@ public:
      * @stable ICU 2.4
      */
     CARAPI Init(
-        /* [in] */ String rules, 
-        /* [in] */ Int32 normalizationMode, 
+        /* [in] */ String rules,
+        /* [in] */ Int32 normalizationMode,
         /* [in] */ Int32 strength);
 
     /**
@@ -236,7 +227,7 @@ public:
      */
     CARAPI GetCollationElementIterator(
         /* [in] */ String source,
-        /* [out] */ IICUCollationElementIterator ** collationElementIterator);
+        /* [out] */ IICUCollationElementIterator** coleitr);
 
     CARAPI GetCollationElementIteratorEx(
         /* [in] */ ICharacterIterator * it,

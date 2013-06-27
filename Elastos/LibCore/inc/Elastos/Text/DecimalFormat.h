@@ -1,15 +1,9 @@
 #ifndef __DECIMALFORMAT__
 #define __DECIMALFORMAT__
 
-
 #include "Elastos.Text_server.h"
 #include "NumberFormat.h"
-//#include "LocaleData.h"
 #include <elastos/AutoPtr.h>
-// #include <StringBuffer.h>
-
-
-using namespace Elastos;
 
 class DecimalFormat : public NumberFormat
 {
@@ -44,45 +38,6 @@ public:
      */
     virtual CARAPI ApplyPattern(
         /* [in] */ const String& pattern);
-
-    /**
-     * Returns a new instance of {@code DecimalFormat} with the same pattern and
-     * properties as this decimal format.
-     *
-     * @return a shallow copy of this decimal format.
-     * @see java.lang.Cloneable
-     */
-    //@Override
-    //public Object clone() {
-    //    DecimalFormat clone = (DecimalFormat) super.clone();
-    //    clone.dform = (NativeDecimalFormat) dform.clone();
-    //    clone.symbols = (DecimalFormatSymbols) symbols.clone();
-    //    return clone;
-    //}
-
-    /**
-     * Compares the specified object to this decimal format and indicates if
-     * they are equal. In order to be equal, {@code object} must be an instance
-     * of {@code DecimalFormat} with the same pattern and properties.
-     *
-     * @param object
-     *            the object to compare with this object.
-     * @return {@code true} if the specified object is equal to this decimal
-     *         format; {@code false} otherwise.
-     * @see #hashCode
-     */
-    //@Override
-    //public boolean equals(Object object) {
-    //    if (this == object) {
-    //        return true;
-    //    }
-    //    if (!(object instanceof DecimalFormat)) {
-    //        return false;
-    //    }
-    //    DecimalFormat other = (DecimalFormat) object;
-    //    return (this.dform == null ? other.dform == null : this.dform.equals(other.dform)) &&
-    //            getDecimalFormatSymbols().equals(other.getDecimalFormatSymbols());
-    //}
 
     /**
      * Formats the specified object using the rules of this decimal format and
@@ -625,51 +580,13 @@ private:
 */
 
 private:
-    mutable AutoPtr<IDecimalFormatSymbols> mSymbols;
+    AutoPtr<IDecimalFormatSymbols> mSymbols;
 
-    mutable AutoPtr<INativeDecimalFormat> mDform;
-    /*
-    private final Object finalizerGuardian = new Object() {
-        @Override protected void finalize() throws Throwable {
-            try {
-                dform.close();
-            } finally {
-                super.finalize();
-            }
-        }
-    };
-    */
+    AutoPtr<INativeDecimalFormat> mDform;
 
-    mutable RoundingMode mRoundingMode;
+    RoundingMode mRoundingMode;
 
     static const Double NEGATIVE_ZERO_DOUBLE = -0.0;
-
-        // the fields list to be serialized
-/*
-    private static final ObjectStreamField[] serialPersistentFields = {
-            new ObjectStreamField("positivePrefix", String.class),
-            new ObjectStreamField("positiveSuffix", String.class),
-            new ObjectStreamField("negativePrefix", String.class),
-            new ObjectStreamField("negativeSuffix", String.class),
-            new ObjectStreamField("posPrefixPattern", String.class),
-            new ObjectStreamField("posSuffixPattern", String.class),
-            new ObjectStreamField("negPrefixPattern", String.class),
-            new ObjectStreamField("negSuffixPattern", String.class),
-            new ObjectStreamField("multiplier", int.class),
-            new ObjectStreamField("groupingSize", byte.class),
-            new ObjectStreamField("groupingUsed", boolean.class),
-            new ObjectStreamField("decimalSeparatorAlwaysShown", boolean.class),
-            new ObjectStreamField("parseBigDecimal", boolean.class),
-            new ObjectStreamField("roundingMode", RoundingMode.class),
-            new ObjectStreamField("symbols", DecimalFormatSymbols.class),
-            new ObjectStreamField("useExponentialNotation", boolean.class),
-            new ObjectStreamField("minExponentDigits", byte.class),
-            new ObjectStreamField("maximumIntegerDigits", int.class),
-            new ObjectStreamField("minimumIntegerDigits", int.class),
-            new ObjectStreamField("maximumFractionDigits", int.class),
-            new ObjectStreamField("minimumFractionDigits", int.class),
-            new ObjectStreamField("serialVersionOnStream", int.class), };
-*/
 };
 
 #endif //__DECIMALFORMAT__

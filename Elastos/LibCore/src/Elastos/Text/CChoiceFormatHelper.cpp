@@ -1,6 +1,7 @@
 
 #include "CChoiceFormatHelper.h"
 #include "ChoiceFormat.h"
+#include "cmdef.h"
 
 ECode CChoiceFormatHelper::NextDouble(
     /* [in] */ Double value,

@@ -1,6 +1,6 @@
 module {
 
-    const NULLORDER = 0xFFFFFFFF;
+    const IICUCollationElementIterator_NULLORDER = 0xFFFFFFFF;
 
     interface IICUCollationElementIterator {
         // public methods -----------------------------------------------

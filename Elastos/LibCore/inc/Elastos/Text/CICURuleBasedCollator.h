@@ -4,10 +4,10 @@
 
 #include "_CICURuleBasedCollator.h"
 #include "ICURuleBasedCollator.h"
+
 CarClass(CICURuleBasedCollator), public ICURuleBasedCollator
 {
 public:
-
     CARAPI constructor(
         /* [in] */ const String& rules);
 

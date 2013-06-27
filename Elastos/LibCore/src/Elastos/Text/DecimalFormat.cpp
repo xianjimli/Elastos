@@ -6,7 +6,6 @@
 #include <elastos/Math.h>
 #include <elastos/AutoFree.h>
 
-
 using namespace Elastos::Core;
 
 const Double DecimalFormat::NEGATIVE_ZERO_DOUBLE;

@@ -1,12 +1,6 @@
 #include "ICURuleBasedCollator.h"
 #include "CRuleBasedCollator.h"
-
-
-PInterface ICURuleBasedCollator::Probe(
-    /* [in]  */ REIID riid)
-{
-    return NULL;
-}
+#include "ICUCollationElementIterator.h"
 
 ICURuleBasedCollator::ICURuleBasedCollator()
 {
@@ -21,9 +15,8 @@ ECode ICURuleBasedCollator::Init(
         //throw new NullPointerException();
         return E_NULL_POINTER_EXCEPTION;
     }
-    m_collator_ = NativeCollation::OpenCollatorFromRules(rules,
-            ICollationAttribute_VALUE_OFF, ICollationAttribute_VALUE_DEFAULT_STRENGTH);
-    return NOERROR;
+    return NativeCollation::OpenCollatorFromRules(rules, ICollationAttribute_VALUE_OFF,
+            ICollationAttribute_VALUE_DEFAULT_STRENGTH, &m_collator_);
 }
 
 ECode ICURuleBasedCollator::Init(
@@ -35,8 +28,8 @@ ECode ICURuleBasedCollator::Init(
         //throw new NullPointerException();
         return E_NULL_POINTER_EXCEPTION;
     }
-    m_collator_ = NativeCollation::OpenCollatorFromRules(rules, ICollationAttribute_VALUE_OFF, strength);
-    return NOERROR;
+    return NativeCollation::OpenCollatorFromRules(rules,
+            ICollationAttribute_VALUE_OFF, strength, &m_collator_);
 }
 
 ECode ICURuleBasedCollator::Init(
@@ -49,7 +42,8 @@ ECode ICURuleBasedCollator::Init(
         //throw new NullPointerException();
         return E_NULL_POINTER_EXCEPTION;
     }
-    m_collator_ = NativeCollation::OpenCollatorFromRules(rules, normalizationMode, strength);
+    return NativeCollation::OpenCollatorFromRules(rules, normalizationMode,
+            strength, &m_collator_);
     return NOERROR;
 }
 
@@ -57,9 +51,11 @@ ECode ICURuleBasedCollator::Clone(
     /* [out] */ IInterface ** instance)
 {
     AutoPtr<IRuleBasedCollator> result = NULL;
-    Int32 collatoraddress = NativeCollation::SafeClone(m_collator_);
-    CRuleBasedCollator::New(String::FromInt32(collatoraddress), (IRuleBasedCollator**)&result);
-    *instance = reinterpret_cast<ICollator*>(result->Probe(EIID_ICollator));
+    Int32 collatoraddress;
+    FAIL_RETURN(NativeCollation::SafeClone(m_collator_, &collatoraddress));
+    ASSERT_SUCCEEDED(CRuleBasedCollator::New(String::FromInt32(collatoraddress),
+            (IRuleBasedCollator**)&result));
+    *instance = (IInterface*)result->Probe(EIID_IInterface);
     (*instance)->AddRef();
     return NOERROR;
 }
@@ -67,7 +63,7 @@ ECode ICURuleBasedCollator::Clone(
 ECode ICURuleBasedCollator::Compare(
     /* [in] */ String source,
     /* [in] */ String target,
-    /* [out] */ Int32 * value)
+    /* [out] */ Int32* value)
 {
     VALIDATE_NOT_NULL(value);
     *value = NativeCollation::Compare(m_collator_, source, target);
@@ -75,51 +71,46 @@ ECode ICURuleBasedCollator::Compare(
 }
 
 ECode ICURuleBasedCollator::GetDecomposition(
-    /* [out] */ Int32 * decomposition)
+    /* [out] */ Int32* decomposition)
 {
     VALIDATE_NOT_NULL(decomposition);
-    *decomposition = NativeCollation::GetNormalization(m_collator_);
-    return NOERROR;
+    return NativeCollation::GetNormalization(m_collator_, decomposition);
 }
 
 ECode ICURuleBasedCollator::SetDecomposition(
     /* [in] */ Int32 decompositionmode)
 {
-    NativeCollation::SetAttribute(m_collator_,
+    return NativeCollation::SetAttribute(m_collator_,
             ICollationAttribute_NORMALIZATION_MODE, decompositionmode);
-    return NOERROR;
 }
 
 ECode ICURuleBasedCollator::GetStrength(
     /* [out] */ Int32 * strength)
 {
     VALIDATE_NOT_NULL(strength);
-    *strength = NativeCollation::GetAttribute(m_collator_, ICollationAttribute_STRENGTH);
-    return NOERROR;
+    return NativeCollation::GetAttribute(m_collator_,
+            ICollationAttribute_STRENGTH, strength);
 }
 
 ECode ICURuleBasedCollator::SetStrength(
     /* [in] */ Int32 strength)
 {
-    NativeCollation::SetAttribute(m_collator_, ICollationAttribute_STRENGTH, strength);
-    return NOERROR;
+    return NativeCollation::SetAttribute(m_collator_, ICollationAttribute_STRENGTH, strength);
 }
 
 ECode ICURuleBasedCollator::SetAttribute(
     /* [in] */ Int32 type,
     /* [in] */ Int32 value)
 {
-    NativeCollation::SetAttribute(m_collator_, type, value);
-    return NOERROR;
+    return NativeCollation::SetAttribute(m_collator_, type, value);
 }
 
 ECode ICURuleBasedCollator::GetAttribute(
     /* [in] */ Int32 type,
-    /* [out] */ Int32 * pAttribute)
+    /* [out] */ Int32* attribute)
 {
-    VALIDATE_NOT_NULL(pAttribute);
-    NativeCollation::GetAttribute(m_collator_, type);
-    return NOERROR;
+    VALIDATE_NOT_NULL(attribute);
+    return NativeCollation::GetAttribute(m_collator_, type, attribute);
 }
 
 ECode ICURuleBasedCollator::GetCollationKey(
@@ -149,13 +140,13 @@ ECode ICURuleBasedCollator::GetRules(
 
 ECode ICURuleBasedCollator::GetCollationElementIterator(
     /* [in] */ String source,
-    /* [out] */ IICUCollationElementIterator ** collationElementIterator)
+    /* [out] */ IICUCollationElementIterator** coleitr)
 {
-    AutoPtr<IICUCollationElementIterator> result;
-    CICUCollationElementIterator::New(
-            NativeCollation::GetCollationElementIterator(m_collator_, source),
-            (IICUCollationElementIterator**)&result);
-    *collationElementIterator = (IICUCollationElementIterator*)result;
+    AutoPtr<ICollationElementIterator> result;
+    Int32 addr;
+    FAIL_RETURN(NativeCollation::GetCollationElementIterator(m_collator_, source, &addr));
+    *coleitr = (IICUCollationElementIterator*)new ICUCollationElementIterator(addr);
+    (*coleitr)->AddRef();
     return NOERROR;
 }
 
@@ -208,8 +199,7 @@ ECode ICURuleBasedCollator::Init(
     m_hashcode_ = 0;
     String name = String("");
     locale->GetDisplayName(&name);
-    m_collator_ = NativeCollation::OpenCollator(name);
-    return NOERROR;
+    return NativeCollation::OpenCollator(name, &m_collator_);
 }
 
 ICURuleBasedCollator::~ICURuleBasedCollator()

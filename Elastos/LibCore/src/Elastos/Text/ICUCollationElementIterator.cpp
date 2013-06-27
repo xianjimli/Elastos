@@ -1,96 +1,130 @@
-#include "ICUCollationElementIterator.h"
 
-ECode ICUCollationElementIterator::Init(
+#include "cmdef.h"
+#include "ICUCollationElementIterator.h"
+#include "NativeCollation.h"
+
+ICUCollationElementIterator::ICUCollationElementIterator(
     /* [in] */ Int32 collelemiteratoraddress)
-{
-    m_collelemiterator_ = collelemiteratoraddress;
-    return NOERROR;
-}
+    : mCollelemiterator(collelemiteratoraddress)
+{ }
 
 ICUCollationElementIterator::~ICUCollationElementIterator()
 {
     //try {
-        NativeCollation::CloseElements(m_collelemiterator_);
+    NativeCollation::CloseElements(mCollelemiterator);
     //} finally {
     //    super.finalize();
     //}
 }
 
+PInterface ICUCollationElementIterator::Probe(
+    /* [in] */ REIID riid)
+{
+    if (riid == EIID_IInterface) {
+        return (IInterface*)(IICUCollationElementIterator*)this;
+    }
+    else if (riid == EIID_IICUCollationElementIterator) {
+        return (IICUCollationElementIterator*)this;
+    }
+    return NULL;
+}
+
+UInt32 ICUCollationElementIterator::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 ICUCollationElementIterator::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode ICUCollationElementIterator::GetInterfaceID(
+    /* [in] */ IInterface *pObject,
+    /* [out] */ InterfaceID *pIID)
+{
+    VALIDATE_NOT_NULL(pIID);
+
+    if (pObject == (IInterface*)(IICUCollationElementIterator*)this) {
+        *pIID = EIID_IICUCollationElementIterator;
+    }
+    else {
+        return E_INVALID_ARGUMENT;
+    }
+    return NOERROR;
+}
+
 ECode ICUCollationElementIterator::Reset()
 {
-    NativeCollation::Reset(m_collelemiterator_);
+    NativeCollation::Reset(mCollelemiterator);
     return NOERROR;
 }
 
 ECode ICUCollationElementIterator::Next(
-            /* [out] */ Int32* nextValue)
+    /* [out] */ Int32* nextValue)
 {
     VALIDATE_NOT_NULL(nextValue);
-    *nextValue = NativeCollation::Next(m_collelemiterator_);
-    return NOERROR;
+    return NativeCollation::Next(mCollelemiterator, nextValue);
 }
 
 ECode ICUCollationElementIterator::Previous(
-            /* [out] */ Int32* previousValue)
+    /* [out] */ Int32* previousValue)
 {
     VALIDATE_NOT_NULL(previousValue);
-    *previousValue = NativeCollation::Previous(m_collelemiterator_);
-    return NOERROR;
+    return NativeCollation::Previous(mCollelemiterator, previousValue);
 }
 
 ECode ICUCollationElementIterator::GetMaxExpansion(
-            /* [in] */ Int32 order,
-            /* [out] */ Int32* maxExpansion)
+    /* [in] */ Int32 order,
+    /* [out] */ Int32* maxExpansion)
 {
     VALIDATE_NOT_NULL(maxExpansion);
-    NativeCollation::GetMaxExpansion(m_collelemiterator_, order);
+    NativeCollation::GetMaxExpansion(mCollelemiterator, order);
     return NOERROR;
 }
 
 ECode ICUCollationElementIterator::SetText(
-            /* [in] */ String source)
+    /* [in] */ const String& source)
 {
-    NativeCollation::SetText(m_collelemiterator_, source);
-    return NOERROR;
+    return NativeCollation::SetText(mCollelemiterator, source);
 }
 
 ECode ICUCollationElementIterator::SetTextEx(
-            /* [in] */ ICharacterIterator* source)
+    /* [in] */ ICharacterIterator* source)
 {
-    //NativeCollation::SetText(m_collelemiterator_, source.toString());
-    return NOERROR;
+    //return NativeCollation::SetText(mCollelemiterator, source.toString());
+    return E_NOT_IMPLEMENTED;
 }
 
 ECode ICUCollationElementIterator::GetOffset(
-            /* [out] */ Int32* offset)
+    /* [out] */ Int32* offset)
 {
     VALIDATE_NOT_NULL(offset);
-    *offset = NativeCollation::GetOffset(m_collelemiterator_);
+    *offset = NativeCollation::GetOffset(mCollelemiterator);
     return NOERROR;
 }
 
 ECode ICUCollationElementIterator::SetOffset(
-            /* [in] */ Int32 offset)
+    /* [in] */ Int32 offset)
 {
-    NativeCollation::SetOffset(m_collelemiterator_, offset);
-    return NOERROR;
+    return NativeCollation::SetOffset(mCollelemiterator, offset);
 }
 
 Int32 ICUCollationElementIterator::PrimaryOrder(
-        /* [in] */ Int32 order)
+    /* [in] */ Int32 order)
 {
     return ((order & PRIMARY_ORDER_MASK_) >> PRIMARY_ORDER_SHIFT_) &
             UNSIGNED_16_BIT_MASK_;
 }
 
 Int32 ICUCollationElementIterator::SecondaryOrder(
-        /* [in] */ Int32 order)
+    /* [in] */ Int32 order)
 {
     return (order & SECONDARY_ORDER_MASK_) >> SECONDARY_ORDER_SHIFT_;
 }
 
 Int32 ICUCollationElementIterator::TertiaryOrder(
-        /* [in] */ Int32 order)
+    /* [in] */ Int32 order)
 {
     return order & TERTIARY_ORDER_MASK_;
 }

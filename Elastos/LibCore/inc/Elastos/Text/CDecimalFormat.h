@@ -21,9 +21,6 @@ public:
         /* [in] */ const String& pattern,
         /* [in] */ ILocale* locale);
 
-    CARAPI_(PInterface) Probe(
-        /* [in] */ REIID riid);
-
     CARAPI FormatObject(
         /* [in] */ IInterface* object,
         /* [out] */ String* value);

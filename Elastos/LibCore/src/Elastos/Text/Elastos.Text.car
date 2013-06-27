@@ -191,13 +191,6 @@ module
         interface IStringCharacterIterator;
     }
 
-    class CICUCollationElementIterator {
-        constructor(
-            [in] Int32 collelemiteratoraddress);
-
-        interface IICUCollationElementIterator;
-    }
-
     [deprecated]
     class CICUCollationKey {
         constructor(

@@ -28,12 +28,6 @@ ECode CDecimalFormat::constructor(
     return DecimalFormat::Init(pattern, locale);
 }
 
-PInterface CDecimalFormat::Probe(
-    /* [in] */ REIID riid)
-{
-    return _CDecimalFormat::Probe(riid);
-}
-
 ECode CDecimalFormat::FormatObject(
     /* [in] */ IInterface* object,
     /* [out] */ String* value)
