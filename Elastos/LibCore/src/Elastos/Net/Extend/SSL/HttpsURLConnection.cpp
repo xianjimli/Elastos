@@ -3,63 +3,85 @@
 IHostnameVerifier* HttpsURLConnection::mDefaultHostnameVerifier = NULL;
 ISSLSocketFactory* HttpsURLConnection::mDefaultSSLSocketFactory = NULL;
 
-ECode GetPeerPrincipal(
+ECode HttpsURLConnection::GetPeerPrincipal(
 	/* [out] */ IPrincipal** ppPrincipal)
 {
 	return E_NOT_IMPLEMENTED;
 }
 
-ECode GetLocalPrincipal(
+ECode HttpsURLConnection::GetLocalPrincipal(
 	/* [out] */ IPrincipal** ppPrincipal)
 {
 	return E_NOT_IMPLEMENTED;
 }
 
-ECode SetHostnameVerifier(
+ECode HttpsURLConnection::SetHostnameVerifier(
 	/* [in] */ IHostnameVerifier* v)
 {
-	return E_NOT_IMPLEMENTED;
+	if (v == NULL) {
+		return  E_INVALID_ARGUMENT;
+	}
+	
+	mHostnameVerifier = v;
+	return NOERROR;
 }
 	
-ECode GetHostnameVerifier(
+ECode HttpsURLConnection::GetHostnameVerifier(
 	/* [out] */ IHostnameVerifier** ppV)
 {
-	return E_NOT_IMPLEMENTED;
+	*ppV = mHostnameVerifier;
+	return NOERROR;
 }
 	
-ECode SetSSLSocketFactory(
+ECode HttpsURLConnection::SetSSLSocketFactory(
 	/* [in] */ ISSLSocketFactory* sf)
 {
-	return E_NOT_IMPLEMENTED;
+    if (sf == NULL) {
+    	return E_INVALID_ARGUMENT;
+    }
+    mSslSocketFactory = sf;
+    return NOERROR;
 }
 	
-ECode GetSSLSocketFactory(
+ECode HttpsURLConnection::GetSSLSocketFactory(
 	/* [out] */ ISSLSocketFactory** ppSf)
 {
-	return E_NOT_IMPLEMENTED;
+	*ppSf = mSslSocketFactory;	
+	return NOERROR;
 }
 	
-static ECode SetDefaultHostnameVerifier(
+ECode HttpsURLConnection::SetDefaultHostnameVerifier(
 	/* [in] */ IHostnameVerifier* v)
 {
-	return E_NOT_IMPLEMENTED;
+	if (v == NULL) {
+		return  E_INVALID_ARGUMENT;
+	}
+	
+	mDefaultHostnameVerifier = v;
+	return NOERROR;
 }
 	
-static ECode GetDefaultHostnameVerifier(
+ECode HttpsURLConnection::GetDefaultHostnameVerifier(
 	/* [out] */ IHostnameVerifier** ppV)
 {
-	return E_NOT_IMPLEMENTED;
+	*ppV = mDefaultHostnameVerifier;
+	return NOERROR;
 }
 	
-static ECode SetDefaultSSLSocketFactory(
+ECode HttpsURLConnection::SetDefaultSSLSocketFactory(
 	/* [in] */ ISSLSocketFactory* sf)
 {
-	return E_NOT_IMPLEMENTED;
+    if (sf == NULL) {
+    	return E_INVALID_ARGUMENT;
+    }
+    mDefaultSSLSocketFactory = sf;	
+	return NOERROR;
 }
 	
-static ECode GetDefaultSSLSocketFactory(
+ECode HttpsURLConnection::GetDefaultSSLSocketFactory(
 	/* [out] */ ISSLSocketFactory** ppSf)
 {
-	return E_NOT_IMPLEMENTED;
+	*ppSf = mDefaultSSLSocketFactory;
+	return NOERROR;
 }
 			

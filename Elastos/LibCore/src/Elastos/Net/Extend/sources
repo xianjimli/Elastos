@@ -9,5 +9,8 @@ INCLUDES += $(MAKEDIR)/../../../../inc/Elastos/common;
 
 LIBRARIES += ./SSL/Elastos.Net.Extend.SSL.lib
 
+SOURCES += SocketFactory.cpp
+SOURCES += ServerSocketFactory.cpp
 SOURCES += CDefaultServerSocketFactory.cpp
 SOURCES += CDefaultSocketFactory.cpp
+

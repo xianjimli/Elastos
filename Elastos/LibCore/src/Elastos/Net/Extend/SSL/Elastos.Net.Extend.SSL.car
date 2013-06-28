@@ -5,6 +5,7 @@ module
     merge("../../../../../car/Elastos/Net/Extend/IDefaultSocketFactory.car");
     merge("../../../../../car/Elastos/Net/Extend/IDefaultServerSocketFactory.car");
     merge("../../../../../car/Elastos/Net/Extend/SSL/ISSLEngine.car");
+    merge("../../../../../car/Elastos/Net/Extend/SSL/ISSLEngineResult.car");
     merge("../../../../../car/Elastos/Net/Extend/SSL/ISSLParameters.car");
     merge("../../../../../car/Elastos/Net/Extend/SSL/ISSLSessionContext.car");
     merge("../../../../../car/Elastos/Net/Extend/SSL/ISSLSession.car");
@@ -18,11 +19,36 @@ module
     merge("../../../../../car/Elastos/Net/Extend/SSL/IDefaultSSLServerSocketFactory.car");
     merge("../../../../../car/Elastos/Net/Extend/SSL/IHttpsURLConnection.car");
 	merge("../../../../../car/Elastos/Net/Extend/SSL/ISSLContextSpi.car");
+	merge("../../../../../car/Elastos/Net/Extend/SSL/IHandshakeCompletedEvent.car");
+	merge("../../../../../car/Elastos/Net/Extend/SSL/IHandshakeCompletedListener.car");
 	
     class CSSLContext {
         constructor();
 
         interface ISSLContext;
+    }
+    
+    class CSSLParameters {
+    	constructor();
+    	
+    	constructor(
+    		[in] ArrayOf<String> cipherSuites);
+    	
+    	constructor(
+    		[in] ArrayOf<String> cipherSuites,
+            [in] ArrayOf<String> protocols);
+                         
+    	interface ISSLParameters;
+    }
+    
+    class CSSLEngineResult {
+    	constructor(
+    		[in] Status status,
+            [in] HandshakeStatus handshakeStatus, 
+            [in] Int32 bytesConsumed, 
+            [in] Int32 bytesProduced);
+        
+        interface ISSLEngineResult;
     }
 
     class CDefaultSSLSocketFactory {
@@ -51,4 +77,11 @@ module
         interface IDefaultServerSocketFactory;
     }
 
+	class CHandshakeCompletedEvent {
+		constructor(
+			[in] ISSLSocket* sock, 
+			[in] ISSLSession* s);
+		
+		interface IHandshakeCompletedEvent;
+	}
 }
