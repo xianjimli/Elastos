@@ -1,15 +1,14 @@
 #ifndef __ICURULEBASEDCOLLATOR_H__
 #define __ICURULEBASEDCOLLATOR_H__
 
-#include "cmdef.h"
 #include "Elastos.Text_server.h"
 #include "ICUCollator.h"
-#include "NativeCollation.h"
-#include <elastos/AutoPtr.h>
-#include "CICUCollationKey.h"
-#include <StringBuffer.h>
+#include <elastos/ElRefBase.h>
 
-class ICURuleBasedCollator : public ICUCollator
+class ICURuleBasedCollator
+    : public ElRefBase
+    , public IICURuleBasedCollator
+    , public ICUCollator
 {
 public:
     ICURuleBasedCollator();
@@ -23,8 +22,8 @@ public:
      *            if collator can not be created.
      * @stable ICU 2.4
      */
-    CARAPI Init(
-        /* [in] */ String rules);
+    ICURuleBasedCollator(
+        /* [in] */ const String& rules);
 
     /**
      * RuleBasedCollator constructor. This takes the table rules and builds a
@@ -41,8 +40,8 @@ public:
      * @see #IDENTICAL
      * @stable ICU 2.4
      */
-    CARAPI Init(
-        /* [in] */ String rules,
+    ICURuleBasedCollator(
+        /* [in] */ const String& rules,
         /* [in] */ Int32 strength);
 
     /**
@@ -68,10 +67,26 @@ public:
      * @see #NO_DECOMPOSITION
      * @stable ICU 2.4
      */
-    CARAPI Init(
-        /* [in] */ String rules,
+    ICURuleBasedCollator(
+        /* [in] */ const String& rules,
         /* [in] */ Int32 normalizationMode,
         /* [in] */ Int32 strength);
+
+    ICURuleBasedCollator(
+        /* [in] */ ILocale* locale);
+
+    ~ICURuleBasedCollator();
+
+    CARAPI_(PInterface) Probe(
+            /* [in] */ REIID riid);
+
+    CARAPI_(UInt32) AddRef();
+
+    CARAPI_(UInt32) Release();
+
+    CARAPI GetInterfaceID(
+        /* [in] */ IInterface* object,
+        /* [out] */ InterfaceID* IID);
 
     /**
      * Makes a complete copy of the current object.
@@ -79,7 +94,7 @@ public:
      * @stable ICU 2.4
      */
     CARAPI Clone(
-        /* [out] */ IInterface ** Instance);
+        /* [out] */ IInterface** instance);
 
     /**
      * The comparison function compares the character data stored in two
@@ -100,9 +115,9 @@ public:
      * </code>
      */
     CARAPI Compare(
-        /* [in] */ String source,
-        /* [in] */ String target,
-        /* [out] */ Int32 * value);
+        /* [in] */ const String& source,
+        /* [in] */ const String& target,
+        /* [out] */ Int32* value);
 
     /**
      * Get the normalization mode for this object.
@@ -112,7 +127,7 @@ public:
      * @stable ICU 2.4
      */
     CARAPI GetDecomposition(
-        /* [out] */ Int32 * decomposition);
+        /* [out] */ Int32* decomposition);
 
     /**
      * <p>Sets the decomposition mode of the Collator object on or off.
@@ -147,7 +162,7 @@ public:
      * @stable ICU 2.4
      */
     CARAPI GetStrength(
-        /* [out] */ Int32 * strength);
+        /* [out] */ Int32* strength);
 
     /**
      * Sets the minimum strength to be used in comparison or transformation.
@@ -201,11 +216,11 @@ public:
      */
     CARAPI GetAttribute(
         /* [in] */ Int32 type,
-        /* [out] */ Int32 * attribute);
+        /* [out] */ Int32* attribute);
 
     CARAPI GetCollationKey(
-        /* [in] */ String source,
-        /* [out] */ IICUCollationKey ** instance);
+        /* [in] */ const String& source,
+        /* [out] */ ICollationKey** instance);
 
     /**
      * Get the collation rules of this Collation object
@@ -226,17 +241,21 @@ public:
      * @stable ICU 2.4
      */
     CARAPI GetCollationElementIterator(
-        /* [in] */ String source,
+        /* [in] */ const String& source,
         /* [out] */ IICUCollationElementIterator** coleitr);
 
     CARAPI GetCollationElementIteratorEx(
-        /* [in] */ ICharacterIterator * it,
-        /* [out] */ IICUCollationElementIterator ** collationElementIterator);
-/*
-    @Override
-    public int hashCode() {
-        return 42; // No-one uses RuleBasedCollator as a hash key.
-    }*/
+        /* [in] */ ICharacterIterator* it,
+        /* [out] */ IICUCollationElementIterator** coleitr);
+
+    // @Override
+    CARAPI HashCode(
+        /* [out] */ Int32* value);
+
+    CARAPI Equals(
+        /* [in] */ const String& source,
+        /* [in] */ const String& target,
+        /* [out] */ Boolean* result);
 
     /**
      * Checks if argument object is equals to this object.
@@ -245,25 +264,19 @@ public:
      * @stable ICU 2.4
      */
     CARAPI EqualsEx(
-        /* [in] */ IInterface * object,
-        /* [out] */ Boolean * result);
-
-protected:
-    CARAPI Init(
-        /* [in] */ ILocale* locale);
-
-    ~ICURuleBasedCollator();
+        /* [in] */ IInterface* object,
+        /* [out] */ Boolean* result);
 
 private:
-    CARAPI CharacterIteratorToString(
-        /* [in] */ ICharacterIterator* it,
-        /* [out] */ String* value);
+    CARAPI_(String) CharacterIteratorToString(
+        /* [in] */ ICharacterIterator* it);
 
     ICURuleBasedCollator(
         /* [in] */ Int32 addr);
+
 private:
-    Int32 m_collator_;
-    Int32 m_hashcode_;
+    Int32 mCollator;
+    Int32 mHashcode;
 
 };
 #endif //__ICURULEBASEDCOLLATOR_H__

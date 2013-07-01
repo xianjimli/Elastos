@@ -46,7 +46,7 @@ ECode CRuleBasedCollator::EqualsEx(
 
 ECode CRuleBasedCollator::GetCollationKey(
     /* [in] */ const String& string,
-    /* [out] */ IICUCollationKey** collationKey)
+    /* [out] */ ICollationKey** collationKey)
 {
     return RuleBasedCollator::GetCollationKey(string, collationKey);
 }

@@ -1,23 +1,22 @@
-#include "ICUCollator.h"
-#include "CICURuleBasedCollator.h"
 
-IICUCollator* ICUCollator::GetInstance(
+#include "cmdef.h"
+#include "ICUCollator.h"
+#include "ICURuleBasedCollator.h"
+
+AutoPtr<IICUCollator> ICUCollator::GetInstance(
     /* [in] */ ILocale* locale)
 {
-    AutoPtr<IICURuleBasedCollator> icurbc;
-    CICURuleBasedCollator::New(locale, (IICURuleBasedCollator**)&icurbc);
-    IICUCollator * icuc = reinterpret_cast<IICUCollator*>(icurbc->Probe(EIID_IICUCollator));
-    return icuc;
+    return (IICUCollator*)new ICURuleBasedCollator(locale);
 }
 
 ECode ICUCollator::Equals(
-        /* [in] */ String source,
-        /* [in] */ String target,
-        /* [out] */ Boolean* result)
+    /* [in] */ const String& source,
+    /* [in] */ const String& target,
+    /* [out] */ Boolean* result)
 {
     VALIDATE_NOT_NULL(result);
     Int32 value;
     Compare(source, target, &value);
-    *result = (value == 0) ? TRUE : FALSE;
+    *result = value == 0;
     return NOERROR;
 }

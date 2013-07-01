@@ -26,7 +26,6 @@ module
     merge("../../../car/Elastos/Text/ICollator.car");
     merge("../../../car/Elastos/Text/IAnnotation.car");
     merge("../../../car/Elastos/Text/IStringCharacterIterator.car");
-    merge("../../../car/Elastos/Text/IICUCollationKey.car");
     merge("../../../car/Elastos/Text/IICUCollator.car");
     merge("../../../car/Elastos/Text/IICURuleBasedCollator.car");
     merge("../../../car/Elastos/Text/ICollationElementIterator.car");
@@ -189,34 +188,6 @@ module
         interface ICharacterIterator;
 
         interface IStringCharacterIterator;
-    }
-
-    [deprecated]
-    class CICUCollationKey {
-        constructor(
-            [in] String source,
-            [in] ArrayOf<Byte>* bytes);
-
-        interface IICUCollationKey;
-    }
-
-    class CICURuleBasedCollator {
-        constructor(
-            [in] String rules);
-
-        constructor(
-            [in] String rules,
-            [in] Int32 strength);
-
-        constructor(
-            [in] String rules,
-            [in] Int32 normalizationMode,
-            [in] Int32 strength);
-
-        constructor(
-            [in] ILocale* locale);
-
-        interface IICURuleBasedCollator;
     }
 
     class CCollationElementIterator {

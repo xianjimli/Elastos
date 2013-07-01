@@ -41,10 +41,10 @@ int CTest::test_stackCorruption(int argc, char* argv[])
     AutoPtr<ICollator> mColl;
     collatorHelper->GetInstance((ICollator**)&mColl);
     mColl->SetStrength(ICollator_PRIMARY);
-    AutoPtr<IICUCollationKey> icu;
+    AutoPtr<ICollationKey> icu;
     mColl->GetCollationKey(
         String("2d294f2d3739433565147655394f3762f3147312d3731641452f310"),
-        (IICUCollationKey**)&icu);
+        (ICollationKey**)&icu);
 
     return 0;
 }
@@ -67,9 +67,9 @@ int CTest::test_collationKeySize(int argc, char* argv[])
 
 
     ArrayOf<Byte> * arr;
-    AutoPtr<IICUCollationKey> icu;
-    mColl->GetCollationKey(sixteen, (IICUCollationKey**)&icu);
-    icu->ToByteArray(&arr);
+    AutoPtr<ICollationKey> icu;
+    mColl->GetCollationKey(sixteen, (ICollationKey**)&icu);
+    icu->GetByteArray(&arr);
     Int32 len = arr->GetLength();
     assert((*arr)[len - 1] != 0);
     printf("Collation key not 0 terminated\n");
@@ -80,8 +80,8 @@ int CTest::test_collationKeySize(int argc, char* argv[])
     }
     String foo = sb.Substring(0, len);
 
-    mColl->GetCollationKey(sixteen, (IICUCollationKey**)&icu);
-    icu->ToByteArray(&arr);
+    mColl->GetCollationKey(sixteen, (ICollationKey**)&icu);
+    icu->GetByteArray(&arr);
     len = arr->GetLength();
     assert((*arr)[len - 1] != 0);
     printf("Collation key not 0 terminated\n");

@@ -57,9 +57,7 @@ SOURCES += NativeCollation.cpp
 SOURCES += ICUCollationElementIterator.cpp
 SOURCES += ICUCollator.cpp
 SOURCES += ICUCollationKey.cpp
-SOURCES += CICUCollationKey.cpp
 SOURCES += ICURuleBasedCollator.cpp
-SOURCES += CICURuleBasedCollator.cpp
 
 SOURCES += CCollationElementIterator.cpp
 SOURCES += CCollationElementIteratorHelper.cpp

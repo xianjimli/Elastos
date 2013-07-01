@@ -1,20 +1,18 @@
 #ifndef __ICUCOLLATOR_H__
 #define __ICUCOLLATOR_H__
 
-#include "cmdef.h"
 #include "Elastos.Text_server.h"
-#include <elastos.h>
+#include "elastos/AutoPtr.h"
 
-using namespace Elastos;
-
-class ICUCollator {
+class ICUCollator
+{
 public:
-    static CARAPI_(IICUCollator*) GetInstance(
+    static CARAPI_(AutoPtr<IICUCollator>) GetInstance(
         /* [in] */ ILocale* locale);
 
-    virtual CARAPI Equals(
-        /* [in] */ String source,
-        /* [in] */ String target,
+    CARAPI Equals(
+        /* [in] */ const String& source,
+        /* [in] */ const String& target,
         /* [out] */ Boolean* result);
 
     virtual CARAPI EqualsEx(
@@ -44,8 +42,8 @@ public:
      * @stable ICU 2.4
      */
     virtual CARAPI Compare(
-        /* [in] */ String source,
-        /* [in] */ String target,
+        /* [in] */ const String& source,
+        /* [in] */ const String& target,
         /* [out] */ Int32* value) = 0;
 
     /**
@@ -155,8 +153,8 @@ public:
      * @stable ICU 2.4
      */
     virtual CARAPI GetCollationKey(
-        /* [in] */ String source,
-        /* [out] */ IICUCollationKey** instance) = 0;
+        /* [in] */ const String& source,
+        /* [out] */ ICollationKey** instance) = 0;
 
     /**
      * Returns a hash of this collation object

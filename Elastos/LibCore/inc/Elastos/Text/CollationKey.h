@@ -7,8 +7,6 @@
 
 extern "C" const InterfaceID EIID_CollationKey;
 
-using namespace Elastos;
-
 class CollationKey {
 public:
     virtual CARAPI_(PInterface) Probe(
@@ -37,7 +35,7 @@ public:
      *
      * @return an array of bytes.
      */
-    virtual CARAPI ToByteArray(
+    virtual CARAPI GetByteArray(
         /* [out, callee] */ ArrayOf<Byte>** array) = 0;
 
 protected:
@@ -45,7 +43,7 @@ protected:
 
     CARAPI Init(
         /* [in] */ String source);
-        
+
 private:
     String source;
 };

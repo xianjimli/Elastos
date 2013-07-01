@@ -1,18 +1,20 @@
+
+#include "cmdef.h"
 #include "ICUCollationKey.h"
+#include <elastos/Math.h>
 
-PInterface ICUCollationKey::Probe(
-            /* [in]  */ REIID riid)
-{
-    return NULL;
-}
+using namespace Elastos::Core;
 
-ECode ICUCollationKey::Init(
-        /* [in] */ String source,
-        /* [in] */ ArrayOf<Byte>* bytes)
+// {278E167C-AAE5-4e71-9F92-21837A760086}
+// extern "C" const InterfaceID EIID_ICUCollationKey =
+//     { 0x278e167c, 0xaae5, 0x4e71, { 0x9f, 0x92, 0x21, 0x83, 0x7a, 0x76, 0x0, 0x86 } };
+
+ICUCollationKey::ICUCollationKey(
+    /* [in] */ const String& source,
+    /* [in] */ const ArrayOf<Byte>& bytes)
 {
     CollationKey::Init(source);
-    mBytes = bytes->Clone();
-    return NOERROR;
+    mBytes = bytes.Clone();
 }
 
 ICUCollationKey::~ICUCollationKey()
@@ -22,17 +24,55 @@ ICUCollationKey::~ICUCollationKey()
     }
 }
 
+PInterface ICUCollationKey::Probe(
+    /* [in] */ REIID riid)
+{
+    if (riid == EIID_IInterface) {
+        return (PInterface)(ICollationKey*)this;
+    }
+    else if (riid == EIID_ICollationKey) {
+        return (ICollationKey*)this;
+    }
+    // else if (riid == EIID_ICUCollationKey) {
+    //     return reinterpret_cast<PInterface>((ICUCollationKey*)this);
+    // }
+    return NULL;
+}
+
+UInt32 ICUCollationKey::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 ICUCollationKey::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode ICUCollationKey::GetInterfaceID(
+    /* [in] */ IInterface* object,
+    /* [out] */ InterfaceID* IID)
+{
+    VALIDATE_NOT_NULL(IID);
+
+    if (object == (IInterface*)(ICollationKey*)this) {
+        *IID = EIID_ICollationKey;
+    }
+    else {
+        return E_INVALID_ARGUMENT;
+    }
+    return NOERROR;
+}
+
 ECode ICUCollationKey::CompareTo(
-    /* [in] */ ICollationKey * other,
-    /* [out] */ Int32 * result)
+    /* [in] */ ICollationKey* other,
+    /* [out] */ Int32* result)
 {
     VALIDATE_NOT_NULL(result);
     // Get the bytes from the other collation key.
     ArrayOf<Byte>* rhsBytes;
-    if (other->Probe(EIID_ICollationKey) != NULL) {
-        rhsBytes = mBytes->Clone();
-    } else {
-        other->ToByteArray(&rhsBytes);
+    if (other != NULL) {
+        other->GetByteArray(&rhsBytes);
     }
 
     if (mBytes == NULL || mBytes->GetLength() == 0) {
@@ -42,7 +82,8 @@ ECode ICUCollationKey::CompareTo(
         }
         *result = -1;
         return NOERROR;
-    } else {
+    }
+    else {
         if (rhsBytes == NULL || rhsBytes->GetLength() == 0) {
             *result = 1;
             return NOERROR;
@@ -74,49 +115,16 @@ ECode ICUCollationKey::CompareTo(
     return NOERROR;
 }
 
-ECode ICUCollationKey::Equals(
-        /* [in] */ IInterface * object,
-        /* [out] */ Boolean * result)
+ECode ICUCollationKey::GetSourceString(
+    /* [out] */ String* sourceString)
 {
-    VALIDATE_NOT_NULL(result);
-    if (object == (IInterface*)this) {
-        *result = TRUE;
-        return NOERROR;
-    }
-    if (object->Probe(EIID_ICollationKey) == NULL) {
-        *result = FALSE;
-        return NOERROR;
-    }
-    Int32 i;
-    CompareTo((ICollationKey*) object, &i);
-    *result = (i == 0) ? TRUE : FALSE;
-    return NOERROR;
+    return CollationKey::GetSourceString(sourceString);
 }
 
-ECode ICUCollationKey::HashCode(
-        /* [out] */ Int32 * value)
+ECode ICUCollationKey::GetByteArray(
+    /* [out, callee] */ ArrayOf<Byte>** array)
 {
-    VALIDATE_NOT_NULL(value);
-    if (hashCode == 0) {
-        if (mBytes != NULL && mBytes->GetLength() != 0) {
-            Int32 len = mBytes->GetLength();
-            Int32 inc = ((len - 32) / 32) + 1;
-            for (Int32 i = 0; i < len;) {
-                hashCode = (hashCode * 37) + (*mBytes)[i];
-                i += inc;
-            }
-        }
-        if (hashCode == 0) {
-            hashCode = 1;
-        }
-    }
-    *value = hashCode;
-    return NOERROR;
-}
-
-ECode ICUCollationKey::ToByteArray(
-        /* [out, callee] */ ArrayOf<Byte> ** array)
-{
+    VALIDATE_NOT_NULL(array);
     if (mBytes != NULL && mBytes->GetLength() == 0) {
         *array = NULL;
         return NOERROR;

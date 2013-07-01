@@ -110,7 +110,7 @@ public:
     //@Override
     CARAPI GetCollationKey(
         /* [in] */ const String& source,
-        /* [out] */ IICUCollationKey ** collationKey);
+        /* [out] */ ICollationKey** collationKey);
 
     /**
      * Compares the specified object with this {@code RuleBasedCollator} and

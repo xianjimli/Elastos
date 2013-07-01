@@ -1,72 +1,110 @@
+
+#include "cmdef.h"
 #include "ICURuleBasedCollator.h"
-#include "CRuleBasedCollator.h"
 #include "ICUCollationElementIterator.h"
+#include "NativeCollation.h"
+#include "ICUCollationKey.h"
+#include <elastos/AutoPtr.h>
+#include <StringBuffer.h>
 
-ICURuleBasedCollator::ICURuleBasedCollator()
+ICURuleBasedCollator::ICURuleBasedCollator(
+    /* [in] */ const String& rules)
+    : mHashcode(0)
 {
-
-}
-
-ECode ICURuleBasedCollator::Init(
-    /* [in] */ String rules)
-{
-    m_hashcode_ = 0;
     if (rules.IsNull()) {
+        assert(0);
         //throw new NullPointerException();
-        return E_NULL_POINTER_EXCEPTION;
     }
-    return NativeCollation::OpenCollatorFromRules(rules, ICollationAttribute_VALUE_OFF,
-            ICollationAttribute_VALUE_DEFAULT_STRENGTH, &m_collator_);
+    NativeCollation::OpenCollatorFromRules(rules, ICollationAttribute_VALUE_OFF,
+            ICollationAttribute_VALUE_DEFAULT_STRENGTH, &mCollator);
 }
 
-ECode ICURuleBasedCollator::Init(
-    /* [in] */ String rules,
+ICURuleBasedCollator::ICURuleBasedCollator(
+    /* [in] */ const String& rules,
     /* [in] */ Int32 strength)
+    : mHashcode(0)
 {
-    m_hashcode_ = 0;
     if (rules.IsNull()) {
+        assert(0);
         //throw new NullPointerException();
-        return E_NULL_POINTER_EXCEPTION;
     }
-    return NativeCollation::OpenCollatorFromRules(rules,
-            ICollationAttribute_VALUE_OFF, strength, &m_collator_);
+    NativeCollation::OpenCollatorFromRules(rules,
+            ICollationAttribute_VALUE_OFF, strength, &mCollator);
 }
 
-ECode ICURuleBasedCollator::Init(
-    /* [in] */ String rules,
+ICURuleBasedCollator::ICURuleBasedCollator(
+    /* [in] */ const String& rules,
     /* [in] */ Int32 normalizationMode,
     /* [in] */ Int32 strength)
+    : mHashcode(0)
 {
-    m_hashcode_ = 0;
     if (rules.IsNull()) {
+        assert(0);
         //throw new NullPointerException();
-        return E_NULL_POINTER_EXCEPTION;
     }
-    return NativeCollation::OpenCollatorFromRules(rules, normalizationMode,
-            strength, &m_collator_);
+    NativeCollation::OpenCollatorFromRules(rules, normalizationMode, strength, &mCollator);
+}
+
+PInterface ICURuleBasedCollator::Probe(
+    /* [in] */ REIID riid)
+{
+    if (riid == EIID_IInterface) {
+        return (PInterface)(IICURuleBasedCollator*)this;
+    }
+    else if (riid == EIID_IICURuleBasedCollator) {
+        return (IICURuleBasedCollator*)this;
+    }
+    else if (riid == EIID_IICUCollator) {
+        return (IICUCollator*)this;
+    }
+    return NULL;
+}
+
+UInt32 ICURuleBasedCollator::AddRef()
+{
+    return ElRefBase::AddRef();
+}
+
+UInt32 ICURuleBasedCollator::Release()
+{
+    return ElRefBase::Release();
+}
+
+ECode ICURuleBasedCollator::GetInterfaceID(
+    /* [in] */ IInterface* object,
+    /* [out] */ InterfaceID* IID)
+{
+    VALIDATE_NOT_NULL(IID);
+
+    if (object == (IInterface*)(ICollationKey*)this) {
+        *IID = EIID_ICollationKey;
+    }
+    else {
+        return E_INVALID_ARGUMENT;
+    }
     return NOERROR;
 }
 
 ECode ICURuleBasedCollator::Clone(
-    /* [out] */ IInterface ** instance)
+    /* [out] */ IInterface** instance)
 {
-    AutoPtr<IRuleBasedCollator> result = NULL;
+    VALIDATE_NOT_NULL(instance);
     Int32 collatoraddress;
-    FAIL_RETURN(NativeCollation::SafeClone(m_collator_, &collatoraddress));
-    ASSERT_SUCCEEDED(CRuleBasedCollator::New(String::FromInt32(collatoraddress),
-            (IRuleBasedCollator**)&result));
+    FAIL_RETURN(NativeCollation::SafeClone(mCollator, &collatoraddress));
+    AutoPtr<IICUCollator> result = (IICUCollator*)new ICURuleBasedCollator(
+            collatoraddress);
     *instance = (IInterface*)result->Probe(EIID_IInterface);
     (*instance)->AddRef();
     return NOERROR;
 }
 
 ECode ICURuleBasedCollator::Compare(
-    /* [in] */ String source,
-    /* [in] */ String target,
+    /* [in] */ const String& source,
+    /* [in] */ const String& target,
     /* [out] */ Int32* value)
 {
     VALIDATE_NOT_NULL(value);
-    *value = NativeCollation::Compare(m_collator_, source, target);
+    *value = NativeCollation::Compare(mCollator, source, target);
     return NOERROR;
 }
 
@@ -74,13 +112,13 @@ ECode ICURuleBasedCollator::GetDecomposition(
     /* [out] */ Int32* decomposition)
 {
     VALIDATE_NOT_NULL(decomposition);
-    return NativeCollation::GetNormalization(m_collator_, decomposition);
+    return NativeCollation::GetNormalization(mCollator, decomposition);
 }
 
 ECode ICURuleBasedCollator::SetDecomposition(
     /* [in] */ Int32 decompositionmode)
 {
-    return NativeCollation::SetAttribute(m_collator_,
+    return NativeCollation::SetAttribute(mCollator,
             ICollationAttribute_NORMALIZATION_MODE, decompositionmode);
 }
 
@@ -88,21 +126,21 @@ ECode ICURuleBasedCollator::GetStrength(
     /* [out] */ Int32 * strength)
 {
     VALIDATE_NOT_NULL(strength);
-    return NativeCollation::GetAttribute(m_collator_,
+    return NativeCollation::GetAttribute(mCollator,
             ICollationAttribute_STRENGTH, strength);
 }
 
 ECode ICURuleBasedCollator::SetStrength(
     /* [in] */ Int32 strength)
 {
-    return NativeCollation::SetAttribute(m_collator_, ICollationAttribute_STRENGTH, strength);
+    return NativeCollation::SetAttribute(mCollator, ICollationAttribute_STRENGTH, strength);
 }
 
 ECode ICURuleBasedCollator::SetAttribute(
     /* [in] */ Int32 type,
     /* [in] */ Int32 value)
 {
-    return NativeCollation::SetAttribute(m_collator_, type, value);
+    return NativeCollation::SetAttribute(mCollator, type, value);
 }
 
 ECode ICURuleBasedCollator::GetAttribute(
@@ -110,23 +148,24 @@ ECode ICURuleBasedCollator::GetAttribute(
     /* [out] */ Int32* attribute)
 {
     VALIDATE_NOT_NULL(attribute);
-    return NativeCollation::GetAttribute(m_collator_, type, attribute);
+    return NativeCollation::GetAttribute(mCollator, type, attribute);
 }
 
 ECode ICURuleBasedCollator::GetCollationKey(
-    /* [in] */ String source,
-    /* [out] */ IICUCollationKey ** instance)
+    /* [in] */ const String& source,
+    /* [out] */ ICollationKey** instance)
 {
     if (source.IsNull()) {
         *instance = NULL;
         return NOERROR;
     }
-    ArrayOf<Byte>* key = NativeCollation::GetSortKey(m_collator_, source);
+    ArrayOf<Byte>* key = NativeCollation::GetSortKey(mCollator, source);
     if (key == NULL) {
         *instance = NULL;
         return NOERROR;
     }
-    CICUCollationKey::New(source, key, instance);
+    *instance = (ICollationKey*)new ICUCollationKey(source, *key);
+    (*instance)->AddRef();
     return NOERROR;
 }
 
@@ -134,35 +173,50 @@ ECode ICURuleBasedCollator::GetRules(
     /* [out] */ String* rules)
 {
     VALIDATE_NOT_NULL(rules);
-    *rules = NativeCollation::GetRules(m_collator_);
+    *rules = NativeCollation::GetRules(mCollator);
     return NOERROR;
 }
 
 ECode ICURuleBasedCollator::GetCollationElementIterator(
-    /* [in] */ String source,
+    /* [in] */ const String& source,
     /* [out] */ IICUCollationElementIterator** coleitr)
 {
+    VALIDATE_NOT_NULL(coleitr);
     AutoPtr<ICollationElementIterator> result;
     Int32 addr;
-    FAIL_RETURN(NativeCollation::GetCollationElementIterator(m_collator_, source, &addr));
+    FAIL_RETURN(NativeCollation::GetCollationElementIterator(mCollator, source, &addr));
     *coleitr = (IICUCollationElementIterator*)new ICUCollationElementIterator(addr);
     (*coleitr)->AddRef();
     return NOERROR;
 }
 
 ECode ICURuleBasedCollator::GetCollationElementIteratorEx(
-    /* [in] */ ICharacterIterator * it,
-    /* [out] */ IICUCollationElementIterator ** collationElementIterator)
+    /* [in] */ ICharacterIterator* it,
+    /* [out] */ IICUCollationElementIterator** coleitr)
 {
     // We only implement the String-based API, so build a string from the iterator.
-    String value = String("");
-    CharacterIteratorToString(it, &value);
-    return GetCollationElementIterator(value, collationElementIterator);
+    return GetCollationElementIterator(CharacterIteratorToString(it), coleitr);
+}
+
+ECode ICURuleBasedCollator::HashCode(
+    /* [out] */ Int32* value)
+{
+    VALIDATE_NOT_NULL(value);
+    *value = 42;
+    return NOERROR;
+}
+
+ECode ICURuleBasedCollator::Equals(
+    /* [in] */ const String& source,
+    /* [in] */ const String& target,
+    /* [out] */ Boolean* result)
+{
+    return ICUCollator::Equals(source, target, result);
 }
 
 ECode ICURuleBasedCollator::EqualsEx(
-    /* [in] */ IInterface * object,
-    /* [out] */ Boolean * result)
+    /* [in] */ IInterface* object,
+    /* [out] */ Boolean* result)
 {
     VALIDATE_NOT_NULL(result);
     if (object == (IInterface*)this) {
@@ -173,10 +227,11 @@ ECode ICURuleBasedCollator::EqualsEx(
         *result = FALSE;
         return NOERROR;
     }
-    AutoPtr<IICURuleBasedCollator> rhs = (IICURuleBasedCollator*) object;
-    String rules = String("");
+    AutoPtr<IICURuleBasedCollator> rhs
+            =(IICURuleBasedCollator*)object->Probe(EIID_IICURuleBasedCollator);
+    String rules;
     GetRules(&rules);
-    String rhs_rules = String("");
+    String rhs_rules;
     rhs->GetRules(&rhs_rules);
 
     Int32 strength, rhs_strength;
@@ -193,43 +248,39 @@ ECode ICURuleBasedCollator::EqualsEx(
     return NOERROR;
 }
 
-ECode ICURuleBasedCollator::Init(
+ICURuleBasedCollator::ICURuleBasedCollator(
     /* [in] */ ILocale* locale)
+    : mHashcode(0)
 {
-    m_hashcode_ = 0;
-    String name = String("");
+    String name;
     locale->GetDisplayName(&name);
-    return NativeCollation::OpenCollator(name, &m_collator_);
+    NativeCollation::OpenCollator(name, &mCollator);
 }
 
 ICURuleBasedCollator::~ICURuleBasedCollator()
 {
     //try {
-        NativeCollation::CloseCollator(m_collator_);
+    NativeCollation::CloseCollator(mCollator);
     //} finally {
     //    super.finalize();
     //}
 }
 
-ECode ICURuleBasedCollator::CharacterIteratorToString(
-    /* [in] */ ICharacterIterator* it,
-    /* [out] */ String* value)
+String ICURuleBasedCollator::CharacterIteratorToString(
+    /* [in] */ ICharacterIterator* it)
 {
-    VALIDATE_NOT_NULL(value);
-    StringBuffer *result = new StringBuffer("");
+    StringBuffer result;
     Char32 ch;
     it->Current(&ch);
-    while(ch != IBreakIterator_DONE) {
-        (*result) += ch;
+    while(ch != ICharacterIterator_DONE) {
+        result += ch;
         it->Next(&ch);
     }
-    *value = result->Substring(0, result->GetLength());
-    return NOERROR;
+    return result.ToString();
 }
 
 ICURuleBasedCollator::ICURuleBasedCollator(
     /* [in] */ Int32 addr)
-{
-    m_hashcode_ = 0;
-    m_collator_ = addr;
-}
+    : mHashcode(0)
+    , mCollator(addr)
+{ }

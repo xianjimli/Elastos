@@ -101,7 +101,7 @@ module {
 
         GetCollationKey(
             [in] String source,
-            [out] IICUCollationKey** instance);
+            [out] ICollationKey** instance);
 
         HashCode(
             [out] Int32* value);

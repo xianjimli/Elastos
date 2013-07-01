@@ -1,6 +1,6 @@
 
 #include "RuleBasedCollator.h"
-#include "CICURuleBasedCollator.h"
+#include "ICURuleBasedCollator.h"
 #include "CCollationElementIterator.h"
 
 ECode RuleBasedCollator::Init(
@@ -20,7 +20,7 @@ ECode RuleBasedCollator::Init(
         return E_PARSE_EXCEPTION;;
     }
     //try {
-    FAIL_RETURN(CICURuleBasedCollator::New(rules, (IICURuleBasedCollator**)&(mICUColl)));
+    mICUColl = (IICUCollator*)new ICURuleBasedCollator(rules);
     mICUColl->SetDecomposition(IICUCollator_CANONICAL_DECOMPOSITION);
     //} catch (Exception e) {
     //    if (e instanceof ParseException) {
@@ -91,7 +91,7 @@ ECode RuleBasedCollator::CompareEx(
 
 ECode RuleBasedCollator::GetCollationKey(
     /* [in] */ const String& source,
-    /* [out] */ IICUCollationKey ** collationKey)
+    /* [out] */ ICollationKey ** collationKey)
 {
     return mICUColl->GetCollationKey(source, collationKey);
 }

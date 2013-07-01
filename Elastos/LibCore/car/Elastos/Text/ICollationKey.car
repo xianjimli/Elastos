@@ -16,7 +16,7 @@ module {
         /**
          * Returns this collation key as a byte array.
          */
-        ToByteArray(
+        GetByteArray(
             [out, callee] ArrayOf<Byte>* array);
     }
 }

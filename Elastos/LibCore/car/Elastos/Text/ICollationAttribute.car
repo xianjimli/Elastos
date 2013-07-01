@@ -1,5 +1,4 @@
 module {
-
     // Values from the native UColAttributeValue enum.
     const ICollationAttribute_VALUE_DEFAULT = -1;
     const ICollationAttribute_VALUE_PRIMARY = 0;
@@ -25,8 +24,4 @@ module {
     const ICollationAttribute_NORMALIZATION_MODE = 4;
     const ICollationAttribute_DECOMPOSITION_MODE = 4;
     const ICollationAttribute_STRENGTH = 5;
-
-    interface ICollationAttribute {
-
-    }
 }
