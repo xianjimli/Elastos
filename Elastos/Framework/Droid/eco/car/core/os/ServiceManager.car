@@ -1,15 +1,29 @@
 
 module
 {
+	/**
+	 * Basic interface for finding and publishing system services.
+	 */
     interface IServiceManager {
+        /**
+     	 * Place a new service called name into the service manager.
+     	 */
         AddService(
             [in] String name,
             [in] IInterface* service);
 
+	    /**
+	     * Retrieve an existing service called name from the
+	     * service manager.  Blocks for a few seconds waiting for it to be
+	     * published if it does not already exist.
+	     */
         GetService(
             [in] String name,
             [out] IInterface** service);
 
+        /**
+     	 * Remove a service called name from the service manager.
+     	 */
         RemoveService(
             [in] String name);
     }
